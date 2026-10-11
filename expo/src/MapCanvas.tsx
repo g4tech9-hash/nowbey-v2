@@ -115,6 +115,7 @@ export default function MapCanvas({ pins = [], pick, onPick, onPinPress, center,
 
   return (
     <View style={[{ overflow: "hidden", backgroundColor: color.panel2 }, style]}>
+      {/* @ts-ignore */}
       <WebView
         ref={ref}
         originWhitelist={["*"]}
@@ -125,8 +126,7 @@ export default function MapCanvas({ pins = [], pick, onPick, onPinPress, center,
         scrollEnabled={false}
         nestedScrollEnabled
         setSupportMultipleWindows={false}
-        // The map page never navigates; anything that tries to is opened in the phone's browser instead.
-        onShouldStartLoadWithRequest={(req) => {
+        onShouldStartLoadWithRequest={(req: any) => {
           if (req.url === "about:blank" || req.url.startsWith("https://localhost") || req.url.startsWith("data:")) return true;
           if (req.isTopFrame !== false) void Linking.openURL(req.url).catch(() => undefined);
           return false;
