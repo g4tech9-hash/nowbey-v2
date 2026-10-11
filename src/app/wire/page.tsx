@@ -18,9 +18,6 @@ import DOMPurify from "dompurify";
 
 export const dynamic = "force-dynamic";
 
-
-export const dynamic = "force-dynamic";
-
 export default async function WirePage() {
   after(() => refreshIfStale());
   const [rows, lastRun, viewer] = await Promise.all([
