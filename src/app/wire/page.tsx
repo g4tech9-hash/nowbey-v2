@@ -14,6 +14,10 @@ import { getViewer } from "@/lib/viewer";
 import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
+import DOMPurify from "dompurify";
+
+export const dynamic = "force-dynamic";
+
 
 export const dynamic = "force-dynamic";
 
