@@ -20,7 +20,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#03121b"
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -40,8 +44,18 @@
     "scheme": "nowbey",
     "backgroundColor": "#03121b",
     "extra": {
-      "apiBase": "https://nowbey-v2.vercel.app"
+      "apiBase": "https://nowbey-v2.vercel.app",
+      "router": {},
+      "eas": {
+        "projectId": "d686c91f-52aa-4ca5-9b40-056bb4646560"
+      }
     },
-    "icon": "./assets/icon.png"
+    "icon": "./assets/icon.png",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d686c91f-52aa-4ca5-9b40-056bb4646560"
+    }
   }
 }
