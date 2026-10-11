@@ -47,15 +47,14 @@
       "apiBase": "https://nowbey-v2.vercel.app",
       "router": {},
       "eas": {
-        "projectId": "d686c91f-52aa-4ca5-9b40-056bb4646560"
+        "projectId": "10e4a677-274e-43b1-99e6-33a2b32ccd23"
       }
     },
     "icon": "./assets/icon.png",
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "updates": {
-      "url": "https://u.expo.dev/d686c91f-52aa-4ca5-9b40-056bb4646560"
-    }
+    "updates": {},
+    "owner": "oasistech242"
   }
 }
