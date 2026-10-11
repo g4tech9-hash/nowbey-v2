@@ -3,10 +3,10 @@ workflows:
   android-apk:
     name: Android APK Build
     max_build_duration: 60
-    instance_type: mac_mini_m1 # Using a Mac mini for better Android build stability
+    instance_type: mac_mini_m1
     environment:
       groups:
-        - expo_env # You can create a group in Codemagic settings for your env vars
+        - expo_env
       vars:
         EXPO_PUBLIC_API_BASE: "https://nowbey-v2.vercel.app"
     scripts:
@@ -17,7 +17,7 @@ workflows:
       - name: Expo Prebuild
         script: |
           cd expo
-          npx expo prebuild --platform android
+          npx expo prebuild --platform android --no-install
       - name: Build Android APK
         script: |
           cd expo/android
@@ -25,4 +25,3 @@ workflows:
           ./gradlew assembleRelease
     artifacts:
       - path: expo/android/app/build/outputs/apk/release/app-release.apk
-        name: nowbey-apk.apk
