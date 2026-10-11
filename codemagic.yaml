@@ -23,5 +23,3 @@ workflows:
           cd expo/android
           chmod +x gradlew
           ./gradlew assembleRelease
-    artifacts:
-      - path: expo/android/app/build/outputs/apk/release/app-release.apk
