@@ -1,0 +1,26 @@
+# dependencies and build output
+node_modules
+.next
+out
+tsconfig.tsbuildinfo
+
+# secrets and local data. .data holds the generated sign-in secret.
+.env
+.env.local
+.env.*.local
+.data
+
+# logs and editor files
+*.log
+.DS_Store
+
+# the mobile app has its own dependencies
+expo/node_modules
+expo/.expo
+expo/dist
+expo/web-build
+expo/ios
+expo/android
+.neon
+
+.vercel

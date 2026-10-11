@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "NowBey",
+    "slug": "nowbey",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.nowbey.mobile",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "app.nowbey.mobile",
+      "versionCode": 1,
+      "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#03121b"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "NowBey uses your location to drop a report pin on the right spot."
+        }
+      ]
+    ],
+    "scheme": "nowbey",
+    "backgroundColor": "#03121b",
+    "extra": {
+      "apiBase": "https://nowbey-v2.vercel.app"
+    },
+    "icon": "./assets/icon.png"
+  }
+}

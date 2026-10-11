@@ -1,0 +1,85 @@
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { readToken, sessionToken } from "@/lib/auth";
+import { entitledTier, isInterval, type Interval, type TierKey } from "@/lib/tiers";
+import { demoPlansAllowed } from "@/lib/billing";
+import { envAdminHandles } from "@/lib/handles";
+
+export type Viewer = {
+  signedIn: boolean;
+  userId: string | null;
+  handle: string | null;
+  displayName: string | null;
+  email: string | null;
+  emailVerified: boolean;
+  parish: string | null;
+  role: string | null;
+  memberSince: Date | null;
+  tier: TierKey | null;
+  interval: Interval | null;
+  /** The plan's state: active, sandbox (demo), comp (complimentary), past_due or canceling. */
+  status: string | null;
+  renewsAt: Date | null;
+  adFree: boolean;
+  verified: boolean;
+  /** Can manage members and settings. */
+  isAdmin: boolean;
+  /** Can moderate reports and the news wire. Every admin is also an editor. */
+  isEditor: boolean;
+  hasSubscription: boolean;
+};
+
+export const ANON: Viewer = {
+  signedIn: false,
+  userId: null,
+  handle: null,
+  displayName: null,
+  email: null,
+  emailVerified: false,
+  parish: null,
+  role: null,
+  memberSince: null,
+  tier: null,
+  interval: null,
+  status: null,
+  renewsAt: null,
+  adFree: false,
+  verified: false,
+  isAdmin: false,
+  isEditor: false,
+  hasSubscription: false,
+};
+
+/**
+ * Who is making this request, and what plan are they on. Works for the website (cookie) and the mobile app
+ * (bearer token). A deleted or suspended member, or a session that was signed out remotely, counts as signed out.
+ */
+export async function getViewer(): Promise<Viewer> {
+  const session = readToken(await sessionToken());
+  if (!session) return ANON;
+  const [u] = await db.select().from(users).where(eq(users.id, session.uid)).limit(1);
+  if (!u || u.status === "suspended" || u.sessionVersion !== session.v) return ANON;
+  const tier = entitledTier(u, demoPlansAllowed());
+  const isAdmin = u.role === "admin" || envAdminHandles().includes(u.handle.toLowerCase());
+  return {
+    signedIn: true,
+    userId: u.id,
+    handle: u.handle,
+    displayName: u.displayName,
+    email: u.email,
+    emailVerified: Boolean(u.emailVerifiedAt),
+    parish: u.parish,
+    role: u.role,
+    memberSince: u.createdAt,
+    tier,
+    interval: isInterval(u.planInterval) ? u.planInterval : null,
+    status: tier ? (u.planStatus ?? "active") : null,
+    renewsAt: u.planRenewsAt,
+    adFree: tier !== null,
+    verified: tier === "admiral",
+    isAdmin,
+    isEditor: isAdmin || u.role === "editor",
+    hasSubscription: Boolean(u.stripeSubscriptionId),
+  };
+}
