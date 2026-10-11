@@ -38,11 +38,16 @@ jobs:
         run: |
           yes | sdkmanager --licenses || echo "Licenses already accepted"
 
-      - name: Build Android APK
+      - name: Build Android APK (Low Memory Mode)
         run: |
           cd expo/android
           chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon --info
+          # We set limited heap size and disable the daemon to prevent OOM hangs on GitHub runners
+          ./gradlew assembleRelease \
+            -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m" \
+            --no-daemon \
+            --stacktrace \
+            --info
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
