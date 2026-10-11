@@ -34,11 +34,15 @@ jobs:
           cd expo
           npx expo prebuild --platform android --no-install
 
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | sdkmanager --licenses || echo "Licenses already accepted"
+
       - name: Build Android APK
         run: |
           cd expo/android
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --no-daemon --info
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
