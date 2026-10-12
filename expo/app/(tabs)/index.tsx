@@ -54,6 +54,8 @@ export default function Feed() {
   useFocusEffect(
     useCallback(() => {
       void load();
+      const interval = setInterval(load, 60000);
+      return () => clearInterval(interval);
     }, [load]),
   );
 

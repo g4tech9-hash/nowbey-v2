@@ -14,7 +14,7 @@ import { getViewer } from "@/lib/viewer";
 import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
-import DOMPurify from "dompurify";
+import { sanitizeArticleContent } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -86,7 +86,7 @@ export default async function WirePage() {
                   {n.summary ? (
                     <p
                       className="mt-1.5 text-[13px] leading-relaxed text-[#a9cdc9]"
-                      dangerouslySetInnerHTML={{ __html: n.summary }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(n.summary) }}
                     />
                   ) : null}
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-[11.5px]">

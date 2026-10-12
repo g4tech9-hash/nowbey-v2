@@ -3,7 +3,7 @@ import { Alert, FlatList, Linking, Pressable, RefreshControl, Text, View } from 
 import { useFocusEffect } from "expo-router";
 import { API_BASE, api, errMsg, type NewsItem } from "../../src/api";
 import { categoryOf, timeAgo } from "../../src/geo";
-import { color } from "../../src/theme";
+import { sanitizeArticleContent } from "../../src/lib/sanitize";
 import { Btn, Card, CategoryBadge, Field, t, useTopInset } from "../../src/ui";
 
 export default function Wire() {
@@ -33,6 +33,8 @@ export default function Wire() {
   useFocusEffect(
     useCallback(() => {
       void load();
+      const interval = setInterval(load, 60000);
+      return () => clearInterval(interval);
     }, [load]),
   );
 
@@ -112,7 +114,7 @@ export default function Wire() {
             </Text>
             {item.summary ? (
               <Text style={[t.muted, { marginTop: 4 }]} numberOfLines={2}>
-                {item.summary}
+                {sanitizeArticleContent(item.summary)}
               </Text>
             ) : null}
             <Text style={[t.subtle, { marginTop: 8 }]}>

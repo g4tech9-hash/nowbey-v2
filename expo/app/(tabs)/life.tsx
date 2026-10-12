@@ -6,7 +6,7 @@ import { API_BASE, api, errMsg, type LifePost } from "../../src/api";
 import { LIFE_KINDS, REACTIONS, timeAgo, topReactions } from "../../src/geo";
 import { useSession } from "../../src/session";
 import { color } from "../../src/theme";
-import { BadgeMark, Btn, Card, Pill, t, useTopInset } from "../../src/ui";
+import { sanitizeArticleContent } from "../../src/lib/sanitize";
 
 const kindOf = (k: string) => LIFE_KINDS[k] ?? LIFE_KINDS.tip;
 
@@ -132,7 +132,7 @@ export default function Life() {
                 ) : null}
                 <Text style={[t.h3, { marginTop: 4 }]}>{p.title}</Text>
                 <Text style={[t.muted, { marginTop: 4 }]} numberOfLines={3}>
-                  {p.body}
+                  {sanitizeArticleContent(p.body)}
                 </Text>
                 <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                   <Text style={t.subtle}>@{p.authorHandle}</Text>
