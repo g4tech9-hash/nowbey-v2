@@ -11,7 +11,7 @@ import { badgesFor } from "@/lib/badges";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { KINDS, isKind, listPosts } from "@/lib/life";
-import { DAYS, DAY_LABELS, parseHours } from "@/lib/places";
+import { DAYS, DAY_LABELS, hoursNote, parseHours } from "@/lib/places";
 import { getViewer } from "@/lib/viewer";
 import { UUID_RE } from "@/lib/validate";
 
@@ -53,6 +53,14 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
 
   const kind = isKind(place.kind) ? KINDS[place.kind] : KINDS.tip;
   const hours = parseHours(place.hours);
+  const note = hoursNote(place.hours);
+  let website: string | null = null;
+  try {
+    const links = JSON.parse(place.socialLinks ?? "null") as { website?: unknown } | null;
+    if (links && typeof links.website === "string" && links.website.trim()) website = links.website.trim();
+  } catch {
+    website = null;
+  }
   const menuPhotos = photos.filter((p) => p.kind === "menu");
   const generalPhotos = photos.filter((p) => p.kind === "photo");
   const menuLines = (place.menuText ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
@@ -138,6 +146,9 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
         <aside className="space-y-4">
           <div className="glass rounded-2xl p-4">
             <h2 className="display text-[15px] font-bold text-sand-100">Opening hours</h2>
+            {note && Object.keys(hours).length === 0 ? (
+              <p className="mt-2 text-[13px] font-bold text-sun-400">{note}</p>
+            ) : null}
             <ul className="mt-2 space-y-1 text-[13px]">
               {DAYS.map((d) => (
                 <li key={d} className="flex justify-between gap-3">
@@ -151,6 +162,20 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
           <div className="glass rounded-2xl p-4 text-[13px]">
             <h2 className="display text-[15px] font-bold text-sand-100">Address</h2>
             <p className="mt-2 text-[#cfeee9]">{place.address ?? "Not added yet."}</p>
+            {place.contactNumber ? (
+              <p className="mt-1.5">
+                <a href={`tel:${place.contactNumber.replace(/[^+\d]/g, "")}`} className="font-bold text-tide-300 underline">
+                  {place.contactNumber}
+                </a>
+              </p>
+            ) : null}
+            {website ? (
+              <p className="mt-1.5">
+                <a href={website} target="_blank" rel="noopener noreferrer" className="font-bold text-tide-300 underline">
+                  Website
+                </a>
+              </p>
+            ) : null}
             <a href={directions} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-bold text-tide-300 underline">
               Get directions
             </a>
