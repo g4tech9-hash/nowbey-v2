@@ -1,10 +1,1 @@
-{
-  "permissions": {
-    "deny": [
-      "Bash(eas build:*)",
-      "Bash(eas update:*)",
-      "Bash(eas submit:*)",
-      "Bash(npx eas:*)"
-    ]
-  }
-}
+{}
