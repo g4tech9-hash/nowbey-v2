@@ -18,7 +18,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
   const kind = isKind(kindIn) ? kindIn : null;
   const parishIn = first(sp.parish);
   const parish = parishIn && (PARISHES as readonly string[]).includes(parishIn) ? parishIn : null;
-  const [places, viewer] = await Promise.all([listPlaces({ kind, parish, limit: 1000 }), getViewer()]);
+  const [places, viewer] = await Promise.all([listPlaces({ kind, parish, limit: 10000 }), getViewer()]);
   const params = { kind: kind ?? undefined, parish: parish ?? undefined };
 
   return (
@@ -95,6 +95,23 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                         <span aria-hidden="true">·</span>
                         <span>{p.photoCount} {p.photoCount === 1 ? "photo" : "photos"}</span>
                       </>
+                    ) : null}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#8fb9b6]">
+                    {p.hours ? (
+                      <span className="flex items-center gap-1">
+                        <span className="opacity-50">🕒</span> {p.hours}
+                      </span>
+                    ) : null}
+                    {p.phone ? (
+                      <span className="flex items-center gap-1">
+                        <span className="opacity-50">📞</span> {p.phone}
+                      </span>
+                    ) : null}
+                    {p.website ? (
+                      <a href={p.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-tide-300 hover:underline">
+                        <span className="opacity-50">🌐</span> Website
+                      </a>
                     ) : null}
                   </div>
                 </article>

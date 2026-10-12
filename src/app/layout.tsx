@@ -37,7 +37,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="en" className={`${sora.variable} ${manrope.variable}`} data-theme={settings.theme} suppressHydrationWarning>
       <head>{settings.splash ? <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} /> : null}</head>
       <body className="min-h-screen bg-abyss-950 text-[#e8f6f4] antialiased">
-        <LiveTicker />
         {settings.theme === "island" ? <SceneBackdrop /> : null}
         {settings.splash ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}
         <AppShell handle={viewer.handle}>
