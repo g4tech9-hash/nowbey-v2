@@ -5,8 +5,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { API_BASE, api, errMsg, type LifePost } from "../../src/api";
 import { LIFE_KINDS, REACTIONS, timeAgo, topReactions } from "../../src/geo";
 import { useSession } from "../../src/session";
-import { color } from "../../src/theme";
-import { sanitizeArticleContent } from "../../src/lib/sanitize";
+import { color, t, Card, Btn, Pill, BadgeMark, useTopInset } from "../../src/ui";
+import { sanitizeArticleContent } from "../../src/sanitize";
 
 const kindOf = (k: string) => LIFE_KINDS[k] ?? LIFE_KINDS.tip;
 
