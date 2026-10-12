@@ -92,6 +92,8 @@ CREATE TABLE IF NOT EXISTS alert_subscriptions (
   parishes text NOT NULL DEFAULT 'New Providence',
   categories text NOT NULL DEFAULT '',
   radius_km integer NOT NULL DEFAULT 12,
+  lat double precision,
+  lng double precision,
   active boolean NOT NULL DEFAULT true,
   verified boolean NOT NULL DEFAULT false,
   token text,

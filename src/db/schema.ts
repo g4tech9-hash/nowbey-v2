@@ -136,6 +136,9 @@ export const alertSubscriptions = pgTable(
   parishes: text("parishes").notNull().default("New Providence"),
   categories: text("categories").notNull().default(""),
   radiusKm: integer("radius_km").notNull().default(12),
+  /** Optional geofence centre. Null means island-wide matching (the old behaviour). */
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
   active: boolean("active").notNull().default(true),
   /** Alerts only go out after the owner clicks the link in the confirmation email. */
   verified: boolean("verified").notNull().default(false),
