@@ -68,6 +68,7 @@ export async function GET(request: Request) {
         if (!row.imageUrls && imageUrls) patch.imageUrls = imageUrls;
         if (row.lat === null && lat !== null) patch.lat = lat;
         if (row.lng === null && lng !== null) patch.lng = lng;
+        if ((row.parish === "Unknown" || !row.parish) && parish !== "Unknown") patch.parish = parish;
         if (Object.keys(patch).length) {
           await db.update(places).set(patch).where(eq(places.id, row.id));
           updatedCount++;
