@@ -1,16 +1,20 @@
 import { db } from "@/db";
 import { siteSettings } from "@/db/schema";
-import { DEFAULT_THEME, isThemeKey, type ThemeKey } from "@/lib/themes";
+import { DEFAULT_MODE, DEFAULT_THEME, isModeKey, isThemeKey, type ModeKey, type ThemeKey } from "@/lib/themes";
 
 export type SiteSettings = {
   /** The look in use right now. */
   theme: ThemeKey;
+  /** The default brightness for visitors who have not picked one. */
+  mode: ModeKey;
   /** Whether the opening splash screen shows. It only ever shows in the Island look. */
   splash: boolean;
   /** What the admin chose for the splash, even while the Classic look hides it. */
   splashPref: boolean;
   /** true when NOWBEY_THEME in the server settings is forcing the look. */
   themeLocked: boolean;
+  /** true when NOWBEY_MODE in the server settings is forcing the brightness. */
+  modeLocked: boolean;
   /** true when NOWBEY_SPLASH in the server settings is forcing the splash. */
   splashLocked: boolean;
 };
@@ -46,14 +50,18 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   const themeLocked = isThemeKey(envTheme);
   const theme: ThemeKey = isThemeKey(envTheme) ? envTheme : isThemeKey(rows.theme) ? rows.theme : DEFAULT_THEME;
 
+  const envMode = process.env.NOWBEY_MODE?.trim().toLowerCase();
+  const modeLocked = isModeKey(envMode);
+  const mode: ModeKey = isModeKey(envMode) ? envMode : isModeKey(rows.mode) ? rows.mode : DEFAULT_MODE;
+
   const envSplash = process.env.NOWBEY_SPLASH?.trim().toLowerCase();
   const splashLocked = envSplash === "on" || envSplash === "off";
   const splashPref = splashLocked ? envSplash === "on" : rows.splash !== "off";
 
-  return { theme, splash: theme === "island" && splashPref, splashPref, themeLocked, splashLocked };
+  return { theme, mode, splash: theme === "island" && splashPref, splashPref, themeLocked, modeLocked, splashLocked };
 }
 
-export async function saveSetting(key: "theme" | "splash", value: string, by: string) {
+export async function saveSetting(key: "theme" | "mode" | "splash", value: string, by: string) {
   await db
     .insert(siteSettings)
     .values({ key, value, updatedBy: by })

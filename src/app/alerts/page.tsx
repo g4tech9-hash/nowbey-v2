@@ -88,6 +88,11 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
                     <span className="font-mono text-[11.5px] text-[#cfeee9]">{s.target}</span>
                     <span className="text-[#8fb9b6]">{s.parishes.split(",").join(" · ")}</span>
                     <span className="text-[#6e97a0]">
+                      {typeof s.lat === "number" && typeof s.lng === "number"
+                        ? `within ${s.radiusKm ?? 12} km of you`
+                        : "whole island"}
+                    </span>
+                    <span className="text-[#6e97a0]">
                       {s.categories
                         ? s.categories
                             .split(",")
@@ -121,7 +126,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
         <div className="glass rounded-2xl p-3.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">
           <p className="display text-[14.5px] font-bold text-sand-100">How a report reaches you</p>
           <Step n="1" title="Filed">A neighbour or the news wire puts a pin on the map with a category.</Step>
-          <Step n="2" title="Matched">We check it against the islands and categories you picked.</Step>
+          <Step n="2" title="Matched">We check it against the islands and categories you picked — and, when you shared a location, only reports inside the kilometres you chose.</Step>
           <Step n="3" title="Sent">An email arrives with the street, how serious it is, and a link to the live report. You get at most one every three minutes.</Step>
         </div>
 

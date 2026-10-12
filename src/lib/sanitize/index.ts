@@ -1,24 +1,25 @@
+import DOMPurify from "isomorphic-dompurify";
+
+/**
+ * Cleans low-trust RSS article summaries before they are rendered with
+ * dangerouslySetInnerHTML. DOMPurify does the real work (event handlers,
+ * javascript: URLs, SVG/math vectors, style expressions); the raw-JS embed
+ * pattern our feeds sometimes carry is stripped first.
+ */
 export function sanitizeArticleContent(text: string): string {
   if (!text) return "";
-  
-  // 1. Remove <script> tags and their contents
-  let sanitized = text.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
-  
-  // 2. Remove inline event handlers (on*="...")
-  sanitized = sanitized.replace(/\s+on\w+="[^"]*"/gim, "");
-  sanitized = sanitized.replace(/\s+on\w+='[^']*'/gim, "");
-  
-  // 3. Remove javascript: pseudo-protocols
-  sanitized = sanitized.replace(/href="javascript:[^"]*"/gim, 'href="#"');
-  
-  // 4. Remove raw JS embed strings like smb('loadExternalVideo', ...)
-  // This targets the specific pattern mentioned in the request
-  sanitized = sanitized.replace(/smb\(['"].*?['"]\s*,\s*['"].*?['"].*?\);?/gim, "");
-  
-  // 5. Remove HTML tags that can be used for embeds if they aren't explicitly allowed
-  // We want to keep basic formatting but remove <iframe>, <embed>, <object>
-  sanitized = sanitized.replace(/<(iframe|embed|object)\b[^>]*>([\s\S]*?)<\/\1>/gim, "");
-  sanitized = sanitized.replace(/<(iframe|embed|object)\b[^>]*\/?>/gim, "");
-  
-  return sanitized.trim();
+
+  // Raw JS embed strings some feeds carry, e.g. smb('loadExternalVideo', ...).
+  const pre = text.replace(/smb\(['"].*?['"]\s*,\s*['"].*?['"].*?\);?/gim, "");
+
+  try {
+    return DOMPurify.sanitize(pre, {
+      ALLOWED_TAGS: ["p", "br", "b", "i", "em", "strong", "u", "a", "ul", "ol", "li", "blockquote"],
+      ALLOWED_ATTR: ["href", "title", "target", "rel"],
+      ALLOW_DATA_ATTR: false,
+    }).trim();
+  } catch {
+    // If the sanitizer itself ever fails, fail closed: plain text, never raw HTML.
+    return pre.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  }
 }

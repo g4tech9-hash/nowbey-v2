@@ -8,6 +8,12 @@ export function clampInt(raw: string | null | undefined, fallback: number, min: 
   return Math.min(max, Math.max(min, n));
 }
 
+/** A decimal from a JSON body (or null when missing/invalid). Never throws, never returns NaN. */
+export function numOrNull(value: unknown): number | null {
+  const n = typeof value === "number" ? value : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN;
+  return Number.isFinite(n) ? n : null;
+}
+
 /**
  * Characters that have no place in text a person typed: the NUL byte (which Postgres refuses outright, turning a
  * stray character into a server error), the other control characters except tab and line breaks, DEL, and the

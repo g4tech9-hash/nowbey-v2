@@ -23,6 +23,30 @@ export function isThemeKey(v: unknown): v is ThemeKey {
 }
 
 /**
+ * Light vs dark. This is orthogonal to the look above: Island/Classic picks
+ * photos and layout flavour, mode picks the brightness. Dark is the original
+ * NowBey design; light reuses the same tokens with light values.
+ */
+export const MODES = {
+  dark: {
+    label: "Dark",
+    blurb: "The original deep-teal night look.",
+  },
+  light: {
+    label: "Light",
+    blurb: "Bright sand-and-lagoon look for daylight use.",
+  },
+} as const;
+
+export type ModeKey = keyof typeof MODES;
+export const MODE_KEYS = Object.keys(MODES) as ModeKey[];
+export const DEFAULT_MODE: ModeKey = "dark";
+
+export function isModeKey(v: unknown): v is ModeKey {
+  return typeof v === "string" && Object.prototype.hasOwnProperty.call(MODES, v);
+}
+
+/**
  * The photos, kept in /public/scenes. To use your own, replace a file with another JPEG of the same
  * name (landscape, about 2000px wide and under 500 KB works well). Nothing else needs to change.
  */

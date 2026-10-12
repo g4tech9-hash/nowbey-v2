@@ -17,6 +17,7 @@ import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { sanitizeArticleContent } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "News wire" };
 
 export default async function WirePage() {
   after(() => refreshIfStale());

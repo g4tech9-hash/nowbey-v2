@@ -499,3 +499,95 @@ html[data-splash-seen] #nb-splash {
     stroke-dashoffset: 0;
   }
 }
+
+/* =====================================================================
+   LIGHT MODE
+   Same tokens, light values. The visitor toggle sets
+   <html data-mode="light"> (see ModeToggle + MODE_BOOT in layout.tsx);
+   the admin default comes from site_settings.mode / NOWBEY_MODE.
+   ===================================================================== */
+html[data-mode="light"] {
+  --color-abyss-950: #f4ede0;
+  --color-abyss-900: #fdf9f0;
+  --color-abyss-800: #efe6d2;
+  --color-abyss-700: #e0d1b4;
+  --color-abyss-600: #b9a67f;
+  --color-tide-500: #00897b;
+  --color-tide-400: #00796b;
+  --color-tide-300: #00695c;
+  --color-conch-500: #d84a35;
+  --color-conch-400: #b53a28;
+  --color-sun-500: #9a6b00;
+  --color-sun-400: #7a5500;
+  --color-sand-100: #143038;
+  --color-rum-500: #8a5a2b;
+}
+html[data-mode="light"],
+html[data-mode="light"] body {
+  background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 137, 123, 0.12), transparent 60%),
+    radial-gradient(900px 500px at 5% 0%, rgba(216, 74, 53, 0.1), transparent 55%), var(--color-abyss-950);
+  color: #143038;
+}
+html[data-mode="light"] body {
+  color: #143038;
+}
+html[data-mode="light"] ::selection {
+  background: var(--color-tide-500);
+  color: #fffdf4;
+}
+html[data-mode="light"] .glass {
+  background: linear-gradient(180deg, rgba(255, 253, 244, 0.85), rgba(239, 230, 210, 0.9));
+  border-color: rgba(0, 105, 92, 0.18);
+}
+html[data-mode="light"] .hairline {
+  border-color: rgba(20, 48, 56, 0.14);
+}
+html[data-mode="light"] .grain::before {
+  opacity: 0.04;
+  background-image: radial-gradient(rgba(20, 48, 56, 0.4) 1px, transparent 1px);
+}
+/* Hardcoded dark-ink utilities need explicit light counterparts. */
+html[data-mode="light"] .text-sand-100 {
+  color: var(--color-sand-100) !important;
+}
+html[data-mode="light"] .text-tide-300,
+html[data-mode="light"] .text-tide-400 {
+  color: var(--color-tide-300) !important;
+}
+html[data-mode="light"] .nb-tagline {
+  color: var(--color-sun-400) !important;
+}
+/* Muted body copy that was hardcoded for dark. */
+html[data-mode="light"] :is(.text-\[\#a9cdc9\], .text-\[\#8fb9b6\], .text-\[\#6e97a0\], .text-\[\#bfe4e0\], .text-\[\#cfeee9\], .text-\[\#d6f5f1\], .text-\[\#e8f6f4\], .text-\[\#4f7a83\]) {
+  color: #40616b !important;
+}
+/* Leaflet controls were styled for night. */
+html[data-mode="light"] .leaflet-container {
+  background: #e8dfc9;
+}
+html[data-mode="light"] .leaflet-control-attribution {
+  background: rgba(253, 249, 240, 0.88) !important;
+  color: #5a737b !important;
+}
+html[data-mode="light"] .leaflet-bar a,
+html[data-mode="light"] .leaflet-control-zoom a {
+  background: rgba(253, 249, 240, 0.95) !important;
+  color: #143038 !important;
+  border-color: rgba(20, 48, 56, 0.12) !important;
+}
+html[data-mode="light"] .leaflet-popup-content-wrapper,
+html[data-mode="light"] .leaflet-popup-tip {
+  background: rgba(253, 249, 240, 0.98) !important;
+  color: #143038 !important;
+}
+html[data-mode="light"] .leaflet-popup-close-button {
+  color: #5a737b !important;
+}
+/* Photo veils stay readable in light mode without going full night. */
+html[data-mode="light"] .nb-backdrop-veil {
+  background: linear-gradient(180deg, rgba(244, 237, 224, 0.55) 0%, rgba(244, 237, 224, 0.78) 38%, rgba(244, 237, 224, 0.94) 100%),
+    radial-gradient(1000px 520px at 85% -10%, rgba(0, 137, 123, 0.12), transparent 60%);
+}
+html[data-mode="light"] .nb-pagescene-veil {
+  background: linear-gradient(100deg, rgba(244, 237, 224, 0.94) 0%, rgba(244, 237, 224, 0.72) 52%, rgba(244, 237, 224, 0.35) 100%);
+}

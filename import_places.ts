@@ -1,5 +1,5 @@
-import { db } from "./src/db/index.ts";
-import { places } from "./src/db/schema.ts";
+import { db } from "./src/db/index";
+import { places } from "./src/db/schema";
 import fs from "fs";
 import path from "path";
 
@@ -34,7 +34,7 @@ async function importPlaces() {
 }
 
 import("drizzle-orm").then(() => import("dotenv").then(() => {
-  import("./src/db/index.ts").then(m => {
+  import("./src/db/index").then(m => {
     // Since we are in a script, we might need a custom runner or just use ts-node
   });
 }));

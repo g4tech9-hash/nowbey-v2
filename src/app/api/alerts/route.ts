@@ -3,12 +3,12 @@ import { randomBytes } from "node:crypto";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSubscriptions } from "@/db/schema";
-import { CATEGORY_KEYS, PARISHES } from "@/lib/geo";
+import { CATEGORY_KEYS, PARISHES, inBahamas } from "@/lib/geo";
 import { getViewer } from "@/lib/viewer";
 import { publicBase } from "@/lib/billing";
 import { emailButton, emailLayout, sendMail } from "@/lib/mail";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
-import { EMAIL_RE, text, readJson, dbInt } from "@/lib/validate";
+import { EMAIL_RE, clampInt, numOrNull, text, readJson, dbInt } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +50,15 @@ export async function POST(req: Request) {
       { status: 402 },
     );
   }
+
+  // Optional geofence centre: only kept when it is a real point inside The Bahamas.
+  const rawLat = numOrNull(body.lat);
+  const rawLng = numOrNull(body.lng);
+  const hasCentre = rawLat !== null && rawLng !== null && inBahamas(rawLat, rawLng);
+  const lat = hasCentre ? rawLat : null;
+  const lng = hasCentre ? rawLng : null;
+  // Radius only matters with a centre; 2–100 km, default 12 km (the column default).
+  const radiusKm = hasCentre ? clampInt(body.radiusKm ?? body.radius_km, 12, 2, 100) : 12;
 
   // One confirmation email per address every couple of minutes.
   const [recent] = await db
@@ -94,6 +103,9 @@ export async function POST(req: Request) {
     target,
     parishes: parishes.join(","),
     categories: categories.join(","),
+    radiusKm,
+    lat,
+    lng,
     token,
     userId: viewer.userId,
   });

@@ -2,17 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { THEMES, THEME_KEYS, type ThemeKey } from "@/lib/themes";
+import { MODES, MODE_KEYS, THEMES, THEME_KEYS, type ModeKey, type ThemeKey } from "@/lib/themes";
 
-type Props = { theme: ThemeKey; splashPref: boolean; themeLocked: boolean; splashLocked: boolean };
+type Props = { theme: ThemeKey; mode: ModeKey; splashPref: boolean; themeLocked: boolean; modeLocked: boolean; splashLocked: boolean };
 
 export function AppearanceForm(props: Props) {
   const router = useRouter();
   const [theme, setTheme] = useState<ThemeKey>(props.theme);
+  const [mode, setMode] = useState<ModeKey>(props.mode);
   const [splash, setSplash] = useState(props.splashPref);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const dirty = theme !== props.theme || splash !== props.splashPref;
+  const dirty = theme !== props.theme || mode !== props.mode || splash !== props.splashPref;
 
   async function save() {
     setBusy(true);
@@ -21,11 +22,11 @@ export function AppearanceForm(props: Props) {
       const res = await fetch("/api/admin/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ theme, splash }),
+        body: JSON.stringify({ theme, mode, splash }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not save that.");
-      setMsg({ ok: true, text: `Saved. NowBey now uses the ${THEMES[theme].label} look.` });
+      setMsg({ ok: true, text: `Saved. NowBey now uses the ${THEMES[theme].label} look in ${MODES[mode].label} mode.` });
       router.refresh();
     } catch (e) {
       setMsg({ ok: false, text: e instanceof Error ? e.message : "Could not save that." });
@@ -81,6 +82,42 @@ export function AppearanceForm(props: Props) {
             The look is fixed by <code className="rounded bg-white/10 px-1">NOWBEY_THEME</code> in the server settings. Remove that setting to choose it here.
           </p>
         ) : null}
+      </fieldset>
+
+      <fieldset>
+        <legend className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Brightness (default for new visitors)</legend>
+        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+          {MODE_KEYS.map((key) => {
+            const on = mode === key;
+            return (
+              <label
+                key={key}
+                className={`block cursor-pointer overflow-hidden rounded-2xl border transition ${on ? "border-tide-400 ring-1 ring-tide-400/60" : "border-white/10 hover:border-white/25"} ${props.modeLocked ? "opacity-70" : ""}`}
+              >
+                <input type="radio" name="mode" value={key} checked={on} disabled={props.modeLocked} onChange={() => setMode(key)} className="sr-only" />
+                <div
+                  className="h-16 w-full"
+                  style={key === "light" ? { background: "linear-gradient(180deg, #fdf9f0, #efe6d2)" } : { background: "radial-gradient(500px 200px at 85% -10%, rgba(0,201,183,.25), transparent 60%), #03121b" }}
+                  aria-hidden="true"
+                />
+                <div className="p-3">
+                  <p className="display flex items-center gap-2 text-[15px] font-extrabold text-sand-100">
+                    {MODES[key].label}
+                    {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
+                  </p>
+                  <p className="mt-0.5 text-[12.5px] leading-snug text-[#a9cdc9]">{MODES[key].blurb}</p>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+        {props.modeLocked ? (
+          <p className="mt-2 text-[12px] text-sun-400">
+            The brightness is fixed by <code className="rounded bg-white/10 px-1">NOWBEY_MODE</code> in the server settings. Remove that setting to choose it here.
+          </p>
+        ) : (
+          <p className="mt-2 text-[12px] text-[#8fb9b6]">Visitors can still switch anytime with the sun/moon button in the header.</p>
+        )}
       </fieldset>
 
       <div>

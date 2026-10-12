@@ -5,6 +5,7 @@ import { gasBoard } from "@/lib/gas";
 import { getViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Gas prices" };
 
 const money = (c: number) => `B$${(c / 100).toFixed(2)}`;
 
