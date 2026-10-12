@@ -417,6 +417,11 @@ export const places = pgTable(
     source: text("source"),
     /** The id in the source, so a re-import does not add the same place twice. */
     externalId: text("external_id"),
+    imageUrls: text("image_urls"),
+    menuLink: text("menu_link"),
+    contactNumber: text("contact_number"),
+    email: text("email"),
+    socialLinks: text("social_links"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },

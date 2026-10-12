@@ -1,8 +1,7 @@
-
-## After every change
-- A Stop hook (.claude/hooks/preflight.js) runs `npm ci --dry-run`, `npx tsc --noEmit` and, when package.json, app.json, eas.json or the babel/metro config changed, `npx expo-doctor`. If it reports a failure, fix it before finishing. Never bypass or disable the hook.
-- When adding or changing a dependency, use `npx expo install <package>`, then `npm install`, then confirm `npm ci --dry-run` passes. Never edit package-lock.json by hand.
-- Peer dependencies (reanimated, gesture-handler, worklets and the @react-native/* tooling packages) must be explicit dependencies at Expo-compatible versions.
-- Maps use OpenStreetMap through the OSMMap component. Never add Google Maps or any API-key-based map service.
-- Before telling me the app is ready for an EAS build, run the /preflight command.
-- Never run eas commands.
+# Rules
+- Never run eas commands (build, update, submit) unless I say "deploy to Expo".
+- No Google Maps or API-key map services. Maps use OpenStreetMap (the OSMMap component).
+- Add dependencies with `npx expo install <package>`, then `npm install`. Keep package.json and package-lock.json in sync and never edit the lock by hand. Peer dependencies (reanimated, gesture-handler, worklets, @react-native/* tooling) must be explicit dependencies at Expo-compatible versions.
+- A Stop hook runs quick checks after changes. Fix any failure it reports and never disable it.
+- Before saying the app is ready for an EAS build, run /preflight.
+- Token thrift: be concise and don't narrate. Never read node_modules or lock files, and read logs only by their last 30 lines. Never re-read files you just wrote, never paste long command output, and keep summaries to 8 lines or fewer.
