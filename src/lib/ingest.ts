@@ -126,6 +126,19 @@ function safeChar(code: number): string {
   return Number.isFinite(code) && code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : "";
 }
 
+/*
+ * Directory profile pages ("Profile : xoso66ne"), section labels ("Photo", "Blog")
+ * and login/register pages slip in through Google News fallbacks. They are never stories.
+ */
+const JUNK_TITLE =
+  /^\s*(profile\s*:|log\s?in|sign\s?in|register|subscribe|advertis|classified|sponsored|404|page not found)\b/i;
+
+function isJunkTitle(title: string): boolean {
+  if (JUNK_TITLE.test(title)) return true;
+  // A real headline has at least two words; a lone token is a section label.
+  return title.replace(/[^a-z0-9]+/gi, " ").trim().split(/\s+/).filter(Boolean).length < 2;
+}
+
 type ParsedItem = {
   title: string;
   url: string;
@@ -149,7 +162,7 @@ export function parseFeed(xml: string, sourceName: string): ParsedItem[] {
       chunk.match(/<link[^>]*href="([^"]+)"/i)?.[1] ||
       grab("guid") ||
       "";
-    if (!title || !/^https?:\/\//.test(link)) continue;
+    if (!title || isJunkTitle(title) || !/^https?:\/\//.test(link)) continue;
     const dateRaw = grab("pubDate") || grab("dc:date") || grab("published") || grab("updated");
     let publishedAt = dateRaw ? new Date(dateRaw) : new Date();
     // A missing or nonsense date, or one in the future, would pin a story to the top forever.
