@@ -1,6 +1,7 @@
 import { and, desc, eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { posts } from "@/db/schema";
+import { hoursNote } from "@/lib/places";
 
 import type { KindKey } from "@/lib/life-kinds";
 
@@ -103,6 +104,10 @@ export type PlaceEntry = {
   price: number | null;
   score: number;
   photoCount: number;
+  /** Scraper hours note ("Opens 8 am Mon"), or null when unknown. */
+  hours: string | null;
+  phone: string | null;
+  website: string | null;
 };
 
 /**
@@ -110,11 +115,18 @@ export type PlaceEntry = {
  * latest review of a place counts once, so repeat posts cannot inflate its rating. Scores lean towards
  * 3.5 until a place has several ratings.
  */
-export async function listPlaces(opts: { kind?: KindKey | null; parish?: string | null; limit?: number } = {}): Promise<PlaceEntry[]> {
+export async function listPlaces(
+  opts: { kind?: KindKey | null; parish?: string | null; limit?: number; page?: number; perPage?: number } = {},
+): Promise<{ rows: PlaceEntry[]; total: number; page: number; pages: number }> {
   const where: SQL[] = [];
   if (opts.kind) where.push(sql`p.kind = ${opts.kind}`);
   if (opts.parish) where.push(sql`p.parish = ${opts.parish}`);
   const filter = where.length ? sql`where ${sql.join(where, sql` and `)}` : sql``;
+  const perPage = Math.min(100, Math.max(1, opts.perPage ?? opts.limit ?? 24));
+  const counted = await db.execute(sql`select count(*)::int as n from places p ${filter}`);
+  const n = (counted.rows[0] as unknown as { n: number }).n;
+  const pages = Math.max(1, Math.ceil(n / perPage));
+  const page = Math.min(pages, Math.max(1, opts.page ?? 1));
   const res = await db.execute(sql`
     with latest as (
       select distinct on (user_id, place_id) user_id, place_id, rating, price_level
@@ -122,7 +134,8 @@ export async function listPlaces(opts: { kind?: KindKey | null; parish?: string 
       where status = 'published' and place_id is not null
       order by user_id, place_id, created_at desc
     )
-    select p.id, p.name, p.parish, p.kind, p.address,
+    select p.id, p.name, p.parish, p.kind, p.address, p.hours,
+           p.contact_number as "contactNumber", p.social_links as "socialLinks",
            count(l.user_id)::int as people,
            count(l.rating)::int as ratings,
            round(avg(l.rating)::numeric, 1)::float as avg,
@@ -134,6 +147,24 @@ export async function listPlaces(opts: { kind?: KindKey | null; parish?: string 
     ${filter}
     group by p.id
     order by score desc, people desc, p.name asc
-    limit ${Math.min(200, opts.limit ?? 60)}`);
-  return res.rows as unknown as PlaceEntry[];
+    limit ${perPage}
+    offset ${(page - 1) * perPage}`);
+  type PlaceRow = Omit<PlaceEntry, "hours" | "phone" | "website"> & {
+    hours: string | null;
+    contactNumber: string | null;
+    socialLinks: string | null;
+  };
+  const rows: PlaceEntry[] = (res.rows as unknown as PlaceRow[]).map((r) => {
+    let website: string | null = null;
+    try {
+      const links = JSON.parse(r.socialLinks ?? "null") as { website?: unknown } | null;
+      if (links && typeof links.website === "string" && links.website.trim()) website = links.website.trim();
+    } catch {
+      website = null;
+    }
+    const { contactNumber, socialLinks, ...rest } = r;
+    void socialLinks;
+    return { ...rest, phone: contactNumber, website, hours: hoursNote(r.hours) };
+  });
+  return { rows, total: n, page, pages };
 }
