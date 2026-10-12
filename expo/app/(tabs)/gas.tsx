@@ -56,7 +56,7 @@ export default function Gas() {
     <FlatList
       style={{ flex: 1, backgroundColor: color.bg }}
       data={board?.stations ?? []}
-      keyExtractor={(s) => `${s.station}${s.parish}${s.fuel}`}
+      keyExtractor={(s: any) => `${s.station}${s.parish}${s.fuel}`}
       contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 32, gap: 10 }}
       refreshControl={<RefreshControl tintColor={color.tideLight} refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(); }} />}
       ListHeaderComponent={
@@ -93,7 +93,7 @@ export default function Gas() {
           <Text style={t.h2}>Station prices, cheapest first</Text>
         </View>
       }
-      renderItem={({ item }) => (
+      renderItem={({ item }: any) => (
         <Card>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View style={{ flex: 1, paddingRight: 8 }}>

@@ -64,7 +64,7 @@ export default function Feed() {
     <FlatList
       style={{ flex: 1, backgroundColor: color.bg }}
       data={shown}
-      keyExtractor={(r) => r.id}
+      keyExtractor={(r: any) => r.id}
       contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 32, gap: 12 }}
       refreshControl={
         <RefreshControl
@@ -114,7 +114,7 @@ export default function Feed() {
           {loading ? <ActivityIndicator color={color.tideLight} /> : null}
         </View>
       }
-      renderItem={({ item }) => {
+      renderItem={({ item }: any) => {
         const meta = categoryOf(item.category);
         return (
           <Pressable onPress={() => router.push(`/incident/${item.id}`)} accessibilityRole="button">
@@ -155,3 +155,4 @@ export default function Feed() {
     />
   );
 }
+

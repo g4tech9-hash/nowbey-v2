@@ -73,7 +73,7 @@ export function Btn({
       accessibilityRole="button"
       onPress={onPress}
       disabled={disabled || busy}
-      style={({ pressed }) => [
+      style={({ pressed }: any) => [
         {
           backgroundColor: bg,
           borderRadius: radius.pill,
@@ -190,3 +190,4 @@ export function BadgeMark({ kind }: { kind?: Badge }) {
     </View>
   );
 }
+
