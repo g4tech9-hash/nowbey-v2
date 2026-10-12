@@ -10,9 +10,16 @@ const LINKS = [
   { href: "/report", label: "Report", short: "Report", icon: "report" },
   { href: "/life", label: "Island Life", short: "Life", icon: "life" },
   { href: "/wire", label: "News wire", short: "Wire", icon: "wire" },
-  { href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" },
   { href: "/alerts", label: "Alerts", short: "Alerts", icon: "bell" },
-  { href: "/support", label: "Plans", short: "Plans", icon: "heart" },
+  {
+    href: "/support",
+    label: "Plans",
+    short: "Plans",
+    icon: "heart",
+    children: [
+      { href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" },
+    ]
+  },
 ] as const;
 
 function Glyph({ name, active }: { name: string; active: boolean }) {

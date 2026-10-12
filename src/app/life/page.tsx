@@ -48,7 +48,7 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
         <p className="mt-2 max-w-[56ch] text-[14px] leading-relaxed text-[#cfeee9]">
           Real tips from people who live here. Share where you ate, how the festival went, which beach was perfect on Sunday, or the thing you wish a visitor knew.
         </p>
-        <Link href="/life/places" className="mt-4 inline-block rounded-full bg-white/10 px-5 py-2.5 text-[13.5px] font-extrabold text-sand-100 hover:bg-white/15">
+        <Link href="/life/places" className="mt-4 inline-block rounded-full bg-white font-extrabold text-abyss-950 px-5 py-2.5 text-[13.5px] shadow-[0_12px_28px_rgba(255,255,255,0.15)] hover:bg-white/90">
           Browse places
         </Link>
         <Link href="/life/new" className="ml-2 mt-4 inline-block rounded-full bg-sun-500 px-5 py-2.5 text-[13.5px] font-extrabold text-abyss-950 shadow-[0_12px_28px_rgba(255,191,60,.25)] hover:bg-sun-400">

@@ -18,7 +18,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
   const kind = isKind(kindIn) ? kindIn : null;
   const parishIn = first(sp.parish);
   const parish = parishIn && (PARISHES as readonly string[]).includes(parishIn) ? parishIn : null;
-  const [places, viewer] = await Promise.all([listPlaces({ kind, parish, limit: 100 }), getViewer()]);
+  const [places, viewer] = await Promise.all([listPlaces({ kind, parish, limit: 1000 }), getViewer()]);
   const params = { kind: kind ?? undefined, parish: parish ?? undefined };
 
   return (
