@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">NowBey</string>
-    <string name="title_activity_main">NowBey</string>
-    <string name="package_name">com.nowbey.app</string>
-    <string name="custom_url_scheme">com.nowbey.app</string>
-</resources>
