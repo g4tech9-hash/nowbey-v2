@@ -7,7 +7,6 @@ import { publicBase } from "@/lib/billing";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Always answers the same way, whether or not the address belongs to an account, so this cannot be used to

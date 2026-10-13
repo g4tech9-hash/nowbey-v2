@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { gasReports } from "@/db/schema";
 import { cronUnauthorized, isCronAuthorized } from "@/lib/cron";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 

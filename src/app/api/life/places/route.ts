@@ -3,7 +3,6 @@ import { PARISHES } from "@/lib/geo";
 import { isKind, listPlaces } from "@/lib/life";
 import { clampInt } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /** The place directory: one entry per place, type and island, with member ratings and prices. */
 export async function GET(req: Request) {

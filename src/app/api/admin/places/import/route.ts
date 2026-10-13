@@ -3,7 +3,6 @@ import { audit } from "@/lib/audit";
 import { importOsmPlaces } from "@/lib/osm";
 import { requireStaff } from "@/lib/staff";
 
-export const dynamic = "force-dynamic";
 // The OpenStreetMap query can take a while on a large island chain.
 export const maxDuration = 60;
 

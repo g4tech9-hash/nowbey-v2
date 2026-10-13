@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { placePhotos } from "@/db/schema";
 import { UUID_RE } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /** Serves a place photo. Place photos are public, so they are cached. */

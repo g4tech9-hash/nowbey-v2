@@ -4,7 +4,6 @@ import { postPhotos, posts } from "@/db/schema";
 import { UUID_RE } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const notFound = () => new Response("Not found", { status: 404, headers: { "Cache-Control": "no-store" } });

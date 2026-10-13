@@ -8,7 +8,7 @@ import { hit, tooMany } from "@/lib/ratelimit";
 import { UUID_RE, readJson, isGone } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
+
 
 const bad = (error: string, status = 400) => NextResponse.json({ error }, { status });
 

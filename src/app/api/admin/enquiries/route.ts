@@ -6,7 +6,6 @@ import { enterpriseInquiries } from "@/db/schema";
 import { audit } from "@/lib/audit";
 import { requireStaff } from "@/lib/staff";
 
-export const dynamic = "force-dynamic";
 
 const STATUSES = ["new", "contacted", "closed"];
 

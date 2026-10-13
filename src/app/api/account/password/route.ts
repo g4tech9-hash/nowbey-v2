@@ -9,7 +9,6 @@ import { checkPassword } from "@/lib/password";
 import { exhausted, forget, record, tooMany } from "@/lib/ratelimit";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const viewer = await getViewer();

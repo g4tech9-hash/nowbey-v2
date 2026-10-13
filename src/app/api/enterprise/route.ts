@@ -6,7 +6,7 @@ import { enterpriseInquiries } from "@/db/schema";
 import { emailLayout, escapeHtml, sendMail } from "@/lib/mail";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 
-export const dynamic = "force-dynamic";
+
 
 const TEAM_SIZES = new Set(["1-10", "11-50", "51-200", "200+"]);
 

@@ -11,7 +11,7 @@ import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { EMAIL_RE, clampInt, numOrNull, text, readJson, dbInt } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
+
 
 export async function POST(req: Request) {
   if (hasBadOrigin(req)) return badOrigin();

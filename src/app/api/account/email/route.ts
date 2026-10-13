@@ -9,7 +9,6 @@ import { exhausted, forget, hit, record, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 /** Change your email. Needs your password, and the new address has to be confirmed again. */
 export async function POST(req: Request) {

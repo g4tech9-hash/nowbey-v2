@@ -7,7 +7,6 @@ import { getViewer } from "@/lib/viewer";
 import { baseUrl, stripe, stripeConfigured } from "@/lib/billing";
 import { TIERS, isInterval, isTierKey, priceCents } from "@/lib/tiers";
 
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const viewer = await getViewer();

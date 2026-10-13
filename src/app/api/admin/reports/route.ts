@@ -6,7 +6,6 @@ import { audit } from "@/lib/audit";
 import { requireStaff } from "@/lib/staff";
 import { UUID_RE, readJson } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Moderate a report. Editors and admins can resolve, reopen, hide ("archive") and restore.

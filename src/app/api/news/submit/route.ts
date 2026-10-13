@@ -6,7 +6,6 @@ import { PARISHES } from "@/lib/geo";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { text, readJson } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const gate = hit(`tip:${clientIp(req)}`, 5, 60 * 60_000);

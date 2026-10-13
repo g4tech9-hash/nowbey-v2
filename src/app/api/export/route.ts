@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { incidents } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
+
 
 function cell(v: unknown): string {
   if (v === null || v === undefined) return "";

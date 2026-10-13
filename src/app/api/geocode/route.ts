@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { GAZETTEER, inBahamas, nearestParish, searchGazetteer } from "@/lib/geo";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 
-export const dynamic = "force-dynamic";
+
 
 const UA = "NowBey-Web/1.0 (community safety map; contact: alerts@nowbey.app)";
 const cache = new Map<string, { at: number; body: unknown }>();

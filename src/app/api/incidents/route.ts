@@ -12,7 +12,7 @@ import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
+
 
 const CATEGORIES = new Set<string>(CATEGORY_KEYS);
 

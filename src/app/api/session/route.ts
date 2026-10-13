@@ -14,7 +14,7 @@ import { sendVerificationEmail } from "@/lib/account";
 import { publicBase } from "@/lib/billing";
 import { mailConfigured } from "@/lib/mail";
 
-export const dynamic = "force-dynamic";
+
 
 const FAIL_WINDOW = 15 * 60_000;
 const EMAIL_TAKEN = "An account with that email already exists. Try signing in, or reset your password.";

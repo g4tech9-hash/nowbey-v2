@@ -10,7 +10,6 @@ import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { text, UUID_RE, readJson, isGone } from "@/lib/validate";
 import { isFlagReason } from "@/lib/life-kinds";
 
-export const dynamic = "force-dynamic";
 
 const KINDS = new Set(["confirm", "photo", "note", "clear", "escalate", "flag"]);
 

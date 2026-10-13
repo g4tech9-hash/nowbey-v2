@@ -7,7 +7,7 @@ import { configuredFeeds, refreshIfStale, runIngest } from "@/lib/ingest";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { clampInt, readJson } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
+
 
 export async function GET(req: Request) {
   after(() => refreshIfStale());

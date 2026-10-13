@@ -6,7 +6,6 @@ import { audit } from "@/lib/audit";
 import { removeComment } from "@/lib/engage";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 /** Delete a comment. Its author can, and so can staff (which is written to the activity log). */
 export async function DELETE(_req: Request, ctx: { params: Promise<{ cid: string }> }) {

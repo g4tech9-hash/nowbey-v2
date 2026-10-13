@@ -5,7 +5,6 @@ import { eq, inArray } from "drizzle-orm";
 import { cronUnauthorized, isCronAuthorized } from "@/lib/cron";
 import placesData from "@/data/places.json";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 

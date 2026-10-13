@@ -5,7 +5,6 @@ import { getSiteSettings, saveSetting } from "@/lib/settings";
 import { requireStaff } from "@/lib/staff";
 import { isModeKey, isThemeKey } from "@/lib/themes";
 
-export const dynamic = "force-dynamic";
 
 /** Switch the look of the site, its brightness, or the opening splash screen. Admins only. */
 export async function PATCH(req: Request) {

@@ -6,7 +6,6 @@ import { alertSubscriptions } from "@/db/schema";
 import { baseUrl } from "@/lib/billing";
 import { param } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   const token = param(new URL(req.url).searchParams.get("token"), 100);
