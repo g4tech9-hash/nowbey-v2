@@ -26,3 +26,12 @@
 3. Verify prod health (`/api/health`, sign-in, incident post) after deploy.
 4. Decide on `.env.vercel` history scrub; check `git log -p -- .env.vercel`.
 5. Tell users a re-sign-in is required (AUTH_SECRET rotated).
+
+## Addendum — parallel worker detected, EAS fix LOST
+Another process is restructuring this repo right now (branch `master` + `deploy-production`;
+commit `42682ea Clean up Expo/RN and convert to pure Next.js`; uncommitted moves: root `App.js`,
+`mobile/`, edited `package.json`s). It switched the checkout off `fix/security-hardening`,
+deleted the root `eas.json`, and overwrote `expo/eas.json` — my `"image": "latest"` pins are GONE.
+My branch/commit (`4bc28bc`) is intact. Do NOT trust `expo/eas.json` state: re-apply the image
+pin after the restructure settles, then re-run the EAS build. Production DB migration (STEP 2)
+already applied and verified — unaffected.
