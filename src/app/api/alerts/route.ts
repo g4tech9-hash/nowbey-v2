@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { randomBytes } from "node:crypto";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
+import { and, eq, gte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSubscriptions } from "@/db/schema";
 import { CATEGORY_KEYS, PARISHES, inBahamas } from "@/lib/geo";
@@ -8,11 +8,13 @@ import { getViewer } from "@/lib/viewer";
 import { publicBase } from "@/lib/billing";
 import { emailButton, emailLayout, sendMail } from "@/lib/mail";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
+import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { EMAIL_RE, clampInt, numOrNull, text, readJson, dbInt } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  if (hasBadOrigin(req)) return badOrigin();
   // Every request here sends an email to an address the visitor typed, so it must not be usable to spam someone.
   const gate = hit(`alert:${clientIp(req)}`, 6, 60 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "alert sign-ups");
@@ -98,6 +100,7 @@ export async function POST(req: Request) {
   await db.delete(alertSubscriptions).where(and(eq(alertSubscriptions.target, target), eq(alertSubscriptions.verified, false)));
 
   const token = randomBytes(18).toString("base64url");
+  const tokenHash = createHash("sha256").update(token).digest("hex");
   await db.insert(alertSubscriptions).values({
     channel: "email",
     target,
@@ -107,6 +110,8 @@ export async function POST(req: Request) {
     lat,
     lng,
     token,
+    tokenHash,
+    tokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60_000),
     userId: viewer.userId,
   });
 
@@ -127,12 +132,17 @@ export async function POST(req: Request) {
 
 /** Stop an alert profile: with the secret token from an email, or by id while signed in as its owner. */
 export async function DELETE(req: Request) {
+  if (hasBadOrigin(req)) return badOrigin();
   const gate = hit(`alertdel:${clientIp(req)}`, 30, 10 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "requests");
   const body = await readJson(req);
   const token = text(body.token, 100);
   if (token.length >= 10) {
-    const gone = await db.delete(alertSubscriptions).where(eq(alertSubscriptions.token, token)).returning({ id: alertSubscriptions.id });
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const gone = await db
+      .delete(alertSubscriptions)
+      .where(or(eq(alertSubscriptions.tokenHash, tokenHash), eq(alertSubscriptions.token, token)))
+      .returning({ id: alertSubscriptions.id });
     return NextResponse.json({ ok: gone.length > 0 });
   }
   const viewer = await getViewer();

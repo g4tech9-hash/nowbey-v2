@@ -1,23 +1,52 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { places } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
-import fs from "fs";
-import path from "path";
+import { eq, inArray } from "drizzle-orm";
+import { cronUnauthorized, isCronAuthorized } from "@/lib/cron";
+import placesData from "@/data/places.json";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+type PlaceJson = {
+  id?: string;
+  name?: string;
+  category?: string;
+  city?: string;
+  address?: string;
+  latitude?: number | null;
+  lat?: number | null;
+  longitude?: number | null;
+  lng?: number | null;
+  phone?: string | null;
+  contactNumber?: string | null;
+  website?: string | null;
+  image?: string | string[] | null;
+  imageUrls?: string[] | null;
+  hours?: unknown;
+};
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("Authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new NextResponse("Unauthorized", { status: 401 });
+  if (!isCronAuthorized(request)) {
+    return cronUnauthorized();
   }
 
   try {
-    // Read the static data directly to avoid bundling issues with OpenPlaces
-    const dataPath = path.join(process.cwd(), "src/data/places.json");
-    const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
+    const data = (placesData ?? []) as PlaceJson[];
 
     let addedCount = 0;
     let updatedCount = 0;
+    const CHUNK = 400;
+    const ids = [...new Set(data.map((p) => p.id).filter((v): v is string => typeof v === "string" && v.length > 0))];
+    const byExternal = new Map<string, typeof places.$inferSelect>();
+    for (let i = 0; i < ids.length; i += CHUNK) {
+      const rows = await db
+        .select()
+        .from(places)
+        .where(inArray(places.externalId, ids.slice(i, i + CHUNK)));
+      for (const r of rows) if (r.externalId) byExternal.set(r.externalId, r);
+    }
     for (const place of data) {
       // The scraper writes latitude/longitude, phone, website, image and an
       // hours object { status, detail }. Map them onto the real columns.
@@ -34,15 +63,17 @@ export async function GET(request: Request) {
           : null;
       let hours: string | null = null;
       if (place.hours && typeof place.hours === "object") {
-        const detail = place.hours.detail || place.hours.status || "";
-        if (detail) hours = JSON.stringify({ note: detail, status: place.hours.status ?? null });
+        const h = place.hours as Record<string, unknown>;
+        const detail = String(h.detail ?? h.status ?? "");
+        if (detail) hours = JSON.stringify({ note: detail, status: (h.status as string | null) ?? null });
       } else if (typeof place.hours === "string" && place.hours.trim()) {
         hours = JSON.stringify({ note: place.hours.trim() });
       }
 
-      const existing = await db.select().from(places).where(sql`${places.externalId} = ${place.id}`).limit(1);
+      const existing = place.id ? byExternal.get(place.id) : undefined;
 
-      if (existing.length === 0) {
+      if (!existing) {
+        if (!place.name || !place.id) continue;
         await db.insert(places).values({
           name: place.name,
           kind: place.category || "tip",
@@ -60,7 +91,7 @@ export async function GET(request: Request) {
         addedCount++;
       } else {
         // Backfill fields the first import dropped; never overwrite member edits.
-        const row = existing[0];
+        const row = existing;
         const patch: Record<string, string | number | null> = {};
         if (!row.hours && hours) patch.hours = hours;
         if (!row.contactNumber && contactNumber) patch.contactNumber = contactNumber;

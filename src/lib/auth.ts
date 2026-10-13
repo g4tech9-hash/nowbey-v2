@@ -15,7 +15,10 @@ let cachedSecret: string | null = null;
 export function serverSecret(): string {
   if (cachedSecret) return cachedSecret;
   const fromEnv = process.env.AUTH_SECRET?.trim();
-  if (fromEnv) return (cachedSecret = fromEnv);
+  if (fromEnv && fromEnv.length >= 32) return (cachedSecret = fromEnv);
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("AUTH_SECRET must be set to at least 32 characters in production");
+  }
   try {
     const dir = join(process.cwd(), ".data");
     const file = join(dir, "auth-secret");
@@ -51,15 +54,17 @@ function sign(payload: string): string {
   return createHmac("sha256", serverSecret()).update(payload).digest("base64url");
 }
 
+export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+
 export function makeToken(userId: string, handle: string, version = 0): string {
-  const body = Buffer.from(JSON.stringify({ uid: userId, h: handle, v: version, exp: Date.now() + 1000 * 60 * 60 * 24 * 120 })).toString(
+  const body = Buffer.from(JSON.stringify({ uid: userId, h: handle, v: version, exp: Date.now() + SESSION_MAX_AGE * 1000 })).toString(
     "base64url",
   );
   return `${body}.${sign(body)}`;
 }
 
 export function readToken(token: string | undefined | null): { uid: string; handle: string; v: number } | null {
-  if (!token || !token.includes(".")) return null;
+  if (!token || token.length > 2048 || !token.includes(".")) return null;
   const [body, sig] = token.split(".");
   const expected = sign(body);
   if (sig.length !== expected.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
@@ -91,19 +96,24 @@ export async function currentUserId(): Promise<string | null> {
 
 export async function setSessionCookie(token: string) {
   const jar = await cookies();
-  const h = await headers();
-  // Mark the cookie Secure whenever the visitor reached us over https (including through a proxy).
-  const secure = (h.get("x-forwarded-proto") ?? "").split(",")[0].trim() === "https";
+  const secure = process.env.NODE_ENV === "production";
   jar.set(COOKIE, token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure,
     path: "/",
-    maxAge: 60 * 60 * 24 * 120,
+    maxAge: SESSION_MAX_AGE,
   });
 }
 
 export async function clearSessionCookie() {
   const jar = await cookies();
-  jar.delete(COOKIE);
+  const secure = process.env.NODE_ENV === "production";
+  jar.set(COOKIE, "", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure,
+    path: "/",
+    maxAge: 0,
+  });
 }

@@ -143,12 +143,16 @@ export const alertSubscriptions = pgTable(
   /** Alerts only go out after the owner clicks the link in the confirmation email. */
   verified: boolean("verified").notNull().default(false),
   token: text("token"),
+  /** SHA-256 of the confirmation token. Only the hash is used for lookup; `token` is legacy. */
+  tokenHash: text("token_hash"),
+  /** Confirmation links expire; null means no expiry (legacy rows). */
+  tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true }),
   userId: uuid("user_id"),
   verifiedAt: timestamp("verified_at", { withTimezone: true }),
   lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("alert_token_idx").on(table.token), index("alert_target_idx").on(table.target)],
+  (table) => [index("alert_token_idx").on(table.token), uniqueIndex("alert_token_hash_idx").on(table.tokenHash), index("alert_target_idx").on(table.target)],
 );
 
 export const enterpriseInquiries = pgTable("enterprise_inquiries", {
@@ -387,9 +391,8 @@ export const gasReports = pgTable(
   "gas_reports",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+    /** Null = official/system price, not a member report. */
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
     station: text("station").notNull(),
     parish: text("parish").notNull(),
     /** regular | premium | diesel */

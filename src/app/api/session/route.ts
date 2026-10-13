@@ -7,6 +7,7 @@ import { getViewer, type Viewer } from "@/lib/viewer";
 import { PARISHES } from "@/lib/geo";
 import { clientIp, exhausted, forget, hit, record, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
+import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { HANDLE_RE, handleProblem, normalizeHandle } from "@/lib/handles";
 import { MAX_PASSWORD, checkPassword } from "@/lib/password";
 import { sendVerificationEmail } from "@/lib/account";
@@ -48,6 +49,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (hasBadOrigin(req)) return badOrigin();
   const body = await readJson(req);
   // The mobile app has no cookie jar, so it asks for the token and sends it back as a bearer token.
   const native = req.headers.get("x-nowbey-client") === "native";

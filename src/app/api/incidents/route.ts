@@ -9,6 +9,7 @@ import { dispatchIncidentAlerts } from "@/lib/alerts";
 import { publicIncident } from "@/lib/public";
 import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
+import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (hasBadOrigin(req)) return badOrigin();
   const gate = hit(`report:${clientIp(req)}`, 15, 60 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "reports");
 
