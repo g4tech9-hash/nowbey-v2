@@ -13,7 +13,7 @@ export default async function PartnersPage() {
 
   return (
     <div className="mx-auto max-w-[1000px] py-6">
-      <PageHead title="Digest Partners" blurb="Manage B2B Community Digest subscriptions." />
+      <PageHead eyebrow="Revenue" title="Digest Partners" blurb="Manage B2B Community Digest subscriptions." />
       
       <div className="mt-6 glass rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">

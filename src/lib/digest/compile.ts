@@ -23,7 +23,7 @@ export async function compilePartnerDigest(parish: string, categories: string[])
   }
 
   const [hazards, news] = await Promise.all([
-    db.select().from(incidents).where(and(...hazardFilters)).orderBy(desc(incidents.createdAt)).limit(10),
+    db.select().from(incidents).where(hazardFilters.length > 0 ? and(...hazardFilters) : undefined).orderBy(desc(incidents.createdAt)).limit(10),
     db.select().from(newsItems).where(
       and(
         eq(newsItems.review, 'approved'),
@@ -35,7 +35,7 @@ export async function compilePartnerDigest(parish: string, categories: string[])
 
   const items: DigestItem[] = [
     ...hazards.map(h => ({
-      type: 'hazard',
+      type: 'hazard' as const,
       title: h.title,
       details: h.details ?? '',
       category: h.category,
@@ -44,7 +44,7 @@ export async function compilePartnerDigest(parish: string, categories: string[])
       url: `/incident/${h.id}`
     })),
     ...news.map(n => ({
-      type: 'news',
+      type: 'news' as const,
       title: n.title,
       details: n.summary ?? '',
       category: n.category,

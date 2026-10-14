@@ -20,7 +20,7 @@ export class ManualInvoiceProvider implements PaymentProvider {
     };
   }
 
-  async verifyPayment(paymentId: string) {
+  async verifyPayment(paymentId: string): Promise<{ status: 'paid' | 'unpaid' | 'failed' }> {
     // Manual providers are verified by an admin in the DB.
     // This function returns unpaid by default; the admin toggle is the source of truth.
     return { status: 'unpaid' };
