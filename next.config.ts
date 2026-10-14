@@ -30,26 +30,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
-
-const nextConfig: NextConfig = {
-  poweredByHeader: false,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  async headers() {
-    return [
-      { source: "/:path*", headers: securityHeaders },
-      {
-        source: "/api/:path*",
-        headers: [
-          { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Access-Control-Allow-Methods", value: "GET,POST,PATCH,DELETE,OPTIONS" },
-          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization, x-nowbey-client" },
-        ],
-      },
-    ];
-  },
   async redirects() {
     return [
       { source: "/life", destination: "/life/places", permanent: true },
