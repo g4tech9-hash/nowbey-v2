@@ -12,7 +12,7 @@ const SECTIONS: { h: string; p: string[] }[] = [
       "Content you post: reports with the exact location you choose, comments, Island Life posts and photos, and your email-alert settings.",
       "Location: the app asks for your phone's location only when you tap Use my location while reporting, to place the pin. We do not track you in the background.",
       "Technical: your IP address is used to limit abuse. For visitors without an account it is stored only as a one-way hash so one person cannot vote twice.",
-      "Payments: card payments on the website are handled by Stripe. We do not see or store your card number. Purchases through the App Store or Google Play are handled by Apple or Google.",
+      "Payments: Card payments on the website are handled by Stripe. We do not see or store your card number. Purchases through the App Store or Google Play are handled by Apple or Google.",
     ],
   },
   {
