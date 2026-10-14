@@ -1,0 +1,26 @@
+/*
+ * Next.js instrumentation: records server-side request errors (RSC renders, route handlers,
+ * server actions) into the same client_errors table as the browser reports — one place the
+ * admin can see "what crashed, where, how often" during the beta. No SDK, no external service.
+ */
+
+export async function onRequestError(
+  err: { digest?: string; message?: string; stack?: string },
+  request: { path?: string; url?: string; method?: string; headers?: Headers },
+  context: { routerKind?: string; routePath?: string; routeType?: string },
+): Promise<void> {
+  // Edge/middleware runtime has no pg pool; database errors are recorded only from node.
+  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  try {
+    const { recordError } = await import("@/lib/errortracking");
+    await recordError({
+      kind: "server",
+      message: `${err.message ?? "Request error"}${err.digest ? ` (digest ${err.digest})` : ""}`,
+      stack: typeof err.stack === "string" ? err.stack : undefined,
+      url: request.path ?? request.url ?? context.routePath ?? null,
+      userAgent: request.headers?.get("user-agent"),
+    });
+  } catch {
+    // The error reporter must never throw inside a request that is already failing.
+  }
+}

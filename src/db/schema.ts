@@ -525,3 +525,27 @@ export const digestDrafts = pgTable(
   },
   (table) => [index("digest_drafts_created_idx").on(table.createdAt.desc())],
 );
+
+/** Client/server crashes, grouped by a digest so one bug renting the page once a minute is one row, not a thousand. Self-hosted: no error data leaves NowBey. */
+export const clientErrors = pgTable(
+  "client_errors",
+  {
+    id: serial("id").primaryKey(),
+    /** sha-256 of kind+message+url, so repeats of the same bug update this one row. */
+    digest: text("digest").notNull(),
+    /** client (browser event) | boundary (React error page) | server (route/render) */
+    kind: text("kind").notNull().default("client"),
+    message: text("message").notNull(),
+    stack: text("stack"),
+    /** Path only — query strings and hashes are dropped before storage (they can carry tokens). */
+    url: text("url"),
+    /** The member's handle when they were signed in. Filled by the server, never trusted from the request. */
+    handle: text("handle"),
+    userAgent: text("user_agent"),
+    count: integer("count").notNull().default(1),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("client_errors_digest_idx").on(table.digest), index("client_errors_seen_idx").on(table.lastSeenAt.desc())],
+);
+

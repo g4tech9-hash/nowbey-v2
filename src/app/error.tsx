@@ -2,11 +2,18 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+import { reportClientError } from "@/components/error-reporter";
 
 /** Shown when a page hits an unexpected problem, so people see something kind instead of a bare error. */
 export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     console.error("[page error]", error.digest ?? "", error.message);
+    reportClientError({
+      kind: "boundary",
+      // Next's digest ties this row to the matching line in the server logs.
+      message: `${error.message || "Page error boundary"}${error.digest ? ` (digest ${error.digest})` : ""}`,
+      stack: error.stack,
+    });
   }, [error]);
 
   return (
