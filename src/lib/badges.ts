@@ -22,7 +22,8 @@ export async function badgesFor(handles: (string | null | undefined)[]): Promise
   for (const r of rows) {
     if (r.account === "suspended") continue; // a suspended member loses their badge
     if (r.role === "admin" || r.role === "editor") out.set(r.handle, "desk");
-    else if (entitledTier({ adFreeTier: r.tier, planStatus: r.status }, demo) === "admiral") out.set(r.handle, "verified");
+    // Verified badge is now decoupled from the Admiral paid tier to prevent trust-washing.
+    // It must be granted manually via the 'role' or a future explicit verification system.
   }
   return out;
 }
