@@ -94,6 +94,11 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
         <div className="mt-3.5 flex flex-wrap items-center gap-2 text-[12px] text-[#8fb9b6]">
           <span className="font-semibold text-sand-100">@{row.authorHandle ?? "someone"}</span>
           <BadgeMark kind={badges.get(row.authorHandle ?? "")} />
+          {row.sourceKind === "official" ? (
+            <span className="rounded-full bg-tide-500/18 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-tide-300">
+              Official bulletin — auto-imported
+            </span>
+          ) : null}
           <span>· {row.confirmations} neighbours confirm it is still there</span>
         </div>
 
@@ -167,7 +172,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
             </div>
             {row.sourceUrl ? (
               <p className="mt-2 text-[11.5px] text-[#8fb9b6]">
-                From the wire:{" "}
+                {row.sourceKind === "official" ? "Official bulletin: " : "From the wire: "}
                 <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="font-bold text-tide-300 hover:underline">
                   {row.sourceName ?? "source"}
                 </a>

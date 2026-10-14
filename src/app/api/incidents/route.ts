@@ -7,6 +7,7 @@ import { getViewer } from "@/lib/viewer";
 import { publicBase } from "@/lib/billing";
 import { dispatchIncidentAlerts } from "@/lib/alerts";
 import { autoFlagIncident } from "@/lib/moderation";
+import { refreshOfficialIfStale } from "@/lib/official";
 import { dispatchIncidentPush } from "@/lib/push";
 import { publicIncident } from "@/lib/public";
 import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo";
@@ -19,6 +20,8 @@ import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
 const CATEGORIES = new Set<string>(CATEGORY_KEYS);
 
 export async function GET(req: Request) {
+  // Keep official (NHC etc.) pins fresh off the map's own traffic; guarded so it can never break the map.
+  after(() => refreshOfficialIfStale());
   const { searchParams } = new URL(req.url);
   const category = searchParams.get("category");
   const parish = knownParish(searchParams.get("parish"));

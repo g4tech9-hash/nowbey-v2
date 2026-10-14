@@ -148,6 +148,8 @@ type ParsedItem = {
   imageUrl: string | null;
 };
 
+export type { ParsedItem };
+
 export function parseFeed(xml: string, sourceName: string): ParsedItem[] {
   const chunks = xml.match(/<item[\s>][\s\S]*?<\/item>|<entry[\s>][\s\S]*?<\/entry>/g) ?? [];
   const out: ParsedItem[] = [];
