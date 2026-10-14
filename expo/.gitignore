@@ -1,5 +1,6 @@
 node_modules
 .expo
+google-services.json
 dist
 web-build
 .env
