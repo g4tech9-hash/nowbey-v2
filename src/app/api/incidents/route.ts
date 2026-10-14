@@ -6,6 +6,7 @@ import { badgesFor } from "@/lib/badges";
 import { getViewer } from "@/lib/viewer";
 import { publicBase } from "@/lib/billing";
 import { dispatchIncidentAlerts } from "@/lib/alerts";
+import { autoFlagIncident } from "@/lib/moderation";
 import { dispatchIncidentPush } from "@/lib/push";
 import { publicIncident } from "@/lib/public";
 import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo";
@@ -141,6 +142,10 @@ export async function POST(req: Request) {
   } else {
     console.warn("[alerts] Skipped sending: APP_URL is not set, and email links need a fixed site address.");
   }
+
+  // AI first-pass moderation (no-op without a key): can only add a staff flag under
+  // "Reported by readers" on the admin reports page — it never hides a report itself.
+  after(() => autoFlagIncident(row.id, row.title, row.details));
 
   return NextResponse.json({ incident: publicIncident(row) }, { status: 201 });
 }

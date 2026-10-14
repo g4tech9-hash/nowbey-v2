@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { placePhotos, places } from "@/db/schema";
 import { inBahamas } from "@/lib/geo";
 import { PhotoError, processPhoto, type ProcessedPhoto } from "@/lib/images";
+import { screenPhotos } from "@/lib/moderation";
 import { listPosts, publicPost } from "@/lib/life";
 import { cleanHours, parseHours } from "@/lib/places";
 import { exhausted, hit, record, tooMany } from "@/lib/ratelimit";
@@ -123,6 +124,10 @@ export async function POST(req: Request, ctx: Ctx) {
     if (e instanceof PhotoError) return bad(e.message);
     throw e;
   }
+
+  // Gemini safe-check on the thumbnails (no-op without a key; fails open when the model is down).
+  const photoProblem = await screenPhotos(processed);
+  if (photoProblem) return bad(photoProblem);
 
   await db.insert(placePhotos).values(
     processed.map((p, i) => ({

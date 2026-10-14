@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/db";
 import { comments } from "@/db/schema";
 import { columnsFor, engagementFor, listComments, targetInfo, targetValue } from "@/lib/engage";
 import { COMMENT_MAX, isTargetType } from "@/lib/engage-kinds";
+import { autoFlagComment } from "@/lib/moderation";
 import { clientIp, exhausted, record, tooMany } from "@/lib/ratelimit";
 import { UUID_RE, text, readJson, dbInt, isGone } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
@@ -83,5 +84,7 @@ export async function POST(req: Request) {
 
   record(userKey, HOUR);
   record(ipKey, HOUR);
+  // The comment is live now; the AI first pass (no-op without a key) can only add a staff flag.
+  after(() => autoFlagComment(row.id));
   return NextResponse.json({ comment: row }, { status: 201 });
 }
