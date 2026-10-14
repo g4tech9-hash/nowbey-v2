@@ -91,7 +91,8 @@ export type CategoryKey =
   | "health"
   | "trash"
   | "event"
-  | "notice";
+  | "notice"
+  | "accident";
 
 export const CATEGORIES: Record<
   CategoryKey,
@@ -109,6 +110,7 @@ export const CATEGORIES: Record<
   trash: { label: "Sanitation", color: "#84cc16", glyph: "bin", blurb: "Missed pickup, dumping" },
   event: { label: "Community", color: "#f472b6", glyph: "star", blurb: "Junkanoo, regatta, fundraiser" },
   notice: { label: "Notice", color: "#94a3b8", glyph: "info", blurb: "General heads-up" },
+  accident: { label: "Car Accident", color: "#ef4444", glyph: "car", blurb: "Traffic accident, road blockage, or vehicle hazard" },
 };
 
 export const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];
