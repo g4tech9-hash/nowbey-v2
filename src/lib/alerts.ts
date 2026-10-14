@@ -5,6 +5,7 @@ import { CATEGORIES, type CategoryKey } from "@/lib/geo";
 import { emailButton, emailLayout, escapeHtml, sendMail } from "@/lib/mail";
 import { PAID_STORM_TIERS, entitledTier } from "@/lib/tiers";
 import { demoPlansAllowed } from "@/lib/billing";
+import { sendPushForUsers } from "@/lib/push";
 
 const COOLDOWN_MS = 3 * 60 * 1000;
 const SEVERITY = ["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"];
@@ -40,6 +41,7 @@ export async function dispatchIncidentAlerts(incident: Incident, base: string): 
   const now = Date.now();
   const demo = demoPlansAllowed();
 
+  const pushUsers = new Set<string>();
   for (const { sub, tier, status } of rows) {
     const islands = sub.parishes.split(",").map((s) => s.trim());
     if (!incident.parish || !islands.includes(incident.parish)) continue;
@@ -51,6 +53,7 @@ export async function dispatchIncidentAlerts(incident: Incident, base: string): 
     if (incident.userId && sub.userId === incident.userId) continue;
 
     stats.matched += 1;
+    if (sub.userId) pushUsers.add(sub.userId);
     if (sub.lastSentAt && now - sub.lastSentAt.getTime() < COOLDOWN_MS) {
       stats.skipped += 1;
       continue;
@@ -80,6 +83,18 @@ export async function dispatchIncidentAlerts(incident: Incident, base: string): 
     } else if (result.status === "failed") stats.failed += 1;
     else stats.skipped += 1;
   }
+  // Push mirrors email for members with a registered device. It never blocks email.
+  try {
+    if (pushUsers.size) {
+      await sendPushForUsers([...pushUsers], {
+        title: `${meta.label} · ${incident.title}`.slice(0, 120),
+        body: (incident.details || incident.title).slice(0, 180),
+        data: { path: `/incident/${incident.id}` },
+      });
+    }
+  } catch {
+    /* push is best-effort */
+  }
   return stats;
 }
 
@@ -102,6 +117,7 @@ export async function dispatchNewsAlert(story: NewsForAlert, base: string): Prom
   const link = `${base}/wire/${story.id}`;
   const now = Date.now();
 
+  const pushUsers = new Set<string>();
   for (const { sub } of rows) {
     const islands = sub.parishes.split(",").map((s) => s.trim());
     if (!islands.includes(story.parish)) continue;
@@ -109,6 +125,7 @@ export async function dispatchNewsAlert(story: NewsForAlert, base: string): Prom
     if (cats.length && !cats.includes(story.category)) continue;
 
     stats.matched += 1;
+    if (sub.userId) pushUsers.add(sub.userId);
     if (sub.lastSentAt && now - sub.lastSentAt.getTime() < COOLDOWN_MS) {
       stats.skipped += 1;
       continue;
@@ -136,6 +153,18 @@ export async function dispatchNewsAlert(story: NewsForAlert, base: string): Prom
       await db.update(alertSubscriptions).set({ lastSentAt: new Date() }).where(eq(alertSubscriptions.id, sub.id));
     } else if (result.status === "failed") stats.failed += 1;
     else stats.skipped += 1;
+  }
+  // Push mirrors email for members with a registered device. It never blocks email.
+  try {
+    if (pushUsers.size) {
+      await sendPushForUsers([...pushUsers], {
+        title: story.title.slice(0, 120),
+        body: (story.summary || story.title).slice(0, 180),
+        data: { path: `/wire/${story.id}` },
+      });
+    }
+  } catch {
+    /* push is best-effort */
   }
   return stats;
 }

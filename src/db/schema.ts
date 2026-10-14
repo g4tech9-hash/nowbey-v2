@@ -449,3 +449,18 @@ export const placePhotos = pgTable(
   },
   (table) => [index("place_photos_place_idx").on(table.placeId)],
 );
+
+/** Expo push tokens, one row per member per device. Pruned when Expo reports them dead. */
+export const deviceTokens = pgTable(
+  "device_tokens",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("device_tokens_user_token_idx").on(table.userId, table.token)],
+);
