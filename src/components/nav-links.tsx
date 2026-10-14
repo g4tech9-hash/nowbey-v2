@@ -8,11 +8,18 @@ const LINKS = [
   { href: "/", label: "Feed", short: "Feed", icon: "feed" },
   { href: "/map", label: "Map", short: "Map", icon: "map" },
   { href: "/report", label: "Report", short: "Report", icon: "report" },
-  { href: "/life", label: "Island Life", short: "Life", icon: "life" },
+  ...(process.env.FEATURE_ISLAND_LIFE === "true" ? [{ href: "/life", label: "Island Life", short: "Life", icon: "life" }] : []),
   { href: "/wire", label: "News wire", short: "Wire", icon: "wire" },
-  { href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" },
   { href: "/alerts", label: "Alerts", short: "Alerts", icon: "bell" },
-  { href: "/support", label: "Plans", short: "Plans", icon: "heart" },
+  {
+    href: "/support",
+    label: "Plans",
+    short: "Plans",
+    icon: "heart",
+    children: [
+      ...(process.env.FEATURE_GAS_TRACKER === "true" ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" }] : []),
+    ]
+  },
 ] as const;
 
 function Glyph({ name, active }: { name: string; active: boolean }) {
@@ -90,7 +97,7 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
         aria-label="Primary"
       >
         <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
-          {LINKS.filter((l) => l.href !== "/support").map((l) => {
+          {[...LINKS.filter((l) => l.href !== "/support"), ...(process.env.FEATURE_GAS_TRACKER === "true" ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : [])].map((l) => {
             const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
             return (
               <li key={l.href} className="flex-1">
@@ -116,6 +123,38 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
     <div className="flex items-center gap-1">
       {LINKS.map((l) => {
         const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
+        const childActive = "children" in l && l.children ? l.children.some((c) => pathname.startsWith(c.href)) : false;
+        if ("children" in l && l.children) {
+          return (
+            <div key={l.href} className="group relative">
+              <Link
+                href={l.href}
+                aria-current={active || childActive ? "page" : undefined}
+                className={`rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition ${
+                  active || childActive ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100"
+                }`}
+              >
+                {l.label}
+              </Link>
+              <div className="invisible absolute left-0 top-full z-[660] w-44 pt-1 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                <div className="glass overflow-hidden rounded-xl p-1">
+                  {l.children.map((c) => (
+                    <Link
+                      key={c.href}
+                      href={c.href}
+                      aria-current={pathname.startsWith(c.href) ? "page" : undefined}
+                      className={`block rounded-lg px-2.5 py-2 text-[13px] font-semibold ${
+                        pathname.startsWith(c.href) ? "bg-tide-500/18 text-tide-300" : "text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100"
+                      }`}
+                    >
+                      {c.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        }
         return (
           <Link
             key={l.href}

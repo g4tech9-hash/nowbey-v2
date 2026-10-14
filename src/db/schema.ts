@@ -136,16 +136,23 @@ export const alertSubscriptions = pgTable(
   parishes: text("parishes").notNull().default("New Providence"),
   categories: text("categories").notNull().default(""),
   radiusKm: integer("radius_km").notNull().default(12),
+  /** Optional geofence centre. Null means island-wide matching (the old behaviour). */
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
   active: boolean("active").notNull().default(true),
   /** Alerts only go out after the owner clicks the link in the confirmation email. */
   verified: boolean("verified").notNull().default(false),
   token: text("token"),
+  /** SHA-256 of the confirmation token. Only the hash is used for lookup; `token` is legacy. */
+  tokenHash: text("token_hash"),
+  /** Confirmation links expire; null means no expiry (legacy rows). */
+  tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true }),
   userId: uuid("user_id"),
   verifiedAt: timestamp("verified_at", { withTimezone: true }),
   lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("alert_token_idx").on(table.token), index("alert_target_idx").on(table.target)],
+  (table) => [index("alert_token_idx").on(table.token), uniqueIndex("alert_token_hash_idx").on(table.tokenHash), index("alert_target_idx").on(table.target)],
 );
 
 export const enterpriseInquiries = pgTable("enterprise_inquiries", {
@@ -377,6 +384,21 @@ export const commentFlags = pgTable(
 );
 
 export type Incident = typeof incidents.$inferSelect;
+
+export const digestPartners = pgTable('digest_partners', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organisation: text('organisation').notNull(),
+  contactName: text('contact_name').notNull(),
+  email: text('email').notNull(),
+  parish: text('parish').notNull(),
+  categories: text('categories').notNull().default(''),
+  paymentStatus: text('payment_status').notNull().default('unpaid'),
+  planInterval: text('plan_interval').notNull().default('month'),
+  lastPaymentAt: timestamp('last_payment_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type NewsItem = typeof newsItems.$inferSelect;
 
 /** Gas tracker: pump prices reported by members. B$ per gallon, stored in cents. */
@@ -384,9 +406,8 @@ export const gasReports = pgTable(
   "gas_reports",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+    /** Null = official/system price, not a member report. */
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
     station: text("station").notNull(),
     parish: text("parish").notNull(),
     /** regular | premium | diesel */

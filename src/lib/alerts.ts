@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSubscriptions, users, type Incident } from "@/db/schema";
-import { CATEGORIES, type CategoryKey } from "@/lib/geo";
+import { CATEGORIES, haversineMeters, type CategoryKey } from "@/lib/geo";
 import { emailButton, emailLayout, escapeHtml, sendMail } from "@/lib/mail";
 import { PAID_STORM_TIERS, entitledTier } from "@/lib/tiers";
 import { demoPlansAllowed } from "@/lib/billing";
@@ -17,6 +17,7 @@ export type DispatchStats = { matched: number; sent: number; skipped: number; fa
  * Rules: reports rated "annoying" stay quiet unless they are storms; nobody gets more than
  * one alert every three minutes; Rock Sound and Admiral members always get storm reports
  * for their islands, whatever categories they picked; you are never alerted about your own report.
+ * Geofence: profiles with a saved centre only match reports within their radiusKm.
  */
 export async function dispatchIncidentAlerts(incident: Incident, base: string): Promise<DispatchStats> {
   const stats: DispatchStats = { matched: 0, sent: 0, skipped: 0, failed: 0 };
@@ -51,6 +52,20 @@ export async function dispatchIncidentAlerts(incident: Incident, base: string): 
     const stormOverride = isStorm && owner !== null && PAID_STORM_TIERS.includes(owner);
     if (cats.length && !cats.includes(incident.category) && !stormOverride) continue;
     if (incident.userId && sub.userId === incident.userId) continue;
+
+    // Geofence: a profile with a saved centre only fires inside its radius.
+    // Profiles without a centre keep the old island-wide behaviour.
+    if (
+      typeof sub.lat === "number" &&
+      typeof sub.lng === "number" &&
+      Number.isFinite(sub.lat) &&
+      Number.isFinite(sub.lng) &&
+      Number.isFinite(incident.lat) &&
+      Number.isFinite(incident.lng)
+    ) {
+      const radiusM = Math.min(100, Math.max(2, sub.radiusKm ?? 12)) * 1000;
+      if (haversineMeters([sub.lat, sub.lng], [incident.lat, incident.lng]) > radiusM) continue;
+    }
 
     stats.matched += 1;
     if (sub.userId) pushUsers.add(sub.userId);

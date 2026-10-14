@@ -8,7 +8,6 @@ import { isFlagReason } from "@/lib/life-kinds";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 /** Tell staff a comment needs a look. One report per person per comment. */
 export async function POST(req: Request, ctx: { params: Promise<{ cid: string }> }) {

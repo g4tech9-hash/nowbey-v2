@@ -131,8 +131,12 @@ export default function Report() {
       keyboardShouldPersistTaps="handled"
     >
       <Text style={t.h1}>Report a spot</Text>
-      <Text style={[t.subtle, { marginTop: 4 }]}>NowBey is not an emergency service. In an emergency call 919 or 911.</Text>
-      <Text style={[t.subtle, { marginTop: 2 }]}>
+      <View style={{ backgroundColor: color.conch, padding: 8, borderRadius: 8, marginTop: 8 }}>
+        <Text style={{ color: color.bg, fontSize: 12, fontWeight: '900', textAlign: 'center' }}>
+          🚨 For emergencies, call 919 / 911 — this app is not an emergency service.
+        </Text>
+      </View>
+      <Text style={[t.subtle, { marginTop: 8 }]}>
         {user ? `Posting as @${user.handle}` : "Posting without an account. Sign in on the You tab to get credit."}
       </Text>
 

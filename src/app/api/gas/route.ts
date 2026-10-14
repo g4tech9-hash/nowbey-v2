@@ -8,7 +8,7 @@ import { hit, tooMany } from "@/lib/ratelimit";
 import { text, readJson } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
+
 
 export async function GET(req: Request) {
   const parish = new URL(req.url).searchParams.get("parish");

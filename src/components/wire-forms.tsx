@@ -93,6 +93,10 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
   const [target, setTarget] = useState(defaultEmail);
   const [islands, setIslands] = useState<string[]>(["New Providence"]);
   const [cats, setCats] = useState<CategoryKey[]>(DEFAULT_CATS);
+  const [radiusKm, setRadiusKm] = useState(12);
+  const [centre, setCentre] = useState<{ lat: number; lng: number } | null>(null);
+  const [locBusy, setLocBusy] = useState(false);
+  const [locMsg, setLocMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const multi = plan !== null;
@@ -102,6 +106,26 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
     setIslands(islands.includes(p) ? (islands.length > 1 ? islands.filter((v) => v !== p) : islands) : [...islands, p]);
   };
   const toggleCat = (k: CategoryKey) => setCats(cats.includes(k) ? cats.filter((v) => v !== k) : [...cats, k]);
+
+  const locate = () => {
+    if (!navigator.geolocation) {
+      setLocMsg("This device does not share its location.");
+      return;
+    }
+    setLocBusy(true);
+    setLocMsg(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocBusy(false);
+        setCentre({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      () => {
+        setLocBusy(false);
+        setLocMsg("Could not read your location. Island-wide matching stays on.");
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
+    );
+  };
 
   return (
     <form
@@ -114,7 +138,15 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
           const res = await fetch("/api/alerts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ channel: "email", target, parishes: islands, categories: cats }),
+            body: JSON.stringify({
+              channel: "email",
+              target,
+              parishes: islands,
+              categories: cats,
+              radiusKm,
+              lat: centre?.lat ?? null,
+              lng: centre?.lng ?? null,
+            }),
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error ?? "Could not save that.");
@@ -207,6 +239,50 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
         <p className="mt-1.5 text-[11.5px] text-[#8fb9b6]">
           Leave everything unselected to hear about every report. Reports marked “annoying” never trigger an email.
         </p>
+      </div>
+
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">How close must a report be?</p>
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {[5, 12, 25, 50].map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRadiusKm(r)}
+              aria-pressed={radiusKm === r}
+              className={`rounded-lg px-2 py-1 text-[11.5px] font-semibold ${
+                radiusKm === r ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
+              }`}
+            >
+              {r} km
+            </button>
+          ))}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={locate}
+            disabled={locBusy}
+            className="rounded-lg border hairline px-2.5 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/8 disabled:opacity-50"
+          >
+            {locBusy ? "Reading location…" : centre ? "Location saved — update it" : "Use my location"}
+          </button>
+          {centre ? (
+            <button
+              type="button"
+              onClick={() => setCentre(null)}
+              className="rounded-lg px-2 py-1.5 text-[12px] font-bold text-[#8fb9b6] hover:text-sand-100"
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+        <p className="mt-1.5 text-[11.5px] text-[#8fb9b6]">
+          {centre
+            ? `Only reports within ${radiusKm} km of where you are now will email you.`
+            : "Without a location we match the whole island. Your position is only used for matching and is never shown to anyone."}
+        </p>
+        {locMsg ? <p className="mt-1 text-[11.5px] text-conch-400">{locMsg}</p> : null}
       </div>
 
       <button

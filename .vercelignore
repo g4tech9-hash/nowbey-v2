@@ -1,0 +1,10 @@
+.expo/
+.env*
+!.env.example
+.data/
+.neon*
+.vercel/
+expo/
+temp_*/
+node_modules/
+*.log

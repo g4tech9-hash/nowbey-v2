@@ -7,7 +7,6 @@ import { audit } from "@/lib/audit";
 import { removeComment } from "@/lib/engage";
 import { requireStaff } from "@/lib/staff";
 
-export const dynamic = "force-dynamic";
 
 /** Moderate comments. Editors and admins can hide, restore, dismiss reports and delete. Every change is logged. */
 export async function PATCH(req: Request) {

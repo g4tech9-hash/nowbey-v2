@@ -8,6 +8,8 @@ tsconfig.tsbuildinfo
 .env
 .env.local
 .env.*.local
+.env.vercel
+.neon.txt
 .data
 
 # logs and editor files

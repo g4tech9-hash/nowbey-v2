@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { PageHead } from "@/components/app-shell";
 import { Stars } from "@/components/life/stars";
-import { FilterChips } from "@/components/admin-ui";
+import { FilterChips, Pager } from "@/components/admin-ui";
 import { PARISHES } from "@/lib/geo";
 import { KINDS, KIND_KEYS, isKind, listPlaces } from "@/lib/life";
+import { clampInt } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,9 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
   const kind = isKind(kindIn) ? kindIn : null;
   const parishIn = first(sp.parish);
   const parish = parishIn && (PARISHES as readonly string[]).includes(parishIn) ? parishIn : null;
-  const [places, viewer] = await Promise.all([listPlaces({ kind, parish, limit: 100 }), getViewer()]);
+  const page = clampInt(first(sp.page), 1, 1, 10000);
+  const [result, viewer] = await Promise.all([listPlaces({ kind, parish, page, perPage: 24 }), getViewer()]);
+  const { rows: places, total, page: currentPage, pages } = result;
   const params = { kind: kind ?? undefined, parish: parish ?? undefined };
 
   return (
@@ -49,30 +52,31 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           path="/life/places"
           params={{ kind: kind ?? undefined }}
           options={[{ value: "", label: "All" }, ...PARISHES.map((p) => ({ value: p, label: p }))]}
+          scroll
         />
 
         <p className="text-[12px] text-[#8fb9b6]">
-          {places.length} {places.length === 1 ? "place" : "places"}
+          {total} {total === 1 ? "place" : "places"}
           {kind ? ` in ${KINDS[kind].label}` : ""}
           {parish ? ` on ${parish}` : ""}, best rated first.
         </p>
 
         {places.length ? (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {places.map((p) => {
               const k = KINDS[p.kind] ?? KINDS.tip;
               return (
-                <article key={p.id} className="glass rounded-2xl p-4 transition hover:bg-white/[0.06]">
+                <article key={p.id} className="glass min-w-0 rounded-2xl p-4 transition hover:bg-white/[0.06]">
                   <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: k.color }}>
                     {k.label}
                     {p.parish ? ` · ${p.parish}` : ""}
                   </p>
-                  <h2 className="display mt-1 text-[17px] font-extrabold text-sand-100">
+                  <h2 className="display mt-1 break-words text-[17px] font-extrabold text-sand-100">
                     <Link href={`/life/place/${p.id}`} className="hover:underline">
                       {p.name}
                     </Link>
                   </h2>
-                  {p.address ? <p className="mt-0.5 text-[12px] text-[#8fb9b6]">{p.address}</p> : null}
+                  {p.address ? <p className="mt-0.5 break-words text-[12px] text-[#8fb9b6]">{p.address}</p> : null}
                   <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-[#cfeee9]">
                     {p.avg ? (
                       <>
@@ -97,6 +101,23 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                       </>
                     ) : null}
                   </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#8fb9b6]">
+                    {p.hours ? (
+                      <span className="flex items-center gap-1">
+                        <span className="opacity-50">🕒</span> {p.hours}
+                      </span>
+                    ) : null}
+                    {p.phone ? (
+                      <span className="flex items-center gap-1">
+                        <span className="opacity-50">📞</span> {p.phone}
+                      </span>
+                    ) : null}
+                    {p.website ? (
+                      <a href={p.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-tide-300 hover:underline">
+                        <span className="opacity-50">🌐</span> Website
+                      </a>
+                    ) : null}
+                  </div>
                 </article>
               );
             })}
@@ -109,6 +130,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
             </p>
           </div>
         )}
+        <Pager page={currentPage} pages={pages} path="/life/places" params={params} />
         <p className="text-center text-[11px] text-[#7fa6a2]">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
       </div>
     </div>

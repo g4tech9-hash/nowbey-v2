@@ -72,7 +72,7 @@ export default async function AdminOverview() {
   void ne;
 
   const checks: [string, boolean, string][] = [
-    ["Payments (Stripe key)", stripeConfigured(), "Add STRIPE_SECRET_KEY. Until then plans switch on in demo mode."],
+    ["Payments (Stripe key)", stripeConfigured(), "Add STRIPE_SECRET_KEY. Until then plans are disabled."],
     ["Payment webhook", webhookConfigured(), "Add STRIPE_WEBHOOK_SECRET so paid plans switch on and off by themselves."],
     ["Email sending", mailConfigured(), "Add SMTP_HOST, SMTP_USER and SMTP_PASS (for example a Gmail app password), or RESEND_API_KEY. Without one, confirmation, password-reset and alert emails cannot be sent."],
     ["Enterprise notifications", Boolean(process.env.ENTERPRISE_NOTIFY_TO), "Add ENTERPRISE_NOTIFY_TO to be emailed when an enquiry arrives."],

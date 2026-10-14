@@ -65,6 +65,7 @@ export function FilterChips({
   value,
   path,
   params,
+  scroll = false,
 }: {
   label: string;
   name: string;
@@ -72,15 +73,20 @@ export function FilterChips({
   value: string;
   path: string;
   params: Record<string, string | undefined>;
+  /** swipe sideways instead of wrapping: for long lists (islands) on narrow screens */
+  scroll?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">{label}</span>
+    <div
+      className={scroll ? "-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1" : "flex flex-wrap items-center gap-1.5"}
+      style={scroll ? { scrollbarWidth: "none" } : undefined}
+    >
+      <span className="shrink-0 text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">{label}</span>
       {options.map((o) => (
         <Link
           key={o.value}
           href={adminHref(path, params, { [name]: o.value || undefined, page: undefined })}
-          className={`rounded-full px-2.5 py-1 text-[11.5px] font-bold ${value === o.value ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"}`}
+          className={`${scroll ? "shrink-0" : ""} rounded-full px-2.5 py-1 text-[11.5px] font-bold ${value === o.value ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"}`}
         >
           {o.label}
         </Link>

@@ -8,7 +8,6 @@ import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { UUID_RE, readJson, isGone } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 /** Tell staff a post needs a look. One report per person per post. */
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {

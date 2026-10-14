@@ -7,13 +7,14 @@ import { getViewer, type Viewer } from "@/lib/viewer";
 import { PARISHES } from "@/lib/geo";
 import { clientIp, exhausted, forget, hit, record, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
+import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { HANDLE_RE, handleProblem, normalizeHandle } from "@/lib/handles";
 import { MAX_PASSWORD, checkPassword } from "@/lib/password";
 import { sendVerificationEmail } from "@/lib/account";
 import { publicBase } from "@/lib/billing";
 import { mailConfigured } from "@/lib/mail";
 
-export const dynamic = "force-dynamic";
+
 
 const FAIL_WINDOW = 15 * 60_000;
 const EMAIL_TAKEN = "An account with that email already exists. Try signing in, or reset your password.";
@@ -48,6 +49,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (hasBadOrigin(req)) return badOrigin();
   const body = await readJson(req);
   // The mobile app has no cookie jar, so it asks for the token and sends it back as a bearer token.
   const native = req.headers.get("x-nowbey-client") === "native";

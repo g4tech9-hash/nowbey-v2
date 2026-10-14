@@ -23,6 +23,23 @@ export function parseHours(raw: string | null | undefined): Hours {
   }
 }
 
+/** Extra status line from the directory importer (e.g. "Opens 8 am Mon").
+ * Shown when no per-day hours exist. Anything unreadable yields null. */
+export function hoursNote(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const note = parsed.note ?? parsed.detail;
+    if (typeof note === "string" && note.trim()) return note.trim().slice(0, 120);
+    const status = parsed.status;
+    if (typeof status === "string" && status.trim()) return status.trim().slice(0, 60);
+    return null;
+  } catch {
+    const s = raw.trim();
+    return s ? s.slice(0, 120) : null;
+  }
+}
+
 /** Keeps only the days the form sent, each one short, so hours stay readable. */
 export function cleanHours(input: unknown): Hours {
   const out: Hours = {};

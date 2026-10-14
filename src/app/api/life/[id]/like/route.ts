@@ -7,7 +7,6 @@ import { hit, tooMany } from "@/lib/ratelimit";
 import { UUID_RE, isGone } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Tap once to like, tap again to take it back. Kept so older copies of the mobile app keep working;

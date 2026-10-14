@@ -9,7 +9,7 @@ import { exhausted, forget, record, tooMany } from "@/lib/ratelimit";
 import { text, readJson } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
+
 
 /** Change the name shown on your reports, or your home island. */
 export async function PATCH(req: Request) {

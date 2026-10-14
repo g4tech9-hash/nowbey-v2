@@ -5,7 +5,6 @@ import { users } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
 import { baseUrl, stripe, stripeConfigured } from "@/lib/billing";
 
-export const dynamic = "force-dynamic";
 
 /** Opens the Stripe billing portal, or ends a demo plan. */
 export async function POST(req: Request) {

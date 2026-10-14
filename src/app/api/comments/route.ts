@@ -8,7 +8,7 @@ import { clientIp, exhausted, record, tooMany } from "@/lib/ratelimit";
 import { UUID_RE, text, readJson, dbInt, isGone } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
+
 
 const HOUR = 60 * 60_000;
 const bad = (error: string, status = 400) => NextResponse.json({ error }, { status });

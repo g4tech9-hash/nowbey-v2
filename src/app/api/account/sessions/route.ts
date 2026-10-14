@@ -5,7 +5,6 @@ import { users } from "@/db/schema";
 import { reissueSession } from "@/lib/account";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 /** "Sign out my other devices": every other session stops working, this one carries on. */
 export async function DELETE(req: Request) {

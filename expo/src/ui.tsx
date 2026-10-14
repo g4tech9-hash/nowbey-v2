@@ -15,6 +15,8 @@ import { categoryOf } from "./geo";
 import { color, radius } from "./theme";
 import type { Badge } from "./api";
 
+export { color };
+
 export function useTopInset() {
   return useSafeAreaInsets().top;
 }

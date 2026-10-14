@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { gasReports } from "@/db/schema";
-import { sql } from "drizzle-orm";
+import { cronUnauthorized, isCronAuthorized } from "@/lib/cron";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
-  // Security: check for a secret key in headers to prevent public trigger
-  const authHeader = request.headers.get("Authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new NextResponse("Unauthorized", { status: 401 });
+  // Security: constant-time check; 404 so scanners can't tell cron routes exist.
+  if (!isCronAuthorized(request)) {
+    return cronUnauthorized();
   }
 
   try {
@@ -24,7 +26,7 @@ export async function GET(request: Request) {
       // Upsert logic: update the latest report for the station/fuel/parish combo
       // or just insert a new one for the daily tracker.
       await db.insert(gasReports).values({
-        userId: "00000000-0000-0000-0000-000000000000", // System user
+        userId: null, // system/official price, not a member report
         station: p.station,
         parish: p.parish,
         fuel: p.fuel,

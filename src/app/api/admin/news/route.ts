@@ -8,7 +8,6 @@ import { audit } from "@/lib/audit";
 import { requireStaff } from "@/lib/staff";
 import { UUID_RE, readJson } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /** Approve or reject a reader-submitted link, or take a story off the wire. Editors and admins. */
 export async function PATCH(req: Request) {

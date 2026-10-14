@@ -21,7 +21,7 @@ export default async function AppearancePage() {
           Switch between the new Island look and the original Classic design at any time. It takes effect for everyone straight away, and nothing is lost either way.
         </p>
         <div className="mt-4">
-          <AppearanceForm theme={s.theme} splashPref={s.splashPref} themeLocked={s.themeLocked} splashLocked={s.splashLocked} />
+          <AppearanceForm theme={s.theme} mode={s.mode} splashPref={s.splashPref} themeLocked={s.themeLocked} modeLocked={s.modeLocked} splashLocked={s.splashLocked} />
         </div>
       </section>
 

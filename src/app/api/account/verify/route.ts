@@ -7,7 +7,6 @@ import { baseUrl, publicBase } from "@/lib/billing";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 /** The link in the confirmation email lands here. */
 export async function GET(req: Request) {

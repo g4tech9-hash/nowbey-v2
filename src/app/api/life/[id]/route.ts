@@ -9,7 +9,6 @@ import { publicPost } from "@/lib/life";
 import { UUID_RE } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 
 /** One post with its photos and reaction counts. Hidden posts are only for their author and staff. */
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {

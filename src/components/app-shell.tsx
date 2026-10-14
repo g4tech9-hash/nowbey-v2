@@ -1,8 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { NavLinks, SessionChip } from "./nav-links";
+import { ModeToggle } from "./mode-toggle";
 import { LiveTicker } from "./live-ticker";
 import { BRAND } from "@/lib/brand";
+import type { ModeKey } from "@/lib/themes";
 
 export function NowBeyMark({ size = 30 }: { size?: number }) {
   return (
@@ -30,10 +32,12 @@ export function NowBeyMark({ size = 30 }: { size?: number }) {
 export function AppShell({
   children,
   handle,
+  defaultMode,
   kicker,
 }: {
   children: ReactNode;
   handle: string | null;
+  defaultMode: ModeKey;
   kicker?: ReactNode;
 }) {
   return (
@@ -62,6 +66,7 @@ export function AppShell({
             >
               Report a spot
             </Link>
+            <ModeToggle defaultMode={defaultMode} />
             <SessionChip handle={handle} />
           </div>
         </div>

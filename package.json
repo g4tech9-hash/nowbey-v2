@@ -1,6 +1,9 @@
 {
   "name": "nextjs-postgresql-template",
   "private": true,
+  "engines": {
+    "node": ">=20.19.4"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,6 +17,7 @@
     "dompurify": "^3.4.16",
     "dotenv": "17.3.1",
     "drizzle-orm": "0.45.2",
+    "isomorphic-dompurify": "^4.5.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.469.0",
     "next": "^16.4.0",
@@ -38,5 +42,10 @@
     "postcss": "8.5.8",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3"
+  },
+  "version": "1.0.0",
+  "overrides": {
+    "jsdom": "25.0.1",
+    "html-encoding-sniffer": "2.0.0"
   }
 }

@@ -37,7 +37,7 @@ const SECTIONS: { h: string; p: string[] }[] = [
   {
     h: "5. Paid plans",
     p: [
-      "Paid plans remove ads and add features. Prices are shown in US dollars before you buy. Plans renew until cancelled and can be cancelled at any time; a cancelled plan runs to the end of the period you paid for.",
+      "Paid plans remove ads and add features. Prices are shown in US dollars before you buy. Plans renew until cancelled and can be cancelled at any time; a cancelled plan runs to the end of the period you paid for. Note: Payment features are currently in a limited beta and may not be available in all regions.",
       "Plans bought through the Apple App Store or Google Play are billed, managed and refunded by that store under its own terms.",
     ],
   },

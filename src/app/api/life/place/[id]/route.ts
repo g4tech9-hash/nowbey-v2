@@ -10,7 +10,6 @@ import { exhausted, hit, record, tooMany } from "@/lib/ratelimit";
 import { UUID_RE, readJson, text } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const HOUR = 60 * 60_000;

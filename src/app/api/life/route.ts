@@ -12,7 +12,7 @@ import { clientIp, exhausted, hit, record, tooMany } from "@/lib/ratelimit";
 import { clampInt, text } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
-export const dynamic = "force-dynamic";
+
 export const runtime = "nodejs";
 
 const MAX_REQUEST_BYTES = 14 * 1024 * 1024;

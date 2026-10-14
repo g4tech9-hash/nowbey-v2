@@ -8,7 +8,6 @@ import { hashPassword } from "@/lib/auth";
 import { checkPassword } from "@/lib/password";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 
-export const dynamic = "force-dynamic";
 
 const BAD_LINK = "This reset link is not valid any more. Ask for a new one.";
 

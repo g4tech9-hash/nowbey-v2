@@ -28,7 +28,7 @@ export function PerkList({ perks, tone }: { perks: Perk[]; tone: string }) {
 }
 
 type Props = {
-  /** true when a payment provider is connected; false means plans switch on in demo mode */
+  /** true when a payment provider is connected; false means plans are disabled */
   live: boolean;
   signedIn: boolean;
   currentTier: TierKey | null;

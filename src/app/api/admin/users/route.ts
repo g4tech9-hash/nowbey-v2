@@ -10,7 +10,6 @@ import { requireStaff } from "@/lib/staff";
 import { isTierKey } from "@/lib/tiers";
 import { text, readJson } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 const ROLES = ["resident", "editor", "admin"];
 
