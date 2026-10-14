@@ -8,7 +8,7 @@ const LINKS = [
   { href: "/", label: "Feed", short: "Feed", icon: "feed" },
   { href: "/map", label: "Map", short: "Map", icon: "map" },
   { href: "/report", label: "Report", short: "Report", icon: "report" },
-  { href: "/life", label: "Island Life", short: "Life", icon: "life" },
+  ...(process.env.FEATURE_ISLAND_LIFE === "true" ? [{ href: "/life", label: "Island Life", short: "Life", icon: "life" }] : []),
   { href: "/wire", label: "News wire", short: "Wire", icon: "wire" },
   { href: "/alerts", label: "Alerts", short: "Alerts", icon: "bell" },
   {
@@ -17,7 +17,7 @@ const LINKS = [
     short: "Plans",
     icon: "heart",
     children: [
-      { href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" },
+      ...(process.env.FEATURE_GAS_TRACKER === "true" ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" }] : []),
     ]
   },
 ] as const;
@@ -97,7 +97,7 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
         aria-label="Primary"
       >
         <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
-          {[...LINKS.filter((l) => l.href !== "/support"), { href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const].map((l) => {
+          {[...LINKS.filter((l) => l.href !== "/support"), ...(process.env.FEATURE_GAS_TRACKER === "true" ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : [])].map((l) => {
             const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
             return (
               <li key={l.href} className="flex-1">

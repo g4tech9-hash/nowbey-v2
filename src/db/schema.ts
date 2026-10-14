@@ -384,6 +384,21 @@ export const commentFlags = pgTable(
 );
 
 export type Incident = typeof incidents.$inferSelect;
+
+export const digestPartners = pgTable('digest_partners', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  organisation: text('organisation').notNull(),
+  contactName: text('contact_name').notNull(),
+  email: text('email').notNull(),
+  parish: text('parish').notNull(),
+  categories: text('categories').notNull().default(''),
+  paymentStatus: text('payment_status').notNull().default('unpaid'),
+  planInterval: text('plan_interval').notNull().default('month'),
+  lastPaymentAt: timestamp('last_payment_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
 export type NewsItem = typeof newsItems.$inferSelect;
 
 /** Gas tracker: pump prices reported by members. B$ per gallon, stored in cents. */

@@ -143,7 +143,13 @@ export default function ReportWizard() {
 
   return (
     <div className="mx-auto max-w-[1000px]">
+      <div className="mb-4 rounded-2xl border-2 border-conch-500 bg-conch-500/10 p-3 text-center">
+        <p className="text-[13px] font-extrabold text-conch-400">
+          🚨 For emergencies, call 919 / 911 — this app is not an emergency service.
+        </p>
+      </div>
       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-tide-400">Report a spot</p>
+
       <h1 className="display mt-1 text-[clamp(1.6rem,4vw,2.2rem)] font-extrabold leading-tight text-sand-100">
         Three steps, twenty seconds
       </h1>
