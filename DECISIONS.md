@@ -7,3 +7,8 @@
 6. Tests: pure helpers (chunk/validate/receipts) under node --test; routes need DB → typecheck + manual.
 7. Commit only push files on the feature branch; unrelated work stays uncommitted.
 8. No iOS code/config; no firebase-admin; no `eas update` (native module added).
+9. places-update cron disabled (501): installed openplaces@0.3.5 dropped the
+   `Places` export its WIP used and ships a broken sqlite helper, failing
+   `next build` on master too. This unblocks ALL backend deploys, not just push.
+10. Firebase: project nowbey-ed663 exists but g4tech9@gmail.com has no app-create
+    permission (403). google-services.json + FCM V1 key remain human steps.
