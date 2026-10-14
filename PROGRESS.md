@@ -18,3 +18,4 @@
 - [2026-10-11 17:20] Phase 3: Deployed Next.js site to Vercel.
 - [2026-10-11 17:20] Synchronized production environment variables to Vercel (DATABASE_URL, NEON_BRANCH, etc.).
 - [2026-10-11 17:20] Started EAS Android build for APK (preview profile).
+- [2026-10-14] Added two feature-flagged cloud features: (1) Gemini story briefs + recategorise + pin-repair on the wire (`GEMINI_API_KEY`), plus an AI-drafted Community Digest page at /admin/digest for the $25/mo partner product; (2) Firebase Cloud Messaging push alerts (server HTTP v1 + browser registration on /alerts) wired into new incidents and editor news alerts. Both no-op without their env keys. Run add-ai-push.sql before enabling.

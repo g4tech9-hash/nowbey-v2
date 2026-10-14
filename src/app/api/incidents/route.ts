@@ -6,6 +6,7 @@ import { badgesFor } from "@/lib/badges";
 import { getViewer } from "@/lib/viewer";
 import { publicBase } from "@/lib/billing";
 import { dispatchIncidentAlerts } from "@/lib/alerts";
+import { dispatchIncidentPush } from "@/lib/push";
 import { publicIncident } from "@/lib/public";
 import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
@@ -130,6 +131,11 @@ export async function POST(req: Request) {
         await dispatchIncidentAlerts(row, base);
       } catch (e) {
         console.error("alert dispatch failed", e instanceof Error ? e.message : e);
+      }
+      try {
+        await dispatchIncidentPush(row, base);
+      } catch (e) {
+        console.error("push dispatch failed", e instanceof Error ? e.message : e);
       }
     });
   } else {

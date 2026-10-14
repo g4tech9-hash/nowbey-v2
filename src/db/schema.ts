@@ -123,6 +123,10 @@ export const newsItems = pgTable(
     alertLevel: text("alert_level").notNull().default("none"),
     /** When an alert about this story was emailed to subscribers. Null means not yet sent. */
     alertedAt: timestamp("alerted_at", { withTimezone: true }),
+    /** Gemini-written plain-English brief. Null until the AI pass runs (only when GEMINI_API_KEY is set). */
+    aiSummary: text("ai_summary"),
+    /** When the AI pass looked at this story, so it is never asked twice about the same headline. */
+    aiAt: timestamp("ai_at", { withTimezone: true }),
   },
   (table) => [index("news_published_idx").on(table.publishedAt.desc())],
 );
@@ -384,6 +388,8 @@ export const commentFlags = pgTable(
 );
 
 export type Incident = typeof incidents.$inferSelect;
+export type PushToken = typeof pushTokens.$inferSelect;
+export type DigestDraft = typeof digestDrafts.$inferSelect;
 
 export const digestPartners = pgTable('digest_partners', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -469,4 +475,53 @@ export const placePhotos = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("place_photos_place_idx").on(table.placeId)],
+);
+
+/** Browsers that asked for push alerts. One row per FCM registration token. Only filled when Firebase is set up. */
+export const pushTokens = pgTable(
+  "push_tokens",
+  {
+    id: serial("id").primaryKey(),
+    /** The signed-in member, when the browser was signed in at registration time. Null is fine (guest device). */
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
+    /** The FCM registration token. Unique: a browser that re-registers just refreshes its row. */
+    token: text("token").notNull(),
+    platform: text("platform").notNull().default("web"),
+    /** Comma-separated islands this device wants to hear about. */
+    parishes: text("parishes").notNull().default("New Providence"),
+    /** Comma-separated categories. Empty means every category. */
+    categories: text("categories").notNull().default(""),
+    active: boolean("active").notNull().default(true),
+    /** Cooldown: when the last push went to this device, so bans/alerts cannot spam it. */
+    lastPushAt: timestamp("last_push_at", { withTimezone: true }),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("push_tokens_token_idx").on(table.token), index("push_tokens_active_idx").on(table.active)],
+);
+
+/** A weekly Community Digest draft for a paying partner (HOA etc.). AI-written when Gemini is set up, edited, then emailed by hand. */
+export const digestDrafts = pgTable(
+  "digest_drafts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    parish: text("parish").notNull(),
+    /** Comma-separated categories the digest covered. Empty means all of them. */
+    categories: text("categories").notNull().default(""),
+    subject: text("subject").notNull(),
+    bodyHtml: text("body_html").notNull(),
+    bodyText: text("body_text").notNull(),
+    /** Comma-separated addresses it was sent to. Empty while still a draft. */
+    recipients: text("recipients").notNull().default(""),
+    /** How many reports/stories went into it. */
+    itemCount: integer("item_count").notNull().default(0),
+    /** ai | plain — "plain" when Gemini was not set up and a template filled in instead. */
+    generatedBy: text("generated_by").notNull().default("plain"),
+    /** draft | sent */
+    status: text("status").notNull().default("draft"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    createdBy: text("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("digest_drafts_created_idx").on(table.createdAt.desc())],
 );

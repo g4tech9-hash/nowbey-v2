@@ -19,7 +19,8 @@ export async function compilePartnerDigest(parish: string, categories: string[])
   const hazardFilters = [gte(incidents.createdAt, since)];
   if (parish) hazardFilters.push(eq(incidents.parish, parish));
   if (categories.length > 0) {
-    hazardFilters.push(or(...categories.map(c => eq(incidents.category, c))));
+    const catFilter = or(...categories.map(c => eq(incidents.category, c)));
+    if (catFilter) hazardFilters.push(catFilter);
   }
 
   // Use a variable to avoid the ternary inside .where() which confuses TS

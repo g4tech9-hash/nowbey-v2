@@ -30,7 +30,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: "/admin/wire", label: "Wire", badge: pending.n },
     { href: "/admin/community", label: "Community", badge: flagged.n },
     { href: "/admin/comments", label: "Comments", badge: flaggedComments.n },
-    ...(viewer.isAdmin ? [{ href: "/admin/inbox", label: "Inbox", badge: fresh.n }, { href: "/admin/activity", label: "Activity" }, { href: "/admin/appearance", label: "Appearance" }] : []),
+    ...(viewer.isAdmin ? [{ href: "/admin/digest", label: "Digest" }, { href: "/admin/inbox", label: "Inbox", badge: fresh.n }, { href: "/admin/activity", label: "Activity" }, { href: "/admin/appearance", label: "Appearance" }] : []),
   ];
 
   return (

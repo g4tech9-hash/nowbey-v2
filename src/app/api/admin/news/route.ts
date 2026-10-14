@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { newsItems } from "@/db/schema";
 import { dispatchNewsAlert } from "@/lib/alerts";
+import { dispatchNewsPush } from "@/lib/push";
 import { publicBase } from "@/lib/billing";
 import { audit } from "@/lib/audit";
 import { requireStaff } from "@/lib/staff";
@@ -31,9 +32,15 @@ export async function PATCH(req: Request) {
     const base = publicBase(req);
     if (!base) return NextResponse.json({ error: "Set APP_URL in Vercel so alert links work." }, { status: 400 });
     const stats = await dispatchNewsAlert({ id, ...story, parish: story.parish, summary: story.summary, url: story.url, sourceName: story.sourceName }, base);
+    let push = null;
+    try {
+      push = await dispatchNewsPush({ id, title: story.title, parish: story.parish, category: story.category, sourceName: story.sourceName }, base);
+    } catch (e) {
+      console.error("push dispatch failed", e instanceof Error ? e.message : e);
+    }
     await db.update(newsItems).set({ alertedAt: new Date() }).where(eq(newsItems.id, id));
-    await audit(actorName, "story.alert", "story", id, `${story.title} (sent ${stats.sent})`);
-    return NextResponse.json({ ok: true, stats });
+    await audit(actorName, "story.alert", "story", id, `${story.title} (sent ${stats.sent}${push ? `, push ${push.sent}` : ""})`);
+    return NextResponse.json({ ok: true, stats, push });
   }
 
   if (body.action === "approve") {

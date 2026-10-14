@@ -4,13 +4,28 @@ import { db } from "@/db";
 import { newsItems } from "@/db/schema";
 import { CATEGORY_KEYS, knownParish } from "@/lib/geo";
 import { configuredFeeds, refreshIfStale, runIngest } from "@/lib/ingest";
+import { enrichRecentStories } from "@/lib/news-ai";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { clampInt, readJson } from "@/lib/validate";
 
 
 
+/** Refresh the wire if it is stale, then let Gemini brief whatever is new (no-op without a key). */
+async function refreshThenEnrich(enrichLimit = 6): Promise<void> {
+  try {
+    await refreshIfStale();
+  } catch {
+    /* the wire must never break because a refresh failed */
+  }
+  try {
+    await enrichRecentStories(enrichLimit);
+  } catch (err) {
+    console.warn(`[ai] enrich skipped: ${err instanceof Error ? err.message : err}`);
+  }
+}
+
 export async function GET(req: Request) {
-  after(() => refreshIfStale());
+  after(() => refreshThenEnrich());
   const { searchParams } = new URL(req.url);
   const parish = knownParish(searchParams.get("parish"));
   const categoryRaw = searchParams.get("category");
@@ -38,5 +53,6 @@ export async function POST(req: Request) {
   if (!gate.ok) return tooMany(gate.retryAfter, "refreshes");
   const body = await readJson(req);
   const stats = await runIngest({ limit: clampInt(String(body?.limit ?? ""), 12, 1, 40) });
+  after(() => refreshThenEnrich(8));
   return NextResponse.json({ stats });
 }

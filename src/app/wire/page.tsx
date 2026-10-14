@@ -84,7 +84,12 @@ export default async function WirePage() {
                       {n.title}
                     </a>
                   </h2>
-                  {n.summary ? (
+                  {n.aiSummary ? (
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-[#cfeee9]">
+                      <span className="mr-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI brief</span>
+                      {n.aiSummary}
+                    </p>
+                  ) : n.summary ? (
                     <p
                       className="mt-1.5 text-[13px] leading-relaxed text-[#a9cdc9]"
                       dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(n.summary) }}

@@ -4,7 +4,9 @@ import { db } from "@/db";
 import { enterpriseInquiries, incidents, newsItems, users } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
 import { stripeConfigured, webhookConfigured } from "@/lib/billing";
+import { aiConfigured } from "@/lib/ai";
 import { mailConfigured } from "@/lib/mail";
+import { pushConfigured } from "@/lib/push";
 import { MiniBars, StatCard } from "@/components/admin-ui";
 import { PlaceImportButton } from "@/components/admin-place-import";
 
@@ -76,6 +78,8 @@ export default async function AdminOverview() {
     ["Payment webhook", webhookConfigured(), "Add STRIPE_WEBHOOK_SECRET so paid plans switch on and off by themselves."],
     ["Email sending", mailConfigured(), "Add SMTP_HOST, SMTP_USER and SMTP_PASS (for example a Gmail app password), or RESEND_API_KEY. Without one, confirmation, password-reset and alert emails cannot be sent."],
     ["Enterprise notifications", Boolean(process.env.ENTERPRISE_NOTIFY_TO), "Add ENTERPRISE_NOTIFY_TO to be emailed when an enquiry arrives."],
+    ["AI story briefs & digest writer (Gemini)", aiConfigured(), "Add GEMINI_API_KEY (aistudio.google.com, free tier). Wire stories get plain-English briefs and missing pins; the Community Digest writes its own first draft."],
+    ["Push alerts (Firebase)", pushConfigured(), "Add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, plus the NEXT_PUBLIC_FIREBASE_* web keys. Until then visitors only see email alerts."],
     ["Site address", Boolean(process.env.APP_URL), "Add APP_URL, your real https address. Emails will not send until it is set, so the links in them cannot be forged."],
     ["Session secret", Boolean(process.env.AUTH_SECRET), "Optional on a single server (a random one is saved in .data/). Set AUTH_SECRET if you run more than one server."],
   ];
