@@ -5,6 +5,7 @@ import { enterpriseInquiries, incidents, newsItems, users } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
 import { stripeConfigured, webhookConfigured } from "@/lib/billing";
 import { aiConfigured } from "@/lib/ai";
+import { googleConfigured } from "@/lib/geocode";
 import { mailConfigured } from "@/lib/mail";
 import { moderationOn } from "@/lib/moderation";
 import { pushConfigured } from "@/lib/push";
@@ -82,6 +83,7 @@ export default async function AdminOverview() {
     ["AI story briefs & digest writer (Gemini)", aiConfigured(), "Add GEMINI_API_KEY (aistudio.google.com, free tier). Wire stories get plain-English briefs and missing pins; the Community Digest writes its own first draft."],
     ["AI first-pass moderation", moderationOn(), "Uses GEMINI_API_KEY as well: new reports, comments, Island Life posts and uploaded photos get screened, and confident matches are queued for staff as flags. It never hides anything itself."],
     ["Push alerts (Firebase)", pushConfigured(), "Add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, plus the NEXT_PUBLIC_FIREBASE_* web keys. Until then visitors only see email alerts."],
+    ["Geocoding fallback (Google)", googleConfigured(), "Add GOOGLE_MAPS_API_KEY with the Geocoding API enabled. Address searches and pin drops then fall back to Google when OpenStreetMap draws a blank — a big upgrade for Nassau streets."],
     ["Site address", Boolean(process.env.APP_URL), "Add APP_URL, your real https address. Emails will not send until it is set, so the links in them cannot be forged."],
     ["Session secret", Boolean(process.env.AUTH_SECRET), "Optional on a single server (a random one is saved in .data/). Set AUTH_SECRET if you run more than one server."],
   ];
