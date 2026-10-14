@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, or } from "drizzle-orm";
+import { and, desc, eq, gte, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { incidents, newsItems } from "@/db/schema";
 import { nowMs, timeAgo } from "@/lib/geo";
@@ -22,13 +22,16 @@ export async function compilePartnerDigest(parish: string, categories: string[])
     hazardFilters.push(or(...categories.map(c => eq(incidents.category, c))));
   }
 
+  // Use a variable to avoid the ternary inside .where() which confuses TS
+  const hazardWhere = and(...hazardFilters);
+
   const [hazards, news] = await Promise.all([
-    db.select().from(incidents).where(hazardFilters.length > 0 ? and(...hazardFilters) : undefined).orderBy(desc(incidents.createdAt)).limit(10),
+    db.select().from(incidents).where(hazardWhere as any).orderBy(desc(incidents.createdAt)).limit(10),
     db.select().from(newsItems).where(
       and(
         eq(newsItems.review, 'approved'),
         gte(newsItems.publishedAt, since),
-        parish ? eq(newsItems.parish, parish) : undefined
+        parish ? eq(newsItems.parish, parish) : (sql`TRUE` as any)
       )
     ).orderBy(desc(newsItems.publishedAt)).limit(5)
   ]);
