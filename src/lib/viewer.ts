@@ -58,7 +58,16 @@ export const ANON: Viewer = {
 export async function getViewer(): Promise<Viewer> {
   const session = readToken(await sessionToken());
   if (!session) return ANON;
-  const [u] = await db.select().from(users).where(eq(users.id, session.uid)).limit(1);
+  let u: typeof users.$inferSelect | undefined;
+  try {
+    [u] = await db.select().from(users).where(eq(users.id, session.uid)).limit(1);
+  } catch (err) {
+    // The root layout of every page calls this, so a database that is briefly unreachable — or not configured at
+    // all, as on a Preview deployment without DATABASE_URL — must not take the whole site down. The visitor is
+    // treated as signed out for this request and signed in again on the next one.
+    console.error("[viewer] session lookup failed, treating as signed out:", (err as Error).message);
+    return ANON;
+  }
   if (!u || u.status === "suspended" || u.sessionVersion !== session.v) return ANON;
   const tier = entitledTier(u, demoPlansAllowed());
   const isAdmin = u.role === "admin" || envAdminHandles().includes(u.handle.toLowerCase());
