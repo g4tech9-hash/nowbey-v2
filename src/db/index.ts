@@ -50,15 +50,26 @@ export function getDb(): NodePgDatabase {
  * access is forwarded to the real object, which is created on first touch. The module itself stays import-safe, so
  * building without a database can never fail on this file again.
  */
-export const pool = new Proxy({} as Pool, {
-  get(_target, prop, receiver) {
-    return Reflect.get(getPool(), prop, receiver);
-  },
-});
+/**
+ * Methods are bound to the real object. Without that, `pool.query(...)` ran with `this` set to the wrapper,
+ * so pg's own bookkeeping (`this._clients = ...` when a client is dropped after a failed query) was written
+ * onto the wrapper instead of the pool: every failed query left a phantom client behind until the pool
+ * believed it was full and every later request waited 10 s for a connection and failed.
+ */
+function forward<T extends object>(real: () => T): ProxyHandler<T> {
+  return {
+    get(_target, prop) {
+      const target = real();
+      const value = Reflect.get(target, prop, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+    set(_target, prop, value) {
+      return Reflect.set(real(), prop, value);
+    },
+  };
+}
+
+export const pool = new Proxy({} as Pool, forward(getPool));
 
 /** The query client used everywhere: `db.select()`, `db.insert()`, `db.execute()`. */
-export const db = new Proxy({} as NodePgDatabase, {
-  get(_target, prop, receiver) {
-    return Reflect.get(getDb(), prop, receiver);
-  },
-});
+export const db = new Proxy({} as NodePgDatabase, forward(getDb));

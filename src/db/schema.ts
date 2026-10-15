@@ -679,3 +679,20 @@ export const deviceTokens = pgTable(
   },
   (table) => [uniqueIndex("device_tokens_user_token_idx").on(table.userId, table.token)],
 );
+
+/**
+ * Shared rate-limit counters (src/lib/ratelimit.ts → sharedHit and friends), so a limit such as "6 wrong
+ * passwords per 15 minutes" holds across every server instance instead of per instance. Fixed window:
+ * `hits` counts attempts until `expires_at`, then the next attempt starts a fresh window. Keys are short
+ * (long parts are hashed) and rows past `expires_at` are swept opportunistically.
+ * Created by src/db/add-security-fixes.sql.
+ */
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    key: text("key").primaryKey(),
+    hits: integer("hits").notNull().default(1),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [index("rate_limits_expires_idx").on(table.expiresAt)],
+);

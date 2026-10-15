@@ -9,9 +9,17 @@ export function stripeConfigured(): boolean {
   return Boolean(process.env.STRIPE_SECRET_KEY);
 }
 
-/** Demo plans are only allowed while no payment provider is connected. */
+/**
+ * Demo plans ("try a plan, nothing is charged") are a preview tool, not a product: a demo plan unlocks
+ * everything a paid one does (no ads, several alert islands, unlimited alert profiles, the Admiral export).
+ * They used to switch on automatically whenever Stripe was absent — which is production today, because
+ * Stripe is not available to Bahamian businesses — so any member could grant themselves any plan.
+ * Now they need an explicit ALLOW_DEMO_PLANS=true (set it on development or preview deployments only),
+ * and they never apply once real payments are connected. Plans for real customers are given by staff
+ * as complimentary plans (Members page) until a payment provider is live.
+ */
 export function demoPlansAllowed(): boolean {
-  return !stripeConfigured();
+  return !stripeConfigured() && process.env.ALLOW_DEMO_PLANS?.trim() === "true";
 }
 
 export function webhookConfigured(): boolean {

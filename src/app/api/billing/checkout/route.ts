@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
-import { baseUrl, stripe, stripeConfigured } from "@/lib/billing";
+import { baseUrl, demoPlansAllowed, stripe, stripeConfigured } from "@/lib/billing";
 import { TIERS, isInterval, isTierKey, priceCents } from "@/lib/tiers";
 
 
@@ -34,7 +34,15 @@ export async function POST(req: Request) {
     );
   }
 
-  // Demo mode: no payment provider is connected, so nothing is charged.
+  // No payment provider and no demo switch: plans cannot be bought here yet. Staff can still give one.
+  if (!stripeConfigured() && !demoPlansAllowed()) {
+    return NextResponse.json(
+      { error: "Plans open soon. Payments are not set up yet, so nothing can be bought today." },
+      { status: 503 },
+    );
+  }
+
+  // Demo mode (ALLOW_DEMO_PLANS=true, development or preview only): nothing is charged.
   if (!stripeConfigured()) {
     await db
       .update(users)

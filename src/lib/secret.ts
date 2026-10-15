@@ -6,7 +6,7 @@
  * crypto and the token rules without a browser in the way. The request plumbing — reading the cookie
  * or the bearer header, setting the cookie — lives next door in `src/lib/auth.ts`.
  */
-import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, scrypt, timingSafeEqual, type ScryptOptions } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -41,18 +41,73 @@ export function serverSecret(): string {
   }
 }
 
-export function hashPassword(password: string): string {
-  const salt = randomBytes(12).toString("hex");
-  const hash = scryptSync(password, salt, 40).toString("hex");
-  return `${salt}:${hash}`;
+/**
+ * Password hashing.
+ *
+ * Current format: `scrypt$<log2 N>$<r>$<p>$<salt hex>$<hash hex>` — OWASP's scrypt profile N=2^15, r=8,
+ * p=3 (32 MiB, same work as N=2^17/p=1 at a quarter of the memory, which matters when one serverless
+ * instance answers several sign-ins at once). Hashing runs on libuv's thread pool, so a burst of sign-ins
+ * no longer freezes every other request the way the old synchronous call did.
+ *
+ * Legacy format: `<salt hex>:<hash hex>` — Node's default scrypt (N=2^14, r=8, p=1), 40-byte key. Still
+ * verified, and `passwordNeedsRehash` tells the sign-in route to upgrade it the next time the member
+ * proves they know the password. No member is ever locked out by the change.
+ */
+const CURRENT = { logN: 15, r: 8, p: 3, keylen: 64 };
+const MAXMEM = 128 * 1024 * 1024;
+
+function scryptAsync(password: string, salt: string, keylen: number, opts: ScryptOptions): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scrypt(Buffer.from(password, "utf8"), salt, keylen, { ...opts, maxmem: MAXMEM }, (err, key) => (err ? reject(err) : resolve(key)));
+  });
 }
 
-export function verifyPassword(password: string, stored: string | null | undefined): boolean {
-  if (!stored || !stored.includes(":")) return false;
-  const [salt, hash] = stored.split(":");
-  const candidate = scryptSync(password, salt, 40);
-  const expected = Buffer.from(hash, "hex");
-  return candidate.length === expected.length && timingSafeEqual(candidate, expected);
+export async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const { logN, r, p, keylen } = CURRENT;
+  const hash = await scryptAsync(password, salt, keylen, { N: 2 ** logN, r, p });
+  return `scrypt$${logN}$${r}$${p}$${salt}$${hash.toString("hex")}`;
+}
+
+type Parsed = { salt: string; expected: Buffer; opts: ScryptOptions; current: boolean };
+
+function parseStored(stored: string): Parsed | null {
+  if (stored.startsWith("scrypt$")) {
+    const parts = stored.split("$");
+    if (parts.length !== 6) return null;
+    const [, logN, r, p, salt, hash] = parts;
+    const n = Number(logN), rr = Number(r), pp = Number(p);
+    // Bounds keep a corrupt or hostile row from asking for gigabytes of memory.
+    if (![n, rr, pp].every(Number.isInteger) || n < 10 || n > 20 || rr < 1 || rr > 32 || pp < 1 || pp > 16) return null;
+    if (!/^[0-9a-f]+$/i.test(hash) || hash.length < 32 || !salt) return null;
+    return {
+      salt,
+      expected: Buffer.from(hash, "hex"),
+      opts: { N: 2 ** n, r: rr, p: pp },
+      current: n === CURRENT.logN && rr === CURRENT.r && pp === CURRENT.p && hash.length === CURRENT.keylen * 2,
+    };
+  }
+  const cut = stored.indexOf(":");
+  if (cut < 1) return null;
+  const salt = stored.slice(0, cut);
+  const hash = stored.slice(cut + 1);
+  if (!/^[0-9a-f]+$/i.test(hash) || hash.length < 32) return null;
+  return { salt, expected: Buffer.from(hash, "hex"), opts: { N: 2 ** 14, r: 8, p: 1 }, current: false };
+}
+
+export async function verifyPassword(password: string, stored: string | null | undefined): Promise<boolean> {
+  if (!stored) return false;
+  const parsed = parseStored(stored);
+  if (!parsed) return false;
+  const candidate = await scryptAsync(password, parsed.salt, parsed.expected.length, parsed.opts);
+  return candidate.length === parsed.expected.length && timingSafeEqual(candidate, parsed.expected);
+}
+
+/** True when a stored hash uses older parameters and should be replaced after a successful sign-in. */
+export function passwordNeedsRehash(stored: string | null | undefined): boolean {
+  if (!stored) return false;
+  const parsed = parseStored(stored);
+  return parsed !== null && !parsed.current;
 }
 
 function sign(payload: string): string {

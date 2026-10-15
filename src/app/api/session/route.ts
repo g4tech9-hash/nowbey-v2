@@ -2,13 +2,13 @@ import { NextResponse, after } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { clearSessionCookie, hashPassword, makeToken, setSessionCookie, verifyPassword } from "@/lib/auth";
+import { clearSessionCookie, hashPassword, makeToken, passwordNeedsRehash, setSessionCookie, verifyPassword } from "@/lib/auth";
 import { getViewer, type Viewer } from "@/lib/viewer";
 import { PARISHES } from "@/lib/geo";
-import { clientIp, exhausted, forget, hit, record, tooMany } from "@/lib/ratelimit";
+import { clientIp, sharedExhausted, sharedForget, sharedHit, sharedRecord, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
 import { badOrigin, hasBadOrigin } from "@/lib/http";
-import { HANDLE_RE, envAdminHandles, handleProblem, normalizeHandle } from "@/lib/handles";
+import { HANDLE_RE, envAdminHandles, handleProblem, isEnvAdmin, mayClaimAdminHandle, normalizeHandle } from "@/lib/handles";
 import { MAX_PASSWORD, checkPassword } from "@/lib/password";
 import { sendVerificationEmail } from "@/lib/account";
 import { publicBase } from "@/lib/billing";
@@ -75,10 +75,15 @@ export async function POST(req: Request) {
     if (!EMAIL_RE.test(email)) {
       return NextResponse.json({ error: "Enter a valid email address. It is how we help you if you forget your password." }, { status: 400 });
     }
+    // A handle in ADMIN_HANDLES carries admin rights, so only an address in ADMIN_EMAILS may register it.
+    // Everyone else gets the same answer as any other reserved word.
+    if (isEnvAdmin(handle) && !mayClaimAdminHandle(email)) {
+      return NextResponse.json({ error: "That handle is reserved. Please choose another." }, { status: 400 });
+    }
     const passwordIssue = checkPassword(password, { handle, email });
     if (passwordIssue) return NextResponse.json({ error: passwordIssue }, { status: 400 });
 
-    const gate = hit(`signup:${ip}`, 10, 60 * 60_000);
+    const gate = await sharedHit(`signup:${ip}`, 10, 60 * 60_000);
     if (!gate.ok) return tooMany(gate.retryAfter, "sign-ups");
 
     const [emailTaken] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
@@ -94,7 +99,7 @@ export async function POST(req: Request) {
           displayName: text(body.displayName, 60) || handle,
           email,
           parish: (PARISHES as readonly string[]).includes(parishIn) ? parishIn : null,
-          passwordHash: hashPassword(password),
+          passwordHash: await hashPassword(password),
           lastLoginAt: new Date(),
         })
         .returning();
@@ -141,26 +146,28 @@ export async function POST(req: Request) {
     // cannot lock you out of your own account.
     const ipKey = `loginfail:ip:${ip}`;
     const pairKey = `loginfail:${ip}:${ident}`;
-    const blocked = exhausted(ipKey, 30, FAIL_WINDOW);
-    const pairBlocked = exhausted(pairKey, 6, FAIL_WINDOW);
+    const [blocked, pairBlocked] = await Promise.all([sharedExhausted(ipKey, 30, FAIL_WINDOW), sharedExhausted(pairKey, 6, FAIL_WINDOW)]);
     if (blocked.blocked || pairBlocked.blocked) {
       return tooMany(Math.max(blocked.retryAfter, pairBlocked.retryAfter), "sign-in attempts");
     }
 
     const [existing] = await db.select().from(users).where(byEmail ? eq(users.email, ident) : eq(users.handle, ident)).limit(1);
     let ok = false;
+    let matched = password;
     if (existing) {
-      ok = verifyPassword(password, existing.passwordHash);
+      ok = await verifyPassword(password, existing.passwordHash);
     } else {
-      decoyHash ??= hashPassword("decoy-password");
-      verifyPassword(password, decoyHash); // result ignored: only here to spend the same time
+      decoyHash ??= await hashPassword("decoy-password");
+      await verifyPassword(password, decoyHash); // result ignored: only here to spend the same time
     }
     // Phone keyboards sometimes add a space after a word they "complete". Passwords are saved without outer spaces
     // on sign-up, so also accept the typed password with outer spaces removed.
-    if (existing && !ok && password !== password.trim()) ok = verifyPassword(password.trim(), existing.passwordHash);
+    if (existing && !ok && password !== password.trim()) {
+      ok = await verifyPassword(password.trim(), existing.passwordHash);
+      matched = password.trim();
+    }
     if (!existing || !ok) {
-      record(ipKey, FAIL_WINDOW);
-      record(pairKey, FAIL_WINDOW);
+      await Promise.all([sharedRecord(ipKey, FAIL_WINDOW), sharedRecord(pairKey, FAIL_WINDOW)]);
       // Handles are public (they appear on reports), so it is fine to say which part was wrong. Email logins stay vague.
       const message = byEmail
         ? "Email and password do not match. If you forgot your password, use the reset link."
@@ -169,7 +176,7 @@ export async function POST(req: Request) {
           : "That password is not right. If you forgot it, use the reset link.";
       return NextResponse.json({ error: message }, { status: 401 });
     }
-    forget(pairKey);
+    await sharedForget(pairKey);
     // Only tell someone their account is suspended once they have proved it is theirs.
     if (existing.status === "suspended") {
       return NextResponse.json(
@@ -177,7 +184,10 @@ export async function POST(req: Request) {
         { status: 403 },
       );
     }
-    await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, existing.id));
+    // The member just proved the password, so an older hash format is upgraded in place, from the exact value
+    // that matched. Nobody is ever asked to reset because the hashing got stronger.
+    const upgrade = passwordNeedsRehash(existing.passwordHash) ? { passwordHash: await hashPassword(matched) } : {};
+    await db.update(users).set({ lastLoginAt: new Date(), ...upgrade }).where(eq(users.id, existing.id));
     userId = existing.id;
     userHandle = existing.handle;
     displayName = existing.displayName;

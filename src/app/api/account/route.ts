@@ -5,7 +5,7 @@ import { alertSubscriptions, incidentUpdates, incidents, users } from "@/db/sche
 import { clearSessionCookie, verifyPassword } from "@/lib/auth";
 import { PARISHES } from "@/lib/geo";
 import { isEnvAdmin } from "@/lib/handles";
-import { exhausted, forget, record, tooMany } from "@/lib/ratelimit";
+import { sharedExhausted, sharedForget, sharedRecord, tooMany } from "@/lib/ratelimit";
 import { text, readJson } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
@@ -35,17 +35,17 @@ export async function DELETE(req: Request) {
   if (!viewer.signedIn || !viewer.userId || !viewer.handle) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
 
   const failKey = `pwfail:${viewer.userId}`;
-  const lock = exhausted(failKey, 6, 15 * 60_000);
+  const lock = await sharedExhausted(failKey, 6, 15 * 60_000);
   if (lock.blocked) return tooMany(lock.retryAfter, "password attempts");
 
   const body = await readJson(req);
   const password = typeof body.password === "string" ? body.password : "";
   const [u] = await db.select().from(users).where(eq(users.id, viewer.userId)).limit(1);
-  if (!u || !verifyPassword(password, u.passwordHash)) {
-    record(failKey, 15 * 60_000);
+  if (!u || !(await verifyPassword(password, u.passwordHash))) {
+    await sharedRecord(failKey, 15 * 60_000);
     return NextResponse.json({ error: "That password is not right." }, { status: 401 });
   }
-  forget(failKey);
+  await sharedForget(failKey);
 
   if (u.role === "admin" || isEnvAdmin(u.handle)) {
     return NextResponse.json({ error: "Admin accounts cannot be deleted here. Ask another admin to change your role first." }, { status: 409 });

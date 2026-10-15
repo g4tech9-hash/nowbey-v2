@@ -1,0 +1,7 @@
+fuzzing 62 routes at http://localhost:3000 (signed out and signed in)
+17832 requests in 35.2s — 0 findings {}
+  deliberate 503 "not set up" replies (not findings):
+    POST /api/billing/checkout
+    POST /api/billing/webhook
+    POST /api/push/register
+  fuzz session still valid at the end: yes

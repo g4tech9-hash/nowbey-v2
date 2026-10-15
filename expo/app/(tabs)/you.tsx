@@ -323,11 +323,11 @@ function ServerBox() {
     setBusy(true);
     setNote(null);
     try {
-      await changeApiBase(value);
+      const { signedOut } = await changeApiBase(value);
       setValue(API_BASE);
-      await api.incidents({ limit: 1 });
-      setNote("Connected.");
       await refresh();
+      await api.incidents({ limit: 1 });
+      setNote(signedOut ? "Connected. You were signed out because the server changed. Sign in again to use your account there." : "Connected.");
     } catch (e) {
       setNote(errMsg(e));
     } finally {

@@ -10,9 +10,10 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/collect.test.mjs tests/redirect.test.mjs",
-    "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs tests/profile.test.mjs",
+    "test": "node --test tests/collect.test.mjs tests/redirect.test.mjs tests/security-unit.test.mjs",
+    "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs tests/profile.test.mjs && node --test tests/security.test.mjs",
     "test:ui": "node --test tests/ui.test.mjs",
+    "fuzz": "node tests/fuzz.mjs",
     "audit:mobile": "node scripts/mobile-audit.mjs"
   },
   "dependencies": {

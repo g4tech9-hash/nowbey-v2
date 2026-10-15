@@ -5,7 +5,7 @@ import { users } from "@/db/schema";
 import { sendVerificationEmail } from "@/lib/account";
 import { verifyPassword } from "@/lib/auth";
 import { publicBase } from "@/lib/billing";
-import { exhausted, forget, hit, record, tooMany } from "@/lib/ratelimit";
+import { sharedExhausted, sharedForget, hit, sharedRecord, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const gate = hit(`emailchange:${viewer.userId}`, 5, 60 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "email changes");
   const failKey = `pwfail:${viewer.userId}`;
-  const lock = exhausted(failKey, 6, 15 * 60_000);
+  const lock = await sharedExhausted(failKey, 6, 15 * 60_000);
   if (lock.blocked) return tooMany(lock.retryAfter, "password attempts");
 
   const body = await readJson(req);
@@ -27,11 +27,11 @@ export async function POST(req: Request) {
   if (!EMAIL_RE.test(email)) return NextResponse.json({ error: "That email address does not look right." }, { status: 400 });
 
   const [u] = await db.select().from(users).where(eq(users.id, viewer.userId)).limit(1);
-  if (!u || !verifyPassword(password, u.passwordHash)) {
-    record(failKey, 15 * 60_000);
+  if (!u || !(await verifyPassword(password, u.passwordHash))) {
+    await sharedRecord(failKey, 15 * 60_000);
     return NextResponse.json({ error: "Your password is not right." }, { status: 401 });
   }
-  forget(failKey);
+  await sharedForget(failKey);
   if (u.email === email) return NextResponse.json({ error: "That is already your email address." }, { status: 400 });
 
   try {

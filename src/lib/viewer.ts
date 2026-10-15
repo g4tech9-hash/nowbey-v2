@@ -4,7 +4,7 @@ import { users } from "@/db/schema";
 import { readToken, sessionToken } from "@/lib/auth";
 import { entitledTier, isInterval, type Interval, type TierKey } from "@/lib/tiers";
 import { demoPlansAllowed } from "@/lib/billing";
-import { envAdminHandles } from "@/lib/handles";
+import { envAdminActive } from "@/lib/handles";
 
 export type Viewer = {
   signedIn: boolean;
@@ -70,7 +70,9 @@ export async function getViewer(): Promise<Viewer> {
   }
   if (!u || u.status === "suspended" || u.sessionVersion !== session.v) return ANON;
   const tier = entitledTier(u, demoPlansAllowed());
-  const isAdmin = u.role === "admin" || envAdminHandles().includes(u.handle.toLowerCase());
+  // ADMIN_HANDLES grants admin only with a confirmed email: a handle on that list that someone else managed
+  // to register is worth nothing until they can also read the inbox it was registered with.
+  const isAdmin = u.role === "admin" || envAdminActive(u);
   return {
     signedIn: true,
     userId: u.id,

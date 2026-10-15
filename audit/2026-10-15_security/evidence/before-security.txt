@@ -1,0 +1,307 @@
+TAP version 13
+# Subtest: a member cannot give themselves a paid plan when payments are not set up
+not ok 1 - a member cannot give themselves a paid plan when payments are not set up
+  ---
+  duration_ms: 589.895301
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:36:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    checkout must refuse, got 200 {"mode":"demo","tier":"admiral","interval":"year"}
+    
+    200 !== 503
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 503
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:39:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: a demo plan written before the fix no longer unlocks anything
+not ok 2 - a demo plan written before the fix no longer unlocks anything
+  ---
+  duration_ms: 111.892324
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:53:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'admiral' !== null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: 'admiral'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:57:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: the plans page says plans open soon instead of offering a button that fails
+not ok 3 - the plans page says plans open soon instead of offering a button that fails
+  ---
+  duration_ms: 138.958977
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:61:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Plans open soon/. Input:
+    
+    '<!DOCTYPE html><html lang="en" class="sora_93318f68-module__MOAP6q__variable manrope_9b24f49e-module__hJlnFq__variable" data-theme="island" data-mode="dark"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" imageSrcSet="/_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=640&amp;q=75 640w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=750&amp;q=75 750w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=828&amp;q=75 828w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1080&amp;q=75 1080w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1200&amp;q=75 1200w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1920&amp;q=75 1920w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=2048&amp;q=75 2048w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=3840&amp;q=75 3840w" imageSizes="100vw"/><link rel="stylesheet" href="/_next/static/chunks/%5Broot-of-the-server%5D__0e-qlu_kn80st._.css" data-precedence="next_static/chunks/[root-of-the-server]__0e-qlu_kn80st._.css"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0qva5cupmdgep._.js"/><script src="/_next/static/chunks/1daa_next_dist_compiled_react-dom_cjs_react-dom-client_development_0mp0cp_t-ezj9.js" async=""></script><script src="/_next/static/chunks/1q96_modules_next_dist_compiled_react-dom_cjs_react-dom_development_1sqry0_53krp4.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_react-dom_0grqycjrj6mju._.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-67asdr9._.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_090k2jmam7qwg.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_1amofcmz--cdp._.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_client_1wygxxh5rwq0t._.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_05y3oi5z9mc_3._.js" async=""></script><script src="/_next/static/chunks/node_modules_%40swc_helpers_cjs_1r9vbqwj2323d._.js" async=""></script><script src="/_next/static/chunks/_1anvha4rlo79g._.js" async=""></script><script src="/_next/static/chunks/turbopack-_06rkbud3pyrlm._.js" async=""></script><script src="/_next/static/chunks/_1mgi8zgijy191._.js" async=""></script><script src="/_next/static/chunks/node_modules_084k59pk02jwb._.js" async=""></script><script src="/_next/static/chunks/src_1q-txz3yltbil._.js" async=""></script><script src="/_next/static/chunks/src_app_error_tsx_0ts9uj72u-_iy._.js" async=""></script><script src="/_next/static/chunks/src_components_error-reporter_tsx_1nwwd9ehtmmau._.js" async=""></script><script src="/_next/static/chunks/src_app_global-error_tsx_1511-6v-z1mcr._.js" async=""></script><script src="/_next/static/chunks/src_12hulvwe72fu8._.js" async=""></script><meta name="theme-color" content="#f4ede0" media="(prefers-color-scheme: light)"/><meta name="theme-color" content="#03121b" media="(prefers-color-scheme: dark)"/><meta name="color-scheme" content="dark light"/><title>Plans and pricing · NowBey</title><meta name="description" content="NowBey helps you stay safe across The Bahamas. Pin a flood, an outage or a street hazard on real aerial imagery, hear from your neighbours, and find the best food and events on every island."/><meta name="application-name" content="NowBey"/><link rel="icon" href="/icon.svg?icon.2-nu9nhjidanm.svg" sizes="any" type="image/svg+xml"/><script>try{(function(){var d="dark";var m=null;try{m=localStorage.getItem("nb_mode")}catch(e){}if(m!=="dark"&&m!=="light"){m=d;if(!m||(m!=="dark"&&m!=="light")){try{m=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"}catch(e){m="dark"}}}document.documentElement.setAttribute("data-mode",m)})()}catch(e){}</script><script>try{var r=document.documentElement;r.setAttribute("data-simple",localStorage.getItem("nb_simple")==="1"?"true":"false");r.setAttribute("data-low-data",localStorage.getItem("nb_low_data")==="1"?"true":"false")}catch(e){}</script><script>try{if(sessionStorage.getItem("nb_splash"))document.documentElement.setAttribute("data-splash-seen","1")}catch(e){}</script><script src="/_next/static/chunks/node_modules_next_dist_build_polyfills_polyfill-nomodule.js" noModule=""></script></head><body class="min-h-screen bg-abyss-950 text-[#e8f6f4] antialiased"><div hidden=""><!--$--><!--/$--></div><div class="nb-backdrop" aria-hidden="true"><img alt="" loading="lazy" decoding="async" data-nimg="fill" class="nb-backdrop-img" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;object-position:50% 50%;color:transparent" sizes="100vw" srcSet="/_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=640&amp;q=75 640w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=750&amp;q=75 750w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=828&amp;q=75 828w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=1080&amp;q=75 1080w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=1200&amp;q=75 1200w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=1920&amp;q=75 1920w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=2048&amp;q=75 2048w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=3840&amp;q=75 3840w" src="/_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=3840&amp;q=75"/><div class="nb-backdrop-veil"></div></div><div id="nb-splash" class="nb-splash" aria-hidden="true"><div class="nb-splash-photo"><img alt="" decoding="async" data-nimg="fill" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;object-fit:cover;object-position:50% 55%;color:transparent" sizes="100vw" srcSet="/_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=640&amp;q=75 640w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=750&amp;q=75 750w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=828&amp;q=75 828w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1080&amp;q=75 1080w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1200&amp;q=75 1200w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1920&amp;q=75 1920w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=2048&amp;q=75 2048w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=3840&amp;q=75 3840w" src="/_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=3840&amp;q=75"/></div><div class="nb-splash-veil"></div><div class="nb-splash-waves"><svg viewBox="0 0 2400 120" preserveAspectRatio="none"><path d="M0 60q150-50 300 0t300 0 300 0 300 0 300 0 300 0 300 0 300 0V120H0z" fill="rgba(46,230,208,.22)"></path></svg><svg viewBox="0 0 2400 120" preserveAspectRatio="none"><path d="M0 70q150 40 300 0t300 0 300 0 300 0 300 0 300 0 300 0 300 0V120H0z" fill="rgba(255,196,102,.16)"></path></svg></div><div class="nb-splash-body"><svg class="nb-splash-mark" viewBox="0 0 40 40"><defs><linearGradient id="nbsplash" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2ee6d0"></stop><stop offset="55%" stop-color="#00c9b7"></stop><stop offset="100%" stop-color="#ff7a6b"></stop></linearGradient></defs><rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="rgba(6,36,52,.72)" stroke="url(#nbsplash)" stroke-width="2"></rect><path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#2ee6d0" stroke-width="2" fill="none" stroke-linecap="round"></path><path class="nb-splash-pin" d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z" fill="none" stroke="url(#nbsplash)" stroke-width="2.2"></path><circle cx="20" cy="15.2" r="2.4" fill="#ffc531"></circle></svg><p class="nb-splash-word">Now<b>Bey</b></p><p class="nb-splash-tag">Stay Safe, Bahamas</p><p class="nb-splash-line">Know what is happening, island by island.</p></div><p class="nb-splash-hint">Tap to continue</p></div><div class="grain relative min-h-screen"><header class="nb-pad-top sticky top-0 z-[650] border-b hairline bg-abyss-950/88 backdrop-blur-lg"><div class="mx-auto flex max-w-[1180px] items-center gap-3 px-3.5 py-2.5 sm:px-5"><a class="flex items-center gap-2.5" href="/"><svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true" class="shrink-0"><defs><linearGradient id="nbmark" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2ee6d0"></stop><stop offset="55%" stop-color="#00c9b7"></stop><stop offset="100%" stop-color="#ff7a6b"></stop></linearGradient></defs><rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="#062434" stroke="url(#nbmark)" stroke-width="2"></rect><path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#2ee6d0" stroke-width="2" fill="none" stroke-linecap="round"></path><path d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z" fill="none" stroke="url(#nbmark)" stroke-width="2.2"></path><circle cx="20" cy="15.2" r="2.4" fill="#ffc531"></circle></svg><span class="leading-none"><span class="display block text-[19px] font-extrabold tracking-tight text-sand-100">Now<span class="text-tide-400">Bey</span></span><span class="nb-tagline mt-0.5 block text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#6e97a0]">Stay Safe, Bahamas</span></span></a><div class="ml-auto hidden items-center gap-1 lg:flex"><div class="flex items-center gap-1"><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/">Feed</a><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/map">Map</a><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/report">Report</a><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/wire">News wire</a><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/alerts">Alerts</a><div class="group relative"><a aria-current="page" cla'... 50221 more characters
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '<!DOCTYPE html><html lang="en" class="sora_93318f68-module__MOAP6q__variable manrope_9b24f49e-module__hJlnFq__variable" data-theme="island" data-mode="dark"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" imageSrcSet="/_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=640&amp;q=75 640w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=750&amp;q=75 750w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=828&amp;q=75 828w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1080&amp;q=75 1080w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1200&amp;q=75 1200w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1920&amp;q=75 1920w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=2048&amp;q=75 2048w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=3840&amp;q=75 3840w" imageSizes="100vw"/><link rel="stylesheet" href="/_next/static/chunks/%5Broot-of-the-server%5D__0e-qlu_kn80st._.css" data-precedence="next_static/chunks/[root-of-the-server]__0e-qlu_kn80st._.css"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0qva5cupmdgep._.js"/><script src="/_next/static/chunks/1daa_next_dist_compiled_react-dom_cjs_react-dom-client_development_0mp0cp_t-ezj9.js" async=""></script><script src="/_next/static/chunks/1q96_modules_next_dist_compiled_react-dom_cjs_react-dom_development_1sqry0_53krp4.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_react-dom_0grqycjrj6mju._.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-67asdr9._.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_090k2jmam7qwg.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_compiled_1amofcmz--cdp._.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_client_1wygxxh5rwq0t._.js" async=""></script><script src="/_next/static/chunks/node_modules_next_dist_05y3oi5z9mc_3._.js" async=""></script><script src="/_next/static/chunks/node_modules_%40swc_helpers_cjs_1r9vbqwj2323d._.js" async=""></script><script src="/_next/static/chunks/_1anvha4rlo79g._.js" async=""></script><script src="/_next/static/chunks/turbopack-_06rkbud3pyrlm._.js" async=""></script><script src="/_next/static/chunks/_1mgi8zgijy191._.js" async=""></script><script src="/_next/static/chunks/node_modules_084k59pk02jwb._.js" async=""></script><script src="/_next/static/chunks/src_1q-txz3yltbil._.js" async=""></script><script src="/_next/static/chunks/src_app_error_tsx_0ts9uj72u-_iy._.js" async=""></script><script src="/_next/static/chunks/src_components_error-reporter_tsx_1nwwd9ehtmmau._.js" async=""></script><script src="/_next/static/chunks/src_app_global-error_tsx_1511-6v-z1mcr._.js" async=""></script><script src="/_next/static/chunks/src_12hulvwe72fu8._.js" async=""></script><meta name="theme-color" content="#f4ede0" media="(prefers-color-scheme: light)"/><meta name="theme-color" content="#03121b" media="(prefers-color-scheme: dark)"/><meta name="color-scheme" content="dark light"/><title>Plans and pricing · NowBey</title><meta name="description" content="NowBey helps you stay safe across The Bahamas. Pin a flood, an outage or a street hazard on real aerial imagery, hear from your neighbours, and find the best food and events on every island."/><meta name="application-name" content="NowBey"/><link rel="icon" href="/icon.svg?icon.2-nu9nhjidanm.svg" sizes="any" type="image/svg+xml"/><script>try{(function(){var d="dark";var m=null;try{m=localStorage.getItem("nb_mode")}catch(e){}if(m!=="dark"&&m!=="light"){m=d;if(!m||(m!=="dark"&&m!=="light")){try{m=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"}catch(e){m="dark"}}}document.documentElement.setAttribute("data-mode",m)})()}catch(e){}</script><script>try{var r=document.documentElement;r.setAttribute("data-simple",localStorage.getItem("nb_simple")==="1"?"true":"false");r.setAttribute("data-low-data",localStorage.getItem("nb_low_data")==="1"?"true":"false")}catch(e){}</script><script>try{if(sessionStorage.getItem("nb_splash"))document.documentElement.setAttribute("data-splash-seen","1")}catch(e){}</script><script src="/_next/static/chunks/node_modules_next_dist_build_polyfills_polyfill-nomodule.js" noModule=""></script></head><body class="min-h-screen bg-abyss-950 text-[#e8f6f4] antialiased"><div hidden=""><!--$--><!--/$--></div><div class="nb-backdrop" aria-hidden="true"><img alt="" loading="lazy" decoding="async" data-nimg="fill" class="nb-backdrop-img" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;object-position:50% 50%;color:transparent" sizes="100vw" srcSet="/_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=640&amp;q=75 640w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=750&amp;q=75 750w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=828&amp;q=75 828w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=1080&amp;q=75 1080w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=1200&amp;q=75 1200w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=1920&amp;q=75 1920w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=2048&amp;q=75 2048w, /_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=3840&amp;q=75 3840w" src="/_next/image?url=%2Fscenes%2Fshore.jpg&amp;w=3840&amp;q=75"/><div class="nb-backdrop-veil"></div></div><div id="nb-splash" class="nb-splash" aria-hidden="true"><div class="nb-splash-photo"><img alt="" decoding="async" data-nimg="fill" style="position:absolute;height:100%;width:100%;left:0;top:0;right:0;bottom:0;object-fit:cover;object-position:50% 55%;color:transparent" sizes="100vw" srcSet="/_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=640&amp;q=75 640w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=750&amp;q=75 750w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=828&amp;q=75 828w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1080&amp;q=75 1080w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1200&amp;q=75 1200w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=1920&amp;q=75 1920w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=2048&amp;q=75 2048w, /_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=3840&amp;q=75 3840w" src="/_next/image?url=%2Fscenes%2Fnassau.jpg&amp;w=3840&amp;q=75"/></div><div class="nb-splash-veil"></div><div class="nb-splash-waves"><svg viewBox="0 0 2400 120" preserveAspectRatio="none"><path d="M0 60q150-50 300 0t300 0 300 0 300 0 300 0 300 0 300 0 300 0V120H0z" fill="rgba(46,230,208,.22)"></path></svg><svg viewBox="0 0 2400 120" preserveAspectRatio="none"><path d="M0 70q150 40 300 0t300 0 300 0 300 0 300 0 300 0 300 0 300 0V120H0z" fill="rgba(255,196,102,.16)"></path></svg></div><div class="nb-splash-body"><svg class="nb-splash-mark" viewBox="0 0 40 40"><defs><linearGradient id="nbsplash" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2ee6d0"></stop><stop offset="55%" stop-color="#00c9b7"></stop><stop offset="100%" stop-color="#ff7a6b"></stop></linearGradient></defs><rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="rgba(6,36,52,.72)" stroke="url(#nbsplash)" stroke-width="2"></rect><path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#2ee6d0" stroke-width="2" fill="none" stroke-linecap="round"></path><path class="nb-splash-pin" d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z" fill="none" stroke="url(#nbsplash)" stroke-width="2.2"></path><circle cx="20" cy="15.2" r="2.4" fill="#ffc531"></circle></svg><p class="nb-splash-word">Now<b>Bey</b></p><p class="nb-splash-tag">Stay Safe, Bahamas</p><p class="nb-splash-line">Know what is happening, island by island.</p></div><p class="nb-splash-hint">Tap to continue</p></div><div class="grain relative min-h-screen"><header class="nb-pad-top sticky top-0 z-[650] border-b hairline bg-abyss-950/88 backdrop-blur-lg"><div class="mx-auto flex max-w-[1180px] items-center gap-3 px-3.5 py-2.5 sm:px-5"><a class="flex items-center gap-2.5" href="/"><svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true" class="shrink-0"><defs><linearGradient id="nbmark" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2ee6d0"></stop><stop offset="55%" stop-color="#00c9b7"></stop><stop offset="100%" stop-color="#ff7a6b"></stop></linearGradient></defs><rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="#062434" stroke="url(#nbmark)" stroke-width="2"></rect><path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#2ee6d0" stroke-width="2" fill="none" stroke-linecap="round"></path><path d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z" fill="none" stroke="url(#nbmark)" stroke-width="2.2"></path><circle cx="20" cy="15.2" r="2.4" fill="#ffc531"></circle></svg><span class="leading-none"><span class="display block text-[19px] font-extrabold tracking-tight text-sand-100">Now<span class="text-tide-400">Bey</span></span><span class="nb-tagline mt-0.5 block text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[#6e97a0]">Stay Safe, Bahamas</span></span></a><div class="ml-auto hidden items-center gap-1 lg:flex"><div class="flex items-center gap-1"><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/">Feed</a><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/map">Map</a><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/report">Report</a><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/wire">News wire</a><a class="rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100" href="/alerts">Alerts</a><div class="group relative"><a aria-current="page" cla'... 50221 more characters
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:64:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: API responses never carry a wildcard CORS header, and strangers get none at all
+not ok 4 - API responses never carry a wildcard CORS header, and strangers get none at all
+  ---
+  duration_ms: 62.645318
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:73:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    /api/health
+    
+    '*' !== null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: '*'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:76:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: an allowlisted origin (Expo web in development) gets its own origin echoed, never credentials
+not ok 5 - an allowlisted origin (Expo web in development) gets its own origin echoed, never credentials
+  ---
+  duration_ms: 13.226384
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:87:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '*'
+    - 'http://localhost:8081'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'http://localhost:8081'
+  actual: '*'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:89:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a write from a foreign website is refused before it reaches any route
+not ok 6 - a write from a foreign website is refused before it reaches any route
+  ---
+  duration_ms: 317.149733
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:104:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    POST /api/comments from https://evil.example answered 404
+    
+    404 !== 403
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 403
+  actual: 404
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:117:14)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: same-site writes, native-app writes (no Origin) and the Stripe webhook still get through
+ok 7 - same-site writes, native-app writes (no Origin) and the Stripe webhook still get through
+  ---
+  duration_ms: 586.188729
+  type: 'test'
+  ...
+# Subtest: a stranger cannot register a handle listed in ADMIN_HANDLES
+not ok 8 - a stranger cannot register a handle listed in ADMIN_HANDLES
+  ---
+  duration_ms: 68.942661
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:147:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    200 !== 400
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 400
+  actual: 200
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:154:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: an ADMIN_HANDLES account gets no admin rights until its email is confirmed
+not ok 9 - an ADMIN_HANDLES account gets no admin rights until its email is confirmed
+  ---
+  duration_ms: 93.613135
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:160:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    an unconfirmed address must not unlock ADMIN_HANDLES
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:171:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: new accounts store the versioned scrypt hash
+not ok 10 - new accounts store the versioned scrypt hash
+  ---
+  duration_ms: 126.375577
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:186:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /^scrypt\$15\$8\$3\$[0-9a-f]{32}\$[0-9a-f]{128}$/. Input:
+    
+    '32cd5bba1d6dcf28486707b3:13b04c4b7f4da5164a2b99d337b865a4dd80ad54c97c292ab3b87d55dfd9687d67a2583ce191a263'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '32cd5bba1d6dcf28486707b3:13b04c4b7f4da5164a2b99d337b865a4dd80ad54c97c292ab3b87d55dfd9687d67a2583ce191a263'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:189:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a member with an old-format hash signs in normally and is upgraded silently
+not ok 11 - a member with an old-format hash signs in normally and is upgraded silently
+  ---
+  duration_ms: 227.723562
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:192:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /^scrypt\$15\$/. Input:
+    
+    '9e2f609d27ffbc2795309d02:e5f21808466651131e28829ed3cb5118f3f38d803101e73ef5efb9533ad0042d4a901cbee4658ffc'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: '9e2f609d27ffbc2795309d02:e5f21808466651131e28829ed3cb5118f3f38d803101e73ef5efb9533ad0042d4a901cbee4658ffc'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:208:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: wrong passwords are counted in the shared table and the seventh attempt is refused
+not ok 12 - wrong passwords are counted in the shared table and the seventh attempt is refused
+  ---
+  duration_ms: 58.613874
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:217:1'
+  failureType: 'testCodeFailure'
+  error: 'relation "rate_limits" does not exist'
+  code: '42P01'
+  name: 'error'
+  stack: |-
+    /home/user/nowbey-v2/node_modules/pg-pool/index.js:45:11
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async query (file:///home/user/nowbey-v2/tests/harness/env.mjs:107:20)
+    async TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:220:26)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: the gas job no longer writes invented prices
+not ok 13 - the gas job no longer writes invented prices
+  ---
+  duration_ms: 182.48126
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:234:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    3 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 3
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:239:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: without the rate_limits table the site keeps working with the old per-instance limits
+not ok 14 - without the rate_limits table the site keeps working with the old per-instance limits
+  ---
+  duration_ms: 6.839487
+  type: 'test'
+  location: '/home/user/nowbey-v2/tests/security.test.mjs:245:1'
+  failureType: 'testCodeFailure'
+  error: 'relation "rate_limits" does not exist'
+  code: '42P01'
+  name: 'error'
+  stack: |-
+    /home/user/nowbey-v2/node_modules/pg-pool/index.js:45:11
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async query (file:///home/user/nowbey-v2/tests/harness/env.mjs:107:20)
+    async TestContext.<anonymous> (file:///home/user/nowbey-v2/tests/security.test.mjs:246:3)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 1
+# fail 13
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2669.488845

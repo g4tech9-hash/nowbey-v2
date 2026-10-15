@@ -1,0 +1,158 @@
+
+> nextjs-postgresql-template@1.0.0 test
+> node --test tests/collect.test.mjs tests/redirect.test.mjs tests/security-unit.test.mjs
+
+TAP version 13
+# (node:4064) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/user/nowbey-v2/src/lib/collect.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/user/nowbey-v2/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: dedupeById keeps first occurrence in order
+ok 1 - dedupeById keeps first occurrence in order
+  ---
+  duration_ms: 1.382866
+  type: 'test'
+  ...
+# Subtest: isJunkHeadline rejects spam profiles and filenames
+ok 2 - isJunkHeadline rejects spam profiles and filenames
+  ---
+  duration_ms: 0.689768
+  type: 'test'
+  ...
+# Subtest: isJunkHeadline keeps real headlines
+ok 3 - isJunkHeadline keeps real headlines
+  ---
+  duration_ms: 0.451577
+  type: 'test'
+  ...
+# Subtest: isLikelyDuplicateIncident uses tight category, time and distance rules
+ok 4 - isLikelyDuplicateIncident uses tight category, time and distance rules
+  ---
+  duration_ms: 0.283407
+  type: 'test'
+  ...
+# Subtest: chunkArray splits into max-size parts
+ok 5 - chunkArray splits into max-size parts
+  ---
+  duration_ms: 0.333707
+  type: 'test'
+  ...
+# Subtest: isExpoPushToken accepts only ExponentPushToken[...] shapes
+ok 6 - isExpoPushToken accepts only ExponentPushToken[...] shapes
+  ---
+  duration_ms: 0.216695
+  type: 'test'
+  ...
+# Subtest: isDeadReceipt flags only DeviceNotRegistered
+ok 7 - isDeadReceipt flags only DeviceNotRegistered
+  ---
+  duration_ms: 0.190409
+  type: 'test'
+  ...
+# (node:4071) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/user/nowbey-v2/src/lib/redirect.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/user/nowbey-v2/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: a path inside the site is used as it is
+ok 8 - a path inside the site is used as it is
+  ---
+  duration_ms: 0.988929
+  type: 'test'
+  ...
+# Subtest: the return trip can never be sent to another site
+ok 9 - the return trip can never be sent to another site
+  ---
+  duration_ms: 0.585512
+  type: 'test'
+  ...
+# Subtest: an empty, missing or over-long value falls back
+ok 10 - an empty, missing or over-long value falls back
+  ---
+  duration_ms: 0.133958
+  type: 'test'
+  ...
+# Subtest: the fallback is the caller's to choose
+ok 11 - the fallback is the caller's to choose
+  ---
+  duration_ms: 0.218008
+  type: 'test'
+  ...
+# (node:4078) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/user/nowbey-v2/src/lib/secret.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/user/nowbey-v2/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: new hashes use the versioned scrypt format with OWASP parameters
+ok 12 - new hashes use the versioned scrypt format with OWASP parameters
+  ---
+  duration_ms: 752.009172
+  type: 'test'
+  ...
+# Subtest: two hashes of the same password differ (fresh salt each time)
+ok 13 - two hashes of the same password differ (fresh salt each time)
+  ---
+  duration_ms: 249.759179
+  type: 'test'
+  ...
+# Subtest: every password saved by the old code still verifies, and is flagged for upgrade
+ok 14 - every password saved by the old code still verifies, and is flagged for upgrade
+  ---
+  duration_ms: 135.124734
+  type: 'test'
+  ...
+# Subtest: the seeded development hash (old format) verifies against nothing it should not
+ok 15 - the seeded development hash (old format) verifies against nothing it should not
+  ---
+  duration_ms: 46.640566
+  type: 'test'
+  ...
+# Subtest: corrupt, empty and hostile stored values never verify and never throw
+ok 16 - corrupt, empty and hostile stored values never verify and never throw
+  ---
+  duration_ms: 0.63
+  type: 'test'
+  ...
+# Subtest: hashing does not block the event loop
+ok 17 - hashing does not block the event loop
+  ---
+  duration_ms: 418.75838
+  type: 'test'
+  ...
+# Subtest: clientIp: first X-Forwarded-For hop off Vercel, x-real-ip on Vercel
+ok 18 - clientIp: first X-Forwarded-For hop off Vercel, x-real-ip on Vercel
+  ---
+  duration_ms: 20.113356
+  type: 'test'
+  ...
+# Subtest: the in-memory limiter counts, blocks and reports a sane Retry-After
+ok 19 - the in-memory limiter counts, blocks and reports a sane Retry-After
+  ---
+  duration_ms: 0.349202
+  type: 'test'
+  ...
+# Subtest: a flood of distinct keys cannot grow memory past the cap
+ok 20 - a flood of distinct keys cannot grow memory past the cap
+  ---
+  duration_ms: 499.406879
+  type: 'test'
+  ...
+# Subtest: the shared limiter uses the database answer when there is one
+ok 21 - the shared limiter uses the database answer when there is one
+  ---
+  duration_ms: 0.997427
+  type: 'test'
+  ...
+# Subtest: without the rate_limits table the shared limiter falls back to per-instance limits
+ok 22 - without the rate_limits table the shared limiter falls back to per-instance limits
+  ---
+  duration_ms: 2.489993
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2480.125617

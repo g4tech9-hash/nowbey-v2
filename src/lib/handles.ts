@@ -50,3 +50,32 @@ export function envAdminHandles(): string[] {
 export function isEnvAdmin(handle: string): boolean {
   return envAdminHandles().includes(handle.toLowerCase());
 }
+
+/**
+ * Who may *register* a handle that is listed in ADMIN_HANDLES. A handle on that list carries admin rights,
+ * so it must never be a prize for whoever signs up first. ADMIN_EMAILS is a comma-separated list of full
+ * addresses (`owner@example.com`) or whole domains (`@example.com`); with it unset, nobody can register
+ * such a handle through the sign-up form at all.
+ *
+ * This is one of two locks: the rights themselves also need a confirmed email (see `envAdminActive`), so
+ * typing the owner's address without being able to read their inbox gains nothing.
+ */
+export function adminClaimEmails(): string[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+export function mayClaimAdminHandle(email: string): boolean {
+  const e = email.trim().toLowerCase();
+  const at = e.lastIndexOf("@");
+  if (at < 1) return false;
+  const domain = e.slice(at);
+  return adminClaimEmails().some((entry) => (entry.startsWith("@") ? entry === domain : entry === e));
+}
+
+/** ADMIN_HANDLES rights apply only once the account's email address is confirmed. */
+export function envAdminActive(u: { handle: string; emailVerifiedAt: Date | null }): boolean {
+  return isEnvAdmin(u.handle) && u.emailVerifiedAt !== null;
+}
