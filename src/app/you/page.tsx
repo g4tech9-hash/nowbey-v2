@@ -8,6 +8,7 @@ import { ManageBillingButton, SignOut } from "@/components/client-actions";
 import { ResendVerification } from "@/components/account-forms";
 import { PageHead } from "@/components/app-shell";
 import { BadgeMark } from "@/components/verified-badge";
+import { liveBadges } from "@/lib/profile";
 import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
 import { TIERS } from "@/lib/tiers";
 
@@ -30,7 +31,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
   const sp = await searchParams;
   const welcome = (Array.isArray(sp.welcome) ? sp.welcome[0] : sp.welcome) === "1";
 
-  const [mine, subs] = await Promise.all([
+  const [mine, subs, badges] = await Promise.all([
     db
       .select()
       .from(incidents)
@@ -43,7 +44,9 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
       .orderBy(desc(incidents.createdAt))
       .limit(20),
     db.select().from(alertSubscriptions).where(eq(alertSubscriptions.userId, viewer.userId)).orderBy(desc(alertSubscriptions.createdAt)).limit(3),
+    liveBadges(viewer.userId),
   ]);
+  const verifiedByPerson = badges.some((b) => b.badge === "verified");
   const tier = viewer.tier ? TIERS[viewer.tier] : null;
 
   return (
@@ -54,14 +57,19 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
           title={viewer.displayName ?? viewer.handle}
           blurb={`Home island ${viewer.parish ?? "not set"} · ${mine.length} report${mine.length === 1 ? "" : "s"} filed`}
           actions={
-            <Link href="/you/settings" className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8">
-              Account settings
-            </Link>
+            <>
+              <Link href="/you/profile" className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8">
+                Your profile
+              </Link>
+              <Link href="/you/settings" className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8">
+                Account settings
+              </Link>
+            </>
           }
         />
-        {viewer.verified || viewer.isEditor ? (
+        {verifiedByPerson || viewer.isEditor ? (
           <p className="-mt-2 flex flex-wrap gap-2">
-            {viewer.verified ? <BadgeMark kind="verified" /> : null}
+            {verifiedByPerson ? <BadgeMark kind="verified" /> : null}
             {viewer.isEditor ? <BadgeMark kind="desk" /> : null}
           </p>
         ) : null}

@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { badgeGrants, memberNotes, users } from "@/db/schema";
 import { issueToken } from "@/lib/account";
 import { audit } from "@/lib/audit";
 import { baseUrl } from "@/lib/billing";
 import { isEnvAdmin, normalizeHandle } from "@/lib/handles";
 import { requireStaff } from "@/lib/staff";
 import { isTierKey } from "@/lib/tiers";
-import { text, readJson } from "@/lib/validate";
+import { dbInt, text, readJson } from "@/lib/validate";
 
 
 const ROLES = ["resident", "editor", "admin"];
+
+/** The one badge a person can hand out. "desk" comes from the role and is never granted here. */
+const GRANTABLE = ["verified"];
 
 const fail = (error: string, status = 409) => NextResponse.json({ error }, { status });
 
@@ -97,6 +100,63 @@ export async function PATCH(req: Request) {
       if (!t.email) return fail("This member has no email address to confirm.");
       await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, t.id));
       await audit(actorName, "user.verify", "user", t.id, t.handle, t.email);
+      return NextResponse.json({ ok: true });
+    }
+
+    /**
+     * A sentence a staff member wrote about this member. Append-only and never shown to the member —
+     * that is the whole point of keeping it out of the account row. Kept separate from the activity log
+     * because the log records what the system did, and this records what a person noticed.
+     */
+    case "note": {
+      const note = text(body.body, 600);
+      if (note.length < 2) return fail("Write the note first.", 400);
+      await db.insert(memberNotes).values({ userId: t.id, authorHandle: actorName, body: note });
+      await audit(actorName, "member.note", "user", t.id, t.handle, note.slice(0, 120));
+      return NextResponse.json({ ok: true });
+    }
+
+    /**
+     * Granting the verified badge. It means a person checked the account, so a reason is required —
+     * a badge granted without one is not a verification, it is a decoration.
+     */
+    case "grantBadge": {
+      const badge = String(body.badge ?? "verified");
+      if (!GRANTABLE.includes(badge)) return fail("That badge cannot be granted by hand.", 400);
+      const reason = text(body.reason, 200);
+      if (reason.length < 4) return fail("Say what was checked. The reason is shown with the badge.", 400);
+
+      let expiresAt: Date | null = null;
+      if (typeof body.expiresAt === "string" && body.expiresAt.trim()) {
+        const when = new Date(body.expiresAt);
+        if (Number.isNaN(when.getTime())) return fail("That expiry date is not a date.", 400);
+        if (when.getTime() <= Date.now()) return fail("An expiry in the past would delete the badge straight away. Leave it empty for no expiry.", 400);
+        expiresAt = when;
+      }
+
+      // Granting it twice replaces the live grant rather than stacking two of the same badge.
+      await db
+        .update(badgeGrants)
+        .set({ revokedAt: new Date(), revokedBy: actorName })
+        .where(and(eq(badgeGrants.userId, t.id), eq(badgeGrants.badge, badge), isNull(badgeGrants.revokedAt)));
+      await db.insert(badgeGrants).values({ userId: t.id, badge, reason, grantedBy: actorName, expiresAt });
+      await audit(actorName, "badge.grant", "user", t.id, t.handle, `${badge}: ${reason}${expiresAt ? ` (until ${expiresAt.toISOString().slice(0, 10)})` : ""}`);
+      return NextResponse.json({ ok: true });
+    }
+
+    /** Taking it back. Revoked, never deleted, so the record of who granted what survives. */
+    case "revokeBadge": {
+      const id = dbInt(body.id);
+      if (!id) return fail("Which grant?", 400);
+      const [grant] = await db
+        .select()
+        .from(badgeGrants)
+        .where(and(eq(badgeGrants.id, id), eq(badgeGrants.userId, t.id)))
+        .limit(1);
+      if (!grant) return fail("No such badge grant.", 404);
+      if (grant.revokedAt) return NextResponse.json({ ok: true });
+      await db.update(badgeGrants).set({ revokedAt: new Date(), revokedBy: actorName }).where(eq(badgeGrants.id, id));
+      await audit(actorName, "badge.revoke", "user", t.id, t.handle, `${grant.badge}: ${grant.reason}`);
       return NextResponse.json({ ok: true });
     }
 

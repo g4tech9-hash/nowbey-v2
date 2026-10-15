@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { adminAudit, incidents, users } from "@/db/schema";
+import { adminAudit, incidents, memberNotes, users } from "@/db/schema";
+import { badgeHistory } from "@/lib/profile";
 import { getViewer } from "@/lib/viewer";
 import { isEnvAdmin, normalizeHandle } from "@/lib/handles";
 import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
@@ -31,7 +32,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
   const [u] = await db.select().from(users).where(eq(users.handle, normalizeHandle(handle))).limit(1);
   if (!u) notFound();
 
-  const [reports, history] = await Promise.all([
+  const [reports, history, notes, badges] = await Promise.all([
     db.select().from(incidents).where(eq(incidents.userId, u.id)).orderBy(desc(incidents.createdAt)).limit(8),
     db
       .select()
@@ -39,6 +40,8 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
       .where(and(eq(adminAudit.targetType, "user"), eq(adminAudit.targetId, u.id)))
       .orderBy(desc(adminAudit.createdAt))
       .limit(10),
+    db.select().from(memberNotes).where(eq(memberNotes.userId, u.id)).orderBy(desc(memberNotes.createdAt)).limit(20),
+    badgeHistory(u.id),
   ]);
 
   const tier = isTierKey(u.adFreeTier) ? TIERS[u.adFreeTier] : null;
@@ -115,6 +118,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
               targetIsAdmin={u.role === "admin" || envAdmin}
               hasEmail={Boolean(u.email)}
               emailVerified={Boolean(u.emailVerifiedAt)}
+              badges={badges}
             />
           </div>
         </section>
@@ -141,6 +145,27 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
           </ul>
         ) : (
           <p className="mt-2 text-[12.5px] text-[#6e97a0]">No reports filed under this account.</p>
+        )}
+      </section>
+
+      <section className="glass rounded-2xl p-4">
+        <p className="display text-[15px] font-bold text-sand-100">Staff notes</p>
+        <p className="mt-0.5 text-[12.5px] text-[#8fb9b6]">
+          Sentences a person wrote about this member. Append-only, admin-only, and never shown to them — add a note in the Manage panel above.
+        </p>
+        {notes.length ? (
+          <ul className="mt-3 space-y-2">
+            {notes.map((n) => (
+              <li key={n.id} className="rounded-xl border hairline p-3">
+                <p className="text-[12.5px] leading-relaxed text-[#cfeee9]">{n.body}</p>
+                <p className="mt-1 text-[11px] text-[#6e97a0]">
+                  @{n.authorHandle} · {timeAgo(n.createdAt)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-[12.5px] text-[#6e97a0]">No notes yet.</p>
         )}
       </section>
 
