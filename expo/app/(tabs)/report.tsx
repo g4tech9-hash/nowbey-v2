@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ScrollView, Switch, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
-import { api, errMsg, type Incident, type Place } from "../../src/api";
+import { api, errMsg, type Incident, type Place, type ReportAssist } from "../../src/api";
 import { CATEGORIES, CATEGORY_KEYS, SEVERITY, inBahamas, type CategoryKey } from "../../src/geo";
 import MapCanvas from "../../src/MapCanvas";
 import type { LatLng } from "../../src/map-types";
@@ -27,6 +27,8 @@ export default function Report() {
   const [photoNote, setPhotoNote] = useState("");
   const [anonymous, setAnonymous] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [assist, setAssist] = useState<ReportAssist | null>(null);
+  const [checking, setChecking] = useState(false);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Incident | null>(null);
@@ -69,6 +71,29 @@ export default function Report() {
     }
   }
 
+  /** Intake copilot: suggestions only — every apply button below is the reporter's choice. */
+  async function checkAssist() {
+    setChecking(true);
+    setError(null);
+    try {
+      const res = await api.assistReport({
+        title: title.trim(),
+        details: details.trim(),
+        photoNote: photoNote.trim(),
+        category,
+        severity,
+        parish: place?.parish,
+        lat: pick?.lat,
+        lng: pick?.lng,
+      });
+      setAssist(res);
+    } catch {
+      setError("The check could not run just now. Publishing works without it.");
+    } finally {
+      setChecking(false);
+    }
+  }
+
   async function submit() {
     if (!pick) {
       setStep(1);
@@ -107,6 +132,7 @@ export default function Report() {
     setTitle("");
     setDetails("");
     setPhotoNote("");
+    setAssist(null);
     setError(null);
   }
 
@@ -209,6 +235,65 @@ export default function Report() {
             <Text style={t.muted}>Post anonymously</Text>
             <Switch value={anonymous} onValueChange={setAnonymous} trackColor={{ true: color.tide, false: color.panel3 }} />
           </View>
+
+          <Card style={{ marginTop: 14, borderColor: "#a78bfa55" }}>
+            <Text style={t.h3}>✨ Check my report</Text>
+            <Text style={[t.subtle, { marginTop: 2 }]}>Best category, clearer headline, and whether neighbours already reported this. You accept or ignore each idea.</Text>
+            <Btn label={checking ? "Checking…" : assist ? "Check again" : "Check it"} kind="ghost" busy={checking} disabled={title.trim().length < 5} onPress={checkAssist} style={{ marginTop: 10 }} />
+            {assist ? (
+              <View style={{ marginTop: 10, gap: 8 }}>
+                {assist.duplicates.map((d) => (
+                  <View key={d.id} style={{ backgroundColor: d.strength === "exact" ? "#ff7a6b22" : "#ffffff10", borderRadius: 10, padding: 10 }}>
+                    <Text style={[t.h3, { fontSize: 13 }]}>{d.strength === "exact" ? "Already on the map at this spot:" : "Sounds like one already on the map:"} {d.title}</Text>
+                    <Text style={t.subtle}>Confirmed ×{d.confirmations}{d.distanceM !== null ? ` · ~${d.distanceM} m from your pin` : ""}. Same thing? Open it from the map and tap confirm instead — one strong pin beats two weak ones.</Text>
+                  </View>
+                ))}
+                {assist.suggestion?.category && assist.suggestion.category !== category && CATEGORIES[assist.suggestion.category as CategoryKey] ? (
+                  <View>
+                    <Text style={t.muted}>This reads as {CATEGORIES[assist.suggestion.category as CategoryKey].label} ({assist.suggestion.confidence} confidence)</Text>
+                    <Btn label={`Use ${CATEGORIES[assist.suggestion.category as CategoryKey].label}`} onPress={() => setCategory(assist.suggestion!.category as CategoryKey)} style={{ marginTop: 6 }} />
+                  </View>
+                ) : null}
+                {assist.suggestion?.severity && assist.suggestion.severity !== severity ? (
+                  <View>
+                    <Text style={t.muted}>Severity looks more like {SEVERITY[assist.suggestion.severity - 1]} ({assist.suggestion.severity}/4)</Text>
+                    <Btn label={`Set ${assist.suggestion.severity}/4`} onPress={() => setSeverity(assist.suggestion!.severity!)} style={{ marginTop: 6 }} />
+                  </View>
+                ) : null}
+                {assist.suggestion?.headline && assist.suggestion.headline.trim() && assist.suggestion.headline.trim() !== title.trim() ? (
+                  <View>
+                    <Text style={t.muted}>Clearer headline: “{assist.suggestion.headline}”</Text>
+                    <Btn label="Use this headline" onPress={() => setTitle(assist.suggestion!.headline)} style={{ marginTop: 6 }} />
+                  </View>
+                ) : null}
+                {assist.place && pick && Math.abs(assist.place.lat - pick.lat) + Math.abs(assist.place.lng - pick.lng) > 0.002 ? (
+                  <View>
+                    <Text style={t.muted}>Your words name {assist.place.street}, {assist.place.parish} — not where the pin is.</Text>
+                    <Btn
+                      label="Move pin there"
+                      onPress={() => {
+                        setPick({ lat: assist.place!.lat, lng: assist.place!.lng });
+                        setFocus({ lat: assist.place!.lat, lng: assist.place!.lng, nonce: Date.now() });
+                        setStep(1);
+                      }}
+                      style={{ marginTop: 6 }}
+                    />
+                  </View>
+                ) : null}
+                {assist.suggestion?.missingInfo.length ? (
+                  <View>
+                    <Text style={[t.muted, { fontWeight: "700" }]}>Neighbours would ask:</Text>
+                    {assist.suggestion.missingInfo.map((q) => (
+                      <Text key={q} style={t.subtle}>• {q}</Text>
+                    ))}
+                  </View>
+                ) : null}
+                {!assist.ai && !assist.duplicates.length ? <Text style={t.subtle}>Nothing to suggest — no similar reports nearby. (AI wording help is not switched on for this server yet.)</Text> : null}
+                {assist.ai && !assist.duplicates.length && !assist.suggestion?.missingInfo.length ? <Text style={[t.subtle, { color: color.tidePale }]}>✓ This reads clearly as-is. Good to publish.</Text> : null}
+              </View>
+            ) : null}
+          </Card>
+
           {error ? <Text style={[t.error, { marginTop: 10 }]}>{error}</Text> : null}
           <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
             <Btn label="Move the pin" kind="ghost" onPress={() => setStep(1)} style={{ flex: 1 }} />

@@ -1,5 +1,22 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
+## 0. Turn on AI log fixes (Admin → Logs)
+
+Full write-up: `docs/AI_LOG_FIXES.md`. The code is live-safe without these steps — logs
+collect, diagnoses wait as "unavailable", approvals wait as "approved".
+
+1. **Run the SQL once.** Neon → SQL editor → paste all of `add-error-ai.sql` → Run (safe to
+   run twice; `add-client-errors.sql` must already have run). Also run `add-ai-usage.sql`
+   (one tiny table) so the AI daily cost cap counts across servers — the Admin overview
+   shows today's AI calls and estimated spend once it exists.
+2. **Set two env vars.** Vercel → Settings → Environment Variables → Production:
+   `GITHUB_TOKEN` (GitHub → Settings → Developer settings → Fine-grained tokens → only
+   `g4tech9-hash/nowbey-v2`, Issues: read/write) and `GITHUB_REPO=g4tech9-hash/nowbey-v2`.
+   `GEMINI_API_KEY` should already be set — the same key powers these diagnoses.
+3. **Schedule the cron.** Wherever the other crons are scheduled, add
+   `GET /api/cron/error-analysis` every 15–60 min with `Authorization: Bearer $CRON_SECRET`.
+4. **Next APK build** carries the Expo app's error reporting; no store-side setting needed.
+
 ## 0a. After the security update deploys (2026-10-15) — in this order
 
 Full write-up: `audit/2026-10-15_security/REPORT.md`. Do steps 1–3 the same day as the deploy.

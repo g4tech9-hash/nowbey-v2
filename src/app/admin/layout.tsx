@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { eq, gt, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { comments, enterpriseInquiries, newsItems, posts } from "@/db/schema";
+import { comments, enterpriseInquiries, errorAnalyses, newsItems, posts } from "@/db/schema";
 import { AdminNav, type AdminTab } from "@/components/admin-nav";
 import { getViewer } from "@/lib/viewer";
 
@@ -14,13 +14,21 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   // To everyone else this area simply does not exist.
   if (!viewer.isEditor) notFound();
 
-  const [[pending], [fresh], [flagged], [flaggedComments]] = await Promise.all([
+  const [[pending], [fresh], [flagged], [flaggedComments], [logReview]] = await Promise.all([
     db.select({ n: sql<number>`count(*)::int` }).from(newsItems).where(eq(newsItems.review, "pending")),
     viewer.isAdmin
       ? db.select({ n: sql<number>`count(*)::int` }).from(enterpriseInquiries).where(eq(enterpriseInquiries.status, "new"))
       : Promise.resolve([{ n: 0 }]),
     db.select({ n: sql<number>`count(*)::int` }).from(posts).where(gt(posts.flagCount, 0)),
     db.select({ n: sql<number>`count(*)::int` }).from(comments).where(gt(comments.flagCount, 0)),
+    // The log tables may not be migrated yet — a missing table must never hide the admin area.
+    viewer.isAdmin
+      ? db
+          .select({ n: sql<number>`count(*)::int` })
+          .from(errorAnalyses)
+          .where(eq(errorAnalyses.status, "pending_review"))
+          .catch(() => [{ n: 0 }])
+      : Promise.resolve([{ n: 0 }]),
   ]);
 
   const tabs: AdminTab[] = [
@@ -30,7 +38,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: "/admin/wire", label: "Wire", badge: pending.n },
     { href: "/admin/community", label: "Community", badge: flagged.n },
     { href: "/admin/comments", label: "Comments", badge: flaggedComments.n },
-    ...(viewer.isAdmin ? [{ href: "/admin/statuses", label: "Open now" }, { href: "/admin/digest", label: "Digest" }, { href: "/admin/inbox", label: "Inbox", badge: fresh.n }, { href: "/admin/activity", label: "Activity" }, { href: "/admin/appearance", label: "Appearance" }] : []),
+    ...(viewer.isAdmin ? [{ href: "/admin/statuses", label: "Open now" }, { href: "/admin/digest", label: "Digest" }, { href: "/admin/logs", label: "Logs", badge: logReview.n }, { href: "/admin/inbox", label: "Inbox", badge: fresh.n }, { href: "/admin/activity", label: "Activity" }, { href: "/admin/appearance", label: "Appearance" }] : []),
   ];
 
   return (

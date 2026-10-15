@@ -1,6 +1,7 @@
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { getServer, getToken, setPushToken, setServer, setToken } from "./storage";
+import { noteApiFailure, registerApiBase } from "./errorReporting";
 import type { CategoryKey } from "./geo";
 
 /**
@@ -39,6 +40,7 @@ function initialBase(): string {
 
 /** Read by the screens on every render; reassigned by loadApiBase / changeApiBase. */
 export let API_BASE: string = initialBase();
+registerApiBase(() => API_BASE);
 
 /** Called once at start-up: applies an address the person saved earlier. */
 export async function loadApiBase(): Promise<void> {
@@ -203,6 +205,20 @@ export type SessionUser = {
 };
 export type Place = { street?: string | null; address?: string | null; parish?: string | null };
 
+/** Intake copilot answer (POST /api/reports/assist). Every field is advisory only. */
+export type ReportAssist = {
+  ai: boolean;
+  suggestion: {
+    category: string | null;
+    severity: number | null;
+    headline: string;
+    missingInfo: string[];
+    confidence: string;
+  } | null;
+  place: { lat: number; lng: number; parish: string; street: string } | null;
+  duplicates: { id: string; title: string; category: string; confirmations: number; distanceM: number | null; strength: "exact" | "similar" }[];
+};
+
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -238,12 +254,15 @@ async function call<T>(path: string, init: { method?: string; body?: unknown } =
       /* empty body */
     }
     if (!res.ok) {
+      // Server-side failures join the log pipeline (breadcrumbs everywhere, reported at 5xx).
+      noteApiFailure(init.method ?? "GET", path, res.status);
       const message = (data as { error?: string } | null)?.error ?? `Request failed (${res.status}).`;
       throw new ApiError(message, res.status);
     }
     return data as T;
   } catch (e) {
     if (e instanceof ApiError) throw e;
+    noteApiFailure(init.method ?? "GET", path, 0);
     throw new ApiError(`Could not reach NowBey at ${API_BASE}. Open the You tab and set the Server address to where the NowBey website runs.`, 0);
   } finally {
     clearTimeout(timer);
@@ -275,6 +294,18 @@ export const api = {
   }) => call<{ incident: Incident }>("/api/incidents", { method: "POST", body }),
   updateIncident: (id: string, kind: "confirm" | "photo" | "clear" | "escalate") =>
     call<{ incident: Incident; message?: string }>(`/api/incidents/${id}/updates`, { method: "POST", body: { kind } }),
+  /** Intake copilot: advisory suggestions + near-duplicate warning. Creates nothing. */
+  assistReport: (body: {
+    title: string;
+    details?: string;
+    photoNote?: string;
+    category: string;
+    severity: number;
+    parish?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+  }) =>
+    call<ReportAssist>(`/api/reports/assist`, { method: "POST", body }),
   news: (limit = 40) => call<{ items: NewsItem[] }>(`/api/news?limit=${limit}`),
   gas: (parish?: string) => call<GasBoard>(`/api/gas${parish ? `?parish=${encodeURIComponent(parish)}` : ""}`),
   reportGas: (b: { station: string; parish: string; fuel: string; price: string }) => call<{ ok: boolean }>("/api/gas", { method: "POST", body: b }),

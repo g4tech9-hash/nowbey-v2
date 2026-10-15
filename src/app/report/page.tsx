@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MapPanel, type PickResult } from "@/components/map/map-panel";
 import { EmergencyNotice } from "@/components/emergency-notice";
+import { ReportAssist } from "@/components/report-assist";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
 
 const STEPS = ["What is it?", "Where is it?", "Tell neighbours"] as const;
@@ -346,6 +347,19 @@ export default function ReportWizard() {
               <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="h-3.5 w-3.5 accent-[#00c9b7]" />
               {handle !== "neighbour" ? `Post anonymously instead of as @${handle}` : "Post anonymously"}
             </label>
+            <ReportAssist
+              title={title}
+              details={details}
+              photoNote={photoNote}
+              category={category}
+              severity={severity}
+              pick={pick}
+              parish={island}
+              onCategory={setCategory}
+              onSeverity={setSeverity}
+              onHeadline={setTitle}
+              onMovePin={handlePick}
+            />
             {error ? <p className="rounded-lg bg-conch-500/15 px-3 py-2 text-[12.5px] text-conch-400">{error}</p> : null}
             <div className="flex gap-2">
               <button
