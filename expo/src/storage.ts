@@ -49,6 +49,37 @@ export async function setServer(url: string | null): Promise<void> {
   }
 }
 
+const PUSH_KEY = "nowbey_push_token";
+
+/**
+ * The Expo push token this device registered with the server, so the app can (a) show whether
+ * push is on and (b) hand the token back when it is switched off or the member signs out.
+ * A push token is not a credential: it only lets a server send to this device.
+ */
+export async function getPushToken(): Promise<string | null> {
+  try {
+    if (Platform.OS === "web") return typeof localStorage === "undefined" ? null : localStorage.getItem(PUSH_KEY);
+    return await SecureStore.getItemAsync(PUSH_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export async function setPushToken(token: string | null): Promise<void> {
+  try {
+    if (Platform.OS === "web") {
+      if (typeof localStorage === "undefined") return;
+      if (token) localStorage.setItem(PUSH_KEY, token);
+      else localStorage.removeItem(PUSH_KEY);
+      return;
+    }
+    if (token) await SecureStore.setItemAsync(PUSH_KEY, token);
+    else await SecureStore.deleteItemAsync(PUSH_KEY);
+  } catch {
+    /* not saving is harmless */
+  }
+}
+
 /** Handles this person has blocked, kept on the phone. */
 export async function getBlocked(): Promise<string[]> {
   try {

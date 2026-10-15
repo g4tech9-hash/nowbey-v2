@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, type SessionUser } from "./api";
+import { releasePushOnSignOut } from "./push";
 import { setToken } from "./storage";
 
 type SessionValue = {
@@ -48,6 +49,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         await refresh();
       },
       signOut: async () => {
+        // Drop this phone's push registration while the session is still valid, so the next
+        // person to sign in here does not inherit the last member's alerts.
+        await releasePushOnSignOut();
         try {
           await api.signOut();
         } catch {

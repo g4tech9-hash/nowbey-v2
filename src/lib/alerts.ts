@@ -3,8 +3,6 @@ import { db } from "@/db";
 import { alertSubscriptions, users, type Incident } from "@/db/schema";
 import { CATEGORIES, haversineMeters, type CategoryKey } from "@/lib/geo";
 import { emailButton, emailLayout, escapeHtml, sendMail } from "@/lib/mail";
-import { PAID_STORM_TIERS, entitledTier } from "@/lib/tiers";
-import { demoPlansAllowed } from "@/lib/billing";
 import { sendPushForUsers } from "@/lib/push";
 
 const COOLDOWN_MS = 3 * 60 * 1000;
@@ -15,8 +13,9 @@ export type DispatchStats = { matched: number; sent: number; skipped: number; fa
 /**
  * Emails everyone whose confirmed alert profile covers this report's island and category.
  * Rules: reports rated "annoying" stay quiet unless they are storms; nobody gets more than
- * one alert every three minutes; Rock Sound and Admiral members always get storm reports
- * for their islands, whatever categories they picked; you are never alerted about your own report.
+ * one alert every three minutes; storm reports always reach a subscriber for their island,
+ * whatever categories they picked and whatever plan they are on; you are never alerted about your
+ * own report.
  * Geofence: profiles with a saved centre only match reports within their radiusKm.
  */
 export async function dispatchIncidentAlerts(incident: Incident, base: string): Promise<DispatchStats> {
@@ -40,16 +39,16 @@ export async function dispatchIncidentAlerts(incident: Incident, base: string): 
   const where = [incident.street, incident.parish].filter(Boolean).join(", ") || "The Bahamas";
   const link = `${base}/incident/${incident.id}`;
   const now = Date.now();
-  const demo = demoPlansAllowed();
 
   const pushUsers = new Set<string>();
-  for (const { sub, tier, status } of rows) {
+  for (const { sub } of rows) {
     const islands = sub.parishes.split(",").map((s) => s.trim());
     if (!incident.parish || !islands.includes(incident.parish)) continue;
 
     const cats = sub.categories.split(",").map((s) => s.trim()).filter(Boolean);
-    const owner = entitledTier({ adFreeTier: tier, planStatus: status }, demo);
-    const stormOverride = isStorm && owner !== null && PAID_STORM_TIERS.includes(owner);
+    // Safety first: a storm cancels your category filters for everyone, free plan included.
+    // Anything that endangers a household must never depend on a subscription.
+    const stormOverride = isStorm;
     if (cats.length && !cats.includes(incident.category) && !stormOverride) continue;
     if (incident.userId && sub.userId === incident.userId) continue;
 

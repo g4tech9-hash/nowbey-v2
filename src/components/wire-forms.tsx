@@ -87,11 +87,21 @@ export function SubmitLink() {
 }
 
 const DEFAULT_CATS: CategoryKey[] = ["flood", "storm", "power", "water", "fire"];
+/** The island the Nassau launch covers. Everything is matched per island, so this is the only one that is live. */
+const LAUNCH_ISLAND = "New Providence";
 
+/**
+ * The email-alert sign-up. Nassau MVP rules:
+ *  - one island is preselected and stays first, because that is what the launch covers;
+ *  - the optional extras (other islands, a radius around you) are folded away until asked for;
+ *  - the shortest path to a working alert is: type your email, tap the button.
+ * The full island list and the location/radius matcher still exist behind "More options" — they are
+ * simply not in the way of the common case.
+ */
 export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; defaultEmail?: string }) {
   const router = useRouter();
   const [target, setTarget] = useState(defaultEmail);
-  const [islands, setIslands] = useState<string[]>(["New Providence"]);
+  const [islands, setIslands] = useState<string[]>([LAUNCH_ISLAND]);
   const [cats, setCats] = useState<CategoryKey[]>(DEFAULT_CATS);
   const [radiusKm, setRadiusKm] = useState(12);
   const [centre, setCentre] = useState<{ lat: number; lng: number } | null>(null);
@@ -99,6 +109,8 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
   const [locMsg, setLocMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [showIslands, setShowIslands] = useState(false);
+  const [showRadius, setShowRadius] = useState(false);
   const multi = plan !== null;
 
   const toggleIsland = (p: string) => {
@@ -163,18 +175,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
         }
       }}
     >
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">How should we reach you?</p>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          <span className="rounded-lg bg-sand-100 px-2.5 py-1.5 text-[12px] font-bold text-abyss-950">Email</span>
-          {["Phone push", "Text message"].map((label) => (
-            <span key={label} className="rounded-lg bg-white/6 px-2.5 py-1.5 text-[12px] font-bold text-[#6e97a0]" title="Coming soon">
-              {label} <span className="ml-1 rounded-full bg-white/10 px-1.5 py-[1px] text-[9.5px] uppercase">Soon</span>
-            </span>
-          ))}
-        </div>
-      </div>
-
+      {/* 1 · Where to send it. The email is the whole first step — everything else has a default. */}
       <label className="block">
         <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Email address</span>
         <input
@@ -182,41 +183,59 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
           onChange={(e) => setTarget(e.target.value)}
           type="email"
           autoComplete="email"
+          inputMode="email"
           placeholder="you@example.com"
-          className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2.5 text-[14px] outline-none focus:border-tide-400"
+          className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2.5 text-[16px] outline-none focus:border-tide-400 sm:text-[14px]"
         />
+        <span className="mt-1 block text-[11.5px] text-[#8fb9b6]">Every alert email has a one-tap “Stop these alerts” link.</span>
       </label>
 
+      {/* 2 · The island. Nassau is already chosen, so this reads as a fact rather than a question. */}
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">
-          {multi ? "Islands you want to hear about" : "Your island"}
-        </p>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {PARISHES.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => toggleIsland(p)}
-              aria-pressed={islands.includes(p)}
-              className={`rounded-lg px-2 py-1 text-[11.5px] font-semibold ${
-                islands.includes(p) ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
+        <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Where</p>
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          <span className="rounded-lg bg-tide-500 px-2.5 py-1.5 text-[12px] font-bold text-abyss-950">{LAUNCH_ISLAND} · live now</span>
+          <button
+            type="button"
+            onClick={() => setShowIslands((v) => !v)}
+            aria-expanded={showIslands}
+            className="min-h-[34px] rounded-lg bg-white/6 px-2.5 py-1.5 text-[12px] font-semibold text-[#a9cdc9] hover:bg-white/12"
+          >
+            {showIslands ? "Hide other islands" : "Other islands"}
+          </button>
         </div>
-        {!multi ? (
-          <p className="mt-1.5 text-[11.5px] text-[#8fb9b6]">
-            The free plan covers one island.{" "}
-            <Link href="/support" className="font-bold text-tide-300 underline">
-              Pick a plan
-            </Link>{" "}
-            for as many as you like.
-          </p>
+        {showIslands ? (
+          <div className="mt-2 flex flex-wrap gap-1.5 rounded-xl bg-white/[.04] p-2">
+            {PARISHES.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => toggleIsland(p)}
+                aria-pressed={islands.includes(p)}
+                className={`min-h-[34px] rounded-lg px-2 py-1 text-[11.5px] font-semibold ${
+                  islands.includes(p) ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            <p className="w-full px-1 pt-1 text-[11.5px] text-[#8fb9b6]">
+              Nassau is live today; reports elsewhere depend on neighbours filing them.{" "}
+              {multi ? "Your plan can follow as many islands as you like." : (
+                <>
+                  The free plan covers one island.{" "}
+                  <Link href="/support" className="font-bold text-tide-300 underline">
+                    Pick a plan
+                  </Link>{" "}
+                  for more.
+                </>
+              )}
+            </p>
+          </div>
         ) : null}
       </div>
 
+      {/* 3 · What is worth waking you up. */}
       <div>
         <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Kinds of report</p>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -228,7 +247,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
                 type="button"
                 onClick={() => toggleCat(k)}
                 aria-pressed={on}
-                className="rounded-lg px-2 py-1 text-[11.5px] font-bold"
+                className="min-h-[34px] rounded-lg px-2 py-1 text-[11.5px] font-bold"
                 style={{ background: on ? `${CATEGORIES[k].color}2e` : "rgba(255,255,255,.05)", color: on ? CATEGORIES[k].color : "#8fb9b6" }}
               >
                 {CATEGORIES[k].label}
@@ -237,62 +256,79 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
           })}
         </div>
         <p className="mt-1.5 text-[11.5px] text-[#8fb9b6]">
-          Leave everything unselected to hear about every report. Reports marked “annoying” never trigger an email.
+          Leave everything unselected to hear about every report. Reports rated “annoying” never trigger an email.
         </p>
       </div>
 
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">How close must a report be?</p>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {[5, 12, 25, 50].map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setRadiusKm(r)}
-              aria-pressed={radiusKm === r}
-              className={`rounded-lg px-2 py-1 text-[11.5px] font-semibold ${
-                radiusKm === r ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
-              }`}
-            >
-              {r} km
-            </button>
-          ))}
-        </div>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={locate}
-            disabled={locBusy}
-            className="rounded-lg border hairline px-2.5 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/8 disabled:opacity-50"
-          >
-            {locBusy ? "Reading location…" : centre ? "Location saved — update it" : "Use my location"}
-          </button>
-          {centre ? (
-            <button
-              type="button"
-              onClick={() => setCentre(null)}
-              className="rounded-lg px-2 py-1.5 text-[12px] font-bold text-[#8fb9b6] hover:text-sand-100"
-            >
-              Clear
-            </button>
-          ) : null}
-        </div>
-        <p className="mt-1.5 text-[11.5px] text-[#8fb9b6]">
-          {centre
-            ? `Only reports within ${radiusKm} km of where you are now will email you.`
-            : "Without a location we match the whole island. Your position is only used for matching and is never shown to anyone."}
-        </p>
-        {locMsg ? <p className="mt-1 text-[11.5px] text-conch-400">{locMsg}</p> : null}
+      {/* 4 · The optional extras, folded away. Most people want the whole island. */}
+      <div className="rounded-xl border hairline bg-white/[.03] p-2.5">
+        <button
+          type="button"
+          onClick={() => setShowRadius((v) => !v)}
+          aria-expanded={showRadius}
+          className="flex w-full items-center gap-2 text-left"
+        >
+          <span className="min-w-0 flex-1 text-[12.5px] font-bold text-sand-100">
+            Only near me {centre ? `· on, within ${radiusKm} km` : "· off, the whole island"}
+          </span>
+          <span className="flex-none text-[11.5px] font-bold text-tide-300">{showRadius ? "Hide" : "Set up"}</span>
+        </button>
+        {showRadius ? (
+          <div className="mt-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[5, 12, 25, 50].map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRadiusKm(r)}
+                  aria-pressed={radiusKm === r}
+                  className={`min-h-[34px] rounded-lg px-2.5 py-1 text-[11.5px] font-semibold ${
+                    radiusKm === r ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
+                  }`}
+                >
+                  {r} km
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={locate}
+                disabled={locBusy}
+                className="min-h-[34px] rounded-lg border hairline px-2.5 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/8 disabled:opacity-50"
+              >
+                {locBusy ? "Reading location…" : centre ? "Update my location" : "Use my location"}
+              </button>
+              {centre ? (
+                <button
+                  type="button"
+                  onClick={() => setCentre(null)}
+                  className="min-h-[34px] rounded-lg px-2 py-1.5 text-[12px] font-bold text-[#8fb9b6] hover:text-sand-100"
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+            <p className="mt-1.5 text-[11.5px] text-[#8fb9b6]">
+              {centre
+                ? `Only reports within ${radiusKm} km of where you are now will email you.`
+                : "Without a location we match the whole island. Your position is only used for matching and is never shown to anyone."}
+            </p>
+            {locMsg ? <p className="mt-1 text-[11.5px] text-conch-400">{locMsg}</p> : null}
+          </div>
+        ) : null}
       </div>
 
       <button
         type="submit"
         disabled={busy || !target.trim()}
-        className="w-full rounded-xl bg-tide-500 py-2.5 text-[13px] font-extrabold text-abyss-950 disabled:opacity-45"
+        className="min-h-[48px] w-full rounded-xl bg-tide-500 py-2.5 text-[14px] font-extrabold text-abyss-950 disabled:opacity-45"
       >
         {busy ? "Saving…" : "Send me a confirmation email"}
       </button>
       {msg ? <p className={`text-[12.5px] leading-snug ${msg.ok ? "text-tide-300" : "text-conch-400"}`}>{msg.text}</p> : null}
+      <p className="text-[11.5px] leading-relaxed text-[#8fb9b6]">
+        Email is the one channel that always works today. Phone push is a separate switch — it stays off until you turn it on, and only the
+        Android app and some browsers can show it. Text messages are not available yet.
+      </p>
     </form>
   );
 }

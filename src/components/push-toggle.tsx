@@ -9,7 +9,15 @@ type Props = {
   parishes: string[];
 };
 
-type State = "checking" | "unsupported" | "off" | "on" | "denied";
+/**
+ * What a browser push registration actually covers, in the order a person asks the questions:
+ * which island, which categories, and which browsers can show it at all. The switch is only ever
+ * on this page when the server has Firebase configured, so it never promises what the server
+ * cannot deliver.
+ */
+const COVERAGE = "every kind of report except the ones rated “annoying”";
+
+type State = "checking" | "unsupported" | "needs-install" | "off" | "on" | "denied";
 
 /**
  * The push-alerts switch on /alerts. Only ever rendered when the server has Firebase set up;
@@ -38,7 +46,12 @@ export function PushToggle({ config, vapidKey, parishes }: Props) {
     let cancelled = false;
     (async () => {
       try {
+        const ua = navigator.userAgent;
+        const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        const standalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as { standalone?: boolean }).standalone === true;
         if (!("serviceWorker" in navigator) || !("Notification" in window)) return setState("unsupported");
+        // iOS Safari delivers web push only to a Home Screen app, so say that instead of failing later.
+        if (iOS && !standalone) return setState("needs-install");
         if (Notification.permission === "denied") return setState("denied");
         if (Notification.permission === "granted") {
           const token = await fetchToken();
@@ -126,11 +139,13 @@ export function PushToggle({ config, vapidKey, parishes }: Props) {
         <div className="min-w-0 flex-1">
           <p className="display text-[15px] font-bold text-sand-100">Push alerts on this device</p>
           <p className="mt-0.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">
-            {state === "on"
-              ? `This device gets an instant notification when a matching report lands in ${parishes.join(", ")} — no email needed.`
+            {state === "needs-install"
+              ? "On an iPhone, notifications reach the site only after it is added to the Home Screen: tap Share, then “Add to Home Screen”, and open NowBey from that new icon. Email alerts keep working in the meantime."
+              : state === "on"
+              ? `This device gets an instant notification for ${COVERAGE} that lands in ${parishes.join(", ")} — no email needed.`
               : state === "denied"
                 ? "Notifications are blocked for this site in your browser settings. Unblock them there, then come back."
-                : "Get the important ones instantly, even before the email arrives. Works while NowBey is closed — on Android, desktop and installed as an app."}
+                : `An instant notification for ${COVERAGE} that lands in ${parishes.join(", ")}. Chrome, Edge and Firefox on a computer or Android phone can show these; on an iPhone the site has to be added to the Home Screen first.`}
           </p>
           {note ? <p className="mt-1 text-[12px] text-conch-400">{note}</p> : null}
         </div>

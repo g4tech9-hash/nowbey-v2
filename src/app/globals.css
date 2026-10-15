@@ -254,16 +254,21 @@ html {
 
 /* App-like view that fills exactly the space between the sticky header and
    the fixed bottom nav on phones/tablets. Desktop lays out normally, so this
-   only applies below Tailwind's `lg` breakpoint (same as useIsMobile). */
+   only applies below Tailwind's `lg` breakpoint (same as useIsMobile).
+
+   The bottom nav is fixed (z-700), so its height must be taken OUT of the box:
+   header + main top padding + main bottom padding + status bar + bottom nav +
+   home-indicator area. Leaving the nav out was why the last row of a
+   full-height view (the pin list on /map) sat behind it. */
 @media (max-width: 1023.98px) {
   .nb-fill-view {
     display: flex;
     flex-direction: column;
-    /* header + main top padding + main bottom padding + status-bar safe area */
-    height: calc(100vh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top));
-    height: calc(100svh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top));
-    height: calc(100dvh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top));
-    min-height: 400px;
+    height: calc(100vh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top) - var(--nb-nav-h) - var(--nb-safe-bottom));
+    height: calc(100svh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top) - var(--nb-nav-h) - var(--nb-safe-bottom));
+    height: calc(100dvh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top) - var(--nb-nav-h) - var(--nb-safe-bottom));
+    /* Below this the map + list would be unusable; let the page scroll instead. */
+    min-height: 340px;
   }
 }
 .nb-pad-bottom {
@@ -680,4 +685,52 @@ html[data-mode="light"] .nb-backdrop-veil {
 }
 html[data-mode="light"] .nb-pagescene-veil {
   background: linear-gradient(100deg, rgba(244, 237, 224, 0.94) 0%, rgba(244, 237, 224, 0.72) 52%, rgba(244, 237, 224, 0.35) 100%);
+}
+
+/* ---------- Phone map workspace (/map) ----------
+   The map's share of the screen in the phone "Both" view. Short on purpose: with the
+   fixed bottom nav already taken out of .nb-fill-view, this leaves the first two or
+   three rows of the pin list above the fold on a 320x568 screen, and seven or more
+   on a 412x915 one. dvh keeps it honest when the phone's browser bar slides away;
+   vh is the fallback. Desktop lays the map out in the grid instead. */
+.nb-map-split {
+  height: 150px;
+}
+@media (max-width: 359.98px) {
+  .nb-map-split {
+    height: 136px;
+  }
+}
+@media (min-width: 1024px) {
+  .nb-map-split {
+    height: auto;
+  }
+}
+@supports (height: 1dvh) {
+  .nb-map-split {
+    height: clamp(132px, 23dvh, 260px);
+  }
+  @media (max-width: 359.98px) {
+    .nb-map-split {
+      height: clamp(124px, 21dvh, 200px);
+    }
+  }
+  @media (min-width: 1024px) {
+    .nb-map-split {
+      height: auto;
+    }
+  }
+}
+
+/* ---------- Phone form fields ----------
+   iOS Safari zooms the whole page in when a field under 16px takes focus, and then it stays
+   zoomed. Every field renders at 16px on a phone instead. This is unlayered on purpose: it has
+   to beat the per-component text-[13px] / text-[14px] utilities, which live in @layer utilities,
+   and unlayered rules win the cascade. From the sm breakpoint up the original sizes return. */
+@media (max-width: 639.98px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
