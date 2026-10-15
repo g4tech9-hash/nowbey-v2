@@ -109,10 +109,20 @@ Android rendering, the iOS Home Screen push flow, the Android APK — is on the 
 1. **Physical push delivery.** No Firebase service account exists in this environment and production
    reports `push:false`. `TODO_HUMAN.md` §1 holds the four steps (Admin SDK key → Expo → APK).
    Until a real phone shows a notification, push stays labelled "not delivered yet".
-2. **Production email links.** `APP_URL` is unset in production; the code falls back to Vercel's own
-   `VERCEL_PROJECT_PRODUCTION_URL`, which the deployed commit predates. After the next deploy, check
-   that `https://nowbey-v2.vercel.app/api/health` reports `appUrl:true`; if it does not, set `APP_URL`
-   in Vercel. Until then production alert sign-ups answer 503 rather than mail a link that cannot work.
+   *The web deploy is not a prerequisite:* the mobile workflow builds the APK from any branch, and the
+   app talks to the production API, so this test can run before the launch deploy. The app's
+   notification is mirrored from the member's **verified email alert profile** (device tokens → Expo
+   push service, no Firebase keys involved on the server); the separate `FIREBASE_*`-gated path only
+   feeds the website's browser push.
+2. **Production email links (`appUrl:false`).** That flag is the **old health probe**, not proof that
+   links are broken: the deployed build (checked with `git show 2489ce4:src/lib/billing.ts`) already
+   falls back to Vercel's own `VERCEL_PROJECT_PRODUCTION_URL` when `APP_URL` is unset, which is how
+   every deployment learns its public address. This branch fixes the probe so it stops reporting
+   `false` for a healthy site.
+   Decisive check, one minute from a phone: open `https://nowbey-v2.vercel.app/alerts`, enter an email
+   you can read, press "Send me a confirmation email". Mail arrives → nothing to do. No mail (and not
+   in spam) → then set `APP_URL=https://nowbey-v2.vercel.app` in Vercel (Production) and redeploy.
+   After the next deploy of this branch the probe reports `appUrl:true` on its own.
 3. **`mario242` in production.** The two levers in §4 are the whole toolkit; run one of them when you
    have the account's email or an admin session.
 4. **CI depth (optional).** The gate runs typecheck, lint, unit tests and a build. The live suites need
