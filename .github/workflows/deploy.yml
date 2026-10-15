@@ -4,6 +4,14 @@ on:
   # Production web deploy on every merge/push to master.
   push:
     branches: [master]
+  # The same knob, reachable from a script: POST a "deploy" repository_dispatch event with
+  # client_payload {"target": "mobile"} to start a build with nobody opening the Actions tab.
+  # workflow_dispatch needs the actions:write permission, which a deployment token does not always
+  # have; repository_dispatch only needs the permission to push, so the job can be started from a
+  # script, a bot or an agent. The target travels in the payload, and the build still runs on
+  # master, and still has to pass the gate.
+  repository_dispatch:
+    types: [deploy]
   # Manual knob in the Actions tab: web (Vercel prod), mobile (EAS APK), or all.
   workflow_dispatch:
     inputs:
@@ -53,7 +61,7 @@ jobs:
 
   deploy-web:
     needs: gate
-    if: github.event_name == 'push' || inputs.target == 'web' || inputs.target == 'all'
+    if: github.event_name == 'push' || inputs.target == 'web' || inputs.target == 'all' || github.event.client_payload.target == 'web' || github.event.client_payload.target == 'all'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,7 +90,7 @@ jobs:
     needs: gate
     # EAS minutes cost money, so the APK is built on demand only (Actions tab > Deploy > Run workflow > mobile),
     # or automatically right after a production web deploy when you choose "all".
-    if: inputs.target == 'mobile' || inputs.target == 'all'
+    if: inputs.target == 'mobile' || inputs.target == 'all' || github.event.client_payload.target == 'mobile' || github.event.client_payload.target == 'all'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
