@@ -16,10 +16,6 @@ on:
   # default branch.
   repository_dispatch:
     types: [eas-cancel]
-  # Temporary: runs the button once from this branch, before the file reaches the default branch.
-  push:
-    branches: [arena/0090062a-nowbey-v2]
-    paths: [.github/workflows/eas-cancel.yml]
 
 permissions:
   contents: read
