@@ -42,7 +42,7 @@ Effort: S ≤ 1 day · M ≤ 1 week · L > 1 week. Ordered within each group.
 
 | # | Idea | Builds on | Effort | Why it matters |
 |---|------|-----------|--------|----------------|
-| F1 | **Report intake copilot:** as a user files a report, Gemini pre-fills category/severity from their words + photo, suggests the pin from named places, and warns "this looks already reported" before submit | `moderation.ts` vision, `ingest.ts` placeFromText, 180 m duplicate rule | M | The launch goal is "report in <30 s" with good pins; bad categories/pins are the main data-quality risk |
+| F1 ✅ SHIPPED (this branch, PR #18) | **Report intake copilot:** as a user files a report, Gemini pre-fills category/severity from their words + photo, suggests the pin from named places, and warns "this looks already reported" before submit | `moderation.ts` vision, `ingest.ts` placeFromText, 180 m duplicate rule | M | The launch goal is "report in <30 s" with good pins; bad categories/pins are the main data-quality risk |
 | F2 | **Official-notice structurer:** BPL/NEMA/RBPF-style notices → structured category, parish, start/end, affected roads, source URL — queued for staff approval before becoming pins | `official.ts` NHC pipeline | M | Trust is the product; turns unstructured notices into map pins without AI ever publishing alone |
 | F3 | **Photo intelligence:** suggest what a photo shows (flooding depth cue, road blocked/passable), auto alt-text, and blur faces/plates before broad display | `moderation.ts` vision safe-check | M | Photos are the strongest evidence on a pin; privacy-safe photos protect residents and NowBey |
 | F4 | **Smarter duplicate clustering:** borderline text/photo similarity for reports the 180 m/90 min rule can't decide — suggestion to staff, never auto-merge | duplicate rule in `collect.ts`/report flow | M | Fewer duplicate pins and duplicate alerts as volume grows |
@@ -76,7 +76,7 @@ Effort: S ≤ 1 day · M ≤ 1 week · L > 1 week. Ordered within each group.
 
 ## Suggested sequence
 
-1. **E1** (cheap insurance) → 2. **F1** (core-loop quality) → 3. **U1 + R1** (retention
+1. **E1** (cheap insurance) → 2. ~~**F1**~~ ✅ done → 3. **U1 + R1** (retention
    and first-revenue, both reuse shipped machinery) → 4. **F2** (trust/B2G) →
    5. **U2** (differentiator) → 6. **R2/R3** (upsell) → F3–F5, U3–U5, R4–R5 as launch settles.
 

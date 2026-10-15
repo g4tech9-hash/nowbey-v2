@@ -205,6 +205,20 @@ export type SessionUser = {
 };
 export type Place = { street?: string | null; address?: string | null; parish?: string | null };
 
+/** Intake copilot answer (POST /api/reports/assist). Every field is advisory only. */
+export type ReportAssist = {
+  ai: boolean;
+  suggestion: {
+    category: string | null;
+    severity: number | null;
+    headline: string;
+    missingInfo: string[];
+    confidence: string;
+  } | null;
+  place: { lat: number; lng: number; parish: string; street: string } | null;
+  duplicates: { id: string; title: string; category: string; confirmations: number; distanceM: number | null; strength: "exact" | "similar" }[];
+};
+
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -280,6 +294,18 @@ export const api = {
   }) => call<{ incident: Incident }>("/api/incidents", { method: "POST", body }),
   updateIncident: (id: string, kind: "confirm" | "photo" | "clear" | "escalate") =>
     call<{ incident: Incident; message?: string }>(`/api/incidents/${id}/updates`, { method: "POST", body: { kind } }),
+  /** Intake copilot: advisory suggestions + near-duplicate warning. Creates nothing. */
+  assistReport: (body: {
+    title: string;
+    details?: string;
+    photoNote?: string;
+    category: string;
+    severity: number;
+    parish?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+  }) =>
+    call<ReportAssist>(`/api/reports/assist`, { method: "POST", body }),
   news: (limit = 40) => call<{ items: NewsItem[] }>(`/api/news?limit=${limit}`),
   gas: (parish?: string) => call<GasBoard>(`/api/gas${parish ? `?parish=${encodeURIComponent(parish)}` : ""}`),
   reportGas: (b: { station: string; parish: string; fuel: string; price: string }) => call<{ ok: boolean }>("/api/gas", { method: "POST", body: b }),
