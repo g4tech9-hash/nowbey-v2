@@ -99,6 +99,13 @@ jobs:
 
       # google-services.json is a credential-bearing build input and must never be committed.
       # Store its complete JSON as the FIREBASE_GOOGLE_SERVICES_JSON Actions secret.
+      #
+      # Writing the file is not enough on its own: EAS archives the project with the .gitignore rules
+      # applied, and expo/.gitignore ignores this file, so for a long time the worker received an
+      # app.json pointing at a file that had never been uploaded — the build failed before it
+      # compiled anything. The root .easignore (used by EAS *instead of* every .gitignore) is what
+      # lets the file travel while staying out of Git, so the last two checks below prove the
+      # arrangement still holds and fail loudly if someone re-adds the rule there.
       - name: Install Firebase Android configuration
         working-directory: expo
         env:
@@ -109,13 +116,67 @@ jobs:
           printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON" > google-services.json
           node -e 'const f=require("./google-services.json"); if (!f.project_info?.project_id || !f.client?.some(c => c.client_info?.android_client_info?.package_name === "app.nowbey.mobile")) throw new Error("google-services.json does not contain app.nowbey.mobile")'
 
+          test -s google-services.json
+          test -f ../.easignore
+          if grep -qE '^[[:space:]]*google-services\.json' ../.easignore; then
+            echo "::error title=Firebase config would not reach EAS::.easignore now ignores google-services.json, so it will not be in the uploaded archive and the build will fail on the worker. Remove that rule."
+            exit 1
+          fi
+          echo "google-services.json ($(wc -c < google-services.json) bytes) is present and .easignore keeps it eligible for the EAS upload."
+
       # Needs repo secret: EXPO_TOKEN (expo.dev > Account settings > Access tokens).
+      #
+      # The identity check runs first on purpose: a rejected or missing token and a project that never
+      # reaches the build worker both fail fast, and without this step the two look identical from the
+      # outside (the raw step log lives on a storage host some clients cannot reach). With it, a red run
+      # names its own cause in a single annotation.
+      - name: Check EAS credentials
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          set -uo pipefail
+          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret (repo Settings > Secrets and variables > Actions)}"
+          set +e
+          npx --yes eas-cli@latest whoami > eas-whoami.log 2>&1
+          code=$?
+          set -e
+          cat eas-whoami.log
+          if [ "$code" -ne 0 ]; then
+            echo "::error title=EAS rejected the EXPO_TOKEN::$(grep -v '^[[:space:]]*$' eas-whoami.log | tail -n 1 | tr -d '\r' | cut -c1-300)"
+            exit "$code"
+          fi
+
+      # The step captures the build output instead of streaming it, so a failure can be turned into a
+      # ::error annotation on the run's check: annotations are readable through the Checks API, while
+      # the raw step log lives on a storage host that some clients cannot reach at all. A red run here
+      # is therefore self-diagnosing wherever it is opened.
       - name: Send Android build to EAS (preview profile → APK)
+        id: eas
         working-directory: expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_API_BASE: https://nowbey-v2.vercel.app
         run: |
-          set -euo pipefail
+          set -uo pipefail
           : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret (repo Settings > Secrets and variables > Actions)}"
-          npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait
+          set +e
+          npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait > eas-build.log 2>&1
+          code=$?
+          set -e
+          tail -n 80 eas-build.log
+          if [ "$code" -ne 0 ]; then
+            first="$(grep -v '^\s*$' eas-build.log | tail -n 1 | tr -d '\r' | cut -c1-300)"
+            echo "::error title=EAS build failed (exit $code)::$first"
+            echo "--- full output ---"
+            cat eas-build.log
+            exit "$code"
+          fi
+          link="$(grep -Eo 'https://expo\.dev/[^ ]+' eas-build.log | tail -n 1 || true)"
+          if [ -n "$link" ]; then
+            {
+              echo "### EAS build finished"
+              echo ""
+              echo "$link"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
