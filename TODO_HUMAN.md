@@ -61,6 +61,21 @@ sign-in page hides the button until they do.
 > with the two redirect URIs above, and use *that* client's id and secret in Vercel. The consent screen
 > is shared, so both clients work.
 
+> **The client secret is masked on purpose and cannot be unmasked** — in Firebase, and in the Cloud
+> console too. You do not need to see it. Three ways to get the real value:
+> 1. **Copy button.** In the Cloud console client panel the masked field has a copy icon. Tapping it
+>    puts the full value on the clipboard: paste it straight into the Vercel field (long-press → Paste).
+> 2. **Download JSON.** Cloud console → Credentials → the client's row → download icon. That saves
+>    `client_secret_….apps.googleusercontent.com.json`; open it in any text editor and copy the
+>    `client_secret` value.
+> 3. **New client.** Create credentials → OAuth client ID → Web application. The "OAuth client created"
+>    dialog shows the id and secret in plain text with copy buttons. Use this one if the auto-created
+>    client is locked; the consent screen is shared, so both work.
+>
+> Sanity check before saving in Vercel: the secret must not look like the client id (it never ends in
+> `.apps.googleusercontent.com`), and roughly 30–40 characters. Clients created recently start with
+> `GOCSPX-`; older ones do not, and either is fine.
+>
 > **Secrets:** the client secret goes in Vercel and nowhere else — not in chat, not in Git, not in a
 > screenshot. If one is ever exposed, delete that client in the Cloud console and create a new one;
 > the old secret dies with it.
