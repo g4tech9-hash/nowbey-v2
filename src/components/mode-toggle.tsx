@@ -52,7 +52,7 @@ export function ModeToggle({ defaultMode }: { defaultMode: ModeKey }) {
       onClick={flip}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Switch to light mode" : "Switch to dark mode"}
-      className="grid h-9 w-9 place-items-center rounded-full border hairline bg-white/5 text-sand-100 transition hover:bg-white/10"
+      className="grid h-10 w-10 place-items-center rounded-full border hairline bg-white/5 text-sand-100 transition hover:bg-white/10 sm:h-9 sm:w-9"
     >
       {dark ? <Sun size={17} aria-hidden /> : <Moon size={17} aria-hidden />}
     </button>

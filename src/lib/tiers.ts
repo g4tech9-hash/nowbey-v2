@@ -32,6 +32,7 @@ export const FREE_PLAN = {
     { text: "File reports and confirm other people's" },
     { text: "News wire from Bahamian outlets" },
     { text: "Email alerts for one island" },
+    { text: "Storm warnings always reach you, whatever you filter" },
     { text: "Shows house ads" },
   ] satisfies Perk[],
 };
@@ -49,7 +50,7 @@ export const TIERS: Record<TierKey, Tier> = {
       { text: "No ads, anywhere" },
       { text: "Several email alert profiles, for home and family" },
       { text: "Alerts for as many islands as you like" },
-      { text: "Push alerts on your phone" , soon: true },
+      { text: "Push alerts in the Android app", soon: true },
     ],
   },
   rock: {
@@ -61,7 +62,6 @@ export const TIERS: Record<TierKey, Tier> = {
     tone: "#ffc531",
     perks: [
       { text: "Everything in Conch" },
-      { text: "Storm warnings that override your alert filters" },
       { text: "Text-message alerts", soon: true },
       { text: "Storm tracks and marine forecast cards", soon: true },
     ],
@@ -97,8 +97,11 @@ export const ENTERPRISE = {
   ] satisfies Perk[],
 };
 
-/** Plans whose owners get storm alerts regardless of their category filters. */
-export const PAID_STORM_TIERS: TierKey[] = ["rock", "admiral"];
+/*
+ * There is deliberately no "plans whose owners get storm alerts" list any more: storm alerts
+ * ignore everyone's category filters, free plan included. Selling a warning that a household
+ * needs in order to be safe is not a feature this product is willing to charge for.
+ */
 
 export function isTierKey(v: unknown): v is TierKey {
   return typeof v === "string" && Object.prototype.hasOwnProperty.call(TIERS, v);

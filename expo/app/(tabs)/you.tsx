@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, Alert, Linking, ScrollView, Text, View } from "react-native";
 import { API_BASE, api, changeApiBase, errMsg } from "../../src/api";
 import { CATEGORIES, CATEGORY_KEYS, PARISHES, TIER_NAMES, type CategoryKey } from "../../src/geo";
 import { unblockUser, useBlocked } from "../../src/Safety";
+import { disablePush, enablePush, pushState, type PushState } from "../../src/push";
 import { useSession } from "../../src/session";
 import { color } from "../../src/theme";
 import { BadgeMark, Btn, Card, Field, Pill, t, useTopInset } from "../../src/ui";
@@ -113,6 +115,18 @@ function SignIn({
         ) : null}
         {error ? <Text style={[t.error, { marginTop: 10 }]}>{error}</Text> : null}
         <Btn label={mode === "signin" ? "Sign in" : "Create account"} busy={busy} disabled={mode === "signup" && !agreed} onPress={go} style={{ marginTop: 14 }} />
+        {/*
+          Google sign-in opens the system browser, and the browser comes back to nowbey://auth,
+          which expo-router sends to app/auth.tsx. Embedded web views are not used: Google blocks
+          them for good reason, and the address bar is how someone checks who they are talking to.
+        */}
+        <Btn
+          label={mode === "signin" ? "Sign in with Google" : "Sign up with Google"}
+          kind="ghost"
+          onPress={() => void Linking.openURL(`${API_BASE}/api/auth/google/start?client=native`).catch(() => setError("Could not open the browser."))}
+          style={{ marginTop: 8 }}
+        />
+        <Text style={[t.subtle, { marginTop: 6 }]}>One button for both. Google tells us your name and email address; we never see your Google password.</Text>
         {mode === "signin" ? (
           <Btn label="Forgot your password?" kind="ghost" onPress={() => void Linking.openURL(`${API_BASE}/forgot-password`).catch(() => {})} style={{ marginTop: 8 }} />
         ) : null}
@@ -216,11 +230,86 @@ function Account() {
         <Btn label="Send me a confirmation email" busy={busy} disabled={!email.includes("@")} onPress={subscribe} style={{ marginTop: 12 }} />
       </Card>
 
+      <PushCard />
+
       <BlockedList />
       <Btn label="Account settings on the website" kind="ghost" onPress={() => void Linking.openURL(`${API_BASE}/you/settings`).catch(() => {})} />
       <DeleteAccount />
       {user.isStaff ? <Btn label="Open the admin area on the website" kind="ghost" onPress={() => void Linking.openURL(`${API_BASE}/admin`).catch(() => {})} /> : null}
     </View>
+  );
+}
+
+/**
+ * Push alerts, told straight. The server sends a notification when a report matches one of this
+ * member's confirmed email alert profiles, so the card says that instead of promising "instant
+ * alerts for everything". Android only today: iPhone needs an Apple push key in the store build,
+ * and until that exists the app says so rather than showing a switch that does nothing.
+ */
+function PushCard() {
+  const [state, setState] = useState<PushState | "checking">("checking");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setState(await pushState());
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  async function toggle() {
+    setBusy(true);
+    setNote(null);
+    try {
+      const next = state === "on" ? await disablePush() : await enablePush();
+      setState(next);
+      if (next === "denied") setNote("Android is blocking NowBey notifications. Allow them in Settings > Apps > NowBey > Notifications, then try again.");
+      else if (next === "off" && state !== "on") setNote("Could not switch push on just now. Check the connection to your server and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const line =
+    state === "checking"
+      ? "Checking this phone…"
+      : state === "on"
+        ? "On for this phone."
+        : state === "off"
+          ? "Off. Nothing is sent to this phone."
+          : state === "denied"
+            ? "Blocked in Android settings."
+            : state === "signedout"
+              ? "Sign in first."
+              : "This phone cannot show push alerts yet.";
+
+  return (
+    <Card>
+      <Text style={t.h3}>Phone push alerts</Text>
+      <Text style={[t.muted, { marginTop: 4 }]}>{line}</Text>
+      <Text style={[t.subtle, { marginTop: 6 }]}>
+        A notification arrives when a report or wire story matches one of your confirmed email alert profiles above — set those up first, or
+        nothing will reach this phone. It works while the app is closed.
+      </Text>
+      <Text style={[t.subtle, { marginTop: 6 }]}>
+        Android only for now. On iPhone the email alerts above still work; Apple push arrives in a later build.
+      </Text>
+      {note ? <Text style={[t.subtle, { marginTop: 6, color: color.sun }]}>{note}</Text> : null}
+      {state === "off" || state === "on" ? (
+        <Btn
+          label={state === "on" ? "Turn push off for this phone" : "Turn on push alerts"}
+          kind={state === "on" ? "ghost" : "primary"}
+          busy={busy}
+          onPress={() => void toggle()}
+          style={{ marginTop: 12 }}
+        />
+      ) : null}
+      {state === "unsupported" || state === "denied" ? (
+        <Btn label="Open Android notification settings" kind="ghost" onPress={() => void Linking.openSettings().catch(() => {})} style={{ marginTop: 12 }} />
+      ) : null}
+    </Card>
   );
 }
 

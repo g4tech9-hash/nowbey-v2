@@ -1,8 +1,124 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
+## 0b. Claim the owner handles (do this first)
+
+**Evidence (2026-10-15, from the production site itself):** signing in as `mario242` or `eastsiderick`
+answers "No account has the handle @…". The deployed code only prints that sentence after looking the
+handle up and finding no row, so **neither account exists in the production database yet** — there is
+no password to reset and no role to restore. Both handles are listed in `ADMIN_HANDLES` /
+`src/db/setup_admins.sql`, which are instructions to *grant* rights, not accounts.
+
+Until the handle exists, any handle on the `ADMIN_HANDLES` list is a seat waiting to be taken:
+`src/lib/viewer.ts` makes that handle an admin the moment it is registered. So:
+
+1. On the live site, tap **Create account** and register `mario242` (a second one for `eastsiderick` if
+   you use it) with an email you control and a strong password. Sign-up emails a confirmation link —
+   tap it.
+2. Check Vercel → Settings → Environment Variables: if `ADMIN_HANDLES=mario242` is set, step 1 already
+   made the account an admin (`/admin` opens). If it is not set, either add it there (Production) and
+   redeploy, or run `src/db/setup_admins.sql` in the Neon SQL editor to set `role='admin'`.
+3. Never leave an unclaimed handle in `ADMIN_HANDLES`. If you must keep the list ahead of the account,
+   claim the handle first.
+
+`setup_admins.sql` never touches passwords, and the product has no endpoint that reads or writes one.
+The two supported ways back into an existing account are the member's own reset email
+(`/forgot-password`) and an admin-issued one-hour link (Members page → "Create a password reset link").
+
+## 0c. Sign in with Google (needs a Google Cloud project)
+
+The code is in place and tested against a fake Google. It stays switched off until these exist, and the
+sign-in page hides the button until they do.
+
+> The console is at **`console.cloud.google.com`**. (`console.google.com` does not exist.) Because the
+> Firebase project and the Google Cloud project are the same thing, use the existing Firebase project
+> **`nowbey-6a30f`** — everything then lives together, and nothing needs recreating.
+
+1. Open **`console.cloud.google.com/auth/overview?project=nowbey-6a30f`** (phone browser is fine) →
+   **Get started** on the Google Auth Platform page (this is the old "OAuth consent screen"): app name
+   `NowBey`, your support email, developer contact. Audience: **External**. Data access: add
+   `.../auth/userinfo.email` and `.../auth/userinfo.profile` (neither is "sensitive", so no Google
+   review, no logo verification). Finish, then make sure **Audience → Publishing status** says
+   **In production** — while it says "Testing", only listed test users can sign in.
+2. Open **`console.cloud.google.com/apis/credentials?project=nowbey-6a30f`** → **Create credentials →
+   OAuth client ID → Web application**, name it `NowBey web`. Under **Authorised redirect URIs** add
+   exactly, one per line:
+   * `https://nowbey-v2.vercel.app/api/auth/google/callback`
+   * `http://localhost:3000/api/auth/google/callback`  (local development)
+   Do **not** add a `nowbey://` redirect: the app's browser handshake finishes on the website and only
+   then deep-links into the app, so Google never sees the custom scheme.
+3. Copy the **Client ID** and **Client secret**.
+4. Vercel → project → **Settings → Environment Variables** → add for **Production** (and Preview if you
+   want previews to work):
+   * `GOOGLE_CLIENT_ID`
+   * `GOOGLE_CLIENT_SECRET`
+   Never set `GOOGLE_OAUTH_BASE` there — that variable exists only so tests can point the token call at
+   a local fake.
+5. Run the column migration once (see §0). The Neon **SQL Editor** runs SQL, not file names, so paste
+   the two statements below (or open `src/db/add-google-auth.sql` on GitHub → ⋯ → *Copy raw contents*
+   → paste), then press **Run**:
+
+   ```sql
+   ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub text;
+   CREATE UNIQUE INDEX IF NOT EXISTS users_google_sub_idx ON users (google_sub);
+   ```
+
+   To confirm it landed: `select column_name from information_schema.columns where table_name = 'users' and column_name = 'google_sub';` — one row means done. Both statements are idempotent, so a second run is harmless.
+6. Redeploy. `/api/auth/google/status` should answer `{"enabled":true}` and the button appears on
+   `/login`.
+> **If the Firebase-created client's redirect field is not editable** (the auto-created "Web client" is
+> sometimes locked): create a fresh **Web application** client in the Cloud console credentials page
+> with the two redirect URIs above, and use *that* client's id and secret in Vercel. The consent screen
+> is shared, so both clients work.
+
+> **The client secret is masked on purpose and cannot be unmasked** — in Firebase, and in the Cloud
+> console too. The Cloud console's client panel shows no secret and no copy button at all; the value is
+> revealed exactly once, when a client is created, and resetting a secret reveals it once more. Three
+> ways to get the real value:
+> 1. **Copy button.** In the Cloud console client panel the masked field has a copy icon. Tapping it
+>    puts the full value on the clipboard: paste it straight into the Vercel field (long-press → Paste).
+> 2. **Download JSON.** Cloud console → Credentials → the client's row → download icon. That saves
+>    `client_secret_….apps.googleusercontent.com.json`; open it in any text editor and copy the
+>    `client_secret` value.
+> 3. **New client (the reliable route).** Create credentials → OAuth client ID → Web application → the
+>    "OAuth client created" dialog shows the id and secret in plain text with copy buttons, and that
+>    dialog is the *only* place the secret ever appears. Use this client in Vercel instead of the
+>    auto-created one; the consent screen is shared, so both work.
+> 4. **Reset the secret** on an existing client (credentials page → the client → **Reset secret**): the
+>    same one-time dialog appears with the new value. Use this if you would rather keep the auto-created
+>    client — note that resetting invalidates the old secret everywhere it was used.
+>
+> Sanity check before saving in Vercel: the secret must not look like the client id (it never ends in
+> `.apps.googleusercontent.com`), and roughly 30–40 characters. Clients created recently start with
+> `GOCSPX-`; older ones do not, and either is fine.
+>
+> **Secrets:** the client secret goes in Vercel and nowhere else — not in chat, not in Git, not in a
+> screenshot. If one is ever exposed, delete that client in the Cloud console and create a new one;
+> the old secret dies with it.
+
+**Shortcut if the Cloud console UI fights you on a phone:** `console.firebase.google.com` → project
+`nowbey-6a30f` → **Build → Authentication → Get started → Sign-in method → Google → Enable** (set the
+public-facing name `NowBey` and a support email), then copy the **Web client ID** and **Client secret**
+from Google → **Web SDK configuration**. That creates the client and the consent screen for you. You
+still have to add the two redirect URIs above to that client, in the Cloud console credentials page —
+the redirect flow only works if they are registered character for character.
+
+7. Test on a phone: tap **Sign up with Google** with a fresh address → the account appears with a handle
+   derived from the address and a confirmed email; sign out; tap **Sign in with Google** again → same
+   account, no duplicate. Then check that an address whose local part matches an `ADMIN_HANDLES` entry
+   (for example `mario242@…`) does **not** become an admin: the handle is adjusted, never the rights.
+
+Rules that are already enforced in code, for the record: an unverified Google address can never open an
+account; linking an address that was never confirmed drops any existing session and emails the member;
+the return trip can never be redirected off-site; the handshake cookie is HttpOnly, SameSite=Lax and
+expires in ten minutes; the app trades a five-minute single-use code for its own token.
+
 ## 0. Additive database migration
 
-Run `src/db/add-community-utility.sql` once in the production Neon SQL Editor before using the **Open now** admin page. It only adds the `service_statuses` table and indexes; it does not modify existing member or incident data.
+Run these once in the production Neon SQL Editor — the editor takes SQL statements, not file paths;
+`add-google-auth.sql` contains them at the top of the file for copy/paste (each is additive and safe to re-run):
+
+* `src/db/add-community-utility.sql` — before using the **Open now** admin page. Adds the `service_statuses` table and indexes only.
+* `src/db/add-google-auth.sql` — before switching on Sign in with Google. Adds `users.google_sub` and its unique index; `NULL` for every existing account, so nothing changes until someone uses the Google button.
 
 ## 1. Firebase (required for actual push delivery)
 

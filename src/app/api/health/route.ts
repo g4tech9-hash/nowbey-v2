@@ -26,7 +26,9 @@ export async function GET() {
     push: pushConfigured(),
     ai: aiConfigured(),
     geocoding: googleConfigured(),
-    appUrl: Boolean(process.env.APP_URL?.trim()),
+    // Email links need a public address. Vercel supplies one for every deployment even when
+    // APP_URL was never set, so checking only APP_URL reported "false" on a site whose links work.
+    appUrl: Boolean(process.env.APP_URL?.trim() || process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()),
   };
 
   return Response.json(

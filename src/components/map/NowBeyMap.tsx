@@ -57,6 +57,12 @@ type Props = {
   zoom?: number;
   initialLayer?: LayerKey;
   className?: string;
+  /**
+   * A short map (the phone split view on /map, the pin preview on /report).
+   * In compact the map keeps only what it needs to be readable at 130–260px tall:
+   * no search box, no layer pills, no pegman/street-view buttons, no zoom readout.
+   * Tiles, pins, popups, the scale bar and the required attribution stay.
+   */
   compact?: boolean;
   focusId?: string | null;
   /** Change this to fly to the focused pin again (for example when its row is tapped twice). */
@@ -567,7 +573,7 @@ export default function NowBeyMap({
           </div>
         )}
 
-        <div className="nb-no-scrollbar pointer-events-auto flex max-w-full items-center gap-1.5 overflow-x-auto pb-0.5 sm:ml-auto sm:max-w-[56%]">
+        <div className={`nb-no-scrollbar pointer-events-auto flex max-w-full items-center gap-1.5 overflow-x-auto pb-0.5 sm:ml-auto sm:max-w-[56%] ${compact ? "hidden" : ""}`}>
           <div className="glass flex shrink-0 rounded-xl p-1 text-[11.5px] font-bold">
             {(Object.keys(LAYERS) as LayerKey[]).map((key) => (
               <button
@@ -597,9 +603,9 @@ export default function NowBeyMap({
         </div>
       </div>
 
-      {/* bottom-left: pegman + street view + aim. Lifted just enough to clear the scale bar.
-          (The pin sheet is in-flow below the map now, so no extra clearance is needed.) */}
-      <div className="absolute bottom-9 left-2.5 z-[500] flex flex-col items-start gap-2">
+      {/* bottom-left: pegman + street view + zoom readout. Lifted just enough to clear the
+          scale bar. Hidden on a compact map: at 130–260px tall these would cover the pins. */}
+      <div className={`absolute bottom-9 left-2.5 z-[500] flex-col items-start gap-2 ${compact ? "hidden" : "flex"}`}>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -627,25 +633,6 @@ export default function NowBeyMap({
           >
             Street View
           </button>
-          {mode === "pick" ? (
-            <button
-              type="button"
-              onClick={() => {
-                setAim((v) => !v);
-                if (!aim && map) {
-                  const c = map.getCenter();
-                  const z = Math.max(map.getZoom(), 18);
-                  map.setView([c.lat, c.lng], z, { animate: true });
-                  placePin(c.lat, c.lng, { zoomTo: z });
-                }
-              }}
-              className={`glass rounded-full px-3 py-2 text-[12px] font-bold ${
-                aim ? "bg-sun-500 text-abyss-950" : "text-sand-100"
-              }`}
-            >
-              {aim ? "Aim locked" : "Aim at centre"}
-            </button>
-          ) : null}
         </div>
 
         <div className="glass hidden rounded-xl px-2.5 py-1.5 text-[10.5px] font-semibold text-[#9fc4c9] sm:block">
@@ -653,10 +640,34 @@ export default function NowBeyMap({
         </div>
       </div>
 
+      {/* Pick mode keeps this one control even on a compact map — it is how the pin tip
+          lands on the right kerb, and on a phone there is no room for the full cluster. */}
+      {mode === "pick" ? (
+        <div className={`absolute left-2.5 z-[500] flex items-center gap-2 ${compact ? "bottom-8" : "bottom-9"}`}>
+          <button
+            type="button"
+            onClick={() => {
+              setAim((v) => !v);
+              if (!aim && map) {
+                const c = map.getCenter();
+                const z = Math.max(map.getZoom(), 18);
+                map.setView([c.lat, c.lng], z, { animate: true });
+                placePin(c.lat, c.lng, { zoomTo: z });
+              }
+            }}
+            className={`glass min-h-[40px] rounded-full px-3 py-2 text-[12px] font-bold ${
+              aim ? "bg-sun-500 text-abyss-950" : "text-sand-100"
+            }`}
+          >
+            {aim ? "Aim locked" : "Aim at centre"}
+          </button>
+        </div>
+      ) : null}
+
       {/* pin control deck. On phones it sits under the single-row pick header so the aim
           crosshair stays clear; on wider screens it docks bottom-right, left of the zoom control. */}
       {mode === "pick" ? (
-        <div className="absolute right-2.5 top-[68px] z-[500] w-[min(300px,84vw)] sm:bottom-2.5 sm:right-14 sm:top-auto">
+        <div className={`absolute right-2.5 z-[500] w-[min(300px,84vw)] sm:bottom-2.5 sm:right-14 sm:top-auto ${compact ? "top-2.5" : "top-[68px]"}`}>
           <div className="glass rounded-xl p-2.5 text-[12px] shadow-[0_18px_40px_rgba(0,0,0,.5)]">
             {pick ? (
               <>
@@ -748,7 +759,7 @@ export default function NowBeyMap({
       ) : null}
 
       {fallbackNote ? (
-        <div className="absolute inset-x-2.5 top-[118px] z-[500] sm:top-[64px]">
+        <div className={`absolute inset-x-2.5 z-[500] ${compact ? "bottom-2.5" : "top-[118px] sm:top-[64px]"}`}>
           <p className="glass flex items-start gap-2 rounded-lg border-l-[3px] border-sun-500 px-3 py-2 text-[11.5px] text-sand-100">
             <span className="flex-1">{fallbackNote}</span>
             <button

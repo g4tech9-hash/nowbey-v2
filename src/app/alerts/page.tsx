@@ -40,7 +40,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
         <PageHead
           eyebrow="Alerts"
           title="Only the ones that affect your shore"
-          blurb="Pick your islands and the kinds of report you care about. When a neighbour files a matching report, we email you a link straight to it. A flooded road in Freeport will not wake someone in Nassau."
+          blurb="Nassau first: alerts cover New Providence at launch, and when a neighbour files a matching report we email you a link straight to it. Two fields decide everything — your email address and the kinds of report you care about."
         />
 
         {confirmed === "1" ? (
@@ -76,7 +76,15 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
           <AlertForm plan={viewer.tier} defaultEmail={viewer.email ?? ""} />
         </div>
 
-        {push ? <PushToggle config={push.config} vapidKey={push.vapidKey} parishes={["New Providence"]} /> : null}
+        {push ? <PushToggle config={push.config} vapidKey={push.vapidKey} parishes={["New Providence"]} /> : (
+          <div className="glass rounded-2xl p-4">
+            <p className="display text-[15px] font-bold text-sand-100">Push alerts on this device</p>
+            <p className="mt-0.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+              Not switched on for this site yet. Email is the channel that works today; the Android app has a push switch of its own once it is
+              installed.
+            </p>
+          </div>
+        )}
 
         {viewer.signedIn ? (
           <section>
@@ -131,23 +139,16 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
         <div className="glass rounded-2xl p-3.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">
           <p className="display text-[14.5px] font-bold text-sand-100">How a report reaches you</p>
           <Step n="1" title="Filed">A neighbour or the news wire puts a pin on the map with a category.</Step>
-          <Step n="2" title="Matched">We check it against the islands and categories you picked — and, when you shared a location, only reports inside the kilometres you chose.</Step>
+          <Step n="2" title="Matched">We check it against the island and categories you picked — and, if you switched on “only near me”, the kilometres you chose.</Step>
           <Step n="3" title="Sent">An email arrives with the street, how serious it is, and a link to the live report. You get at most one every three minutes.</Step>
         </div>
 
         <div className="rounded-2xl border border-sun-500/35 bg-sun-500/10 p-3.5">
           <p className="display text-[14.5px] font-bold text-sand-100">Storm warnings</p>
           <p className="mt-1 text-[12.5px] leading-relaxed text-[#e6dcc0]">
-            On Rock Sound and Admiral, storm reports for your islands always reach you, even if you did not tick the Storm
-            category.
+            Storm reports for your islands always reach you, even if you did not tick the Storm category. That is the same for everyone,
+            Free plan included — a warning a household needs is never something we charge for.
           </p>
-          {viewer.tier === "rock" || viewer.tier === "admiral" ? (
-            <p className="mt-2 text-[11.5px] font-bold text-sun-400">This is switched on for your plan.</p>
-          ) : (
-            <Link href="/support" className="mt-2 inline-block text-[11.5px] font-bold text-sun-400 underline">
-              See plans
-            </Link>
-          )}
         </div>
       </aside>
     </div>

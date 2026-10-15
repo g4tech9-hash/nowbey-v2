@@ -9,7 +9,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/collect.test.mjs",
+    "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs",
+    "test:ui": "node --test tests/ui.test.mjs",
+    "audit:mobile": "node scripts/mobile-audit.mjs"
   },
   "dependencies": {
     "@neon/config": "^1.8.6",
@@ -40,6 +44,7 @@
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "^16.4.0",
+    "jsdom": "25.0.1",
     "postcss": "8.5.8",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3"

@@ -5,7 +5,8 @@ import { accountTokens, emailLog } from "@/db/schema";
 import { makeToken, setSessionCookie } from "@/lib/auth";
 import { emailButton, emailLayout, escapeHtml, sendMail, type MailResult } from "@/lib/mail";
 
-export type TokenKind = "verify_email" | "reset_password";
+/** verify_email / reset_password arrive by mail; native_handoff hands a signed-in app its token. */
+export type TokenKind = "verify_email" | "reset_password" | "native_handoff";
 
 export const hashToken = (raw: string) => createHash("sha256").update(raw).digest("hex");
 
@@ -104,6 +105,26 @@ export async function sendResetEmail(user: Recipient, base: string | null): Prom
       "This link works for one hour and can be used once. If you did not ask for this, ignore this email. Your password has not changed.",
     ),
     text: `Hi ${user.handle}, reset your NowBey password: ${link}\n\nThis link works for one hour and can be used once. If you did not ask for this, ignore this email.`,
+  });
+  return res.status;
+}
+
+/**
+ * Tells someone their NowBey account was opened with Google for the first time. Sent whenever that
+ * first sign-in *links* an existing account, because linking by email address is exactly the moment a
+ * person should hear about it if it was not them.
+ */
+export async function sendGoogleLinkedEmail(user: Recipient, base: string | null): Promise<MailResult["status"]> {
+  const res = await sendMail({
+    to: user.email ?? "",
+    subject: "Google sign-in was added to your NowBey account",
+    kind: "google-linked",
+    html: emailLayout(
+      "Google sign-in added",
+      `<p style="margin:0;font-size:14px;line-height:1.55;color:#cfeee9">Hi ${escapeHtml(user.handle)}, your NowBey account can now be opened with the Google button as well as your password. Your password still works.</p>`,
+      "If this was not you, reset your password now and contact us — someone with access to that Gmail address may have signed in.",
+    ),
+    text: `Hi ${user.handle}, Google sign-in was added to your NowBey account. Your password still works. If this was not you, reset your password now${base ? `: ${base}/forgot-password` : ""}.`,
   });
   return res.status;
 }

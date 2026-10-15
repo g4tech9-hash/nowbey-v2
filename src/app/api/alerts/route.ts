@@ -23,7 +23,11 @@ export async function POST(req: Request) {
   const body = await readJson(req);
 
   if (String(body.channel ?? "email") !== "email") {
-    return NextResponse.json({ error: "Push and text alerts are coming soon. Email alerts work today." }, { status: 400 });
+    // Push exists, but it is switched on inside the Android app (You tab), not through this form.
+    return NextResponse.json(
+      { error: "Email is the channel this form sets up. Phone push is switched on in the Android app under “Phone push alerts”, and text messages are not available yet." },
+      { status: 400 },
+    );
   }
   const target = text(body.target, 160).toLowerCase();
   if (!EMAIL_RE.test(target)) {

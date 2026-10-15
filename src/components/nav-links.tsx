@@ -191,7 +191,7 @@ export function SessionChip({ handle }: { handle: string | null }) {
   return handle ? (
     <Link
       href="/you"
-      className="flex items-center gap-2 rounded-full border hairline bg-white/5 px-2.5 py-1.5 text-[12.5px] font-bold text-sand-100 hover:bg-white/10"
+      className="flex min-h-[40px] items-center gap-2 rounded-full border hairline bg-white/5 px-2.5 py-1.5 text-[12.5px] font-bold text-sand-100 hover:bg-white/10 sm:min-h-0"
     >
       <span className="grid h-5 w-5 place-items-center rounded-full bg-conch-500 text-[10px] text-abyss-950">
         {handle.charAt(0).toUpperCase()}
@@ -201,7 +201,7 @@ export function SessionChip({ handle }: { handle: string | null }) {
   ) : (
     <Link
       href="/login"
-      className="rounded-full border hairline px-3 py-1.5 text-[12.5px] font-bold text-[#bfe4e0] hover:bg-white/5"
+      className="flex min-h-[40px] items-center rounded-full border hairline px-3 py-1.5 text-[12.5px] font-bold text-[#bfe4e0] hover:bg-white/5 sm:min-h-0"
     >
       Sign in
     </Link>

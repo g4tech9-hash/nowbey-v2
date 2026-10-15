@@ -38,6 +38,37 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [handleResult, setHandleResult] = useState<{ handle: string; state: HandleState } | null>(null);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+
+  // Only offer the Google button where the site actually has Google credentials, so nobody taps a
+  // button that can only bounce back with "not switched on yet".
+  useEffect(() => {
+    let alive = true;
+    void fetch("/api/auth/google/status", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: { enabled?: boolean }) => {
+        if (alive) setGoogleEnabled(Boolean(d.enabled));
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  /** What Google's return trip can say, in plain words. */
+  const GOOGLE_MESSAGE: Record<string, { ok: boolean; text: string }> = {
+    off: { ok: false, text: "Google sign-in is not switched on for this site yet. Use your email and password below." },
+    cancelled: { ok: false, text: "Google sign-in was cancelled. You can try again, or use your password." },
+    state: { ok: false, text: "That sign-in took too long or started in another browser. Please tap the Google button again." },
+    exchange: { ok: false, text: "Google could not complete the sign-in just now. Please try again." },
+    token: { ok: false, text: "Google's answer could not be trusted, so nothing was signed in. Please try again." },
+    unverified: { ok: false, text: "That Google address is not verified with Google, so it cannot open a NowBey account." },
+    linked: { ok: false, text: "That address is already linked to a different Google account. Sign in with your password, then contact us." },
+    suspended: { ok: false, text: "This account has been suspended. If you think that is a mistake, please contact NowBey." },
+    slow: { ok: false, text: "Too many sign-in attempts from this connection. Please wait a few minutes." },
+  };
+  const googleFlag = params.get("google");
+  const googleMessage = googleFlag ? (GOOGLE_MESSAGE[googleFlag] ?? { ok: false, text: "Google sign-in did not finish. Please try again." }) : null;
 
   // Tell people a handle is taken while they are still typing. The answer is kept together with the handle it belongs
   // to, so a stale answer is never shown for a newer handle.
@@ -128,6 +159,38 @@ export default function LoginPage() {
       </div>
 
       <form onSubmit={submit} className="glass h-fit rounded-2xl p-4" noValidate>
+        {googleEnabled ? (
+          <div className="mb-3">
+            <button
+              type="button"
+              onClick={() => {
+                // A full-page navigation on purpose: the OAuth handshake has to leave the SPA and come
+                // back through Google, so a router push is not an option here.
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                window.location.assign("/api/auth/google/start");
+              }}
+              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/6 text-[13.5px] font-extrabold text-sand-100 hover:bg-white/10"
+            >
+              <svg viewBox="0 0 18 18" aria-hidden="true" className="h-4 w-4">
+                <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
+                <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z" />
+                <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33Z" />
+                <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z" />
+              </svg>
+              {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
+            </button>
+            <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#6e97a0]">
+              One button for both. Google tells us your name and email address — we never see your Google password, and we do
+              not post anything.
+            </p>
+            <div className="my-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[#5d848f]">
+              <span className="h-px flex-1 bg-white/10" />
+              or
+              <span className="h-px flex-1 bg-white/10" />
+            </div>
+          </div>
+        ) : null}
+
         <div className="mb-3 flex gap-1.5" role="tablist">
           {(["signup", "signin"] as const).map((v) => (
             <button
@@ -145,6 +208,12 @@ export default function LoginPage() {
             </button>
           ))}
         </div>
+
+        {googleMessage ? (
+          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${googleMessage.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>
+            {googleMessage.text}
+          </p>
+        ) : null}
 
         {banner ? (
           <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${banner.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>{banner.text}</p>

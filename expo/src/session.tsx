@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, type SessionUser } from "./api";
+import { releasePushOnSignOut } from "./push";
 import { setToken } from "./storage";
 
 type SessionValue = {
@@ -8,6 +9,8 @@ type SessionValue = {
   refresh: () => Promise<void>;
   signIn: (handle: string, password: string) => Promise<void>;
   signUp: (body: { handle: string; email: string; password: string; displayName?: string; parish?: string }) => Promise<void>;
+  /** Finishes a Google sign-in that happened in the browser, from the code in the deep link. */
+  signInWithGoogleCode: (code: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -47,7 +50,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (res.token) await setToken(res.token);
         await refresh();
       },
+      signInWithGoogleCode: async (code) => {
+        const res = await api.googleExchange(code);
+        if (!res.token) throw new Error("Google sign-in did not return a session. Please try again.");
+        await setToken(res.token);
+        await refresh();
+      },
       signOut: async () => {
+        // Drop this phone's push registration while the session is still valid, so the next
+        // person to sign in here does not inherit the last member's alerts.
+        await releasePushOnSignOut();
         try {
           await api.signOut();
         } catch {

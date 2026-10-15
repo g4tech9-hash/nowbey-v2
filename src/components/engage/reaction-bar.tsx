@@ -67,7 +67,7 @@ export function ReactionBar({ type, id, initial, signedIn, variant = "full" }: P
             aria-pressed={on}
             aria-label={`${REACTIONS[k].label}${n ? `, ${n}` : ""}`}
             title={REACTIONS[k].label}
-            className={`inline-flex min-h-[38px] items-center gap-1.5 rounded-full px-3 text-[13px] font-bold transition ${
+            className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-[13px] font-bold transition ${
               on ? "bg-tide-500/25 text-tide-300 ring-1 ring-tide-400/60" : "bg-white/8 text-[#cfeee9] hover:bg-white/14"
             }`}
           >

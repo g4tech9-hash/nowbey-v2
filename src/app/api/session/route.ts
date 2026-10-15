@@ -8,7 +8,7 @@ import { PARISHES } from "@/lib/geo";
 import { clientIp, exhausted, forget, hit, record, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
 import { badOrigin, hasBadOrigin } from "@/lib/http";
-import { HANDLE_RE, handleProblem, normalizeHandle } from "@/lib/handles";
+import { HANDLE_RE, envAdminHandles, handleProblem, normalizeHandle } from "@/lib/handles";
 import { MAX_PASSWORD, checkPassword } from "@/lib/password";
 import { sendVerificationEmail } from "@/lib/account";
 import { publicBase } from "@/lib/billing";
@@ -111,6 +111,13 @@ export async function POST(req: Request) {
     displayName = row.displayName;
     version = row.sessionVersion;
     created = true;
+
+    // A handle listed in ADMIN_HANDLES is an admin the moment it exists, so a handle on that list must
+    // never sit unclaimed: whoever registers it first would take the keys. Shout in the server log
+    // (visible in the Vercel dashboard) when that happens, and claim owner handles yourself.
+    if (envAdminHandles().includes(row.handle.toLowerCase())) {
+      console.warn(`[admin] handle "${row.handle}" is listed in ADMIN_HANDLES and was just claimed by a new sign-up`);
+    }
 
     const base = publicBase(req);
     after(async () => {
