@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { chunkArray, dedupeById, isDeadReceipt, isExpoPushToken, isJunkHeadline } from "../src/lib/collect.ts";
+import { chunkArray, dedupeById, isDeadReceipt, isExpoPushToken, isJunkHeadline, isLikelyDuplicateIncident } from "../src/lib/collect.ts";
 
 test("dedupeById keeps first occurrence in order", () => {
   const rows = [{ id: "a", n: 1 }, { id: "b", n: 2 }, { id: "a", n: 3 }];
@@ -21,6 +21,15 @@ test("isJunkHeadline keeps real headlines", () => {
   ]) {
     assert.equal(isJunkHeadline(t), false, t);
   }
+});
+
+test("isLikelyDuplicateIncident uses tight category, time and distance rules", () => {
+  const now = Date.parse("2026-10-15T12:00:00Z");
+  const incoming = { category: "flood", lat: 25.078, lng: -77.338 };
+  assert.equal(isLikelyDuplicateIncident(incoming, { ...incoming, createdAt: new Date(now - 30 * 60_000) }, now), true);
+  assert.equal(isLikelyDuplicateIncident(incoming, { category: "road", lat: incoming.lat, lng: incoming.lng, createdAt: new Date(now - 30 * 60_000) }, now), false);
+  assert.equal(isLikelyDuplicateIncident(incoming, { ...incoming, createdAt: new Date(now - 91 * 60_000) }, now), false);
+  assert.equal(isLikelyDuplicateIncident(incoming, { category: "flood", lat: 25.081, lng: -77.338, createdAt: new Date(now - 5 * 60_000) }, now), false);
 });
 
 test("chunkArray splits into max-size parts", () => {

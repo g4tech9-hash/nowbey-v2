@@ -29,11 +29,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async redirects() {
-    return [
-      { source: "/life", destination: "/life/places", permanent: true },
-    ];
-  },
 };
 
 export default nextConfig;

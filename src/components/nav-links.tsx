@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-// Client bundles only inline NEXT_PUBLIC_ variables — a bare FEATURE_* flag is
-// always undefined here (and would hydrate differently from the server HTML).
-const SHOW_LIFE = process.env.NEXT_PUBLIC_FEATURE_ISLAND_LIFE === "true";
-const SHOW_GAS = process.env.NEXT_PUBLIC_FEATURE_GAS_TRACKER === "true";
+import { FEATURES } from "@/lib/features";
+
+// Client bundles inline these NEXT_PUBLIC_ values at build time.
+const SHOW_LIFE = FEATURES.islandLife;
+const SHOW_GAS = FEATURES.gasTracker;
 
 const LINKS = [
   { href: "/", label: "Feed", short: "Feed", icon: "feed" },
@@ -22,6 +23,7 @@ const LINKS = [
     short: "Plans",
     icon: "heart",
     children: [
+      { href: "/open-now", label: "What is open now", short: "Open", icon: "wire" },
       ...(SHOW_GAS ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" }] : []),
     ]
   },

@@ -1,23 +1,21 @@
-# TODO_HUMAN — push notifications, manual steps (no guessing)
+# TODO_HUMAN — production setup, manual steps (no guessing)
 
-## 1. Firebase (required for actual push DELIVERY; everything else works without it)
+## 0. Additive database migration
 
-Token registration, channels, and tap handling work now. Remote delivery needs
-one Firebase step (free, ~10 min):
+Run `src/db/add-community-utility.sql` once in the production Neon SQL Editor before using the **Open now** admin page. It only adds the `service_statuses` table and indexes; it does not modify existing member or incident data.
 
-1. Go to https://console.firebase.google.com/project/nowbey-ed663 (you are
-   signed in as g4tech9@gmail.com, which currently CANNOT add apps — 403).
-   Either get Owner/Editor on that project, or have its owner do this step:
-   Project Overview → gear → Project settings → General → Your apps → Add app
-   → Android, package name `app.nowbey.mobile` → download `google-services.json`.
-3. Copy it to `expo/google-services.json` (git-ignored; never commit it).
-4. In `expo/app.json`, under `expo.android`, add:
-   `"googleServicesFile": "./google-services.json"`.
-5. Upload the FCM server key so Expo can send. EITHER:
-   `eas credentials -p android` → pick this build profile → upload the
-   `google-services.json` when asked; OR paste a Cloud Messaging **v1** private
-   key at expo.dev → project nowbey → Credentials → Android → FCM V1.
-6. Rebuild: `eas build --platform android --profile preview --non-interactive`.
+## 1. Firebase (required for actual push delivery)
+
+Token registration, channels, tap handling, Android package configuration, and the GitHub `FIREBASE_GOOGLE_SERVICES_JSON` secret are ready. The file was validated against Firebase project `nowbey-6a30f` (project number `437051839288`) and Android package `app.nowbey.mobile` on 2026-10-15.
+
+Before the intentionally postponed APK build:
+
+1. Firebase → Project settings → Service accounts → generate an Admin SDK private-key JSON.
+2. Upload that private-key file **directly** at expo.dev → NowBey → Credentials → Android → FCM V1. Never put it in chat or Git.
+3. Confirm GitHub Actions has an `EXPO_TOKEN` secret.
+4. Actions → Deploy (Vercel + EAS) → Run workflow → target `mobile`.
+
+For a local build only, download `google-services.json` from the existing Android app and save it as `expo/google-services.json` (git-ignored).
 
 Why manual: creating Firebase projects and downloading server keys cannot be
 done from here without your Google account.

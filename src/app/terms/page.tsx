@@ -1,5 +1,6 @@
 import { PageHead } from "@/components/app-shell";
 import { LEGAL_UPDATED, SUPPORT_EMAIL } from "@/lib/legal";
+import { EmergencyNotice } from "@/components/emergency-notice";
 
 export const metadata = { title: "Terms of use" };
 
@@ -61,6 +62,7 @@ export default function TermsPage() {
   return (
     <div className="mx-auto max-w-[720px]">
       <PageHead eyebrow="Legal" title="Terms of use" blurb={`Last updated ${LEGAL_UPDATED}.`} />
+      <div className="mb-4"><EmergencyNotice /></div>
       <div className="glass space-y-5 rounded-2xl p-5">
         {SECTIONS.map((s) => (
           <section key={s.h}>

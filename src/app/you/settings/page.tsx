@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { PageHead } from "@/components/app-shell";
 import { DeleteAccount, EmailForm, PasswordForm, ProfileForm, ResendVerification, SignOutOthers } from "@/components/account-forms";
 import { getViewer } from "@/lib/viewer";
+import { AccessibilityControls } from "@/components/accessibility-controls";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Account settings" };
@@ -33,6 +34,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       {verified === "0" ? (
         <p className="rounded-xl bg-conch-500/15 px-4 py-3 text-[13px] text-conch-400">That confirmation link has expired or was already used. Send a new one below.</p>
       ) : null}
+
+      <Section title="Make NowBey easier to use" blurb="These choices stay on this device and take effect immediately. Simple view is designed for larger text and clearer controls.">
+        <AccessibilityControls />
+      </Section>
 
       <Section title="Profile" blurb="Your handle is shown on your reports and cannot be changed, so nobody can pass themselves off as you.">
         <ProfileForm displayName={viewer.displayName ?? viewer.handle} parish={viewer.parish} />

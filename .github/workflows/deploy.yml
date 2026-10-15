@@ -62,6 +62,18 @@ jobs:
         working-directory: expo
         run: npm ci --no-audit --no-fund
 
+      # google-services.json is a credential-bearing build input and must never be committed.
+      # Store its complete JSON as the FIREBASE_GOOGLE_SERVICES_JSON Actions secret.
+      - name: Install Firebase Android configuration
+        working-directory: expo
+        env:
+          FIREBASE_GOOGLE_SERVICES_JSON: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON }}
+        run: |
+          set -euo pipefail
+          : "${FIREBASE_GOOGLE_SERVICES_JSON:?Add the FIREBASE_GOOGLE_SERVICES_JSON repository secret}"
+          printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON" > google-services.json
+          node -e 'const f=require("./google-services.json"); if (!f.project_info?.project_id || !f.client?.some(c => c.client_info?.android_client_info?.package_name === "app.nowbey.mobile")) throw new Error("google-services.json does not contain app.nowbey.mobile")'
+
       # Needs repo secret: EXPO_TOKEN (expo.dev > Account settings > Access tokens).
       - name: Send Android build to EAS (preview profile → APK)
         working-directory: expo

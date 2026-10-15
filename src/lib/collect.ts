@@ -27,6 +27,23 @@ export function isJunkHeadline(title: unknown): boolean {
   return JUNK_PATTERNS.some((re) => re.test(t));
 }
 
+/** Conservative incident deduplication: same category, very recent, and essentially the same spot. */
+export function isLikelyDuplicateIncident(
+  incoming: { category: string; lat: number; lng: number },
+  candidate: { category: string; lat: number; lng: number; createdAt: Date | string },
+  now = Date.now(),
+): boolean {
+  if (incoming.category !== candidate.category) return false;
+  const age = now - new Date(candidate.createdAt).getTime();
+  if (!Number.isFinite(age) || age < 0 || age > 90 * 60_000) return false;
+  const toRad = (n: number) => (n * Math.PI) / 180;
+  const dLat = toRad(candidate.lat - incoming.lat);
+  const dLng = toRad(candidate.lng - incoming.lng);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(incoming.lat)) * Math.cos(toRad(candidate.lat)) * Math.sin(dLng / 2) ** 2;
+  const metres = 2 * 6_371_000 * Math.asin(Math.min(1, Math.sqrt(a)));
+  return metres <= 180;
+}
+
 /** Split into chunks of at most `size` (Expo Push API takes max 100 per request). */
 export function chunkArray<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];

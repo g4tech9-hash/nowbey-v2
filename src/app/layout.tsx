@@ -33,6 +33,9 @@ export const viewport: Viewport = {
 /** Runs before the page is painted, so the splash screen never flashes up again on a return visit. */
 const SPLASH_BOOT = `try{if(sessionStorage.getItem("nb_splash"))document.documentElement.setAttribute("data-splash-seen","1")}catch(e){}`;
 
+/** Applies accessibility/data preferences before paint to avoid a flash of the standard view. */
+const PREFS_BOOT = `try{var r=document.documentElement;r.setAttribute("data-simple",localStorage.getItem("nb_simple")==="1"?"true":"false");r.setAttribute("data-low-data",localStorage.getItem("nb_low_data")==="1"?"true":"false")}catch(e){}`;
+
 /**
  * Applies the brightness before paint so there is no dark-to-light flash:
  * a saved choice wins, otherwise the admin default, otherwise the OS setting.
@@ -47,6 +50,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html lang="en" className={`${sora.variable} ${manrope.variable}`} data-theme={settings.theme} data-mode={settings.mode} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: MODE_BOOT.replace("__SITE_MODE__", settings.mode) }} />
+        <script dangerouslySetInnerHTML={{ __html: PREFS_BOOT }} />
         {settings.splash ? <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} /> : null}
       </head>
       <body className="min-h-screen bg-abyss-950 text-[#e8f6f4] antialiased">

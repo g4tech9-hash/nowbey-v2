@@ -15,6 +15,7 @@ import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { BRAND } from "@/lib/brand";
 import { PageScene } from "@/components/page-scene";
 import { KINDS, listPosts, type KindKey } from "@/lib/life";
+import { FEATURES } from "@/lib/features";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
     db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(6),
     getViewer(),
   ]);
-  const life = await listPosts({ perPage: 3 });
+  const life = FEATURES.islandLife ? await listPosts({ perPage: 3 }) : null;
   const adFree = viewer.adFree;
   const handle = viewer.handle;
   const badges = await badgesFor(rows.map((r) => (r.anonymous ? null : r.authorHandle)));
@@ -78,7 +79,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
   return (
     <>
-      <section className="mb-5 grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+      <section className="mb-5 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="glass relative isolate overflow-hidden rounded-2xl p-4 sm:p-5">
           <PageScene name="aerial" />
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-tide-400">{BRAND.tagline}</p>
@@ -128,8 +129,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_318px]">
-        <div>
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_318px]">
+        <div className="min-w-0">
           <PageHead
             eyebrow={status === "all" ? "Everything" : "Live now"}
             title="The feed"
@@ -198,7 +199,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           )}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4">
           <div className="glass rounded-2xl p-3.5">
             <p className="display text-[14.5px] font-bold text-sand-100">Jump to an island</p>
             <div className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 sm:flex-wrap sm:overflow-visible" style={{ scrollbarWidth: "none" }}>
@@ -250,7 +251,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             </ul>
           </div>
 
-          <div className="glass rounded-2xl p-3.5">
+          {life ? <div className="glass rounded-2xl p-3.5">
             <div className="flex items-baseline justify-between">
               <p className="display text-[14.5px] font-bold text-sand-100">Island Life</p>
               <Link href="/life" className="text-[11.5px] font-bold text-tide-300 hover:underline">
@@ -273,7 +274,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             <Link href="/life/new" className="mt-2.5 inline-block rounded-full bg-sun-500 px-3.5 py-1.5 text-[12.5px] font-extrabold text-abyss-950">
               Share an experience
             </Link>
-          </div>
+          </div> : null}
 
           <div className="rounded-2xl border border-conch-500/35 bg-conch-500/10 p-3.5">
             <p className="display text-[14.5px] font-bold text-sand-100">Get pinged for your parish</p>

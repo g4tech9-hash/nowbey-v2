@@ -30,7 +30,15 @@ export async function smtpSend(m: SmtpMail): Promise<void> {
   });
 
   let buffer = "";
-  const waiters: Array<(r: { code: number; text: string }) => void> = [];
+  type Reply = { code: number; text: string };
+  const waiters: Array<(r: Reply) => void> = [];
+  // SMTP may send its greeting before the caller installs a waiter. Queue replies instead of dropping them.
+  const queued: Reply[] = [];
+  const deliver = (r: Reply) => {
+    const waiter = waiters.shift();
+    if (waiter) waiter(r);
+    else queued.push(r);
+  };
   const failAll = (err: Error) => {
     while (waiters.length) waiters.shift()!({ code: 0, text: err.message });
   };
@@ -42,13 +50,18 @@ export async function smtpSend(m: SmtpMail): Promise<void> {
       if (!m2) break;
       const text = buffer.slice(0, m2[0].length).trim();
       buffer = buffer.slice(m2[0].length);
-      waiters.shift()?.({ code: Number(m2[1]), text });
+      deliver({ code: Number(m2[1]), text });
     }
   });
   socket.on("error", (e) => failAll(e));
   socket.on("close", () => failAll(new Error("The email server closed the connection.")));
 
-  const reply = () => new Promise<{ code: number; text: string }>((resolve) => waiters.push(resolve));
+  const reply = () =>
+    new Promise<Reply>((resolve) => {
+      const ready = queued.shift();
+      if (ready) resolve(ready);
+      else waiters.push(resolve);
+    });
   const expect = async (ok: number[], what: string) => {
     const r = await reply();
     if (!ok.includes(r.code)) throw new Error(`${what}: ${r.text.slice(0, 160) || "no answer"}`);
