@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MapPanel, type PickResult } from "@/components/map/map-panel";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
-import { useIsMobile } from "@/lib/use-is-mobile";
 
 const STEPS = ["What is it?", "Where is it?", "Tell neighbours"] as const;
 const prefillAllowed = process.env.NEXT_PUBLIC_PREFILL_AREA !== "0";
@@ -27,8 +26,6 @@ export default function ReportWizard() {
   const [error, setError] = useState<string | null>(null);
   const [madeId, setMadeId] = useState<string | null>(null);
   const [handle, setHandle] = useState<string>("neighbour");
-  const isMobile = useIsMobile();
-  void isMobile;
 
   /** The area name that goes with a pin: the street the map matched, or failing that the island. */
   function areaFor(p: PickResult): string | null {

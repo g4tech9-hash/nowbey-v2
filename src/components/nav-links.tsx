@@ -4,11 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+// Client bundles only inline NEXT_PUBLIC_ variables — a bare FEATURE_* flag is
+// always undefined here (and would hydrate differently from the server HTML).
+const SHOW_LIFE = process.env.NEXT_PUBLIC_FEATURE_ISLAND_LIFE === "true";
+const SHOW_GAS = process.env.NEXT_PUBLIC_FEATURE_GAS_TRACKER === "true";
+
 const LINKS = [
   { href: "/", label: "Feed", short: "Feed", icon: "feed" },
   { href: "/map", label: "Map", short: "Map", icon: "map" },
   { href: "/report", label: "Report", short: "Report", icon: "report" },
-  ...(process.env.FEATURE_ISLAND_LIFE === "true" ? [{ href: "/life", label: "Island Life", short: "Life", icon: "life" }] : []),
+  ...(SHOW_LIFE ? [{ href: "/life", label: "Island Life", short: "Life", icon: "life" }] : []),
   { href: "/wire", label: "News wire", short: "Wire", icon: "wire" },
   { href: "/alerts", label: "Alerts", short: "Alerts", icon: "bell" },
   {
@@ -17,7 +22,7 @@ const LINKS = [
     short: "Plans",
     icon: "heart",
     children: [
-      ...(process.env.FEATURE_GAS_TRACKER === "true" ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" }] : []),
+      ...(SHOW_GAS ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" }] : []),
     ]
   },
 ] as const;
@@ -92,12 +97,11 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
   if (variant === "bar") {
     return (
       <nav
-        className="fixed inset-x-0 bottom-0 z-[700] border-t hairline bg-abyss-950/92 backdrop-blur-md nb-pad-bottom nb-pad-top lg:hidden"
-        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.1rem)" }}
+        className="nb-pad-bottom fixed inset-x-0 bottom-0 z-[700] border-t hairline bg-abyss-950/92 backdrop-blur-md lg:hidden"
         aria-label="Primary"
       >
         <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
-          {[...LINKS.filter((l) => l.href !== "/support"), ...(process.env.FEATURE_GAS_TRACKER === "true" ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : [])].map((l) => {
+          {[...LINKS.filter((l) => l.href !== "/support"), ...(SHOW_GAS ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : [])].map((l) => {
             const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
             return (
               <li key={l.href} className="flex-1">

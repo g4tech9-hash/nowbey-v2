@@ -43,8 +43,10 @@ export function LiveTicker() {
   const total = counts.reduce((sum, c) => sum + c.n, 0);
   const strip = rows.length ? rows : [];
 
+  // In-flow banner: rendered inside the sticky header via AppShell's kicker prop,
+  // so it must never be fixed - a fixed ticker would sit on top of the header.
   return (
-    <div className="fixed top-0 left-0 z-[1000] w-full border-b hairline bg-abyss-900/90 backdrop-blur-sm">
+    <div className="w-full border-b hairline bg-abyss-900/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1180px] items-center gap-2.5 px-3.5 py-1 sm:gap-3 sm:px-5">
         <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-sun-500/18 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-sun-400 sm:text-[10.5px]">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sun-500" />

@@ -425,7 +425,6 @@ export default function NowBeyMap({
       ref={containerRef}
       className={`relative overflow-hidden rounded-2xl border border-tide-500/20 bg-abyss-900 ${className}`}
     >
-      <style>{`.leaflet-top.leaflet-left,.leaflet-top.leaflet-right{top:74px !important}`}</style>
       <MapContainer
         center={center}
         zoom={zoom}
@@ -518,11 +517,12 @@ export default function NowBeyMap({
         </div>
       ) : null}
 
-      {/* top bar: search + layers */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[500] flex flex-wrap items-start gap-2 p-2 sm:p-2.5">
+      {/* top bar: search + layers. Stacked on narrow phones so nothing clips;
+          side by side from sm up, with the pills scrolling instead of wrapping. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[500] flex flex-col gap-1.5 p-2 sm:flex-row sm:flex-wrap sm:items-start sm:gap-2 sm:p-2.5">
         {mode === "pick" || compact ? null : (
-          <div className="pointer-events-auto relative w-[min(340px,68vw)]">
-            <div className="glass flex items-center gap-2 rounded-xl px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,.45)]">
+          <div className="pointer-events-auto relative w-full sm:w-[min(320px,38vw)]">
+            <div className="glass flex min-h-[42px] items-center gap-2 rounded-xl px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,.45)]">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#74f3e3" strokeWidth="2.4" aria-hidden>
                 <circle cx="11" cy="11" r="7" />
                 <path d="m20 20-3.5-3.5" strokeLinecap="round" />
@@ -567,19 +567,21 @@ export default function NowBeyMap({
           </div>
         )}
 
-        <div className="pointer-events-auto ml-auto flex items-center gap-1.5">
-          <div className="glass flex overflow-hidden rounded-xl p-1 text-[11.5px] font-bold">
+        <div className="nb-no-scrollbar pointer-events-auto flex max-w-full items-center gap-1.5 overflow-x-auto pb-0.5 sm:ml-auto sm:max-w-[56%]">
+          <div className="glass flex shrink-0 rounded-xl p-1 text-[11.5px] font-bold">
             {(Object.keys(LAYERS) as LayerKey[]).map((key) => (
               <button
                 key={key}
                 type="button"
                 title={LAYERS[key].hint}
+                aria-pressed={layer === key}
                 onClick={() => setLayer(key)}
-                className={`rounded-lg px-2.5 py-1.5 transition ${
+                className={`min-h-[40px] rounded-lg px-2.5 py-1.5 transition ${
                   layer === key ? "bg-tide-500 text-abyss-950" : "text-[#bfe4e0] hover:bg-white/10"
                 }`}
               >
-                {LAYERS[key].label}
+                <span className="sm:hidden">{LAYERS[key].short}</span>
+                <span className="hidden sm:inline">{LAYERS[key].label}</span>
               </button>
             ))}
           </div>
@@ -587,15 +589,17 @@ export default function NowBeyMap({
             type="button"
             onClick={() => setShowPins((v) => !v)}
             title={showPins ? "Hide other pins" : "Show other pins"}
-            className={`glass rounded-xl px-2.5 py-2 text-[11.5px] font-bold ${showPins ? "text-tide-300" : "text-[#8fb9b6]"}`}
+            aria-pressed={showPins}
+            className={`glass min-h-[40px] shrink-0 rounded-xl px-2.5 py-2 text-[11.5px] font-bold ${showPins ? "text-tide-300" : "text-[#8fb9b6]"}`}
           >
             Pins
           </button>
         </div>
       </div>
 
-      {/* bottom-left: pegman + street view + aim. Lifted on mobile to clear the sheet grabber. */}
-      <div className="absolute bottom-14 left-2.5 z-[500] flex flex-col items-start gap-2 sm:bottom-9">
+      {/* bottom-left: pegman + street view + aim. Lifted just enough to clear the scale bar.
+          (The pin sheet is in-flow below the map now, so no extra clearance is needed.) */}
+      <div className="absolute bottom-9 left-2.5 z-[500] flex flex-col items-start gap-2">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -649,9 +653,10 @@ export default function NowBeyMap({
         </div>
       </div>
 
-      {/* pin control deck. On phones we move it to the top so the aim crosshair is not occluded. */}
+      {/* pin control deck. On phones it sits under the single-row pick header so the aim
+          crosshair stays clear; on wider screens it docks bottom-right, left of the zoom control. */}
       {mode === "pick" ? (
-        <div className="absolute right-2.5 z-[500] w-[min(300px,84vw)] top-14 sm:top-auto sm:bottom-2.5">
+        <div className="absolute right-2.5 top-[68px] z-[500] w-[min(300px,84vw)] sm:bottom-2.5 sm:right-14 sm:top-auto">
           <div className="glass rounded-xl p-2.5 text-[12px] shadow-[0_18px_40px_rgba(0,0,0,.5)]">
             {pick ? (
               <>
@@ -743,9 +748,17 @@ export default function NowBeyMap({
       ) : null}
 
       {fallbackNote ? (
-        <div className="absolute inset-x-2.5 top-[76px] z-[500] sm:top-[74px]">
-          <p className="glass rounded-lg border-l-[3px] border-sun-500 px-3 py-2 text-[11.5px] text-sand-100">
-            {fallbackNote}
+        <div className="absolute inset-x-2.5 top-[118px] z-[500] sm:top-[64px]">
+          <p className="glass flex items-start gap-2 rounded-lg border-l-[3px] border-sun-500 px-3 py-2 text-[11.5px] text-sand-100">
+            <span className="flex-1">{fallbackNote}</span>
+            <button
+              type="button"
+              onClick={() => setFallbackNote(null)}
+              aria-label="Dismiss"
+              className="min-h-[32px] min-w-[32px] rounded-md text-[13px] font-bold text-[#8fb9b6] hover:bg-white/10"
+            >
+              ✕
+            </button>
           </p>
         </div>
       ) : null}
