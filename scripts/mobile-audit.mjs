@@ -108,8 +108,31 @@ function fixedWidthsIn(css) {
 }
 
 /** True when the stylesheet raises every form field to 16px on a phone. */
+/**
+ * True when the stylesheet renders phone form fields at 16px.
+ *
+ * Selector order is not trusted: the minifier emits `input,textarea,select` where the source says
+ * `input, select, textarea`, and an order-sensitive match here would report 21 invented findings on a
+ * site that is behaving exactly as intended.
+ */
 function phoneFieldsAreSixteen(css) {
-  return /input\s*,\s*select\s*,\s*textarea\s*\{[^}]*font-size:\s*16px/.test(css.replace(/\s+/g, " "));
+  for (const [, selector, body] of css.replace(/\s+/g, " ").matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (!/font-size:\s*16px/.test(body)) continue;
+    const names = selector.split(",").map((s) => s.trim().toLowerCase());
+    if (["input", "select", "textarea"].every((tag) => names.includes(tag))) return true;
+  }
+  return false;
+}
+
+/**
+ * Classes that globals.css always ships. If the stylesheet this audit fetched does not define them,
+ * the CSS is stale or truncated (a Turbopack dev cache does this) and every rule below would be
+ * measuring the wrong file — so say that, instead of inventing findings about the code.
+ */
+const CSS_ANCHORS = ["nb-fill-view", "nb-clear-nav"];
+
+function cssLooksComplete(css) {
+  return CSS_ANCHORS.every((anchor) => css.includes(anchor));
 }
 
 function checkPage(route, status, html, css) {
@@ -273,6 +296,9 @@ async function resolveSamples(routes) {
     .filter((r) => !r.endsWith("/"));
 }
 
+/** Routes whose stylesheet was missing the anchor classes; empty is normal. */
+const INCOMPLETE_CSS = [];
+
 async function main() {
   const report = [];
   const resolved = await resolveSamples(ROUTES);
@@ -289,12 +315,24 @@ async function main() {
       continue;
     }
     const css = await collectCss(html);
+    if (!cssLooksComplete(css) && !INCOMPLETE_CSS.length) {
+      INCOMPLETE_CSS.push(route);
+    }
     checkPage(route, status, html, css);
     const widths = fixedWidthsIn(css);
     if (route === "/" && widths.length && !/overflow-x:\s*clip/.test(css)) {
       add(route, "W1", "low", "css", `${widths.length} fixed px widths in the stylesheet and no horizontal overflow guard`);
     }
     report.push({ route, status, bytes: html.length, cssBytes: css.length });
+  }
+
+  if (INCOMPLETE_CSS.length) {
+    console.error(
+      `The stylesheet fetched for ${INCOMPLETE_CSS[0]} is missing ${CSS_ANCHORS.join("/")}, so it is stale or\n` +
+        "truncated (a dev-server CSS cache does this). No findings were computed against it.\n" +
+        "Fix: stop the dev server, delete .next, start it again, then re-run this audit.",
+    );
+    process.exit(2);
   }
 
   const byRule = {};

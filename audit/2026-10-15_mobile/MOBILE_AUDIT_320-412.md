@@ -1,6 +1,6 @@
 # NowBey mobile audit — 320–412px
 
-Run 2026-10-15T12:48:04.801Z against `http://localhost:3000`.
+Run 2026-10-15T15:04:14.952Z against `http://localhost:3000`.
 Pages fetched with a phone User-Agent (Mozilla/5.0 (Linux; Android 13; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Mobile Safari/537.36), compiled stylesheet read from each page, DOM parsed with jsdom.
 
 **Widths checked:** 320px, 360px, 390px, 412px
@@ -8,23 +8,23 @@ Pages fetched with a phone User-Agent (Mozilla/5.0 (Linux; Android 13; Pixel 5) 
 
 | status | route | html | css |
 | --- | --- | --- | --- |
-| 200 | `/map` | 52472 B | 95419 B |
-| 200 | `/wire` | 61370 B | 95419 B |
-| 200 | `/report` | 43794 B | 95419 B |
-| 200 | `/open-now` | 37875 B | 95419 B |
-| 200 | `/alerts` | 48411 B | 95419 B |
-| 200 | `/you` | 38665 B | 95419 B |
-| 200 | `/you/settings` | 38696 B | 95419 B |
-| 200 | `/login` | 41182 B | 95419 B |
-| 200 | `/forgot-password` | 36708 B | 95419 B |
-| 200 | `/reset-password` | 36577 B | 95419 B |
-| 200 | `/support` | 60219 B | 95419 B |
-| 200 | `/credits` | 42541 B | 95419 B |
-| 200 | `/mobile` | 44776 B | 95419 B |
-| 200 | `/terms` | 47077 B | 95419 B |
-| 200 | `/privacy` | 45642 B | 95419 B |
-| 200 | `/incident/18d885ee-f71d-4a2e-847c-79fb7af9f5eb` | 77998 B | 95419 B |
-| 404 | `/missing-page-404` | 39379 B | 95419 B |
+| 200 | `/map` | 52322 B | 95617 B |
+| 200 | `/wire` | 61291 B | 95617 B |
+| 200 | `/report` | 43794 B | 95617 B |
+| 200 | `/open-now` | 37803 B | 95617 B |
+| 200 | `/alerts` | 48411 B | 95617 B |
+| 200 | `/you` | 38665 B | 95617 B |
+| 200 | `/you/settings` | 38696 B | 95617 B |
+| 200 | `/login` | 41184 B | 95617 B |
+| 200 | `/forgot-password` | 36708 B | 95617 B |
+| 200 | `/reset-password` | 36577 B | 95617 B |
+| 200 | `/support` | 60219 B | 95617 B |
+| 200 | `/credits` | 42541 B | 95617 B |
+| 200 | `/mobile` | 44776 B | 95617 B |
+| 200 | `/terms` | 47077 B | 95617 B |
+| 200 | `/privacy` | 45642 B | 95617 B |
+| 200 | `/incident/18d885ee-f71d-4a2e-847c-79fb7af9f5eb` | 77977 B | 95617 B |
+| 404 | `/missing-page-404` | 39379 B | 95617 B |
 
 ## Findings
 
