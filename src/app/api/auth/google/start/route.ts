@@ -5,17 +5,11 @@ import { signPayload } from "@/lib/auth";
 import { publicBase } from "@/lib/billing";
 import { OAUTH_COOKIE, googleAuthUrl, googleConfigured, googleRedirectUri, makePkce } from "@/lib/google";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
+import { safeNext } from "@/lib/redirect";
 
 export const dynamic = "force-dynamic";
 
 const HANDSHAKE_TTL_MS = 10 * 60_000;
-
-/** Only ever send the browser back inside this site. "//evil.com" is a protocol-relative absolute URL. */
-export function safeNext(raw: string | null): string {
-  const value = (raw ?? "").trim();
-  if (!value.startsWith("/") || value.startsWith("//") || value.length > 200) return "/map";
-  return value;
-}
 
 /**
  * Starts "Sign in with Google". One flow for both signing in and signing up — Google tells us the

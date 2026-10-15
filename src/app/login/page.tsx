@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PARISHES } from "@/lib/geo";
 import { checkPassword } from "@/lib/password";
+import { safeNext } from "@/lib/redirect";
 import { INPUT, LABEL, PasswordField } from "@/components/password-field";
 
 export const dynamic = "force-dynamic";
@@ -97,8 +98,7 @@ export default function LoginPage() {
 
   function destination(created: boolean): string {
     const next = new URLSearchParams(window.location.search).get("next");
-    if (next && next.startsWith("/") && !next.startsWith("//") && !next.includes("\\")) return next;
-    return created ? "/you?welcome=1" : "/you";
+    return safeNext(next, created ? "/you?welcome=1" : "/you");
   }
 
   async function submit(e: React.FormEvent) {
