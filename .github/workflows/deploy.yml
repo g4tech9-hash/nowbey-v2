@@ -203,3 +203,47 @@ jobs:
           path: |
             expo/eas-build.log
             expo/eas-whoami.log
+
+      # "Error: build command failed." is all the CLI says when the *worker* refuses the build; the
+      # reason is on the build page. Annotations are the one place the Checks API serves back, so
+      # the reason is written there as well: the tail of the CLI output, and — read back with the
+      # same token — whatever the build record itself says went wrong. A red run then names its own
+      # cause instead of asking somebody to open expo.dev.
+      - name: Report why the EAS build failed
+        if: failure()
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          set -uo pipefail
+          build_id="$(grep -Eo 'https://expo\.dev/build/[A-Za-z0-9-]+' eas-build.log 2>/dev/null | tail -n 1 | sed 's#.*/##' || true)"
+          if [ -z "$build_id" ]; then
+            build_id="$(grep -Eo 'Build ID: *[A-Za-z0-9-]+' eas-build.log 2>/dev/null | tail -n 1 | sed 's/.*: *//' || true)"
+          fi
+          echo "build id: ${build_id:-none found in the log}"
+
+          reason=""
+          if [ -n "$build_id" ]; then
+            npx --yes eas-cli@latest build:view "$build_id" --json --non-interactive > eas-view.json 2>&1 || true
+            reason="$(jq -r '.. | .errorMessage? // .message? // empty' eas-view.json 2>/dev/null | head -c 4000 || true)"
+          fi
+          if [ -z "$reason" ]; then
+            reason="$(tail -n 60 eas-build.log 2>/dev/null | tr -d '\r' | head -c 12000 || true)"
+          fi
+          if [ -z "$reason" ]; then
+            reason="the EAS build failed and no output was captured"
+          fi
+
+          {
+            echo "### Why the EAS build failed"
+            echo ""
+            echo "Build id: ${build_id:-unknown}"
+            echo ""
+            echo '```'
+            printf '%s\n' "$reason"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # One annotation, one line: newlines become %0A, percent signs %25, carriage returns %0D.
+          payload="$(printf '%s' "$reason" | awk 'BEGIN{ORS=""} {gsub(/%/,"%25"); gsub(/\r/,"%0D"); printf "%s%%0A", $0}')"
+          printf '::error title=EAS build output::%s\n' "$payload"
