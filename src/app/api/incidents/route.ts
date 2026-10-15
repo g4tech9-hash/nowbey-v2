@@ -1,5 +1,5 @@
 import { NextResponse, after } from "next/server";
-import { and, desc, eq, gte, ne, or, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, ne, or, ilike, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { incidents } from "@/db/schema";
 import { badgesFor } from "@/lib/badges";
@@ -11,6 +11,7 @@ import { refreshOfficialIfStale } from "@/lib/official";
 import { dispatchIncidentPush } from "@/lib/push";
 import { publicIncident } from "@/lib/public";
 import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo";
+import { isLikelyDuplicateIncident } from "@/lib/collect";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
@@ -98,6 +99,29 @@ export async function POST(req: Request) {
   const severity = Number.isFinite(sev) ? Math.min(4, Math.max(1, sev)) : 2;
   const accuracy = Number(body.accuracyMeters);
   const anonymous = body.anonymous === true;
+
+  // Keep one live incident per event instead of sending neighbours five alerts for the same flooded road.
+  // The tight distance/time/category rules intentionally favour separate reports when there is any doubt.
+  const recentCandidates = await db
+    .select()
+    .from(incidents)
+    .where(
+      and(
+        eq(incidents.status, "active"),
+        eq(incidents.category, category),
+        gte(incidents.createdAt, new Date(Date.now() - 90 * 60_000)),
+        gte(incidents.lat, lat - 0.003),
+        lte(incidents.lat, lat + 0.003),
+        gte(incidents.lng, lng - 0.003),
+        lte(incidents.lng, lng + 0.003),
+      ),
+    )
+    .orderBy(desc(incidents.createdAt))
+    .limit(12);
+  const duplicate = recentCandidates.find((candidate) => isLikelyDuplicateIncident({ category, lat, lng }, candidate));
+  if (duplicate) {
+    return NextResponse.json({ incident: publicIncident(duplicate), duplicate: true, message: "A nearby report already covers this event. We opened it instead of sending neighbours another alert." });
+  }
 
   // The handle always comes from the session, never from the request body, so nobody can
   // post as someone else and borrow their verified badge.

@@ -15,6 +15,8 @@ import { Discussion } from "@/components/engage/discussion";
 import { ReactionBar } from "@/components/engage/reaction-bar";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
+import { ReadAloud } from "@/components/read-aloud";
+import { SourceTrust } from "@/components/source-trust";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +92,10 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
             Photo note: {row.photoNote}
           </p>
         ) : null}
+        <div className="mt-3">
+          <ReadAloud text={`${meta.label}. ${row.title}. ${row.details ?? ""}. Location: ${row.address ?? row.street ?? row.parish ?? "The Bahamas"}. Status: ${row.status}. ${row.confirmations} neighbours confirmed this report.`} />
+        </div>
+        <SourceTrust sourceKind={row.sourceKind} sourceName={row.sourceName} sourceUrl={row.sourceUrl} confirmations={row.confirmations} updatedAt={row.updatedAt} status={row.status} />
 
         <div className="mt-3.5 flex flex-wrap items-center gap-2 text-[12px] text-[#8fb9b6]">
           <span className="font-semibold text-sand-100">@{row.authorHandle ?? "someone"}</span>

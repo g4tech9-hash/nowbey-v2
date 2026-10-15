@@ -550,6 +550,28 @@ export const clientErrors = pgTable(
 );
 
 /** Expo push tokens, one row per member per device. Pruned when Expo reports them dead. */
+export const serviceStatuses = pgTable(
+  "service_statuses",
+  {
+    id: serial("id").primaryKey(),
+    name: text("name").notNull(),
+    /** pharmacy | food | fuel | hardware | water | charging | clinic | shelter | other */
+    kind: text("kind").notNull(),
+    parish: text("parish").notNull().default("New Providence"),
+    address: text("address"),
+    /** open | limited | closed | unknown */
+    status: text("status").notNull().default("unknown"),
+    note: text("note"),
+    sourceName: text("source_name"),
+    sourceUrl: text("source_url"),
+    verified: boolean("verified").notNull().default(false),
+    updatedBy: text("updated_by"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+  },
+  (table) => [index("service_statuses_parish_idx").on(table.parish, table.status), index("service_statuses_updated_idx").on(table.updatedAt.desc())],
+);
+
 export const deviceTokens = pgTable(
   "device_tokens",
   {

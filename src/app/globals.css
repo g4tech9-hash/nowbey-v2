@@ -530,6 +530,16 @@ html[data-splash-seen] #nb-splash {
     transform: translateX(-50%);
   }
 }
+/* Device-local accessibility preferences. */
+html[data-simple="true"] { font-size: 18px; }
+html[data-simple="true"] body { line-height: 1.62; }
+html[data-simple="true"] :is(button, a, input, select, textarea) { min-height: 44px; }
+html[data-simple="true"] :is(.text-\[10px\], .text-\[10\.5px\], .text-\[11px\], .text-\[11\.5px\], .text-\[12px\], .text-\[12\.5px\]) { font-size: 0.82rem !important; }
+html[data-simple="true"] .nb-decorative { display: none !important; }
+html[data-low-data="true"] :is(.nb-backdrop-img, .nb-pagescene-photo, .nb-decorative) { display: none !important; }
+html[data-low-data="true"] .nb-data-heavy { min-height: 180px !important; max-height: 240px !important; }
+html[data-low-data="true"] * { scroll-behavior: auto !important; }
+
 @media (prefers-reduced-motion: reduce) {
   .nb-splash {
     animation-delay: 1.4s;

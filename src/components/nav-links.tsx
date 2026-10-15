@@ -23,6 +23,7 @@ const LINKS = [
     short: "Plans",
     icon: "heart",
     children: [
+      { href: "/open-now", label: "What is open now", short: "Open", icon: "wire" },
       ...(SHOW_GAS ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" }] : []),
     ]
   },
