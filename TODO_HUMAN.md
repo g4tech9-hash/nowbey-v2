@@ -119,7 +119,18 @@ Run these once in the production Neon SQL Editor — the editor takes SQL statem
 
 * `src/db/add-community-utility.sql` — before using the **Open now** admin page. Adds the `service_statuses` table and indexes only.
 * `src/db/add-google-auth.sql` — before switching on Sign in with Google. Adds `users.google_sub` and its unique index; `NULL` for every existing account, so nothing changes until someone uses the Google button.
-* `src/db/add-profiles.sql` — before the profile pages are used. Adds `member_profiles`, `hidden_profile_reports`, `member_notes` and `badge_grants`, with their indexes and a `user_id` index on `incidents`. Nothing reads these tables until the profile code ships, so running it early (or late) changes no existing page. **Not yet applied (as of 2026-10-15)** — the statements are verified against a real Postgres and are waiting for a run in the Neon SQL editor; the file is idempotent, so a first or repeat run costs nothing.
+* `src/db/add-profiles.sql` — before the profile pages are used. Adds `member_profiles`, `hidden_profile_reports`, `member_notes` and `badge_grants`, with their indexes and a `user_id` index on `incidents`. Nothing reads these tables until the profile code ships, so running it early (or late) changes no existing page. **Applied 2026-10-15 in the production Neon SQL editor** — the verification query answered with the four expected tables (`badge_grants`, `hidden_profile_reports`, `member_notes`, `member_profiles`) in 184 ms. Because the file runs as one transaction they were created together or not at all, so no half-migrated state exists; the file is idempotent, so a repeat run costs nothing. One last tick, worth doing once: the two indexes at the tail of the file sit outside the table blocks, so a paste that stopped early is the only realistic way to miss them.
+
+  ```sql
+  select
+    (select count(*) from pg_indexes where schemaname = 'public' and indexname in
+      ('hidden_profile_reports_user_incident_idx','hidden_profile_reports_user_idx','member_notes_user_idx',
+       'badge_grants_user_idx','incidents_user_idx','incident_updates_actor_idx')) as indexes,
+    (select count(*) from information_schema.table_constraints where constraint_type = 'FOREIGN KEY' and table_name in
+      ('member_profiles','hidden_profile_reports','member_notes','badge_grants')) as foreign_keys;
+  ```
+
+  Expect `indexes = 6` and `foreign_keys = 5`; if either is short, re-run the whole file and ask again.
 
 ## 1. Firebase (required for actual push delivery)
 
