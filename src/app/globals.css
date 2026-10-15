@@ -24,6 +24,10 @@
 @layer base {
   html,
   body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden; /* fallback for browsers without overflow: clip */
+    overflow-x: clip;
     background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 201, 183, 0.18), transparent 60%),
       radial-gradient(900px 500px at 5% 0%, rgba(255, 122, 107, 0.12), transparent 55%), var(--color-abyss-950);
     color: #e8f6f4;
@@ -48,6 +52,31 @@
     outline: 2px solid var(--color-tide-400);
     outline-offset: 2px;
   }
+}
+
+/* Keep long headlines, URLs and grid/flex children inside a phone viewport. Horizontal
+   chip rails and admin tables opt back into scrolling on their own containers. */
+.grain,
+header,
+main,
+footer {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.grain { overflow-x: clip; }
+main :is(.grid, .flex) > *,
+footer :is(.grid, .flex) > * {
+  min-width: 0;
+}
+:is(h1, h2, h3, p, a, span) {
+  overflow-wrap: anywhere;
+}
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
 }
 
 /* ---------- Leaflet skin ---------- */

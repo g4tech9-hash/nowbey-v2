@@ -75,9 +75,9 @@ export function AppShell({
       </header>
 
       {/* main keeps a small gap above the footer; the footer itself clears the fixed nav (nb-clear-nav) */}
-      <main className="mx-auto w-full max-w-[1180px] px-3.5 pb-6 pt-3 sm:px-5 sm:pt-4 lg:pb-10">{children}</main>
+      <main className="mx-auto min-w-0 w-full max-w-[1180px] overflow-x-clip px-3.5 pb-6 pt-3 sm:px-5 sm:pt-4 lg:pb-10">{children}</main>
 
-      <footer className="nb-clear-nav mx-auto max-w-[1180px] px-3.5 pt-2 text-[11.5px] text-[#6e97a0] sm:px-5 lg:pb-8">
+      <footer className="nb-clear-nav mx-auto min-w-0 w-full max-w-[1180px] overflow-x-clip px-3.5 pt-2 text-[11.5px] text-[#6e97a0] sm:px-5 lg:pb-8">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-t hairline pt-3">
           <span className="font-bold text-[#8fb9b6]">Display options</span>
           <AccessibilityControls compact />

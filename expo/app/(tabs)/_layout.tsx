@@ -2,9 +2,10 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { color } from "../../src/theme";
 
-// Nassau hazard/news MVP: deferred tabs are opt-in at build time.
-const SHOW_LIFE = process.env.EXPO_PUBLIC_FEATURE_ISLAND_LIFE === "true";
-const SHOW_GAS = process.env.EXPO_PUBLIC_FEATURE_GAS_TRACKER === "true";
+// Nassau hazard/news MVP: stale individual flags cannot bypass the launch-stage gate.
+const EXPANDED = process.env.EXPO_PUBLIC_LAUNCH_STAGE === "expanded";
+const SHOW_LIFE = EXPANDED && process.env.EXPO_PUBLIC_FEATURE_ISLAND_LIFE === "true";
+const SHOW_GAS = EXPANDED && process.env.EXPO_PUBLIC_FEATURE_GAS_TRACKER === "true";
 
 export default function TabsLayout() {
   return (

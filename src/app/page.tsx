@@ -79,7 +79,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
   return (
     <>
-      <section className="mb-5 grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+      <section className="mb-5 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="glass relative isolate overflow-hidden rounded-2xl p-4 sm:p-5">
           <PageScene name="aerial" />
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-tide-400">{BRAND.tagline}</p>
@@ -129,8 +129,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
         </div>
       </section>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_318px]">
-        <div>
+      <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_318px]">
+        <div className="min-w-0">
           <PageHead
             eyebrow={status === "all" ? "Everything" : "Live now"}
             title="The feed"
@@ -199,7 +199,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           )}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4">
           <div className="glass rounded-2xl p-3.5">
             <p className="display text-[14.5px] font-bold text-sand-100">Jump to an island</p>
             <div className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 sm:flex-wrap sm:overflow-visible" style={{ scrollbarWidth: "none" }}>
