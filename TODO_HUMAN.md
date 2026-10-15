@@ -62,15 +62,21 @@ sign-in page hides the button until they do.
 > is shared, so both clients work.
 
 > **The client secret is masked on purpose and cannot be unmasked** — in Firebase, and in the Cloud
-> console too. You do not need to see it. Three ways to get the real value:
+> console too. The Cloud console's client panel shows no secret and no copy button at all; the value is
+> revealed exactly once, when a client is created, and resetting a secret reveals it once more. Three
+> ways to get the real value:
 > 1. **Copy button.** In the Cloud console client panel the masked field has a copy icon. Tapping it
 >    puts the full value on the clipboard: paste it straight into the Vercel field (long-press → Paste).
 > 2. **Download JSON.** Cloud console → Credentials → the client's row → download icon. That saves
 >    `client_secret_….apps.googleusercontent.com.json`; open it in any text editor and copy the
 >    `client_secret` value.
-> 3. **New client.** Create credentials → OAuth client ID → Web application. The "OAuth client created"
->    dialog shows the id and secret in plain text with copy buttons. Use this one if the auto-created
->    client is locked; the consent screen is shared, so both work.
+> 3. **New client (the reliable route).** Create credentials → OAuth client ID → Web application → the
+>    "OAuth client created" dialog shows the id and secret in plain text with copy buttons, and that
+>    dialog is the *only* place the secret ever appears. Use this client in Vercel instead of the
+>    auto-created one; the consent screen is shared, so both work.
+> 4. **Reset the secret** on an existing client (credentials page → the client → **Reset secret**): the
+>    same one-time dialog appears with the new value. Use this if you would rather keep the auto-created
+>    client — note that resetting invalidates the old secret everywhere it was used.
 >
 > Sanity check before saving in Vercel: the secret must not look like the client id (it never ends in
 > `.apps.googleusercontent.com`), and roughly 30–40 characters. Clients created recently start with
