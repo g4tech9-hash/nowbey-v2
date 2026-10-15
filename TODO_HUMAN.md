@@ -56,6 +56,15 @@ sign-in page hides the button until they do.
 5. Run the column migration once (see §0): `src/db/add-google-auth.sql`.
 6. Redeploy. `/api/auth/google/status` should answer `{"enabled":true}` and the button appears on
    `/login`.
+> **If the Firebase-created client's redirect field is not editable** (the auto-created "Web client" is
+> sometimes locked): create a fresh **Web application** client in the Cloud console credentials page
+> with the two redirect URIs above, and use *that* client's id and secret in Vercel. The consent screen
+> is shared, so both clients work.
+
+> **Secrets:** the client secret goes in Vercel and nowhere else — not in chat, not in Git, not in a
+> screenshot. If one is ever exposed, delete that client in the Cloud console and create a new one;
+> the old secret dies with it.
+
 **Shortcut if the Cloud console UI fights you on a phone:** `console.firebase.google.com` → project
 `nowbey-6a30f` → **Build → Authentication → Get started → Sign-in method → Google → Enable** (set the
 public-facing name `NowBey` and a support email), then copy the **Web client ID** and **Client secret**
