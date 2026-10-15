@@ -1,6 +1,14 @@
 # Mobile remediation — status and launch gate
 
-Date: 2026-10-15 · branch `arena/b2560608-nowbey-v2` (nothing pushed to `master`, no deploy run)
+Date: 2026-10-15 · merged to `master` as PR #7
+
+**Deployed to production at 2026-10-15T14:57Z.** The GitHub Actions run for the merge ran the new `gate`
+job first (install, typecheck, lint, unit tests, production build — all green), then `deploy-web`. Verified
+from outside: `/api/health` reports `status:"ready"`, `appUrl:true` (the probe fix works in production),
+`push:false` (still no Firebase web keys — honest), version `fbed6163052e`. `/api/auth/google/status`
+reports `{"enabled":true}`, so the Google credentials are in place and the sign-in button is live. `/alerts`
+is serving the Nassau MVP copy and the "Not switched on for this site yet" push card. `build-mobile` was
+correctly skipped, so no EAS minutes were spent.
 
 This is the record of the launch-blocking mobile work: what changed, what was measured, what is still
 open, and what it will take to close it. Evidence is a command plus its output, not an impression.
@@ -17,7 +25,8 @@ open, and what it will take to close it. Evidence is a command plus its output, 
 | 4 | Alerts form simplified to the Nassau MVP | **Done** | Nassau-first copy, New Providence preselected, two decisions only (address + report kinds), other islands behind one fold, email named as the working channel, storm cover stated as free for everyone |
 | 5 | Every mobile page audited at 320–412px | **Done** | `scripts/mobile-audit.mjs` (W1–W10 + W2b) over all 20 routes, widths 320/360/390/412 — **0 findings**; report in `MOBILE_AUDIT_320-412.md` |
 | 6 | `mario242` investigated without weak passwords or exposed credentials | **Done locally, production facts not readable from here** | `tests/admin.test.mjs` proves the only two safe levers end to end on the local server; see §4 |
-| 7 | No deploy until UI, endpoint, auth, mail and push tests pass | **Held** | Nothing deployed. `deploy.yml` now has a `gate` job that both deploy jobs need. Physical push remains **unverified** and is the one criterion that cannot be met from this environment |
+| 7 | No deploy until UI, endpoint, auth, mail and push tests pass | **Deployed on the owner's instruction** | The gate ran green (typecheck, lint, unit tests, production build) and `deploy-web` succeeded. The physical push test is still open, and nothing labels push as delivered; see §6 |
+| 8 | Sign in with Google, alongside email | **Live in production** | `/api/auth/google/status` → `{"enabled":true}`; 17 local checks in `tests/google.test.mjs` | `deploy.yml` now has a `gate` job that both deploy jobs need. Physical push remains **unverified** and is the one criterion that cannot be met from this environment |
 
 ## 2. Tests built for the gate
 
