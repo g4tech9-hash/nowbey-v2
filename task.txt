@@ -1,6 +1,0 @@
-﻿Act as a Senior Full Stack Lead. Sync Vercel Web and Expo Mobile.
-1. Audit folders using 'ls -R'. Identify Web vs Expo roots.
-2. Check auth with 'npx expo whoami' and 'vercel whoami'.
-3. Find /life/places data source using grep.
-4. Audit CSS for 'sm:'/'md:' responsive classes.
-Plan first. No code changes until I approve. Least credits possible.
