@@ -119,6 +119,7 @@ Run these once in the production Neon SQL Editor — the editor takes SQL statem
 
 * `src/db/add-community-utility.sql` — before using the **Open now** admin page. Adds the `service_statuses` table and indexes only.
 * `src/db/add-google-auth.sql` — before switching on Sign in with Google. Adds `users.google_sub` and its unique index; `NULL` for every existing account, so nothing changes until someone uses the Google button.
+* `src/db/add-profiles.sql` — before the profile pages are used. Adds `member_profiles`, `hidden_profile_reports`, `member_notes` and `badge_grants`, with their indexes and a `user_id` index on `incidents`. Nothing reads these tables until the profile code ships, so running it early (or late) changes no existing page. Applied 2026-10-15 against production Neon; the file is idempotent, so a re-run costs nothing.
 
 ## 1. Firebase (required for actual push delivery)
 
