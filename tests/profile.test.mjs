@@ -271,6 +271,10 @@ test("a member cannot use the staff door, and staff can grant then revoke the ve
   await query("update users set role = 'admin' where id = $1", [memberId]);
   adminCookie = memberCookie;
 
+  // Staff accounts wear the desk badge too, on the same public profile — it is derived from the role,
+  // so it has to be looked up alongside the grants rather than left out.
+  assert.match((await call(`/u/${memberHandle}`)).text, /NowBey desk/, "a staff account shows the desk badge");
+
   const unsigned = await call("/api/admin/users", { method: "PATCH", cookie: adminCookie, body: { handle: memberHandle, action: "grantBadge" } });
   assert.equal(unsigned.status, 400, "a badge without a reason is refused — a verification needs a reason");
 

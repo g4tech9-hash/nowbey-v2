@@ -16,6 +16,12 @@ import { alertSubscriptions, badgeGrants, hiddenProfileReports, incidents, membe
 export type ProfileSettings = { visibility: "open" | "private"; bio: string | null; showAlertSummary: boolean };
 
 /** What a member gets before they touch anything: open, no bio, no alert summary. */
+/**
+ * Staff accounts wear the desk badge everywhere a handle appears. The rule lives here so the pages that
+ * render a badge and badgesFor() itself cannot drift apart.
+ */
+export const earnsDeskBadge = (role: string | null | undefined) => role === "admin" || role === "editor";
+
 export const DEFAULT_SETTINGS: ProfileSettings = { visibility: "open", bio: null, showAlertSummary: false };
 
 /** Turns a stored row (or no row at all) into settings. Anything unrecognised reads as the safe default. */

@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { BadgeMark } from "@/components/verified-badge";
+import { badgesFor } from "@/lib/badges";
 import { normalizeHandle } from "@/lib/handles";
 import { alertIslandCount, liveBadges, profileSettings, reportRecord, reportsFor } from "@/lib/profile";
 import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
@@ -57,12 +58,16 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     );
   }
 
-  const [record, badges, islands, reports] = await Promise.all([
+  const [record, grants, islands, reports, earned] = await Promise.all([
     reportRecord(member.id, member.handle),
     liveBadges(member.id),
     settings.showAlertSummary ? alertIslandCount(member.id) : Promise.resolve(0),
     reportsFor(member.id, member.handle, { includeAnonymous: false, includeHidden: !canLook, limit: 20 }),
+    // The desk badge comes from the account's role, the verified badge from live grants — both have to
+    // be asked for, or a staff profile renders without the mark everybody else sees beside their handle.
+    badgesFor([member.handle]),
   ]);
+  const onDesk = earned.get(member.handle) === "desk";
 
   const listed = canLook ? reports : reports.filter((r) => !r.hidden);
 
@@ -87,11 +92,14 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        {badges.map((b, i) => (
-          <BadgeMark key={`${b.badge}-${i}`} kind={b.badge === "desk" ? "desk" : "verified"} />
-        ))}
-      </div>
+      {onDesk || grants.length ? (
+        <div className="flex flex-wrap items-center gap-2">
+          {onDesk ? <BadgeMark kind="desk" /> : null}
+          {grants.map((g, i) => (
+            <BadgeMark key={`${g.badge}-${i}`} kind={g.badge === "desk" ? "desk" : "verified"} />
+          ))}
+        </div>
+      ) : null}
 
       {settings.bio ? <p className="text-[13.5px] leading-relaxed text-[#cfeee9]">{settings.bio}</p> : null}
 
