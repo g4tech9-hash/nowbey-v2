@@ -188,3 +188,18 @@ jobs:
               echo "$link"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      # The EAS step writes its output to a file, and the step log itself lives on a storage host
+      # that some clients cannot reach. Uploading that file as an artifact puts the same text where
+      # the API can serve it, so the reason for a red run can be read with the API alone — no
+      # browser, no Actions tab, and no guessing from an exit code. It runs after the EAS step, and
+      # it runs whether that step passed or failed, because the passing log is worth keeping too.
+      - name: Upload the EAS logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eas-build-log
+          if-no-files-found: ignore
+          path: |
+            expo/eas-build.log
+            expo/eas-whoami.log
