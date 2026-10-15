@@ -153,24 +153,47 @@ answers `MismatchSenderId`. This key does **not** switch on the **website's** br
 the separate `FIREBASE_*` and `NEXT_PUBLIC_FIREBASE_*` variables in Vercel, so `/api/health` keeps
 reporting `push:false` for the site even when Android delivery works.
 
-The Arena GitHub integration that edits this repo can read Actions runs but **cannot dispatch a workflow**
-(`HTTP 403: Resource not accessible by integration` on `POST …/actions/workflows/…/dispatches`, verified
-with both tokens in the sandbox), so step 4 is always a human tap.
+The Arena GitHub integration that edits this repo **cannot dispatch a workflow** the usual way
+(`HTTP 403: Resource not accessible by integration` on `POST …/actions/workflows/…/dispatches`), and for the
+same reason it cannot cancel a run. It *can* send a `repository_dispatch` event, which only needs the
+permission to push, so the workflows listen for one: `deploy` with `client_payload.target` = `mobile` starts
+a build, and `eas-cancel` presses the stop button below. An agent still starts a build only when the owner
+asks for one.
 
-**Status 2026-10-15 — the first real dispatch happened, and it failed on a defect that is now fixed.**
-Run `38765056982` (dispatched from **master**): `gate` was green, *Install Expo dependencies* was green —
-so the `expo/package-lock.json` blocker really is gone — and *Install Firebase Android configuration* was
-green, which proves the `FIREBASE_GOOGLE_SERVICES_JSON` secret exists and carries the `app.nowbey.mobile`
-package. The EAS step then failed **29 seconds** later, which is a client-side rejection, not a build-worker
-failure. The cause: `expo/.gitignore` ignores `google-services.json` and EAS Build archives the project with
-the ignore rules applied, so the file `app.json` points at was never uploaded — the documented
-`"google-services.json" is missing … EAS Build only uploads the files tracked by git` failure. PR #9 fixes it
-with a root `.easignore` (restating every ignore rule, plus `!google-services.json`) and adds guards to the
-workflow so neither the missing file nor a rejected `EXPO_TOKEN` can fail silently again.
+**Status 2026-10-15 — EAS builds are paused at the owner's request.** The dispatches so far, all from **master**:
 
-So the order is: **merge PR #9 into master first**, then dispatch. A red run now names its own cause in a
-`::error` annotation rather than hiding it in a log blob the sandbox cannot read; if it still fails, a
-screenshot of the failed step is enough to go on.
+* Run `38765056982`: the EAS step failed 29 seconds in, because `expo/.gitignore` kept `google-services.json`
+  out of the archive EAS uploads. Fixed by the root `.easignore` (PR #9), which restates every ignore rule
+  plus `!google-services.json`.
+* Runs `38773683026`, `38774558576` and `38775536019`: the CLI refused `eas.json` before any build started —
+  `"build.preview.image" is not allowed` (`image` belongs under `android`/`ios`, not on the profile). Only
+  the third run, the first with the reporting step, could say so. Fixed by PR #14.
+* Run `38776482421`: every step passed and EAS accepted build `8c72ae65-6282-4d66-b3f3-d32ce3f203a5`
+  (17:22 UTC), the first build this pipeline got onto a worker. The owner asked for EAS builds to stop, so it
+  was **cancelled** at 17:48 UTC by the *Cancel EAS builds* workflow (run `38780263539`, last seen
+  `PENDING_CANCEL`) before it finished: there is no APK from it, and whether it would have compiled is unknown.
+
+That last run still showed **green**: `eas build --wait` exits 0 for a cancelled build — it only counts
+`ERRORED` as a failure. The mobile job now reads the build record (`--json`) instead, so only a `FINISHED`
+build is green, and its summary carries the build page and the APK link.
+
+The newest APK on EAS is preview build `56ab2649-194b-492c-b5d9-8901da9dec50`, built from `6e4ca45`
+(2026-10-14 22:59 UTC). Master is 63 commits ahead of it, so it predates every fix above.
+
+**To resume, only when the owner says so:** Actions → Deploy (Vercel + EAS) → Run workflow → `mobile`, or
+
+```bash
+gh api repos/g4tech9-hash/nowbey-v2/dispatches -f event_type=deploy -f 'client_payload[target]=mobile'
+```
+
+**To stop a build:** Actions → Cancel EAS builds → Run workflow, or
+
+```bash
+gh api repos/g4tech9-hash/nowbey-v2/dispatches -f event_type=eas-cancel
+```
+
+or the Cancel button on the build page at expo.dev. Cancelling the *GitHub run* is not enough: it only
+stops the CLI that is waiting, and the build carries on on Expo's servers.
 
 For a local build only, download `google-services.json` from the existing Android app and save it as `expo/google-services.json` (git-ignored).
 

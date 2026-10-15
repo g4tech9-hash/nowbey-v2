@@ -1,0 +1,124 @@
+name: Cancel EAS builds
+
+# The stop button for EAS Build: it cancels every build of this project that is new, queued or
+# running on Expo's servers. It never starts one.
+#
+# Why this is a workflow and not a click on the waiting GitHub run: `eas build --wait` only *watches*
+# a build. Cancelling the run that waits kills the watcher and leaves the build itself running on
+# Expo's servers, still counting against the build quota — and a token without the actions:write
+# permission cannot even cancel the run. Only `eas build:cancel` stops a build, and it needs the
+# EXPO_TOKEN that lives in this repository's secrets, so this is where it runs.
+on:
+  # The button in the Actions tab (Actions > Cancel EAS builds > Run workflow).
+  workflow_dispatch:
+  # The same button from a script, a bot or an agent: POST a repository_dispatch event of type
+  # "eas-cancel". That only needs the permission to push, and it runs the copy of this file on the
+  # default branch.
+  repository_dispatch:
+    types: [eas-cancel]
+
+permissions:
+  contents: read
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: expo/package-lock.json
+
+      # The CLI finds the project through the app config, so it gets the same install the build job has.
+      - name: Install Expo dependencies
+        working-directory: expo
+        run: npm ci --no-audit --no-fund
+
+      - name: Install the EAS CLI
+        run: npm install --global eas-cli@latest --no-audit --no-fund --loglevel=error
+
+      # The outcome is written as annotations as well as to the log: annotations are what the Checks
+      # API serves back, so the result can be read without opening the Actions tab.
+      - name: Cancel every new, queued or running build
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          set -uo pipefail
+          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret (repo Settings > Secrets and variables > Actions)}"
+
+          # One annotation is one line: newlines become %0A, percent signs %25, carriage returns %0D.
+          esc() { printf '%s' "$1" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }'; }
+
+          # build:list with --json prints the JSON on stdout and everything else on stderr.
+          list() {
+            local name="$1"; shift
+            if ! eas build:list --platform all --json --non-interactive "$@" > "builds-$name.json" 2> "builds-$name.err"; then
+              cat "builds-$name.err"
+              echo "::error title=eas build:list failed::$(esc "$(grep -v '^[[:space:]]*$' "builds-$name.err" | tail -n 20)")"
+              exit 1
+            fi
+          }
+
+          ids=""
+          for status in new in-queue in-progress; do
+            list "$status" --status "$status" --limit 50
+            found="$(jq -r '.[].id' "builds-$status.json")"
+            echo "$status: ${found:-none}"
+            ids="$ids $found"
+          done
+
+          cancelled=""
+          failed=""
+          for id in $ids; do
+            echo "--- cancelling $id"
+            if eas build:cancel "$id" --non-interactive; then
+              state="$(eas build:view "$id" --json 2>/dev/null | jq -r '.status' 2>/dev/null || true)"
+              cancelled="${cancelled}${id} (now ${state:-unknown})"$'\n'
+            else
+              failed="${failed} ${id}"
+            fi
+          done
+          cancelled="${cancelled%$'\n'}"
+
+          # The latest builds whatever their state, so a run also says what happened to the last one.
+          list recent --limit 5
+          recent="$(jq -r '.[] | "\(.id)  \(.status)  \(.platform) \(.buildProfile // "-")  created \(.createdAt)  commit \((.gitCommitHash // "-")[0:7])\(if .error.message then "  error: " + .error.message else "" end)"' builds-recent.json)"
+
+          if [ -z "${ids// /}" ]; then
+            nothing="nothing — no build of this project was new, queued or running"
+            echo "::notice title=No EAS build to cancel::No build of this project was new, queued or running."
+          elif [ -n "$cancelled" ]; then
+            nothing="nothing"
+            echo "::notice title=Cancelled EAS builds::$(esc "$cancelled")"
+          else
+            nothing="nothing"
+          fi
+          echo "::notice title=Latest EAS builds::$(esc "${recent:-none}")"
+
+          {
+            echo "### Cancel EAS builds"
+            echo ""
+            echo "Cancelled:"
+            echo ""
+            echo '```'
+            printf '%s\n' "${cancelled:-$nothing}"
+            echo '```'
+            if [ -n "${failed// /}" ]; then echo ""; echo "Could not cancel:${failed}"; fi
+            echo ""
+            echo "Latest builds:"
+            echo ""
+            echo '```'
+            printf '%s\n' "${recent:-none}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          printf 'cancelled:\n%s\nlatest:\n%s\n' "${cancelled:-none}" "${recent:-none}"
+          if [ -n "${failed// /}" ]; then
+            echo "::error title=Could not cancel these EAS builds::$failed"
+            exit 1
+          fi

@@ -161,6 +161,11 @@ jobs:
       # ::error annotation on the run's check: annotations are readable through the Checks API, while
       # the raw step log lives on a storage host that some clients cannot reach at all. A red run here
       # is therefore self-diagnosing wherever it is opened.
+      #
+      # The exit code alone does not say whether there is an APK: the CLI exits 0 for a build that was
+      # cancelled on Expo's servers, exactly as it does for one that finished (it only counts ERRORED
+      # as a failure). With --json the CLI prints the build record on stdout and its progress on
+      # stderr, so the step reads the outcome from the record, and only FINISHED is green.
       - name: Send Android build to EAS (preview profile → APK)
         id: eas
         working-directory: expo
@@ -171,25 +176,52 @@ jobs:
           set -uo pipefail
           : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret (repo Settings > Secrets and variables > Actions)}"
           set +e
-          npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait > eas-build.log 2>&1
+          npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > eas-build.json 2> eas-build.log
           code=$?
           set -e
           tail -n 80 eas-build.log
-          if [ "$code" -ne 0 ]; then
-            first="$(grep -v '^\s*$' eas-build.log | tail -n 1 | tr -d '\r' | cut -c1-300)"
-            echo "::error title=EAS build failed (exit $code)::$first"
-            echo "--- full output ---"
-            cat eas-build.log
-            exit "$code"
-          fi
-          link="$(grep -Eo 'https://expo\.dev/[^ ]+' eas-build.log | tail -n 1 || true)"
-          if [ -n "$link" ]; then
-            {
-              echo "### EAS build finished"
-              echo ""
-              echo "$link"
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
+
+          field() { jq -r "$1" eas-build.json 2>/dev/null || true; }
+          id="$(field '.[0].id // empty')"
+          status="$(field '.[0].status // empty')"
+          page="$(field '.[0] | select(.app.ownerAccount.name and .app.slug) | "https://expo.dev/accounts/\(.app.ownerAccount.name)/projects/\(.app.slug)/builds/\(.id)"')"
+          apk="$(field '.[0].artifacts.buildUrl // empty')"
+          error="$(field '.[0].error | select(.) | [.errorCode, .message] | map(select(.)) | join(": ")')"
+          echo "EAS build ${id:-(no build record)}: ${status:-unknown} (CLI exit $code)"
+
+          case "$status" in
+            FINISHED)
+              {
+                echo "### EAS build finished"
+                echo ""
+                echo "Build page: ${page:-unknown}"
+                if [ -n "$apk" ]; then
+                  echo ""
+                  echo "APK: $apk"
+                fi
+              } >> "$GITHUB_STEP_SUMMARY"
+              echo "::notice title=EAS build finished::${apk:-${page:-build $id}}"
+              exit 0
+              ;;
+            CANCELED|PENDING_CANCEL)
+              echo "::error title=EAS build was cancelled::Build $id was cancelled on Expo's servers, so there is no APK. ${page}"
+              ;;
+            ERRORED)
+              echo "::error title=EAS build failed on the worker::${error:-the build record has no error message} ${page}"
+              ;;
+            "")
+              # No build record: the CLI stopped before it started a build, or while it was waiting.
+              first="$(grep -v '^[[:space:]]*$' eas-build.log | tail -n 1 | tr -d '\r' | cut -c1-300 || true)"
+              echo "::error title=EAS build failed (exit $code)::$first"
+              ;;
+            *)
+              echo "::error title=EAS build ended $status::Build $id did not finish, so there is no APK. ${page}"
+              ;;
+          esac
+          echo "--- full output ---"
+          cat eas-build.log
+          if [ "$code" -ne 0 ]; then exit "$code"; fi
+          exit 1
 
       # The EAS step writes its output to a file, and the step log itself lives on a storage host
       # that some clients cannot reach. Uploading that file as an artifact puts the same text where
@@ -204,13 +236,15 @@ jobs:
           if-no-files-found: ignore
           path: |
             expo/eas-build.log
+            expo/eas-build.json
             expo/eas-whoami.log
 
-      # "Error: build command failed." is all the CLI says when the *worker* refuses the build; the
-      # reason is on the build page. Annotations are the one place the Checks API serves back, so
-      # the reason is written there as well: the tail of the CLI output, and — read back with the
-      # same token — whatever the build record itself says went wrong. A red run then names its own
-      # cause instead of asking somebody to open expo.dev.
+      # "Error: build command failed." is the CLI's last line whatever stopped it — an eas.json the
+      # CLI refused, a worker that failed, a cancelled build — and the reason sits further up the log
+      # or on the build record. Annotations are the one place the Checks API serves back, so the
+      # reason is written there as well: the build record's status and error (read back with the same
+      # token when the CLI did not print it) and the tail of the CLI output. A red run then names its
+      # own cause instead of asking somebody to open expo.dev.
       - name: Report why the EAS build failed
         if: failure()
         working-directory: expo
@@ -218,16 +252,26 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           set -uo pipefail
-          build_id="$(grep -Eo 'https://expo\.dev/build/[A-Za-z0-9-]+' eas-build.log 2>/dev/null | tail -n 1 | sed 's#.*/##' || true)"
+          # The build record the EAS step printed with --json, when it got that far.
+          build_id="$(jq -r '.[0].id // empty' eas-build.json 2>/dev/null || true)"
           if [ -z "$build_id" ]; then
-            build_id="$(grep -Eo 'Build ID: *[A-Za-z0-9-]+' eas-build.log 2>/dev/null | tail -n 1 | sed 's/.*: *//' || true)"
+            # Otherwise the build page the CLI links to when a build starts:
+            # https://expo.dev/accounts/<owner>/projects/<slug>/builds/<id>
+            build_id="$(grep -Eo 'https://expo\.dev/accounts/[^/[:space:]]+/projects/[^/[:space:]]+/builds/[0-9A-Fa-f-]+' eas-build.log 2>/dev/null | tail -n 1 | sed 's#.*/##' || true)"
           fi
           echo "build id: ${build_id:-none found in the log}"
 
-          reason=""
-          if [ -n "$build_id" ]; then
-            npx --yes eas-cli@latest build:view "$build_id" --json --non-interactive > eas-view.json 2>&1 || true
-            reason="$(jq -r '.. | .errorMessage? // .message? // empty' eas-view.json 2>/dev/null | head -c 4000 || true)"
+          # Either record has the same shape: .status, and .error = { errorCode, message } when it failed.
+          describe() { jq -r '(if type == "array" then .[0] else . end) | select(.) | [("status " + (.status // "unknown")), ((.error // {}) | [.errorCode, .message] | map(select(.)) | join(": "))] | map(select(. != "")) | join(" — ")' "$1" 2>/dev/null || true; }
+          reason="$(describe eas-build.json)"
+          if [ -z "$reason" ] && [ -n "$build_id" ]; then
+            # build:view takes --json and nothing else: it has no --non-interactive flag, and an
+            # unknown flag makes it refuse to run.
+            npx --yes eas-cli@latest build:view "$build_id" --json > eas-view.json 2> eas-view.err || true
+            reason="$(describe eas-view.json)"
+          fi
+          if [ -n "$reason" ]; then
+            reason="$(printf '%s\n\n%s' "$reason" "$(tail -n 40 eas-build.log 2>/dev/null | tr -d '\r' | head -c 8000)")"
           fi
           if [ -z "$reason" ]; then
             reason="$(tail -n 60 eas-build.log 2>/dev/null | tr -d '\r' | head -c 12000 || true)"
