@@ -7,7 +7,16 @@ import { isNativeClient, issueToken, sendGoogleLinkedEmail, type TokenKind } fro
 import { makeToken, readPayload, setSessionCookie } from "@/lib/auth";
 import { publicBase } from "@/lib/billing";
 import { envAdminHandles } from "@/lib/handles";
-import { OAUTH_COOKIE, exchangeCode, googleConfigured, googleRedirectUri, handleFromEmail, readIdToken } from "@/lib/google";
+import {
+  OAUTH_COOKIE,
+  exchangeCode,
+  googleConfigured,
+  googleRedirectUri,
+  handleFromEmail,
+  isMissingColumn,
+  readIdToken,
+  type GoogleProfile,
+} from "@/lib/google";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +68,28 @@ export async function GET(req: Request) {
   if (!profile) return fail("token");
   if (!profile.emailVerified) return fail("unverified");
 
+  // Everything below touches users.google_sub. If that column has not been created yet, say so in plain
+  // words rather than returning a 500 to someone who just tapped a button on a live site.
+  try {
+    return await completeSignIn({ profile, handshake, native, base, fail });
+  } catch (e) {
+    if (isMissingColumn(e)) {
+      console.error("[google] users.google_sub is missing — run src/db/add-google-auth.sql on this database");
+      return fail("setup");
+    }
+    throw e;
+  }
+}
+
+/** The database half of the callback: link an existing account, or create one. */
+async function completeSignIn(opts: {
+  profile: GoogleProfile;
+  handshake: Handshake;
+  native: boolean;
+  base: string;
+  fail: (code: string, status?: number) => NextResponse;
+}): Promise<NextResponse> {
+  const { profile, handshake, native, base, fail } = opts;
   // 1. Already linked by Google subject id: this is a plain sign-in.
   let [user] = await db.select().from(users).where(eq(users.googleSub, profile.sub)).limit(1);
   let created = false;

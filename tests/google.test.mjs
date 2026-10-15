@@ -20,6 +20,7 @@ import {
   googleConfigured,
   googleRedirectUri,
   handleFromEmail,
+  isMissingColumn,
   makePkce,
   readIdToken,
 } from "../src/lib/google.ts";
@@ -383,6 +384,16 @@ test("Google is reported as configured or not, exactly as the deployment is", ()
   assert.equal(googleConfigured(), Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET));
   assert.equal(exchangeCode instanceof Function, true);
   assert.match(googleRedirectUri("https://nowbey.test/"), /^https:\/\/nowbey\.test\/api\/auth\/google\/callback$/);
+});
+
+test("a database that is missing the Google column is recognised, so the site can say so", () => {
+  // Postgres undefined_column. The live site turns this into "not fully set up yet" instead of a 500.
+  assert.equal(isMissingColumn({ code: "42703" }), true);
+  assert.equal(isMissingColumn({ cause: { code: "42703" } }), true, "drizzle wraps the driver error");
+  assert.equal(isMissingColumn(Object.assign(new Error("column users.google_sub does not exist"), { code: "42703" })), true);
+  for (const other of [{ code: "23505" }, new Error("connection refused"), null, undefined]) {
+    assert.equal(isMissingColumn(other), false, `${String(other)} is not a missing column`);
+  }
 });
 
 test("a token endpoint that answers with an error cannot sign anyone in", async () => {

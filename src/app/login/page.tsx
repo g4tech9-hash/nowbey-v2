@@ -66,6 +66,7 @@ export default function LoginPage() {
     linked: { ok: false, text: "That address is already linked to a different Google account. Sign in with your password, then contact us." },
     suspended: { ok: false, text: "This account has been suspended. If you think that is a mistake, please contact NowBey." },
     slow: { ok: false, text: "Too many sign-in attempts from this connection. Please wait a few minutes." },
+    setup: { ok: false, text: "Google sign-in is not fully set up on this server yet. Your email and password still work, and we are on it." },
   };
   const googleFlag = params.get("google");
   const googleMessage = googleFlag ? (GOOGLE_MESSAGE[googleFlag] ?? { ok: false, text: "Google sign-in did not finish. Please try again." }) : null;

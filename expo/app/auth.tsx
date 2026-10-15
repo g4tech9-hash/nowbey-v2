@@ -29,6 +29,7 @@ const MESSAGES: Record<string, string> = {
   linked: "That address is already linked to a different Google account. Sign in with your password, then contact us.",
   suspended: "This account has been suspended. If you think that is a mistake, please contact NowBey.",
   slow: "Too many sign-in attempts just now. Please wait a few minutes.",
+  setup: "Google sign-in is not fully set up on the server yet. Your handle and password still work.",
 };
 
 export default function GoogleReturn() {
