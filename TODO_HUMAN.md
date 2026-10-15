@@ -53,7 +53,16 @@ sign-in page hides the button until they do.
    * `GOOGLE_CLIENT_SECRET`
    Never set `GOOGLE_OAUTH_BASE` there — that variable exists only so tests can point the token call at
    a local fake.
-5. Run the column migration once (see §0): `src/db/add-google-auth.sql`.
+5. Run the column migration once (see §0). The Neon **SQL Editor** runs SQL, not file names, so paste
+   the two statements below (or open `src/db/add-google-auth.sql` on GitHub → ⋯ → *Copy raw contents*
+   → paste), then press **Run**:
+
+   ```sql
+   ALTER TABLE users ADD COLUMN IF NOT EXISTS google_sub text;
+   CREATE UNIQUE INDEX IF NOT EXISTS users_google_sub_idx ON users (google_sub);
+   ```
+
+   To confirm it landed: `select column_name from information_schema.columns where table_name = 'users' and column_name = 'google_sub';` — one row means done. Both statements are idempotent, so a second run is harmless.
 6. Redeploy. `/api/auth/google/status` should answer `{"enabled":true}` and the button appears on
    `/login`.
 > **If the Firebase-created client's redirect field is not editable** (the auto-created "Web client" is
@@ -105,7 +114,8 @@ expires in ten minutes; the app trades a five-minute single-use code for its own
 
 ## 0. Additive database migration
 
-Run these once in the production Neon SQL Editor (each is additive and safe to re-run):
+Run these once in the production Neon SQL Editor — the editor takes SQL statements, not file paths;
+`add-google-auth.sql` contains them at the top of the file for copy/paste (each is additive and safe to re-run):
 
 * `src/db/add-community-utility.sql` — before using the **Open now** admin page. Adds the `service_statuses` table and indexes only.
 * `src/db/add-google-auth.sql` — before switching on Sign in with Google. Adds `users.google_sub` and its unique index; `NULL` for every existing account, so nothing changes until someone uses the Google button.
