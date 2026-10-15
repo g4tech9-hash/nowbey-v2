@@ -114,6 +114,16 @@ export function readIdToken(idToken: string, opts: { now?: number } = {}): Googl
   return { sub, email, emailVerified, name, picture };
 }
 
+/**
+ * True when Postgres says a column we expect does not exist (`42703`), which for this feature means one
+ * thing: the operator has not run `src/db/add-google-auth.sql` yet. Recognising it turns a 500 on the
+ * live site into a sentence a member can act on. Drizzle wraps driver errors, so the cause is checked too.
+ */
+export function isMissingColumn(e: unknown): boolean {
+  const err = e as { code?: unknown; cause?: { code?: unknown } } | null;
+  return err?.code === "42703" || err?.cause?.code === "42703";
+}
+
 export type TokenResponse = { id_token?: unknown; access_token?: unknown; error?: unknown; error_description?: unknown };
 
 /** Swaps the one-time code (plus the PKCE verifier) for an ID token. */
