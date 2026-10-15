@@ -24,6 +24,7 @@ on:
           - web
           - mobile
           - all
+          - smoke
 
 jobs:
   # Nothing reaches production until the code type-checks, lints, builds and passes the hermetic
@@ -85,6 +86,28 @@ jobs:
           : "${VERCEL_PROJECT_ID:?Add the VERCEL_PROJECT_ID secret}"
           npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN" 2>&1 | tee vercel-out.txt
           grep -Eo 'https://[a-zA-Z0-9./-]+\.vercel\.app' vercel-out.txt | head -1 >> "$GITHUB_STEP_SUMMARY" || true
+
+  # Read-only check of the live site: creates nothing, signs nobody in. After a web deploy it waits until
+  # /api/health reports this commit, then checks the security headers, CORS, the origin wall, that the
+  # app's sign-in path is still open, and that plans cannot be bought for free. Run it alone with
+  # target "smoke" (Actions > Deploy > Run workflow, or repository_dispatch {"target":"smoke"}).
+  smoke-web:
+    needs: [gate, deploy-web]
+    if: ${{ !cancelled() && needs.gate.result == 'success' && (needs.deploy-web.result == 'success' || inputs.target == 'smoke' || github.event.client_payload.target == 'smoke') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check the live site
+        env:
+          SMOKE_BASE: https://nowbey-v2.vercel.app
+          EXPECT_SHA: ${{ needs.deploy-web.result == 'success' && github.sha || '' }}
+        run: node scripts/smoke-prod.mjs
 
   build-mobile:
     needs: gate

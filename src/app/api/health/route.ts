@@ -13,9 +13,13 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   let database = false;
+  // Whether src/db/add-security-fixes.sql has been run: without it rate limits fall back to each
+  // server instance's memory (the site still works). Reported so the owner and the post-deploy check can see it.
+  let rateLimits = false;
   try {
-    await db.execute(sql`select 1`);
+    const res = await db.execute(sql`select to_regclass('public.rate_limits') is not null as present`);
     database = true;
+    rateLimits = Boolean((res.rows?.[0] as { present?: boolean } | undefined)?.present);
   } catch {
     // Never disclose connection details publicly.
   }
@@ -26,6 +30,7 @@ export async function GET() {
     push: pushConfigured(),
     ai: aiConfigured(),
     geocoding: googleConfigured(),
+    rateLimits,
     // Email links need a public address. Vercel supplies one for every deployment even when
     // APP_URL was never set, so checking only APP_URL reported "false" on a site whose links work.
     appUrl: Boolean(process.env.APP_URL?.trim() || process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim()),

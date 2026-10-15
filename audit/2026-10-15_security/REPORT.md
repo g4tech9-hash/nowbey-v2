@@ -145,4 +145,9 @@ background, so nothing breaks, but the photos never show. Owner action in TODO_H
 bash tests/run-local.sh            # local Postgres, mail catcher, seed, SQL, dev server
 npm test && npm run test:local && npm run test:ui
 npm run fuzz                       # local only; refuses production addresses
+node scripts/smoke-prod.mjs        # read-only check of the live site (also runs after every deploy)
 ```
+
+Every web deploy now ends with the `smoke-web` job in `.github/workflows/deploy.yml`, which waits for
+the new commit to be live and checks headers, CORS, the origin wall, the app sign-in path, the plans page
+and `rateLimits` in `/api/health` (warning, not failure, until the SQL has been run).

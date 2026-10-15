@@ -12,7 +12,9 @@ Full write-up: `audit/2026-10-15_security/REPORT.md`. Do steps 1–3 the same da
    make. Never commit `.env*` files (they are in `.gitignore`).
 2. **Run the SQL once.** Neon → SQL editor → paste all of `src/db/add-security-fixes.sql` → Run. It
    creates the shared `rate_limits` table and deletes the invented gas prices the old cron inserted. It is
-   safe to run twice. Until it runs the site works, with the older per-server limits.
+   safe to run twice. Until it runs the site works, with the older per-server limits. To confirm, open
+   `https://nowbey-v2.vercel.app/api/health`: `"rateLimits": true` means it ran. (The automatic live-site
+   check in GitHub Actions shows a warning until then.)
 3. **Set `ADMIN_EMAILS` before claiming the admin handle.** Vercel → Settings → Environment Variables →
    Production: `ADMIN_EMAILS=you@yourdomain.com` (comma-separate several; `@yourdomain.com` allows a
    whole domain). Redeploy. Without it, nobody — including you — can register `mario242` or
