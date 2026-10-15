@@ -1,5 +1,29 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
+## 0b. Claim the owner handles (do this first)
+
+**Evidence (2026-10-15, from the production site itself):** signing in as `mario242` or `eastsiderick`
+answers "No account has the handle @…". The deployed code only prints that sentence after looking the
+handle up and finding no row, so **neither account exists in the production database yet** — there is
+no password to reset and no role to restore. Both handles are listed in `ADMIN_HANDLES` /
+`src/db/setup_admins.sql`, which are instructions to *grant* rights, not accounts.
+
+Until the handle exists, any handle on the `ADMIN_HANDLES` list is a seat waiting to be taken:
+`src/lib/viewer.ts` makes that handle an admin the moment it is registered. So:
+
+1. On the live site, tap **Create account** and register `mario242` (a second one for `eastsiderick` if
+   you use it) with an email you control and a strong password. Sign-up emails a confirmation link —
+   tap it.
+2. Check Vercel → Settings → Environment Variables: if `ADMIN_HANDLES=mario242` is set, step 1 already
+   made the account an admin (`/admin` opens). If it is not set, either add it there (Production) and
+   redeploy, or run `src/db/setup_admins.sql` in the Neon SQL editor to set `role='admin'`.
+3. Never leave an unclaimed handle in `ADMIN_HANDLES`. If you must keep the list ahead of the account,
+   claim the handle first.
+
+`setup_admins.sql` never touches passwords, and the product has no endpoint that reads or writes one.
+The two supported ways back into an existing account are the member's own reset email
+(`/forgot-password`) and an admin-issued one-hour link (Members page → "Create a password reset link").
+
 ## 0. Additive database migration
 
 Run `src/db/add-community-utility.sql` once in the production Neon SQL Editor before using the **Open now** admin page. It only adds the `service_statuses` table and indexes; it does not modify existing member or incident data.

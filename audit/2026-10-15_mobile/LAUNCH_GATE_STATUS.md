@@ -69,9 +69,17 @@ What could be established without credentials or guessing:
   handle listed in `ADMIN_HANDLES`, so `ADMIN_HANDLES=mario242` is enough for staff access even if the
   database row still says `resident`.
 * Production `/api/health` (`2026-10-15 12:38Z`) answered `database:true, mail:true, push:false`.
-  Nothing in this workspace can read Vercel environment variables, the production database, or any
-  existing session, so whether the production row exists, its role, its status and its email address
-  are **not known here** and were not guessed at.
+* **Resolved 2026-10-15 by the production site itself:** signing in as `mario242` and as
+  `eastsiderick` both answered "No account has the handle @…". The deployed `src/app/api/session/route.ts`
+  prints that sentence only when the handle lookup returns no row, so **neither account exists in the
+  production database**. There is nothing to reset; the accounts have to be **created** and then given
+  admin rights. `TODO_HUMAN.md` §0b now carries the steps, plus the warning that a handle sitting in
+  `ADMIN_HANDLES` with no account behind it is claimable by anyone who registers it first
+  (`src/lib/viewer.ts` grants admin from the env list alone). Sign-up now logs a warning when that
+  happens.
+* Production email links are confirmed working: an alert confirmation email was requested from the
+  live `/alerts` page and arrived, which is the behaviour the `VERCEL_PROJECT_PRODUCTION_URL` fallback
+  predicts. No Vercel environment change is needed for that.
 * No endpoint in the product reads or returns a password hash; the admin Members page was checked for
   leaked material and carries none.
 
