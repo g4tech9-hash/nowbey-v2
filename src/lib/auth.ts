@@ -41,7 +41,10 @@ export async function setSessionCookie(token: string) {
   const secure = process.env.NODE_ENV === "production";
   jar.set(COOKIE, token, {
     httpOnly: true,
-    sameSite: "strict",
+    // "lax" rather than "strict": top-level redirects from Google OAuth, Stripe billing or email
+    // confirmation links are cross-site navigations, and a strict cookie is withheld by the browser
+    // on the landing page, bouncing a newly signed-in member right back to /login.
+    sameSite: "lax",
     secure,
     path: "/",
     maxAge: SESSION_MAX_AGE,
@@ -53,7 +56,7 @@ export async function clearSessionCookie() {
   const secure = process.env.NODE_ENV === "production";
   jar.set(COOKIE, "", {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     secure,
     path: "/",
     maxAge: 0,

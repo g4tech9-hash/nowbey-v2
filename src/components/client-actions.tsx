@@ -85,7 +85,6 @@ export function ManageBillingButton({ demo }: { demo: boolean }) {
 }
 
 export function SignOut() {
-  const router = useRouter();
   const [busy, setBusy] = useState(false);
   return (
     <button
@@ -94,8 +93,7 @@ export function SignOut() {
       onClick={async () => {
         setBusy(true);
         await fetch("/api/session", { method: "DELETE" });
-        router.refresh();
-        router.push("/");
+        window.location.assign(new URL("/", window.location.origin).href);
       }}
       className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-[#a9cdc9] hover:bg-white/5"
     >

@@ -61,12 +61,19 @@ export async function getViewer(): Promise<Viewer> {
   let u: typeof users.$inferSelect | undefined;
   try {
     [u] = await db.select().from(users).where(eq(users.id, session.uid)).limit(1);
-  } catch (err) {
-    // The root layout of every page calls this, so a database that is briefly unreachable — or not configured at
-    // all, as on a Preview deployment without DATABASE_URL — must not take the whole site down. The visitor is
-    // treated as signed out for this request and signed in again on the next one.
-    console.error("[viewer] session lookup failed, treating as signed out:", (err as Error).message);
-    return ANON;
+  } catch {
+    try {
+      // Retry once: an idle pooled socket that Neon closed while the function was frozen fails on
+      // first touch and is evicted, so the second attempt opens a fresh connection instead of
+      // falsely treating a signed-in member as signed out.
+      [u] = await db.select().from(users).where(eq(users.id, session.uid)).limit(1);
+    } catch (err) {
+      // The root layout of every page calls this, so a database that is briefly unreachable — or not configured at
+      // all, as on a Preview deployment without DATABASE_URL — must not take the whole site down. The visitor is
+      // treated as signed out for this request and signed in again on the next one.
+      console.error("[viewer] session lookup failed, treating as signed out:", (err as Error).message);
+      return ANON;
+    }
   }
   if (!u || u.status === "suspended" || u.sessionVersion !== session.v) return ANON;
   const tier = entitledTier(u, demoPlansAllowed());

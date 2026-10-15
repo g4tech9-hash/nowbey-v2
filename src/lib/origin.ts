@@ -13,7 +13,7 @@
  * it advertised the private API to every origin. Now only listed origins get CORS headers, credentials
  * are never allowed cross-origin, and a write (POST/PATCH/PUT/DELETE) that arrives from an origin that is
  * neither this site nor a listed one is refused before it reaches any route — a second wall behind the
- * SameSite=strict session cookie, covering the routes that never called hasBadOrigin themselves.
+ * SameSite=Lax session cookie, covering the routes that never called hasBadOrigin themselves.
  */
 
 const DEV_ORIGINS = ["http://localhost:8081", "http://localhost:19006", "http://127.0.0.1:8081"];

@@ -12,8 +12,8 @@ export const jsonError = (error: string, status = 400) =>
  * a proxy: the browser-visible host the proxy forwarded (x-forwarded-host), the Host header, and
  * whatever the framework put in req.url. Before this, a server reached through a rewriting proxy
  * (or a dev server bound to 0.0.0.0, where req.url says 0.0.0.0 while the browser says localhost)
- * rejected every same-origin write. The session cookie is SameSite=strict on top of this check,
- * so a forged cross-site request carries no credentials either way.
+ * rejected every same-origin write. The session cookie is SameSite=Lax on top of this check,
+ * so a forged cross-site write carries no credentials either way.
  */
 export function hasBadOrigin(req: Request): boolean {
   const origin = req.headers.get("origin");

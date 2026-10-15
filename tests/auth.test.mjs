@@ -68,9 +68,24 @@ test("sign-up creates the account and a session", async () => {
   assert.equal(res.status, 200, JSON.stringify(res.json));
   assert.equal(res.json.created, true);
   assert.equal(res.json.user.handle, handle);
+  const setCookie = res.headers.getSetCookie().find((c) => c.startsWith("nowbey_session=")) ?? "";
+  assert.match(setCookie, /SameSite=Lax/i, "the session cookie must survive top-level OAuth and email redirects");
   const session = await api("/api/session", { cookie });
   assert.equal(session.json.user.handle, handle);
   assert.equal(session.json.user.emailVerified, false);
+
+  // A signed-in member hitting /login is sent straight through instead of seeing the sign-in form again.
+  const plainLogin = await api("/login", { cookie });
+  assert.equal(plainLogin.status, 307);
+  assert.match(plainLogin.headers.get("location") ?? "", /\/you$/);
+
+  const nextSettings = await api("/login?mode=signin&next=%2Fyou%2Fsettings", { cookie });
+  assert.equal(nextSettings.status, 307);
+  assert.match(nextSettings.headers.get("location") ?? "", /\/you\/settings$/);
+
+  const hostileNext = await api("/login?mode=signin&next=%2F%2Fevil.com", { cookie });
+  assert.equal(hostileNext.status, 307);
+  assert.match(hostileNext.headers.get("location") ?? "", /\/you$/);
 });
 
 test("a second account cannot take the same handle or email", async () => {
