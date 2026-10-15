@@ -9,7 +9,6 @@
     },
     "preview": {
       "distribution": "internal",
-      "image": "latest",
       "android": {
         "buildType": "apk",
         "image": "latest"
@@ -20,7 +19,6 @@
     },
     "production": {
       "distribution": "store",
-      "image": "latest",
       "android": {
         "image": "latest"
       },
