@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: a member cannot give themselves a paid plan when payments are not set up
+ok 1 - a member cannot give themselves a paid plan when payments are not set up
+  ---
+  duration_ms: 563.212005
+  type: 'test'
+  ...
+# Subtest: a demo plan written before the fix no longer unlocks anything
+ok 2 - a demo plan written before the fix no longer unlocks anything
+  ---
+  duration_ms: 306.091309
+  type: 'test'
+  ...
+# Subtest: the plans page says plans open soon instead of offering a button that fails
+ok 3 - the plans page says plans open soon instead of offering a button that fails
+  ---
+  duration_ms: 183.357991
+  type: 'test'
+  ...
+# Subtest: API responses never carry a wildcard CORS header, and strangers get none at all
+ok 4 - API responses never carry a wildcard CORS header, and strangers get none at all
+  ---
+  duration_ms: 214.044985
+  type: 'test'
+  ...
+# Subtest: an allowlisted origin (Expo web in development) gets its own origin echoed, never credentials
+ok 5 - an allowlisted origin (Expo web in development) gets its own origin echoed, never credentials
+  ---
+  duration_ms: 21.332089
+  type: 'test'
+  ...
+# Subtest: a write from a foreign website is refused before it reaches any route
+ok 6 - a write from a foreign website is refused before it reaches any route
+  ---
+  duration_ms: 407.264388
+  type: 'test'
+  ...
+# Subtest: same-site writes, native-app writes (no Origin) and the Stripe webhook still get through
+ok 7 - same-site writes, native-app writes (no Origin) and the Stripe webhook still get through
+  ---
+  duration_ms: 703.023987
+  type: 'test'
+  ...
+# Subtest: a stranger cannot register a handle listed in ADMIN_HANDLES
+ok 8 - a stranger cannot register a handle listed in ADMIN_HANDLES
+  ---
+  duration_ms: 15.514677
+  type: 'test'
+  ...
+# Subtest: an ADMIN_HANDLES account gets no admin rights until its email is confirmed
+ok 9 - an ADMIN_HANDLES account gets no admin rights until its email is confirmed
+  ---
+  duration_ms: 828.982368
+  type: 'test'
+  ...
+# Subtest: new accounts store the versioned scrypt hash
+ok 10 - new accounts store the versioned scrypt hash
+  ---
+  duration_ms: 278.341334
+  type: 'test'
+  ...
+# Subtest: a member with an old-format hash signs in normally and is upgraded silently
+ok 11 - a member with an old-format hash signs in normally and is upgraded silently
+  ---
+  duration_ms: 745.903045
+  type: 'test'
+  ...
+# Subtest: wrong passwords are counted in the shared table and the seventh attempt is refused
+ok 12 - wrong passwords are counted in the shared table and the seventh attempt is refused
+  ---
+  duration_ms: 1887.126224
+  type: 'test'
+  ...
+# Subtest: the gas job no longer writes invented prices
+ok 13 - the gas job no longer writes invented prices
+  ---
+  duration_ms: 76.378948
+  type: 'test'
+  ...
+# Subtest: without the rate_limits table the site keeps working with the old per-instance limits
+ok 14 - without the rate_limits table the site keeps working with the old per-instance limits
+  ---
+  duration_ms: 2579.310129
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8893.375135

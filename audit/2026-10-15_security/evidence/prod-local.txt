@@ -1,0 +1,484 @@
+
+> nextjs-postgresql-template@1.0.0 test:local
+> node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs tests/profile.test.mjs && node --test tests/security.test.mjs
+
+TAP version 13
+# Subtest: the owner account exists locally and can be signed into with a freshly minted password
+ok 1 - the owner account exists locally and can be signed into with a freshly minted password
+  ---
+  duration_ms: 1083.655064
+  type: 'test'
+  ...
+# Subtest: the admin area opens for the owner and stays shut for a plain member
+ok 2 - the admin area opens for the owner and stays shut for a plain member
+  ---
+  duration_ms: 369.789613
+  type: 'test'
+  ...
+# Subtest: the admin Members lever hands out a one-hour reset link, which then works
+ok 3 - the admin Members lever hands out a one-hour reset link, which then works
+  ---
+  duration_ms: 544.106884
+  type: 'test'
+  ...
+# Subtest: the admin API refuses to touch an env admin or the caller's own role
+ok 4 - the admin API refuses to touch an env admin or the caller's own role
+  ---
+  duration_ms: 16.385322
+  type: 'test'
+  ...
+# Subtest: signing out everywhere invalidates other devices without touching the password
+ok 5 - signing out everywhere invalidates other devices without touching the password
+  ---
+  duration_ms: 511.099484
+  type: 'test'
+  ...
+# Subtest: nothing in the product exposes another member's alert address
+ok 6 - nothing in the product exposes another member's alert address
+  ---
+  duration_ms: 1.609252
+  type: 'test'
+  ...
+# Subtest: a weak password is refused, with the reason
+ok 7 - a weak password is refused, with the reason
+  ---
+  duration_ms: 57.528046
+  type: 'test'
+  ...
+# Subtest: a password built from the handle or the email is refused
+ok 8 - a password built from the handle or the email is refused
+  ---
+  duration_ms: 11.239401
+  type: 'test'
+  ...
+# Subtest: sign-up creates the account and a session
+ok 9 - sign-up creates the account and a session
+  ---
+  duration_ms: 266.004067
+  type: 'test'
+  ...
+# Subtest: a second account cannot take the same handle or email
+ok 10 - a second account cannot take the same handle or email
+  ---
+  duration_ms: 275.074688
+  type: 'test'
+  ...
+# Subtest: the wrong password is refused and creates no session
+ok 11 - the wrong password is refused and creates no session
+  ---
+  duration_ms: 267.757279
+  type: 'test'
+  ...
+# Subtest: a signed-out visitor cannot export a member's reports
+ok 12 - a signed-out visitor cannot export a member's reports
+  ---
+  duration_ms: 5.825515
+  type: 'test'
+  ...
+# Subtest: the reset link arrives by email and changes the password
+ok 13 - the reset link arrives by email and changes the password
+  ---
+  duration_ms: 1025.249556
+  type: 'test'
+  ...
+# Subtest: a reset link cannot be replayed
+ok 14 - a reset link cannot be replayed
+  ---
+  duration_ms: 474.351
+  type: 'test'
+  ...
+# Subtest: sign-out ends the session
+ok 15 - sign-out ends the session
+  ---
+  duration_ms: 756.134974
+  type: 'test'
+  ...
+# Subtest: health reports the local stack honestly
+ok 16 - health reports the local stack honestly
+  ---
+  duration_ms: 26.187145
+  type: 'test'
+  ...
+# Subtest: public feeds answer without a session
+ok 17 - public feeds answer without a session
+  ---
+  duration_ms: 91.976631
+  type: 'test'
+  ...
+# Subtest: every phone page answers
+ok 18 - every phone page answers
+  ---
+  duration_ms: 231.622134
+  type: 'test'
+  ...
+# Subtest: the incident page renders for a real report and 404s for nonsense
+ok 19 - the incident page renders for a real report and 404s for nonsense
+  ---
+  duration_ms: 42.867359
+  type: 'test'
+  ...
+# Subtest: deferred products stay switched off at the Nassau launch stage
+ok 20 - deferred products stay switched off at the Nassau launch stage
+  ---
+  duration_ms: 8.81678
+  type: 'test'
+  ...
+# Subtest: a signed-out visitor is sent to sign in for member pages
+ok 21 - a signed-out visitor is sent to sign in for member pages
+  ---
+  duration_ms: 23.26627
+  type: 'test'
+  ...
+# Subtest: the admin area is invisible to everyone but staff
+ok 22 - the admin area is invisible to everyone but staff
+  ---
+  duration_ms: 44.238317
+  type: 'test'
+  ...
+# Subtest: writes from a foreign origin are refused
+ok 23 - writes from a foreign origin are refused
+  ---
+  duration_ms: 3.777181
+  type: 'test'
+  ...
+# Subtest: push registration reflects what the server can actually do
+ok 24 - push registration reflects what the server can actually do
+  ---
+  duration_ms: 12.143101
+  type: 'test'
+  ...
+# Subtest: alert sign-up only accepts email today, and says why for the rest
+ok 25 - alert sign-up only accepts email today, and says why for the rest
+  ---
+  duration_ms: 4.422144
+  type: 'test'
+  ...
+# Subtest: the mobile audit page tells the truth about the app
+ok 26 - the mobile audit page tells the truth about the app
+  ---
+  duration_ms: 9.423331
+  type: 'test'
+  ...
+# Subtest: no page leaks the database or a secret
+ok 27 - no page leaks the database or a secret
+  ---
+  duration_ms: 11.352551
+  type: 'test'
+  ...
+# (node:8612) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/user/nowbey-v2/src/lib/google.ts is not specified and it doesn't parse as CommonJS.
+# Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+# To eliminate this warning, add "type": "module" to /home/user/nowbey-v2/package.json.
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: the status endpoint says the button can work here
+ok 28 - the status endpoint says the button can work here
+  ---
+  duration_ms: 28.84444
+  type: 'test'
+  ...
+# Subtest: start builds a real Google URL with PKCE, and sets a state cookie
+ok 29 - start builds a real Google URL with PKCE, and sets a state cookie
+  ---
+  duration_ms: 7.19752
+  type: 'test'
+  ...
+# Subtest: a brand-new person signs up with Google and gets a session
+ok 30 - a brand-new person signs up with Google and gets a session
+  ---
+  duration_ms: 35.901962
+  type: 'test'
+  ...
+# Subtest: the same person signing in again is matched by their Google id, not by a new account
+ok 31 - the same person signing in again is matched by their Google id, not by a new account
+  ---
+  duration_ms: 71.719865
+  type: 'test'
+  ...
+# Subtest: an existing password account is linked, told about it by email, and other sessions are dropped
+ok 32 - an existing password account is linked, told about it by email, and other sessions are dropped
+  ---
+  duration_ms: 413.80424
+  type: 'test'
+  ...
+# Subtest: a cancelled or tampered handshake signs nobody in
+ok 33 - a cancelled or tampered handshake signs nobody in
+  ---
+  duration_ms: 21.862548
+  type: 'test'
+  ...
+# Subtest: an unverified Google address cannot open an account
+ok 34 - an unverified Google address cannot open an account
+  ---
+  duration_ms: 17.952237
+  type: 'test'
+  ...
+# Subtest: the mobile app gets a one-time code it can trade for a token
+ok 35 - the mobile app gets a one-time code it can trade for a token
+  ---
+  duration_ms: 33.5005
+  type: 'test'
+  ...
+# Subtest: a suspended account is refused, even with a perfect Google sign-in
+ok 36 - a suspended account is refused, even with a perfect Google sign-in
+  ---
+  duration_ms: 26.326874
+  type: 'test'
+  ...
+# Subtest: the return trip can never be sent to another site
+ok 37 - the return trip can never be sent to another site
+  ---
+  duration_ms: 42.110187
+  type: 'test'
+  ...
+# Subtest: PKCE: the challenge is the SHA-256 of the verifier, base64url encoded
+ok 38 - PKCE: the challenge is the SHA-256 of the verifier, base64url encoded
+  ---
+  duration_ms: 0.813106
+  type: 'test'
+  ...
+# Subtest: the auth URL never carries the verifier and always scopes to openid email profile
+ok 39 - the auth URL never carries the verifier and always scopes to openid email profile
+  ---
+  duration_ms: 0.343071
+  type: 'test'
+  ...
+# Subtest: ID token claims are checked: audience, issuer, expiry, verification and shape
+ok 40 - ID token claims are checked: audience, issuer, expiry, verification and shape
+  ---
+  duration_ms: 0.500187
+  type: 'test'
+  ...
+# Subtest: handles from Google addresses are safe, unique, and never on the admin list
+ok 41 - handles from Google addresses are safe, unique, and never on the admin list
+  ---
+  duration_ms: 0.427687
+  type: 'test'
+  ...
+# Subtest: the signed handshake cookie cannot be tampered with or replayed after its expiry
+ok 42 - the signed handshake cookie cannot be tampered with or replayed after its expiry
+  ---
+  duration_ms: 0.866746
+  type: 'test'
+  ...
+# Subtest: Google is reported as configured or not, exactly as the deployment is
+ok 43 - Google is reported as configured or not, exactly as the deployment is
+  ---
+  duration_ms: 0.215714
+  type: 'test'
+  ...
+# Subtest: a database that is missing the Google column is recognised, so the site can say so
+ok 44 - a database that is missing the Google column is recognised, so the site can say so
+  ---
+  duration_ms: 0.281616
+  type: 'test'
+  ...
+# Subtest: a token endpoint that answers with an error cannot sign anyone in
+ok 45 - a token endpoint that answers with an error cannot sign anyone in
+  ---
+  duration_ms: 6.150991
+  type: 'test'
+  ...
+# Subtest: a new member is sent a verification email
+ok 46 - a new member is sent a verification email
+  ---
+  duration_ms: 522.413458
+  type: 'test'
+  ...
+# Subtest: the alert form takes a Nassau address and mails a confirmation
+ok 47 - the alert form takes a Nassau address and mails a confirmation
+  ---
+  duration_ms: 126.782363
+  type: 'test'
+  ...
+# Subtest: a new report emails the confirmed subscriber an alert
+ok 48 - a new report emails the confirmed subscriber an alert
+  ---
+  duration_ms: 340.691045
+  type: 'test'
+  ...
+# Subtest: a storm reaches a free subscriber who filtered that category out
+ok 49 - a storm reaches a free subscriber who filtered that category out
+  ---
+  duration_ms: 324.747989
+  type: 'test'
+  ...
+# Subtest: reports rated annoying stay quiet, but a second report inside three minutes is throttled
+ok 50 - reports rated annoying stay quiet, but a second report inside three minutes is throttled
+  ---
+  duration_ms: 8592.891779
+  type: 'test'
+  ...
+# Subtest: the stop link in an alert removes the profile
+ok 51 - the stop link in an alert removes the profile
+  ---
+  duration_ms: 121.333161
+  type: 'test'
+  ...
+# Subtest: text alerts are refused with a pointer to what does work
+ok 52 - text alerts are refused with a pointer to what does work
+  ---
+  duration_ms: 4.306277
+  type: 'test'
+  ...
+# Subtest: the alert form will not invent an island
+ok 53 - the alert form will not invent an island
+  ---
+  duration_ms: 107.187613
+  type: 'test'
+  ...
+# Subtest: the new profile tables exist and start empty for a fresh member
+ok 54 - the new profile tables exist and start empty for a fresh member
+  ---
+  duration_ms: 330.432024
+  type: 'test'
+  ...
+# Subtest: a member's own profile page opens and shows what will be public
+ok 55 - a member's own profile page opens and shows what will be public
+  ---
+  duration_ms: 42.221247
+  type: 'test'
+  ...
+# Subtest: settings are saved, and the public page reflects them
+ok 56 - settings are saved, and the public page reflects them
+  ---
+  duration_ms: 53.775054
+  type: 'test'
+  ...
+# Subtest: input the route should refuse: junk visibility, a runaway bio, a foreign origin
+ok 57 - input the route should refuse: junk visibility, a runaway bio, a foreign origin
+  ---
+  duration_ms: 23.67797
+  type: 'test'
+  ...
+# Subtest: filing two reports, then hiding one from the profile only
+ok 58 - filing two reports, then hiding one from the profile only
+  ---
+  duration_ms: 114.999751
+  type: 'test'
+  ...
+# Subtest: a member cannot hide someone else's report, and anonymous reports are never listed
+ok 59 - a member cannot hide someone else's report, and anonymous reports are never listed
+  ---
+  duration_ms: 403.186446
+  type: 'test'
+  ...
+# Subtest: going private hides everything but the handle, and the owner can still see it
+ok 60 - going private hides everything but the handle, and the owner can still see it
+  ---
+  duration_ms: 39.238805
+  type: 'test'
+  ...
+# Subtest: a member cannot use the staff door, and staff can grant then revoke the verified badge
+ok 61 - a member cannot use the staff door, and staff can grant then revoke the verified badge
+  ---
+  duration_ms: 101.761402
+  type: 'test'
+  ...
+# Subtest: staff notes are append-only, admin-only and never shown to the member
+ok 62 - staff notes are append-only, admin-only and never shown to the member
+  ---
+  duration_ms: 62.559254
+  type: 'test'
+  ...
+1..62
+# tests 62
+# suites 0
+# pass 62
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18785.766584
+TAP version 13
+# Subtest: a member cannot give themselves a paid plan when payments are not set up
+ok 1 - a member cannot give themselves a paid plan when payments are not set up
+  ---
+  duration_ms: 333.931759
+  type: 'test'
+  ...
+# Subtest: a demo plan written before the fix no longer unlocks anything
+ok 2 - a demo plan written before the fix no longer unlocks anything
+  ---
+  duration_ms: 297.148452
+  type: 'test'
+  ...
+# Subtest: the plans page says plans open soon instead of offering a button that fails
+ok 3 - the plans page says plans open soon instead of offering a button that fails
+  ---
+  duration_ms: 20.932214
+  type: 'test'
+  ...
+# Subtest: API responses never carry a wildcard CORS header, and strangers get none at all
+ok 4 - API responses never carry a wildcard CORS header, and strangers get none at all
+  ---
+  duration_ms: 13.61556
+  type: 'test'
+  ...
+# Subtest: Expo web's development origin is echoed by a development server and refused by a production one
+ok 5 - Expo web's development origin is echoed by a development server and refused by a production one
+  ---
+  duration_ms: 8.957498
+  type: 'test'
+  ...
+# Subtest: a write from a foreign website is refused before it reaches any route
+ok 6 - a write from a foreign website is refused before it reaches any route
+  ---
+  duration_ms: 320.356835
+  type: 'test'
+  ...
+# Subtest: same-site writes, native-app writes (no Origin) and the Stripe webhook still get through
+ok 7 - same-site writes, native-app writes (no Origin) and the Stripe webhook still get through
+  ---
+  duration_ms: 561.106229
+  type: 'test'
+  ...
+# Subtest: a stranger cannot register a handle listed in ADMIN_HANDLES
+ok 8 - a stranger cannot register a handle listed in ADMIN_HANDLES
+  ---
+  duration_ms: 6.298247
+  type: 'test'
+  ...
+# Subtest: an ADMIN_HANDLES account gets no admin rights until its email is confirmed
+ok 9 - an ADMIN_HANDLES account gets no admin rights until its email is confirmed
+  ---
+  duration_ms: 302.867006
+  type: 'test'
+  ...
+# Subtest: new accounts store the versioned scrypt hash
+ok 10 - new accounts store the versioned scrypt hash
+  ---
+  duration_ms: 254.264221
+  type: 'test'
+  ...
+# Subtest: a member with an old-format hash signs in normally and is upgraded silently
+ok 11 - a member with an old-format hash signs in normally and is upgraded silently
+  ---
+  duration_ms: 734.569416
+  type: 'test'
+  ...
+# Subtest: wrong passwords are counted in the shared table and the seventh attempt is refused
+ok 12 - wrong passwords are counted in the shared table and the seventh attempt is refused
+  ---
+  duration_ms: 1843.168451
+  type: 'test'
+  ...
+# Subtest: the gas job no longer writes invented prices
+ok 13 - the gas job no longer writes invented prices
+  ---
+  duration_ms: 11.708678
+  type: 'test'
+  ...
+# Subtest: without the rate_limits table the site keeps working with the old per-instance limits
+ok 14 - without the rate_limits table the site keeps working with the old per-instance limits
+  ---
+  duration_ms: 2497.019192
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7298.188262

@@ -1,0 +1,2292 @@
+diff --git a/.env.example b/.env.example
+index b9303c3..d427403 100644
+--- a/.env.example
++++ b/.env.example
+@@ -24,8 +24,23 @@ MAIL_FROM=NowBey <alerts@your-site.example>
+ # Where Enterprise enquiries are emailed.
+ ENTERPRISE_NOTIFY_TO=
+ 
+-# Comma-separated handles that can open /admin. Register the account first, then add the handle.
++# Comma-separated handles that can open /admin (only once that account's email is confirmed).
+ ADMIN_HANDLES=
++# Who may REGISTER a handle listed in ADMIN_HANDLES: full addresses or whole domains, comma-separated,
++# e.g. "owner@example.com,@example.com". Unset = nobody can register those handles through sign-up.
++ADMIN_EMAILS=
++
++# Pretend checkout that grants plans without payment. Development/preview ONLY — never in production.
++# ALLOW_DEMO_PLANS=true
++
++# Browser origins (besides this site and APP_URL) allowed to call the API cross-origin, comma-separated,
++# e.g. Expo web: "https://app.example.com". Development already allows http://localhost:8081 and :19006.
++# The Android app sends no Origin and needs nothing here.
++ALLOWED_ORIGINS=
++
++# Self-hosting behind your own proxy only: "last" reads the last X-Forwarded-For hop for rate limits.
++# Leave unset on Vercel.
++# TRUST_PROXY=last
+ 
+ # Look and feel. Leave both unset to use whatever an admin chose on the Admin > Appearance page.
+ # NOWBEY_THEME=classic forces the original plain look (no photos, no splash), whatever the admin page says.
+diff --git a/PROGRESS.md b/PROGRESS.md
+index 6b2e782..beb7f49 100644
+--- a/PROGRESS.md
++++ b/PROGRESS.md
+@@ -42,4 +42,4 @@
+ - [2026-10-15] **The profile feature is built, on both sides, and tested.** Everything the previous note said was missing now exists. Member half: `PATCH /api/account/profile` (visibility, bio of at most 200 characters, alert-summary switch — origin check, session check, rate limit, upsert, an emptied bio stored as `NULL`, an unknown visibility refused), `POST`/`DELETE /api/account/profile/hidden` (hide a report from your own listing; ownership checked first, hiding twice is not an error, a deleted report answers 404), `/you/profile` (settings, badges with the reason and date of each grant, reports with a hide switch, anonymous ones flagged with nothing to hide) and `/u/<handle>` (a private profile answers 200 with a plain panel instead of 404ing; the owner and staff see the real page with a banner). Three rules are stated once in `src/lib/profile.ts`: a missing settings row means *open*; hiding a report removes it **from the listing only** — it stays on the map, keeps its confirmations and still counts in the record; and an anonymous report is never listed by name, its own author included. Staff half on `PATCH /api/admin/users`: `note` (append-only `member_notes`, never shown to the member), `grantBadge` (reason required and shown publicly, optional expiry, re-granting replaces the live grant, `desk` never hand-granted) and `revokeBadge` (clears the live grant, keeps the row so the record survives), each writing an audit row; the admin member page shows live grants with a Revoke button, the revoked history, a note box and the notes list. `src/lib/badges.ts` now sources "verified" from live grants — the explicit verification system its own comment promised — so a revoked or expired badge disappears on the next request.
+ - [2026-10-15] How the feature was verified, since the tests are the deliverable as much as the code: a real PostgreSQL 16 server with the schema pushed from `src/db/schema.ts` and seeded by `src/db/seed.sql`, the SMTP capture server, and the real Next.js routes over HTTP. `npm run typecheck` clean, `npm run lint` clean, `npm run build` succeeds with `/you/profile`, `/u/[handle]`, `/api/account/profile`, `/api/account/profile/hidden` and `/api/admin/users` in the route table (the first build attempts here failed only on `next/font` fetching Google Fonts, which this sandbox cannot reach — CI can — so the build was verified with the font loaders temporarily stubbed and the file restored, tree clean). `npm run test:local` 53/53 across all six suites, `npm run test:ui` 7/7, `npm test` 7/7, and the new `tests/profile.test.mjs` 9/9: defaults for a brand-new member, settings round-tripping onto the public page, everything the routes must refuse (junk visibility, a 400-character bio, a cross-site origin, a stranger's report, an id that is not an id), hiding and unhiding with proof the report is still on the map and still counted, what going private hides, and the staff side (a member cannot reach it, a badge needs a reason, re-granting replaces rather than stacks, revoking keeps the record, a note never reaches the member, the audit log carries `member.note`, `badge.grant` and `badge.revoke`). Three test bugs found and fixed on the way, each a real lesson about the product: both profile pages print a report's *title* rather than its street; JSX splits text around an interpolation, so `assert.match` on a sentence with a variable in it must stop before the variable; and two reports filed at the same place trip the app's own 180 m duplicate rule, so the hiding test files its pins on opposite sides of New Providence. The suites also needed `src/db/seed.sql` and a `MAIL_FROM` containing `nowbey.test`, both now part of the local stack.
+ - [2026-10-15] Noted while running the suites: `tests/harness/env.mjs` refers to `tests/run-local.sh` for wiring the local stack (Postgres, a self-signed certificate, the SMTP catcher, `npm run dev`), but that script is not in the repository — the stack has to be assembled by hand. Worth committing, because the failure mode without it is confusing: a fresh database built only from `src/db/create-tables.sql` is missing columns that `schema.ts` has (the first full test run here failed 22 tests on `column "token_hash" does not exist`, all of them fixed by `npx drizzle-kit push` against a database created from the schema).
+-
++- [2026-10-15] Security update (full report: `audit/2026-10-15_security/REPORT.md`, evidence in `evidence/`). Fixed: free self-granted paid plans in production (demo checkout now needs `ALLOW_DEMO_PLANS=true`, checkout answers "Plans open soon"); first-come claim of `ADMIN_HANDLES` handles (needs `ADMIN_EMAILS` to register and a confirmed email for rights); wildcard CORS; cross-site writes (proxy refuses foreign/`null` Origin on unsafe /api methods); per-instance rate limits (shared `rate_limits` table with in-memory fallback); weak synchronous password hashing (versioned async scrypt, legacy hashes upgraded at sign-in); invented gas prices from the gas cron (now a no-op; SQL deletes the rows); security headers (XFO, frame/base/object/form CSP in production). Found and fixed a pool-exhaustion bug in `src/db/index.ts` (lazy proxy called pg methods with the wrong `this`). App 1.2.2: server switch signs out instead of leaking the token, https-only except local addresses, Leaflet SRI, `allowBackup=false`. New tests: `tests/security-unit.test.mjs` (in `npm test`/CI), `tests/security.test.mjs` (in `test:local`), `npm run fuzz`. Original code: 1/14 security tests pass; fixed code: 14/14 on dev and production builds, 62/62 live, 7/7 UI, 22/22 unit, 0 findings in 17,832 fuzz requests. Owner steps: TODO_HUMAN §0a (rotate Vercel token leaked at `9e4eb47`, run `src/db/add-security-fixes.sql`, set `ADMIN_EMAILS`).
+diff --git a/TODO_HUMAN.md b/TODO_HUMAN.md
+index e12fb20..2e1f588 100644
+--- a/TODO_HUMAN.md
++++ b/TODO_HUMAN.md
+@@ -1,24 +1,64 @@
+ # TODO_HUMAN — production setup, manual steps (no guessing)
+ 
+-## 0b. Claim the owner handles (do this first)
++## 0a. After the security update deploys (2026-10-15) — in this order
++
++Full write-up: `audit/2026-10-15_security/REPORT.md`. Do steps 1–3 the same day as the deploy.
++
++1. **Rotate the leaked Vercel credential.** `.env.vercel` (a `VERCEL_OIDC_TOKEN`) is in this *public*
++   repository's history at commit `9e4eb47`; deleting the file does not remove it. In Vercel → Account
++   Settings → Tokens, delete every token you do not recognise, create a new one, and paste it into GitHub →
++   repo Settings → Secrets and variables → Actions → `VERCEL_TOKEN`. Then Vercel → the project →
++   Settings → Security → check "Deployment Protection" and the team's audit log for deploys you did not
++   make. Never commit `.env*` files (they are in `.gitignore`).
++2. **Run the SQL once.** Neon → SQL editor → paste all of `src/db/add-security-fixes.sql` → Run. It
++   creates the shared `rate_limits` table and deletes the invented gas prices the old cron inserted. It is
++   safe to run twice. Until it runs the site works, with the older per-server limits.
++3. **Set `ADMIN_EMAILS` before claiming the admin handle.** Vercel → Settings → Environment Variables →
++   Production: `ADMIN_EMAILS=you@yourdomain.com` (comma-separate several; `@yourdomain.com` allows a
++   whole domain). Redeploy. Without it, nobody — including you — can register `mario242` or
++   `eastsiderick`; the form answers "reserved". Then do §0b.
++4. **Confirm the email on every admin account.** Admin rights from `ADMIN_HANDLES` now need a confirmed
++   email. If `/admin` stops opening, open the confirmation email (or Settings → resend it).
++5. **Check who holds admin.** Neon SQL editor:
++   `select handle, email, role, email_verified_at, created_at from users where role='admin' or handle in ('mario242','eastsiderick');`
++   Anything you do not recognise: Members page → suspend, or `update users set role='user' where handle='…';`.
++6. **Clear self-granted plans.** Before the fix any member could give themselves a paid plan through the
++   pretend checkout; those rows have `plan_status='sandbox'`. They no longer unlock anything, but list
++   and clear them so the Members page is truthful:
++   `select handle, ad_free_tier, plan_interval, created_at from users where plan_status='sandbox';`
++   `update users set ad_free_tier=null, plan_interval=null, plan_status=null, plan_renews_at=null where plan_status='sandbox';`
++   Complimentary plans you gave (`plan_status='comp'`) are untouched.
++7. **Leave `ALLOW_DEMO_PLANS` unset in Production.** Set it to `true` only on Preview/Development if you
++   want the pretend checkout for testing.
++8. **Only if you use the app in a browser (Expo web) against production:** add its address to
++   `ALLOWED_ORIGINS` (comma-separated, e.g. `https://app.example.com`). The Android app needs nothing.
++9. **Only if you self-host behind your own proxy (not Vercel):** make the proxy overwrite
++   `X-Forwarded-For`, or set `TRUST_PROXY=last`. On Vercel leave it unset.
++10. **Background photos.** `src/lib/themes.ts` expects `public/scenes/nassau.jpg`, `aerial.jpg`,
++    `sunset.jpg`, `shore.jpg`, `lagoon.jpg`, but there is no `public/` folder in the repository, so they
++    404 on the live site and pages show the plain dark background instead. Add your own JPEGs (landscape,
++    ~2000 px wide, under 500 KB, photos you have the rights to) under `public/scenes/` and commit them.
++11. **Install the new Android build (1.2.2).** It installs over the old one. If you had changed the
++    server address in the app, it signs you out once — sign in again.
++
++## 0b. Claim the owner handles (after §0a step 3)
+ 
+ **Evidence (2026-10-15, from the production site itself):** signing in as `mario242` or `eastsiderick`
+-answers "No account has the handle @…". The deployed code only prints that sentence after looking the
+-handle up and finding no row, so **neither account exists in the production database yet** — there is
+-no password to reset and no role to restore. Both handles are listed in `ADMIN_HANDLES` /
+-`src/db/setup_admins.sql`, which are instructions to *grant* rights, not accounts.
+-
+-Until the handle exists, any handle on the `ADMIN_HANDLES` list is a seat waiting to be taken:
+-`src/lib/viewer.ts` makes that handle an admin the moment it is registered. So:
+-
+-1. On the live site, tap **Create account** and register `mario242` (a second one for `eastsiderick` if
+-   you use it) with an email you control and a strong password. Sign-up emails a confirmation link —
+-   tap it.
+-2. Check Vercel → Settings → Environment Variables: if `ADMIN_HANDLES=mario242` is set, step 1 already
+-   made the account an admin (`/admin` opens). If it is not set, either add it there (Production) and
+-   redeploy, or run `src/db/setup_admins.sql` in the Neon SQL editor to set `role='admin'`.
+-3. Never leave an unclaimed handle in `ADMIN_HANDLES`. If you must keep the list ahead of the account,
+-   claim the handle first.
++answers "No account has the handle @…", so **neither account exists in the production database yet**.
++Both handles are listed in `ADMIN_HANDLES` / `src/db/setup_admins.sql`, which are instructions to *grant*
++rights, not accounts.
++
++Before the 2026-10-15 security update, an unclaimed handle on that list was a seat waiting to be taken by
++whoever registered it first. It is now locked twice: registering it needs an address in `ADMIN_EMAILS`, and
++its admin rights need a confirmed email. So:
++
++1. Set `ADMIN_EMAILS` (§0a step 3) and redeploy.
++2. On the live site, tap **Create account** and register `mario242` (a second one for `eastsiderick` if
++   you use it) **with an address in `ADMIN_EMAILS`** and a strong password. Tap the confirmation link in
++   the email — admin rights start only after that.
++3. Check Vercel → Settings → Environment Variables: with `ADMIN_HANDLES=mario242` set, `/admin` now opens.
++   If it is not set, either add it (Production) and redeploy, or run `src/db/setup_admins.sql` in the
++   Neon SQL editor to set `role='admin'`.
+ 
+ `setup_admins.sql` never touches passwords, and the product has no endpoint that reads or writes one.
+ The two supported ways back into an existing account are the member's own reset email
+diff --git a/expo/app.json b/expo/app.json
+index d25c11f..524d0dc 100644
+--- a/expo/app.json
++++ b/expo/app.json
+@@ -2,7 +2,7 @@
+   "expo": {
+     "name": "NowBey",
+     "slug": "nowbey",
+-    "version": "1.2.1",
++    "version": "1.2.2",
+     "orientation": "portrait",
+     "userInterfaceStyle": "dark",
+     "ios": {
+@@ -16,7 +16,7 @@
+     "android": {
+       "package": "app.nowbey.mobile",
+       "googleServicesFile": "./google-services.json",
+-      "versionCode": 2,
++      "versionCode": 3,
+       "predictiveBackGestureEnabled": false,
+       "adaptiveIcon": {
+         "foregroundImage": "./assets/adaptive-icon.png",
+@@ -26,7 +26,8 @@
+         "android.permission.ACCESS_COARSE_LOCATION",
+         "android.permission.ACCESS_FINE_LOCATION",
+         "android.permission.POST_NOTIFICATIONS"
+-      ]
++      ],
++      "allowBackup": false
+     },
+     "web": {
+       "bundler": "metro",
+diff --git a/expo/app/(tabs)/you.tsx b/expo/app/(tabs)/you.tsx
+index 2f19689..9e3234a 100644
+--- a/expo/app/(tabs)/you.tsx
++++ b/expo/app/(tabs)/you.tsx
+@@ -323,11 +323,11 @@ function ServerBox() {
+     setBusy(true);
+     setNote(null);
+     try {
+-      await changeApiBase(value);
++      const { signedOut } = await changeApiBase(value);
+       setValue(API_BASE);
+-      await api.incidents({ limit: 1 });
+-      setNote("Connected.");
+       await refresh();
++      await api.incidents({ limit: 1 });
++      setNote(signedOut ? "Connected. You were signed out because the server changed. Sign in again to use your account there." : "Connected.");
+     } catch (e) {
+       setNote(errMsg(e));
+     } finally {
+diff --git a/expo/src/MapCanvas.tsx b/expo/src/MapCanvas.tsx
+index 801c00c..bf380de 100644
+--- a/expo/src/MapCanvas.tsx
++++ b/expo/src/MapCanvas.tsx
+@@ -24,7 +24,7 @@ const safe = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
+ 
+ function buildHtml(initial: { lat: number; lng: number; zoom: number; pins: unknown; pick: unknown; pickable: boolean }): string {
+   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
++<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+ <style>
+ html,body,#map{height:100%;margin:0;background:#0b2230}
+ .leaflet-container{font-family:-apple-system,Roboto,sans-serif}
+@@ -35,7 +35,7 @@ html,body,#map{height:100%;margin:0;background:#0b2230}
+ </style></head><body>
+ <div id="map"></div><button id="mode" type="button">Street map</button><div id="credit"></div>
+ <div id="msg">The map needs an internet connection.</div>
+-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
++<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+ <script>
+ (function(){
+   function send(o){ try{ window.ReactNativeWebView.postMessage(JSON.stringify(o)); }catch(e){} }
+diff --git a/expo/src/api.ts b/expo/src/api.ts
+index f4db4ad..06ef871 100644
+--- a/expo/src/api.ts
++++ b/expo/src/api.ts
+@@ -1,6 +1,6 @@
+ import Constants from "expo-constants";
+ import { Platform } from "react-native";
+-import { getServer, getToken, setServer } from "./storage";
++import { getServer, getToken, setPushToken, setServer, setToken } from "./storage";
+ import type { CategoryKey } from "./geo";
+ 
+ /**
+@@ -46,11 +46,59 @@ export async function loadApiBase(): Promise<void> {
+   if (saved) API_BASE = clean(saved);
+ }
+ 
+-/** Saves a new website address (or clears it with an empty string). */
+-export async function changeApiBase(url: string): Promise<void> {
++/**
++ * Plain http is only acceptable on this phone or the local network (a developer's laptop). Anywhere else
++ * the sign-in token and every report would cross the internet unencrypted.
++ */
++export function insecureServer(url: string): boolean {
++  let u: URL;
++  try {
++    u = new URL(url);
++  } catch {
++    return true;
++  }
++  if (u.protocol === "https:") return false;
++  if (u.protocol !== "http:") return true;
++  const h = u.hostname;
++  return !(
++    h === "localhost" ||
++    /^127\./.test(h) ||
++    /^10\./.test(h) ||
++    /^192\.168\./.test(h) ||
++    /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
++    h.endsWith(".local")
++  );
++}
++
++function originOf(url: string): string {
++  try {
++    return new URL(url).origin;
++  } catch {
++    return url;
++  }
++}
++
++/**
++ * Saves a new website address (or clears it with an empty string).
++ *
++ * The sign-in token belongs to the server that issued it. Pointing the app at a different server signs
++ * this phone out first, so a token is never handed to a server that did not create it — otherwise anyone
++ * who talked a member into "changing the server address" would receive their session with the next request.
++ */
++export async function changeApiBase(url: string): Promise<{ signedOut: boolean }> {
+   const next = clean(url);
++  if (next && insecureServer(next)) {
++    throw new ApiError("Use an https:// address. Plain http:// only works for a computer on your own Wi-Fi.", 0);
++  }
++  const target = next || initialBase();
++  const moving = originOf(target) !== originOf(API_BASE);
++  if (moving) {
++    await setToken(null);
++    await setPushToken(null);
++  }
+   await setServer(next || null);
+-  API_BASE = next || initialBase();
++  API_BASE = target;
++  return { signedOut: moving };
+ }
+ 
+ export type StationPrice = { station: string; parish: string; fuel: "regular" | "premium" | "diesel"; priceCents: number; reportedAt: string; reports: number };
+diff --git a/next.config.ts b/next.config.ts
+index 3f1fb6a..24f2af5 100644
+--- a/next.config.ts
++++ b/next.config.ts
+@@ -1,8 +1,6 @@
+ import type { NextConfig } from "next";
+ 
+ // Sent with every page and API response.
+-// X-Frame-Options and a frame-ancestors policy are left out on purpose: the preview and editor tools show NowBey inside
+-// a frame, and blocking that would blank the preview. Add them when you deploy for real if you do not need framing.
+ const securityHeaders = [
+   { key: "X-Content-Type-Options", value: "nosniff" },
+   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+@@ -10,23 +8,27 @@ const securityHeaders = [
+   { key: "Strict-Transport-Security", value: "max-age=15552000" },
+ ];
+ 
++// Production builds also refuse to be framed (clickjacking on /login, /you/settings and /admin) and lock
++// down the policy directives that cannot break a page: no plugins, no <base> hijack, forms post only here.
++// Development is left frameable on purpose, because preview and editor tools show the dev server in a frame.
++// Scripts and styles are not restricted here: Next.js inlines its bootstrap, and a script policy needs
++// nonces wired through the app before it can be switched on without blanking pages.
++const productionOnlyHeaders =
++  process.env.NODE_ENV === "production"
++    ? [
++        { key: "X-Frame-Options", value: "DENY" },
++        { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'" },
++      ]
++    : [];
++
+ const nextConfig: NextConfig = {
+   poweredByHeader: false,
+   // Type errors fail the build on purpose: `npm run typecheck` is clean,
+   // so a red Vercel build means a real regression, not background noise.
+   async headers() {
+     return [
+-      { source: "/:path*", headers: securityHeaders },
+-      // The mobile app (and Expo web) call these routes from another origin.
+-      // Sign-in there uses a bearer token, not cookies, so a wildcard origin is safe.
+-      {
+-        source: "/api/:path*",
+-        headers: [
+-          { key: "Access-Control-Allow-Origin", value: "*" },
+-          { key: "Access-Control-Allow-Methods", value: "GET,POST,PATCH,DELETE,OPTIONS" },
+-          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization, x-nowbey-client" },
+-        ],
+-      },
++      { source: "/:path*", headers: [...securityHeaders, ...productionOnlyHeaders] },
++      // CORS for /api is decided per request in src/proxy.ts (allowlist, never "*", never credentials).
+     ];
+   },
+ };
+diff --git a/package.json b/package.json
+index f9fe176..b6a0534 100644
+--- a/package.json
++++ b/package.json
+@@ -10,9 +10,10 @@
+     "start": "next start",
+     "lint": "eslint .",
+     "typecheck": "tsc --noEmit",
+-    "test": "node --test tests/collect.test.mjs tests/redirect.test.mjs",
+-    "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs tests/profile.test.mjs",
++    "test": "node --test tests/collect.test.mjs tests/redirect.test.mjs tests/security-unit.test.mjs",
++    "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs tests/profile.test.mjs && node --test tests/security.test.mjs",
+     "test:ui": "node --test tests/ui.test.mjs",
++    "fuzz": "node tests/fuzz.mjs",
+     "audit:mobile": "node scripts/mobile-audit.mjs"
+   },
+   "dependencies": {
+diff --git a/src/app/api/account/email/route.ts b/src/app/api/account/email/route.ts
+index af99054..dee37d6 100644
+--- a/src/app/api/account/email/route.ts
++++ b/src/app/api/account/email/route.ts
+@@ -5,7 +5,7 @@ import { users } from "@/db/schema";
+ import { sendVerificationEmail } from "@/lib/account";
+ import { verifyPassword } from "@/lib/auth";
+ import { publicBase } from "@/lib/billing";
+-import { exhausted, forget, hit, record, tooMany } from "@/lib/ratelimit";
++import { sharedExhausted, sharedForget, hit, sharedRecord, tooMany } from "@/lib/ratelimit";
+ import { EMAIL_RE, text, readJson } from "@/lib/validate";
+ import { getViewer } from "@/lib/viewer";
+ 
+@@ -18,7 +18,7 @@ export async function POST(req: Request) {
+   const gate = hit(`emailchange:${viewer.userId}`, 5, 60 * 60_000);
+   if (!gate.ok) return tooMany(gate.retryAfter, "email changes");
+   const failKey = `pwfail:${viewer.userId}`;
+-  const lock = exhausted(failKey, 6, 15 * 60_000);
++  const lock = await sharedExhausted(failKey, 6, 15 * 60_000);
+   if (lock.blocked) return tooMany(lock.retryAfter, "password attempts");
+ 
+   const body = await readJson(req);
+@@ -27,11 +27,11 @@ export async function POST(req: Request) {
+   if (!EMAIL_RE.test(email)) return NextResponse.json({ error: "That email address does not look right." }, { status: 400 });
+ 
+   const [u] = await db.select().from(users).where(eq(users.id, viewer.userId)).limit(1);
+-  if (!u || !verifyPassword(password, u.passwordHash)) {
+-    record(failKey, 15 * 60_000);
++  if (!u || !(await verifyPassword(password, u.passwordHash))) {
++    await sharedRecord(failKey, 15 * 60_000);
+     return NextResponse.json({ error: "Your password is not right." }, { status: 401 });
+   }
+-  forget(failKey);
++  await sharedForget(failKey);
+   if (u.email === email) return NextResponse.json({ error: "That is already your email address." }, { status: 400 });
+ 
+   try {
+diff --git a/src/app/api/account/forgot/route.ts b/src/app/api/account/forgot/route.ts
+index 9c187e6..ce452a2 100644
+--- a/src/app/api/account/forgot/route.ts
++++ b/src/app/api/account/forgot/route.ts
+@@ -4,7 +4,7 @@ import { db } from "@/db";
+ import { users } from "@/db/schema";
+ import { sendResetEmail } from "@/lib/account";
+ import { publicBase } from "@/lib/billing";
+-import { clientIp, hit, tooMany } from "@/lib/ratelimit";
++import { clientIp, sharedHit, tooMany } from "@/lib/ratelimit";
+ import { EMAIL_RE, text, readJson } from "@/lib/validate";
+ 
+ 
+@@ -13,7 +13,7 @@ import { EMAIL_RE, text, readJson } from "@/lib/validate";
+  * find out who is registered. The work happens after the reply so the timing does not give it away either.
+  */
+ export async function POST(req: Request) {
+-  const gate = hit(`forgot:${clientIp(req)}`, 6, 60 * 60_000);
++  const gate = await sharedHit(`forgot:${clientIp(req)}`, 6, 60 * 60_000);
+   if (!gate.ok) return tooMany(gate.retryAfter, "reset requests");
+ 
+   const body = await readJson(req);
+@@ -23,7 +23,7 @@ export async function POST(req: Request) {
+   }
+ 
+   // At most three reset emails per address per hour, so nobody can be flooded with them.
+-  const perAddress = hit(`forgotmail:${email}`, 3, 60 * 60_000);
++  const perAddress = await sharedHit(`forgotmail:${email}`, 3, 60 * 60_000);
+   if (perAddress.ok) {
+     const base = publicBase(req);
+     after(async () => {
+diff --git a/src/app/api/account/password/route.ts b/src/app/api/account/password/route.ts
+index 5a681fd..94c631f 100644
+--- a/src/app/api/account/password/route.ts
++++ b/src/app/api/account/password/route.ts
+@@ -6,7 +6,7 @@ import { users } from "@/db/schema";
+ import { reissueSession } from "@/lib/account";
+ import { hashPassword, verifyPassword } from "@/lib/auth";
+ import { checkPassword } from "@/lib/password";
+-import { exhausted, forget, record, tooMany } from "@/lib/ratelimit";
++import { sharedExhausted, sharedForget, sharedRecord, tooMany } from "@/lib/ratelimit";
+ import { getViewer } from "@/lib/viewer";
+ 
+ 
+@@ -15,7 +15,7 @@ export async function POST(req: Request) {
+   if (!viewer.signedIn || !viewer.userId) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+ 
+   const failKey = `pwfail:${viewer.userId}`;
+-  const lock = exhausted(failKey, 6, 15 * 60_000);
++  const lock = await sharedExhausted(failKey, 6, 15 * 60_000);
+   if (lock.blocked) return tooMany(lock.retryAfter, "password attempts");
+ 
+   const body = await readJson(req);
+@@ -23,22 +23,22 @@ export async function POST(req: Request) {
+   const next = typeof body.next === "string" ? body.next : "";
+ 
+   const [u] = await db.select().from(users).where(eq(users.id, viewer.userId)).limit(1);
+-  if (!u || !verifyPassword(current, u.passwordHash)) {
+-    record(failKey, 15 * 60_000);
++  if (!u || !(await verifyPassword(current, u.passwordHash))) {
++    await sharedRecord(failKey, 15 * 60_000);
+     return NextResponse.json({ error: "Your current password is not right." }, { status: 401 });
+   }
+-  forget(failKey);
++  await sharedForget(failKey);
+ 
+   const problem = checkPassword(next, { handle: u.handle, email: u.email ?? undefined });
+   if (problem) return NextResponse.json({ error: problem }, { status: 400 });
+-  if (verifyPassword(next, u.passwordHash)) {
++  if (await verifyPassword(next, u.passwordHash)) {
+     return NextResponse.json({ error: "Choose a password you are not already using." }, { status: 400 });
+   }
+ 
+   // Signs out every other device. This one gets a fresh sign-in so you are not kicked out of your own change.
+   const [row] = await db
+     .update(users)
+-    .set({ passwordHash: hashPassword(next), passwordChangedAt: new Date(), sessionVersion: sql`${users.sessionVersion} + 1` })
++    .set({ passwordHash: await hashPassword(next), passwordChangedAt: new Date(), sessionVersion: sql`${users.sessionVersion} + 1` })
+     .where(eq(users.id, u.id))
+     .returning({ v: users.sessionVersion });
+   const reissued = await reissueSession(req, u.id, u.handle, row.v);
+diff --git a/src/app/api/account/reset/route.ts b/src/app/api/account/reset/route.ts
+index 5a87a26..f2841b7 100644
+--- a/src/app/api/account/reset/route.ts
++++ b/src/app/api/account/reset/route.ts
+@@ -6,13 +6,13 @@ import { accountTokens, users } from "@/db/schema";
+ import { consumeToken, peekToken } from "@/lib/account";
+ import { hashPassword } from "@/lib/auth";
+ import { checkPassword } from "@/lib/password";
+-import { clientIp, hit, tooMany } from "@/lib/ratelimit";
++import { clientIp, sharedHit, tooMany } from "@/lib/ratelimit";
+ 
+ 
+ const BAD_LINK = "This reset link is not valid any more. Ask for a new one.";
+ 
+ export async function POST(req: Request) {
+-  const gate = hit(`reset:${clientIp(req)}`, 10, 15 * 60_000);
++  const gate = await sharedHit(`reset:${clientIp(req)}`, 10, 15 * 60_000);
+   if (!gate.ok) return tooMany(gate.retryAfter, "attempts");
+ 
+   const body = await readJson(req);
+@@ -34,7 +34,7 @@ export async function POST(req: Request) {
+   await db
+     .update(users)
+     .set({
+-      passwordHash: hashPassword(password),
++      passwordHash: await hashPassword(password),
+       passwordChangedAt: new Date(),
+       // Changing the password signs the member out everywhere, which is what you want after a reset.
+       sessionVersion: sql`${users.sessionVersion} + 1`,
+diff --git a/src/app/api/account/route.ts b/src/app/api/account/route.ts
+index 476932b..ce648ce 100644
+--- a/src/app/api/account/route.ts
++++ b/src/app/api/account/route.ts
+@@ -5,7 +5,7 @@ import { alertSubscriptions, incidentUpdates, incidents, users } from "@/db/sche
+ import { clearSessionCookie, verifyPassword } from "@/lib/auth";
+ import { PARISHES } from "@/lib/geo";
+ import { isEnvAdmin } from "@/lib/handles";
+-import { exhausted, forget, record, tooMany } from "@/lib/ratelimit";
++import { sharedExhausted, sharedForget, sharedRecord, tooMany } from "@/lib/ratelimit";
+ import { text, readJson } from "@/lib/validate";
+ import { getViewer } from "@/lib/viewer";
+ 
+@@ -35,17 +35,17 @@ export async function DELETE(req: Request) {
+   if (!viewer.signedIn || !viewer.userId || !viewer.handle) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
+ 
+   const failKey = `pwfail:${viewer.userId}`;
+-  const lock = exhausted(failKey, 6, 15 * 60_000);
++  const lock = await sharedExhausted(failKey, 6, 15 * 60_000);
+   if (lock.blocked) return tooMany(lock.retryAfter, "password attempts");
+ 
+   const body = await readJson(req);
+   const password = typeof body.password === "string" ? body.password : "";
+   const [u] = await db.select().from(users).where(eq(users.id, viewer.userId)).limit(1);
+-  if (!u || !verifyPassword(password, u.passwordHash)) {
+-    record(failKey, 15 * 60_000);
++  if (!u || !(await verifyPassword(password, u.passwordHash))) {
++    await sharedRecord(failKey, 15 * 60_000);
+     return NextResponse.json({ error: "That password is not right." }, { status: 401 });
+   }
+-  forget(failKey);
++  await sharedForget(failKey);
+ 
+   if (u.role === "admin" || isEnvAdmin(u.handle)) {
+     return NextResponse.json({ error: "Admin accounts cannot be deleted here. Ask another admin to change your role first." }, { status: 409 });
+diff --git a/src/app/api/billing/checkout/route.ts b/src/app/api/billing/checkout/route.ts
+index ee03672..af3ccc5 100644
+--- a/src/app/api/billing/checkout/route.ts
++++ b/src/app/api/billing/checkout/route.ts
+@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
+ import { db } from "@/db";
+ import { users } from "@/db/schema";
+ import { getViewer } from "@/lib/viewer";
+-import { baseUrl, stripe, stripeConfigured } from "@/lib/billing";
++import { baseUrl, demoPlansAllowed, stripe, stripeConfigured } from "@/lib/billing";
+ import { TIERS, isInterval, isTierKey, priceCents } from "@/lib/tiers";
+ 
+ 
+@@ -34,7 +34,15 @@ export async function POST(req: Request) {
+     );
+   }
+ 
+-  // Demo mode: no payment provider is connected, so nothing is charged.
++  // No payment provider and no demo switch: plans cannot be bought here yet. Staff can still give one.
++  if (!stripeConfigured() && !demoPlansAllowed()) {
++    return NextResponse.json(
++      { error: "Plans open soon. Payments are not set up yet, so nothing can be bought today." },
++      { status: 503 },
++    );
++  }
++
++  // Demo mode (ALLOW_DEMO_PLANS=true, development or preview only): nothing is charged.
+   if (!stripeConfigured()) {
+     await db
+       .update(users)
+diff --git a/src/app/api/cron/gas-update/route.ts b/src/app/api/cron/gas-update/route.ts
+index fed6e69..1ef2b5d 100644
+--- a/src/app/api/cron/gas-update/route.ts
++++ b/src/app/api/cron/gas-update/route.ts
+@@ -1,43 +1,25 @@
+ import { NextResponse } from "next/server";
+-import { db } from "@/db";
+-import { gasReports } from "@/db/schema";
++import { officialPrices } from "@/lib/gas";
+ import { cronUnauthorized, isCronAuthorized } from "@/lib/cron";
+ 
+ export const runtime = "nodejs";
+-export const maxDuration = 60;
+ 
++/**
++ * Daily gas job. It used to insert three hard-coded prices (Shell 7.08, Esso 7.50, Rubis 7.56) as if a
++ * member had reported them, every run, so the Gas board slowly filled with invented numbers presented as
++ * real. There is no trustworthy price feed for The Bahamas to read yet, so this job now writes nothing:
++ * government-set prices are shown straight from GAS_OFFICIAL, and station prices come only from members.
++ * The route stays so an existing scheduler does not start failing, and it says plainly what it did.
++ */
+ export async function GET(request: Request) {
+-  // Security: constant-time check; 404 so scanners can't tell cron routes exist.
+   if (!isCronAuthorized(request)) {
+     return cronUnauthorized();
+   }
+-
+-  try {
+-    // In a real scenario, we would scrape The Tribune here.
+-    // For the requirement: "implement a backend scheduled task designed to run every morning".
+-    // We'll use a mock data fetcher for now.
+-    const prices = [
+-      { station: "Shell", price: 708, fuel: "regular", parish: "New Providence" },
+-      { station: "Esso", price: 750, fuel: "regular", parish: "New Providence" },
+-      { station: "Rubis", price: 756, fuel: "regular", parish: "New Providence" },
+-    ];
+-
+-    for (const p of prices) {
+-      // Upsert logic: update the latest report for the station/fuel/parish combo
+-      // or just insert a new one for the daily tracker.
+-      await db.insert(gasReports).values({
+-        userId: null, // system/official price, not a member report
+-        station: p.station,
+-        parish: p.parish,
+-        fuel: p.fuel,
+-        priceCents: p.price,
+-        createdAt: new Date(),
+-      });
+-    }
+-
+-    return NextResponse.json({ success: true, updated: prices.length });
+-  } catch (e) {
+-    console.error("Gas update failed:", e);
+-    return NextResponse.json({ error: "Failed to update gas prices" }, { status: 500 });
+-  }
++  const official = officialPrices();
++  return NextResponse.json({
++    success: true,
++    updated: 0,
++    note: "No price feed is connected, so nothing was written. Official prices come from GAS_OFFICIAL; station prices come from members.",
++    official,
++  });
+ }
+diff --git a/src/app/api/session/route.ts b/src/app/api/session/route.ts
+index 682e27b..7e807d2 100644
+--- a/src/app/api/session/route.ts
++++ b/src/app/api/session/route.ts
+@@ -2,13 +2,13 @@ import { NextResponse, after } from "next/server";
+ import { eq } from "drizzle-orm";
+ import { db } from "@/db";
+ import { users } from "@/db/schema";
+-import { clearSessionCookie, hashPassword, makeToken, setSessionCookie, verifyPassword } from "@/lib/auth";
++import { clearSessionCookie, hashPassword, makeToken, passwordNeedsRehash, setSessionCookie, verifyPassword } from "@/lib/auth";
+ import { getViewer, type Viewer } from "@/lib/viewer";
+ import { PARISHES } from "@/lib/geo";
+-import { clientIp, exhausted, forget, hit, record, tooMany } from "@/lib/ratelimit";
++import { clientIp, sharedExhausted, sharedForget, sharedHit, sharedRecord, tooMany } from "@/lib/ratelimit";
+ import { EMAIL_RE, text, readJson } from "@/lib/validate";
+ import { badOrigin, hasBadOrigin } from "@/lib/http";
+-import { HANDLE_RE, envAdminHandles, handleProblem, normalizeHandle } from "@/lib/handles";
++import { HANDLE_RE, envAdminHandles, handleProblem, isEnvAdmin, mayClaimAdminHandle, normalizeHandle } from "@/lib/handles";
+ import { MAX_PASSWORD, checkPassword } from "@/lib/password";
+ import { sendVerificationEmail } from "@/lib/account";
+ import { publicBase } from "@/lib/billing";
+@@ -75,10 +75,15 @@ export async function POST(req: Request) {
+     if (!EMAIL_RE.test(email)) {
+       return NextResponse.json({ error: "Enter a valid email address. It is how we help you if you forget your password." }, { status: 400 });
+     }
++    // A handle in ADMIN_HANDLES carries admin rights, so only an address in ADMIN_EMAILS may register it.
++    // Everyone else gets the same answer as any other reserved word.
++    if (isEnvAdmin(handle) && !mayClaimAdminHandle(email)) {
++      return NextResponse.json({ error: "That handle is reserved. Please choose another." }, { status: 400 });
++    }
+     const passwordIssue = checkPassword(password, { handle, email });
+     if (passwordIssue) return NextResponse.json({ error: passwordIssue }, { status: 400 });
+ 
+-    const gate = hit(`signup:${ip}`, 10, 60 * 60_000);
++    const gate = await sharedHit(`signup:${ip}`, 10, 60 * 60_000);
+     if (!gate.ok) return tooMany(gate.retryAfter, "sign-ups");
+ 
+     const [emailTaken] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
+@@ -94,7 +99,7 @@ export async function POST(req: Request) {
+           displayName: text(body.displayName, 60) || handle,
+           email,
+           parish: (PARISHES as readonly string[]).includes(parishIn) ? parishIn : null,
+-          passwordHash: hashPassword(password),
++          passwordHash: await hashPassword(password),
+           lastLoginAt: new Date(),
+         })
+         .returning();
+@@ -141,26 +146,28 @@ export async function POST(req: Request) {
+     // cannot lock you out of your own account.
+     const ipKey = `loginfail:ip:${ip}`;
+     const pairKey = `loginfail:${ip}:${ident}`;
+-    const blocked = exhausted(ipKey, 30, FAIL_WINDOW);
+-    const pairBlocked = exhausted(pairKey, 6, FAIL_WINDOW);
++    const [blocked, pairBlocked] = await Promise.all([sharedExhausted(ipKey, 30, FAIL_WINDOW), sharedExhausted(pairKey, 6, FAIL_WINDOW)]);
+     if (blocked.blocked || pairBlocked.blocked) {
+       return tooMany(Math.max(blocked.retryAfter, pairBlocked.retryAfter), "sign-in attempts");
+     }
+ 
+     const [existing] = await db.select().from(users).where(byEmail ? eq(users.email, ident) : eq(users.handle, ident)).limit(1);
+     let ok = false;
++    let matched = password;
+     if (existing) {
+-      ok = verifyPassword(password, existing.passwordHash);
++      ok = await verifyPassword(password, existing.passwordHash);
+     } else {
+-      decoyHash ??= hashPassword("decoy-password");
+-      verifyPassword(password, decoyHash); // result ignored: only here to spend the same time
++      decoyHash ??= await hashPassword("decoy-password");
++      await verifyPassword(password, decoyHash); // result ignored: only here to spend the same time
+     }
+     // Phone keyboards sometimes add a space after a word they "complete". Passwords are saved without outer spaces
+     // on sign-up, so also accept the typed password with outer spaces removed.
+-    if (existing && !ok && password !== password.trim()) ok = verifyPassword(password.trim(), existing.passwordHash);
++    if (existing && !ok && password !== password.trim()) {
++      ok = await verifyPassword(password.trim(), existing.passwordHash);
++      matched = password.trim();
++    }
+     if (!existing || !ok) {
+-      record(ipKey, FAIL_WINDOW);
+-      record(pairKey, FAIL_WINDOW);
++      await Promise.all([sharedRecord(ipKey, FAIL_WINDOW), sharedRecord(pairKey, FAIL_WINDOW)]);
+       // Handles are public (they appear on reports), so it is fine to say which part was wrong. Email logins stay vague.
+       const message = byEmail
+         ? "Email and password do not match. If you forgot your password, use the reset link."
+@@ -169,7 +176,7 @@ export async function POST(req: Request) {
+           : "That password is not right. If you forgot it, use the reset link.";
+       return NextResponse.json({ error: message }, { status: 401 });
+     }
+-    forget(pairKey);
++    await sharedForget(pairKey);
+     // Only tell someone their account is suspended once they have proved it is theirs.
+     if (existing.status === "suspended") {
+       return NextResponse.json(
+@@ -177,7 +184,10 @@ export async function POST(req: Request) {
+         { status: 403 },
+       );
+     }
+-    await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, existing.id));
++    // The member just proved the password, so an older hash format is upgraded in place, from the exact value
++    // that matched. Nobody is ever asked to reset because the hashing got stronger.
++    const upgrade = passwordNeedsRehash(existing.passwordHash) ? { passwordHash: await hashPassword(matched) } : {};
++    await db.update(users).set({ lastLoginAt: new Date(), ...upgrade }).where(eq(users.id, existing.id));
+     userId = existing.id;
+     userHandle = existing.handle;
+     displayName = existing.displayName;
+diff --git a/src/app/support/page.tsx b/src/app/support/page.tsx
+index d0034d0..e53cedb 100644
+--- a/src/app/support/page.tsx
++++ b/src/app/support/page.tsx
+@@ -5,7 +5,7 @@ import { PlanGrid, PerkList } from "@/components/plan-grid";
+ import { AdSlot } from "@/components/ad-slot";
+ import { EnterpriseForm } from "@/components/enterprise-form";
+ import { getViewer } from "@/lib/viewer";
+-import { stripeConfigured } from "@/lib/billing";
++import { demoPlansAllowed, stripeConfigured } from "@/lib/billing";
+ 
+ export const dynamic = "force-dynamic";
+ export const metadata = { title: "Plans and pricing" };
+@@ -22,6 +22,8 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
+   const checkout = Array.isArray(sp.checkout) ? sp.checkout[0] : sp.checkout;
+   const viewer = await getViewer();
+   const live = stripeConfigured();
++  const demo = demoPlansAllowed();
++  const purchasable = live || demo;
+ 
+   return (
+     <div className="space-y-8">
+@@ -43,7 +45,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
+       ) : null}
+ 
+       <section aria-label="Plans" className="-mt-2">
+-        <PlanGrid live={live} signedIn={viewer.signedIn} currentTier={viewer.tier} currentInterval={viewer.interval} complimentary={viewer.status === "comp"} />
++        <PlanGrid live={live} purchasable={purchasable} signedIn={viewer.signedIn} currentTier={viewer.tier} currentInterval={viewer.interval} complimentary={viewer.status === "comp"} />
+ 
+         <div className="mt-3">
+           {live ? (
+@@ -51,12 +53,21 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
+               Payments are handled securely by Stripe. Cancel any time from your account page and your plan runs to the end of
+               the period you paid for. To switch plans, cancel from your account page and choose the new plan when the old one ends. Perks marked <span className="font-bold text-[#cfeee9]">Soon</span> are on the way.
+             </p>
+-          ) : (
++          ) : demo ? (
+             <p className="text-[12px] leading-snug text-[#8fb9b6]">
+               <span className="font-bold text-sun-400">Payments are not live yet.</span> You can try a plan with your account to
+               switch the ads off. You will not be charged. Perks marked <span className="font-bold text-[#cfeee9]">Soon</span> are
+               on the way.
+             </p>
++          ) : (
++            <p className="text-[12px] leading-snug text-[#8fb9b6]">
++              <span className="font-bold text-sun-400">Plans open soon.</span> Payments are not set up yet, so nothing can be bought
++              today and nobody is charged. Everything free on NowBey stays free. Want a plan for your group now?{" "}
++              <a href="#enterprise" className="font-bold text-tide-300 underline-offset-2 hover:underline">
++                Get in touch
++              </a>
++              .
++            </p>
+           )}
+           <p className="mt-1 text-[11px] text-[#6e97a0]">
+             Prices are in US dollars. The Bahamian dollar is pegged one to one, so $10 is B$10.
+diff --git a/src/components/plan-grid.tsx b/src/components/plan-grid.tsx
+index 73f98d3..1d2729b 100644
+--- a/src/components/plan-grid.tsx
++++ b/src/components/plan-grid.tsx
+@@ -28,8 +28,10 @@ export function PerkList({ perks, tone }: { perks: Perk[]; tone: string }) {
+ }
+ 
+ type Props = {
+-  /** true when a payment provider is connected; false means plans are disabled */
++  /** true when a payment provider is connected */
+   live: boolean;
++  /** true when a plan can be chosen here (payments are live, or demo plans are switched on) */
++  purchasable?: boolean;
+   signedIn: boolean;
+   currentTier: TierKey | null;
+   currentInterval: Interval | null;
+@@ -37,7 +39,7 @@ type Props = {
+   complimentary?: boolean;
+ };
+ 
+-export function PlanGrid({ live, signedIn, currentTier, currentInterval, complimentary = false }: Props) {
++export function PlanGrid({ live, purchasable = live, signedIn, currentTier, currentInterval, complimentary = false }: Props) {
+   const router = useRouter();
+   const [billing, setBilling] = useState<Interval>(currentInterval ?? "month");
+   const [busy, setBusy] = useState<TierKey | null>(null);
+@@ -147,6 +149,13 @@ export function PlanGrid({ live, signedIn, currentTier, currentInterval, complim
+                 >
+                   Manage your plan
+                 </Link>
++              ) : !purchasable ? (
++                <p
++                  className="mt-3 rounded-xl border hairline py-2.5 text-center text-[12.5px] font-bold text-[#a9cdc9]"
++                  aria-label={`${t.name} opens soon`}
++                >
++                  Opening soon
++                </p>
+               ) : (
+                 <button
+                   type="button"
+diff --git a/src/db/add-security-fixes.sql b/src/db/add-security-fixes.sql
+new file mode 100644
+index 0000000..dde73e1
+--- /dev/null
++++ b/src/db/add-security-fixes.sql
+@@ -0,0 +1,34 @@
++-- Security fixes, 2026-10-15. Additive and safe to run more than once.
++--
++-- Creates the shared rate-limit table used by sign-in, sign-up, password-reset and password-check
++-- limits (src/lib/ratelimit.ts → sharedHit / sharedExhausted / sharedRecord / sharedForget).
++--
++-- Until this has run, the site keeps working: those limits fall back to the old per-instance counts
++-- and the server log says "table rate_limits is missing" once per instance. Nothing else reads it.
++--
++-- Run once in the Neon SQL editor (paste the statements below and press Run), or locally:
++--   psql "$DATABASE_URL" -f src/db/add-security-fixes.sql
++--
++-- To confirm it landed:
++--   select count(*) from information_schema.tables where table_name = 'rate_limits';   -- expect 1
++
++BEGIN;
++
++CREATE TABLE IF NOT EXISTS rate_limits (
++  key        text PRIMARY KEY,
++  hits       integer NOT NULL DEFAULT 1,
++  expires_at timestamptz NOT NULL
++);
++CREATE INDEX IF NOT EXISTS rate_limits_expires_idx ON rate_limits (expires_at);
++
++COMMIT;
++
++-- Removes the invented gas prices the old daily job inserted (src/app/api/cron/gas-update): rows with no
++-- member behind them (user_id IS NULL) at exactly the three hard-coded station/price pairs. Member reports
++-- always carry a user_id, so none can match. The Gas tracker is switched off for the Nassau launch, so
++-- nobody has seen these; this keeps them from appearing the day it is switched on.
++DELETE FROM gas_reports
++WHERE user_id IS NULL
++  AND fuel = 'regular'
++  AND parish = 'New Providence'
++  AND (station, price_cents) IN (('Shell', 708), ('Esso', 750), ('Rubis', 756));
+diff --git a/src/db/index.ts b/src/db/index.ts
+index e84a3e8..fe28b85 100644
+--- a/src/db/index.ts
++++ b/src/db/index.ts
+@@ -50,15 +50,26 @@ export function getDb(): NodePgDatabase {
+  * access is forwarded to the real object, which is created on first touch. The module itself stays import-safe, so
+  * building without a database can never fail on this file again.
+  */
+-export const pool = new Proxy({} as Pool, {
+-  get(_target, prop, receiver) {
+-    return Reflect.get(getPool(), prop, receiver);
+-  },
+-});
++/**
++ * Methods are bound to the real object. Without that, `pool.query(...)` ran with `this` set to the wrapper,
++ * so pg's own bookkeeping (`this._clients = ...` when a client is dropped after a failed query) was written
++ * onto the wrapper instead of the pool: every failed query left a phantom client behind until the pool
++ * believed it was full and every later request waited 10 s for a connection and failed.
++ */
++function forward<T extends object>(real: () => T): ProxyHandler<T> {
++  return {
++    get(_target, prop) {
++      const target = real();
++      const value = Reflect.get(target, prop, target);
++      return typeof value === "function" ? value.bind(target) : value;
++    },
++    set(_target, prop, value) {
++      return Reflect.set(real(), prop, value);
++    },
++  };
++}
++
++export const pool = new Proxy({} as Pool, forward(getPool));
+ 
+ /** The query client used everywhere: `db.select()`, `db.insert()`, `db.execute()`. */
+-export const db = new Proxy({} as NodePgDatabase, {
+-  get(_target, prop, receiver) {
+-    return Reflect.get(getDb(), prop, receiver);
+-  },
+-});
++export const db = new Proxy({} as NodePgDatabase, forward(getDb));
+diff --git a/src/db/schema.ts b/src/db/schema.ts
+index 5d0e6e6..4b8d924 100644
+--- a/src/db/schema.ts
++++ b/src/db/schema.ts
+@@ -679,3 +679,20 @@ export const deviceTokens = pgTable(
+   },
+   (table) => [uniqueIndex("device_tokens_user_token_idx").on(table.userId, table.token)],
+ );
++
++/**
++ * Shared rate-limit counters (src/lib/ratelimit.ts → sharedHit and friends), so a limit such as "6 wrong
++ * passwords per 15 minutes" holds across every server instance instead of per instance. Fixed window:
++ * `hits` counts attempts until `expires_at`, then the next attempt starts a fresh window. Keys are short
++ * (long parts are hashed) and rows past `expires_at` are swept opportunistically.
++ * Created by src/db/add-security-fixes.sql.
++ */
++export const rateLimits = pgTable(
++  "rate_limits",
++  {
++    key: text("key").primaryKey(),
++    hits: integer("hits").notNull().default(1),
++    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
++  },
++  (table) => [index("rate_limits_expires_idx").on(table.expiresAt)],
++);
+diff --git a/src/lib/auth.ts b/src/lib/auth.ts
+index 31ea478..2c241a2 100644
+--- a/src/lib/auth.ts
++++ b/src/lib/auth.ts
+@@ -8,6 +8,7 @@ import { SESSION_MAX_AGE, readToken, serverSecret } from "@/lib/secret";
+ export {
+   SESSION_MAX_AGE,
+   hashPassword,
++  passwordNeedsRehash,
+   makeToken,
+   readPayload,
+   readToken,
+diff --git a/src/lib/billing.ts b/src/lib/billing.ts
+index da50e31..a788214 100644
+--- a/src/lib/billing.ts
++++ b/src/lib/billing.ts
+@@ -9,9 +9,17 @@ export function stripeConfigured(): boolean {
+   return Boolean(process.env.STRIPE_SECRET_KEY);
+ }
+ 
+-/** Demo plans are only allowed while no payment provider is connected. */
++/**
++ * Demo plans ("try a plan, nothing is charged") are a preview tool, not a product: a demo plan unlocks
++ * everything a paid one does (no ads, several alert islands, unlimited alert profiles, the Admiral export).
++ * They used to switch on automatically whenever Stripe was absent — which is production today, because
++ * Stripe is not available to Bahamian businesses — so any member could grant themselves any plan.
++ * Now they need an explicit ALLOW_DEMO_PLANS=true (set it on development or preview deployments only),
++ * and they never apply once real payments are connected. Plans for real customers are given by staff
++ * as complimentary plans (Members page) until a payment provider is live.
++ */
+ export function demoPlansAllowed(): boolean {
+-  return !stripeConfigured();
++  return !stripeConfigured() && process.env.ALLOW_DEMO_PLANS?.trim() === "true";
+ }
+ 
+ export function webhookConfigured(): boolean {
+diff --git a/src/lib/handles.ts b/src/lib/handles.ts
+index f5ba04a..1eb49c1 100644
+--- a/src/lib/handles.ts
++++ b/src/lib/handles.ts
+@@ -50,3 +50,32 @@ export function envAdminHandles(): string[] {
+ export function isEnvAdmin(handle: string): boolean {
+   return envAdminHandles().includes(handle.toLowerCase());
+ }
++
++/**
++ * Who may *register* a handle that is listed in ADMIN_HANDLES. A handle on that list carries admin rights,
++ * so it must never be a prize for whoever signs up first. ADMIN_EMAILS is a comma-separated list of full
++ * addresses (`owner@example.com`) or whole domains (`@example.com`); with it unset, nobody can register
++ * such a handle through the sign-up form at all.
++ *
++ * This is one of two locks: the rights themselves also need a confirmed email (see `envAdminActive`), so
++ * typing the owner's address without being able to read their inbox gains nothing.
++ */
++export function adminClaimEmails(): string[] {
++  return (process.env.ADMIN_EMAILS ?? "")
++    .split(",")
++    .map((s) => s.trim().toLowerCase())
++    .filter(Boolean);
++}
++
++export function mayClaimAdminHandle(email: string): boolean {
++  const e = email.trim().toLowerCase();
++  const at = e.lastIndexOf("@");
++  if (at < 1) return false;
++  const domain = e.slice(at);
++  return adminClaimEmails().some((entry) => (entry.startsWith("@") ? entry === domain : entry === e));
++}
++
++/** ADMIN_HANDLES rights apply only once the account's email address is confirmed. */
++export function envAdminActive(u: { handle: string; emailVerifiedAt: Date | null }): boolean {
++  return isEnvAdmin(u.handle) && u.emailVerifiedAt !== null;
++}
+diff --git a/src/lib/origin.ts b/src/lib/origin.ts
+new file mode 100644
+index 0000000..12aff34
+--- /dev/null
++++ b/src/lib/origin.ts
+@@ -0,0 +1,84 @@
++/**
++ * Cross-origin rules for /api, in one place (applied by src/proxy.ts to every API request).
++ *
++ * Who calls the API:
++ *  - the website itself (same origin) — always allowed;
++ *  - the Android/iOS app — a native client: it sends no Origin header and authenticates with a bearer
++ *    token, so CORS never applies to it;
++ *  - Expo web during development — a browser on another origin (http://localhost:8081), allowed only in
++ *    development or when listed in ALLOWED_ORIGINS.
++ *
++ * Before this, every /api response said `Access-Control-Allow-Origin: *`. With the session in a cookie
++ * that was one `credentials: "include"` away from letting any website read a member's account data, and
++ * it advertised the private API to every origin. Now only listed origins get CORS headers, credentials
++ * are never allowed cross-origin, and a write (POST/PATCH/PUT/DELETE) that arrives from an origin that is
++ * neither this site nor a listed one is refused before it reaches any route — a second wall behind the
++ * SameSite=strict session cookie, covering the routes that never called hasBadOrigin themselves.
++ */
++
++const DEV_ORIGINS = ["http://localhost:8081", "http://localhost:19006", "http://127.0.0.1:8081"];
++
++function originOf(url: string | undefined): string | null {
++  if (!url) return null;
++  try {
++    const u = new URL(url.trim());
++    return u.protocol === "http:" || u.protocol === "https:" ? u.origin : null;
++  } catch {
++    return null;
++  }
++}
++
++/** Origins other than this site that may call the API from a browser. */
++export function allowedOrigins(): Set<string> {
++  const list = new Set<string>();
++  for (const raw of (process.env.ALLOWED_ORIGINS ?? "").split(",")) {
++    const o = originOf(raw);
++    if (o) list.add(o);
++  }
++  const app = originOf(process.env.APP_URL);
++  if (app) list.add(app);
++  if (process.env.NODE_ENV !== "production") for (const o of DEV_ORIGINS) list.add(o);
++  return list;
++}
++
++/** The hosts this request can legitimately be addressed to (a proxy may rewrite Host). */
++function ownHosts(req: Request): string[] {
++  const hosts = [req.headers.get("x-forwarded-host")?.split(",")[0]?.trim(), req.headers.get("host")?.trim()];
++  try {
++    hosts.push(new URL(req.url).host);
++  } catch {
++    /* ignore */
++  }
++  return hosts.filter((h): h is string => Boolean(h));
++}
++
++export type OriginVerdict = { kind: "none" } | { kind: "same" } | { kind: "allowed"; origin: string } | { kind: "foreign" };
++
++export function classifyOrigin(req: Request): OriginVerdict {
++  const raw = req.headers.get("origin");
++  if (raw === null) return { kind: "none" };
++  let parsed: URL;
++  try {
++    parsed = new URL(raw);
++  } catch {
++    return { kind: "foreign" }; // includes the literal "null" a sandboxed frame or a cross-site redirect sends
++  }
++  if (ownHosts(req).includes(parsed.host)) return { kind: "same" };
++  if (allowedOrigins().has(parsed.origin)) return { kind: "allowed", origin: parsed.origin };
++  return { kind: "foreign" };
++}
++
++export const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
++
++/** Server-to-server callers that never come from a browser and authenticate themselves (signatures). */
++const ORIGIN_EXEMPT = new Set(["/api/billing/webhook"]);
++
++export function originExempt(path: string): boolean {
++  return ORIGIN_EXEMPT.has(path);
++}
++
++export const CORS_HEADERS = {
++  "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS",
++  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-nowbey-client",
++  "Access-Control-Max-Age": "600",
++};
+diff --git a/src/lib/ratelimit-core.ts b/src/lib/ratelimit-core.ts
+new file mode 100644
+index 0000000..4dcc87d
+--- /dev/null
++++ b/src/lib/ratelimit-core.ts
+@@ -0,0 +1,213 @@
++import { createHash } from "node:crypto";
++
++/**
++ * The rate limiter itself, free of Next.js imports so the hermetic tests can load it directly.
++ * Routes import from `@/lib/ratelimit`, which re-exports all of this plus the 429 response helper.
++ *
++ * Two layers of rate limiting.
++ *
++ * 1. `hit` / `exhausted` / `record` / `forget` — a small in-memory sliding window. It protects one server
++ *    process. Cheap, synchronous, and the right tool for routes where a per-instance cap is enough
++ *    (comments, reactions, geocoding).
++ *
++ * 2. `sharedHit` / `sharedExhausted` / `sharedRecord` / `sharedForget` — the same four verbs backed by the
++ *    `rate_limits` table (src/db/add-security-fixes.sql), so every serverless instance shares one count.
++ *    Used where a per-instance count is not good enough: sign-in failures, sign-ups, reset links and
++ *    password checks. On Vercel each cold instance starts with an empty Map, so "6 wrong passwords" in
++ *    memory really means "6 per instance"; the table makes it 6.
++ *
++ *    Until the migration has run, the shared verbs fall back to the in-memory layer: the site keeps
++ *    working with the old, weaker limits, and the server log says so once.
++ */
++
++type Bucket = { hits: number[]; windowMs: number };
++const buckets = new Map<string, Bucket>();
++
++/** Hard ceiling on remembered keys, so a flood of distinct addresses cannot grow memory without bound. */
++const MAX_KEYS = 5000;
++
++/**
++ * The visitor's address.
++ *
++ * On Vercel the platform overwrites `x-real-ip` / `x-forwarded-for` with the address it saw, so either is
++ * trustworthy there; `x-real-ip` is read first because it is a single value. Elsewhere (local development,
++ * the test harness, a self-hosted server behind one proxy) the first `x-forwarded-for` entry is used, which
++ * is what a single trusted proxy sets. A self-hosted deployment behind a proxy that *appends* to a
++ * client-supplied header must strip it at the proxy, or set TRUST_PROXY=last to read the last hop instead.
++ */
++export function clientIp(req: Request): string {
++  const real = req.headers.get("x-real-ip")?.trim();
++  const chain = (req.headers.get("x-forwarded-for") ?? "")
++    .split(",")
++    .map((s) => s.trim())
++    .filter(Boolean);
++  let ip: string;
++  if (process.env.VERCEL) ip = real || chain[0] || "";
++  else if (process.env.TRUST_PROXY === "last") ip = chain[chain.length - 1] || real || "";
++  else ip = chain[0] || real || "";
++  return ip.slice(0, 64) || "local";
++}
++
++/** Long or attacker-chosen key parts (emails, handles) are hashed so a key never costs more than ~50 bytes. */
++function keyOf(key: string): string {
++  if (key.length <= 48) return key;
++  const cut = key.indexOf(":");
++  const prefix = cut > 0 && cut <= 16 ? key.slice(0, cut) : "k";
++  return `${prefix}:${createHash("sha256").update(key).digest("base64url").slice(0, 32)}`;
++}
++
++function sweep(now: number) {
++  for (const [k, v] of buckets) {
++    const last = v.hits[v.hits.length - 1];
++    if (last === undefined || now - last > v.windowMs) buckets.delete(k);
++  }
++  // Still full of live keys (a flood): drop the oldest-inserted ones. Map keeps insertion order.
++  for (const k of buckets.keys()) {
++    if (buckets.size < MAX_KEYS) break;
++    buckets.delete(k);
++  }
++}
++
++function live(key: string, windowMs: number): number[] {
++  const now = Date.now();
++  const entry = buckets.get(key);
++  // A clock that stepped backwards would make (now - t) negative and keep hits alive forever; drop those.
++  const hits = (entry?.hits ?? []).filter((t) => t <= now && now - t < windowMs);
++  if (!entry && buckets.size >= MAX_KEYS) sweep(now);
++  return hits;
++}
++
++function retryAfterFor(first: number, windowMs: number): number {
++  return Math.max(1, Math.ceil((windowMs - (Date.now() - first)) / 1000));
++}
++
++/** Counts this attempt and says whether it is allowed. */
++export function hit(rawKey: string, limit: number, windowMs: number): { ok: boolean; retryAfter: number } {
++  const key = keyOf(rawKey);
++  const hits = live(key, windowMs);
++  if (hits.length >= limit) {
++    buckets.set(key, { hits, windowMs });
++    return { ok: false, retryAfter: retryAfterFor(hits[0], windowMs) };
++  }
++  hits.push(Date.now());
++  buckets.set(key, { hits, windowMs });
++  return { ok: true, retryAfter: 0 };
++}
++
++/** Says whether the limit is already used up, without counting a new attempt. */
++export function exhausted(rawKey: string, limit: number, windowMs: number): { blocked: boolean; retryAfter: number } {
++  const hits = live(keyOf(rawKey), windowMs);
++  if (hits.length < limit) return { blocked: false, retryAfter: 0 };
++  return { blocked: true, retryAfter: retryAfterFor(hits[0], windowMs) };
++}
++
++export function record(rawKey: string, windowMs: number) {
++  const key = keyOf(rawKey);
++  const hits = live(key, windowMs);
++  hits.push(Date.now());
++  buckets.set(key, { hits, windowMs });
++}
++
++export function forget(rawKey: string) {
++  buckets.delete(keyOf(rawKey));
++}
++
++/** How many keys the in-memory layer holds. Exposed for tests. */
++export function memoryKeyCount(): number {
++  return buckets.size;
++}
++
++/* ------------------------------------------------------------------------------------------------ */
++/* Shared layer (Postgres)                                                                          */
++/* ------------------------------------------------------------------------------------------------ */
++
++type Row = { hits: number; ttl: number };
++type Query = (text: string, params: unknown[]) => Promise<{ rows: Row[] }>;
++
++let warnedMissing = false;
++let queryImpl: Query | null = null;
++
++async function runQuery(text: string, params: unknown[]): Promise<Row[]> {
++  if (!queryImpl) {
++    const { pool } = await import("@/db");
++    queryImpl = (t, p) => pool.query(t, p) as unknown as Promise<{ rows: Row[] }>;
++  }
++  const { rows } = await queryImpl(text, params);
++  return rows;
++}
++
++/** Test seam: swap the database call. Pass null to restore the real pool. */
++export function __setSharedQuery(q: Query | null) {
++  queryImpl = q;
++}
++
++function noteFallback(e: unknown) {
++  const code = (e as { code?: string; cause?: { code?: string } })?.code ?? (e as { cause?: { code?: string } })?.cause?.code;
++  if (code === "42P01") {
++    if (!warnedMissing) {
++      warnedMissing = true;
++      console.warn("[ratelimit] table rate_limits is missing — run src/db/add-security-fixes.sql. Using per-instance limits until then.");
++    }
++  } else {
++    console.error("[ratelimit] shared store unavailable, using per-instance limits:", e instanceof Error ? e.message : e);
++  }
++}
++
++const UPSERT = `
++  insert into rate_limits (key, hits, expires_at) values ($1, 1, now() + ($2::int * interval '1 millisecond'))
++  on conflict (key) do update set
++    hits = case when rate_limits.expires_at <= now() then 1 else rate_limits.hits + 1 end,
++    expires_at = case when rate_limits.expires_at <= now() then excluded.expires_at else rate_limits.expires_at end
++  returning hits, greatest(1, ceil(extract(epoch from (expires_at - now()))))::int as ttl`;
++
++function maybeCleanup() {
++  if (Math.random() > 0.01) return;
++  runQuery("delete from rate_limits where expires_at < now()", []).catch(() => undefined);
++}
++
++/** Like `hit`, counted once across every server instance. */
++export async function sharedHit(rawKey: string, limit: number, windowMs: number): Promise<{ ok: boolean; retryAfter: number }> {
++  try {
++    const [row] = await runQuery(UPSERT, [keyOf(rawKey), Math.round(windowMs)]);
++    maybeCleanup();
++    return row.hits <= limit ? { ok: true, retryAfter: 0 } : { ok: false, retryAfter: row.ttl };
++  } catch (e) {
++    noteFallback(e);
++    return hit(rawKey, limit, windowMs);
++  }
++}
++
++/** Like `exhausted`, read from the shared count. */
++export async function sharedExhausted(rawKey: string, limit: number, windowMs: number): Promise<{ blocked: boolean; retryAfter: number }> {
++  try {
++    const [row] = await runQuery(
++      "select hits, greatest(1, ceil(extract(epoch from (expires_at - now()))))::int as ttl from rate_limits where key = $1 and expires_at > now()",
++      [keyOf(rawKey)],
++    );
++    if (!row || row.hits < limit) return { blocked: false, retryAfter: 0 };
++    return { blocked: true, retryAfter: row.ttl };
++  } catch (e) {
++    noteFallback(e);
++    return exhausted(rawKey, limit, windowMs);
++  }
++}
++
++/** Like `record`, counted once across every server instance. */
++export async function sharedRecord(rawKey: string, windowMs: number): Promise<void> {
++  try {
++    await runQuery(UPSERT, [keyOf(rawKey), Math.round(windowMs)]);
++  } catch (e) {
++    noteFallback(e);
++    record(rawKey, windowMs);
++  }
++}
++
++/** Like `forget`, for the shared count (and the in-memory one, in case the fallback was used). */
++export async function sharedForget(rawKey: string): Promise<void> {
++  forget(rawKey);
++  try {
++    await runQuery("delete from rate_limits where key = $1", [keyOf(rawKey)]);
++  } catch (e) {
++    noteFallback(e);
++  }
++}
+diff --git a/src/lib/ratelimit.ts b/src/lib/ratelimit.ts
+index 82cec32..5d2c75a 100644
+--- a/src/lib/ratelimit.ts
++++ b/src/lib/ratelimit.ts
+@@ -1,58 +1,6 @@
+ import { NextResponse } from "next/server";
+ 
+-/**
+- * Small in-memory sliding-window limiter. It protects one server process; if you run several
+- * copies behind a load balancer each keeps its own count, which still blunts abuse.
+- */
+-const buckets = new Map<string, { hits: number[]; windowMs: number }>();
+-
+-/** The visitor's address. Behind a proxy this comes from X-Forwarded-For. */
+-export function clientIp(req: Request): string {
+-  const forwarded = req.headers.get("x-forwarded-for");
+-  const ip = (forwarded?.split(",")[0] ?? req.headers.get("x-real-ip") ?? "").trim();
+-  return ip.slice(0, 64) || "local";
+-}
+-
+-function live(key: string, windowMs: number): number[] {
+-  const now = Date.now();
+-  const entry = buckets.get(key);
+-  const hits = (entry?.hits ?? []).filter((t) => now - t < windowMs);
+-  if (buckets.size > 5000) {
+-    for (const [k, v] of buckets) {
+-      if (!v.hits.length || now - v.hits[v.hits.length - 1] > v.windowMs) buckets.delete(k);
+-    }
+-  }
+-  return hits;
+-}
+-
+-/** Counts this attempt and says whether it is allowed. */
+-export function hit(key: string, limit: number, windowMs: number): { ok: boolean; retryAfter: number } {
+-  const hits = live(key, windowMs);
+-  if (hits.length >= limit) {
+-    buckets.set(key, { hits, windowMs });
+-    return { ok: false, retryAfter: Math.max(1, Math.ceil((windowMs - (Date.now() - hits[0])) / 1000)) };
+-  }
+-  hits.push(Date.now());
+-  buckets.set(key, { hits, windowMs });
+-  return { ok: true, retryAfter: 0 };
+-}
+-
+-/** Says whether the limit is already used up, without counting a new attempt. */
+-export function exhausted(key: string, limit: number, windowMs: number): { blocked: boolean; retryAfter: number } {
+-  const hits = live(key, windowMs);
+-  if (hits.length < limit) return { blocked: false, retryAfter: 0 };
+-  return { blocked: true, retryAfter: Math.max(1, Math.ceil((windowMs - (Date.now() - hits[0])) / 1000)) };
+-}
+-
+-export function record(key: string, windowMs: number) {
+-  const hits = live(key, windowMs);
+-  hits.push(Date.now());
+-  buckets.set(key, { hits, windowMs });
+-}
+-
+-export function forget(key: string) {
+-  buckets.delete(key);
+-}
++export * from "./ratelimit-core";
+ 
+ export function tooMany(retryAfter: number, what = "requests") {
+   const wait = retryAfter >= 90 ? `${Math.ceil(retryAfter / 60)} minutes` : `${retryAfter} seconds`;
+diff --git a/src/lib/secret.ts b/src/lib/secret.ts
+index 4f949db..eea10f6 100644
+--- a/src/lib/secret.ts
++++ b/src/lib/secret.ts
+@@ -6,7 +6,7 @@
+  * crypto and the token rules without a browser in the way. The request plumbing — reading the cookie
+  * or the bearer header, setting the cookie — lives next door in `src/lib/auth.ts`.
+  */
+-import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
++import { createHmac, randomBytes, scrypt, timingSafeEqual, type ScryptOptions } from "node:crypto";
+ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+ import { join } from "node:path";
+ 
+@@ -41,18 +41,73 @@ export function serverSecret(): string {
+   }
+ }
+ 
+-export function hashPassword(password: string): string {
+-  const salt = randomBytes(12).toString("hex");
+-  const hash = scryptSync(password, salt, 40).toString("hex");
+-  return `${salt}:${hash}`;
++/**
++ * Password hashing.
++ *
++ * Current format: `scrypt$<log2 N>$<r>$<p>$<salt hex>$<hash hex>` — OWASP's scrypt profile N=2^15, r=8,
++ * p=3 (32 MiB, same work as N=2^17/p=1 at a quarter of the memory, which matters when one serverless
++ * instance answers several sign-ins at once). Hashing runs on libuv's thread pool, so a burst of sign-ins
++ * no longer freezes every other request the way the old synchronous call did.
++ *
++ * Legacy format: `<salt hex>:<hash hex>` — Node's default scrypt (N=2^14, r=8, p=1), 40-byte key. Still
++ * verified, and `passwordNeedsRehash` tells the sign-in route to upgrade it the next time the member
++ * proves they know the password. No member is ever locked out by the change.
++ */
++const CURRENT = { logN: 15, r: 8, p: 3, keylen: 64 };
++const MAXMEM = 128 * 1024 * 1024;
++
++function scryptAsync(password: string, salt: string, keylen: number, opts: ScryptOptions): Promise<Buffer> {
++  return new Promise((resolve, reject) => {
++    scrypt(Buffer.from(password, "utf8"), salt, keylen, { ...opts, maxmem: MAXMEM }, (err, key) => (err ? reject(err) : resolve(key)));
++  });
++}
++
++export async function hashPassword(password: string): Promise<string> {
++  const salt = randomBytes(16).toString("hex");
++  const { logN, r, p, keylen } = CURRENT;
++  const hash = await scryptAsync(password, salt, keylen, { N: 2 ** logN, r, p });
++  return `scrypt$${logN}$${r}$${p}$${salt}$${hash.toString("hex")}`;
++}
++
++type Parsed = { salt: string; expected: Buffer; opts: ScryptOptions; current: boolean };
++
++function parseStored(stored: string): Parsed | null {
++  if (stored.startsWith("scrypt$")) {
++    const parts = stored.split("$");
++    if (parts.length !== 6) return null;
++    const [, logN, r, p, salt, hash] = parts;
++    const n = Number(logN), rr = Number(r), pp = Number(p);
++    // Bounds keep a corrupt or hostile row from asking for gigabytes of memory.
++    if (![n, rr, pp].every(Number.isInteger) || n < 10 || n > 20 || rr < 1 || rr > 32 || pp < 1 || pp > 16) return null;
++    if (!/^[0-9a-f]+$/i.test(hash) || hash.length < 32 || !salt) return null;
++    return {
++      salt,
++      expected: Buffer.from(hash, "hex"),
++      opts: { N: 2 ** n, r: rr, p: pp },
++      current: n === CURRENT.logN && rr === CURRENT.r && pp === CURRENT.p && hash.length === CURRENT.keylen * 2,
++    };
++  }
++  const cut = stored.indexOf(":");
++  if (cut < 1) return null;
++  const salt = stored.slice(0, cut);
++  const hash = stored.slice(cut + 1);
++  if (!/^[0-9a-f]+$/i.test(hash) || hash.length < 32) return null;
++  return { salt, expected: Buffer.from(hash, "hex"), opts: { N: 2 ** 14, r: 8, p: 1 }, current: false };
++}
++
++export async function verifyPassword(password: string, stored: string | null | undefined): Promise<boolean> {
++  if (!stored) return false;
++  const parsed = parseStored(stored);
++  if (!parsed) return false;
++  const candidate = await scryptAsync(password, parsed.salt, parsed.expected.length, parsed.opts);
++  return candidate.length === parsed.expected.length && timingSafeEqual(candidate, parsed.expected);
+ }
+ 
+-export function verifyPassword(password: string, stored: string | null | undefined): boolean {
+-  if (!stored || !stored.includes(":")) return false;
+-  const [salt, hash] = stored.split(":");
+-  const candidate = scryptSync(password, salt, 40);
+-  const expected = Buffer.from(hash, "hex");
+-  return candidate.length === expected.length && timingSafeEqual(candidate, expected);
++/** True when a stored hash uses older parameters and should be replaced after a successful sign-in. */
++export function passwordNeedsRehash(stored: string | null | undefined): boolean {
++  if (!stored) return false;
++  const parsed = parseStored(stored);
++  return parsed !== null && !parsed.current;
+ }
+ 
+ function sign(payload: string): string {
+diff --git a/src/lib/viewer.ts b/src/lib/viewer.ts
+index d10fca9..9bae7ff 100644
+--- a/src/lib/viewer.ts
++++ b/src/lib/viewer.ts
+@@ -4,7 +4,7 @@ import { users } from "@/db/schema";
+ import { readToken, sessionToken } from "@/lib/auth";
+ import { entitledTier, isInterval, type Interval, type TierKey } from "@/lib/tiers";
+ import { demoPlansAllowed } from "@/lib/billing";
+-import { envAdminHandles } from "@/lib/handles";
++import { envAdminActive } from "@/lib/handles";
+ 
+ export type Viewer = {
+   signedIn: boolean;
+@@ -70,7 +70,9 @@ export async function getViewer(): Promise<Viewer> {
+   }
+   if (!u || u.status === "suspended" || u.sessionVersion !== session.v) return ANON;
+   const tier = entitledTier(u, demoPlansAllowed());
+-  const isAdmin = u.role === "admin" || envAdminHandles().includes(u.handle.toLowerCase());
++  // ADMIN_HANDLES grants admin only with a confirmed email: a handle on that list that someone else managed
++  // to register is worth nothing until they can also read the inbox it was registered with.
++  const isAdmin = u.role === "admin" || envAdminActive(u);
+   return {
+     signedIn: true,
+     userId: u.id,
+diff --git a/src/proxy.ts b/src/proxy.ts
+index d6b5a65..c113b82 100644
+--- a/src/proxy.ts
++++ b/src/proxy.ts
+@@ -1,4 +1,5 @@
+ import { NextResponse, type NextRequest } from "next/server";
++import { CORS_HEADERS, UNSAFE_METHODS, classifyOrigin, originExempt } from "@/lib/origin";
+ 
+ /**
+  * Turns a web address with broken % escapes ("/life/%", "/api/photos/%E0%A4%A") into a plain 400 before it reaches
+@@ -24,9 +25,31 @@ export function proxy(req: NextRequest) {
+       ? NextResponse.json({ error: "That web address is not valid." }, { status: 400 })
+       : new NextResponse("That web address is not valid.", { status: 400, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+   }
++
++  if (path.startsWith("/api/")) return api(req, path);
+   return NextResponse.next();
+ }
+ 
++/** CORS allowlist and the cross-site write wall for every API route (rules in src/lib/origin.ts). */
++function api(req: NextRequest, path: string) {
++  const verdict = classifyOrigin(req);
++  const cors: Record<string, string> = verdict.kind === "allowed" ? { "Access-Control-Allow-Origin": verdict.origin, ...CORS_HEADERS } : {};
++
++  if (req.method === "OPTIONS") {
++    // A preflight from an origin that is not on the list gets no CORS headers, so the browser stops there.
++    return new NextResponse(null, { status: 204, headers: { ...cors, Vary: "Origin" } });
++  }
++
++  if (UNSAFE_METHODS.has(req.method) && verdict.kind === "foreign" && !originExempt(path)) {
++    return NextResponse.json({ error: "Bad origin." }, { status: 403, headers: { Vary: "Origin" } });
++  }
++
++  const res = NextResponse.next();
++  res.headers.set("Vary", "Origin");
++  for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
++  return res;
++}
++
+ export const config = {
+   // Everything except the framework's own static files and images.
+   matcher: ["/((?!_next/static|_next/image).*)"],
+diff --git a/tests/fuzz.mjs b/tests/fuzz.mjs
+new file mode 100644
+index 0000000..78f88b1
+--- /dev/null
++++ b/tests/fuzz.mjs
+@@ -0,0 +1,240 @@
++#!/usr/bin/env node
++/**
++ * Junk-request tool. Throws malformed, oversized and hostile requests at every API route the
++ * repository defines and reports anything that answers with a server error, leaks a stack trace or
++ * takes too long. Local server only — never point this at production.
++ *
++ *   node tests/fuzz.mjs                      # against http://localhost:3000, signed out and signed in
++ *   TEST_BASE=http://localhost:3001 node tests/fuzz.mjs
++ *   node tests/fuzz.mjs --json out.json      # also write every finding as JSON
++ *
++ * Exit code 0 = no findings, 1 = findings (listed), 2 = could not reach the server.
++ */
++import { readdirSync, statSync, writeFileSync } from "node:fs";
++import { join, relative, sep } from "node:path";
++import { fileURLToPath } from "node:url";
++
++const BASE = (process.env.TEST_BASE ?? "http://localhost:3000").replace(/\/+$/, "");
++const ROOT = fileURLToPath(new URL("../src/app/api", import.meta.url));
++const SLOW_MS = Number(process.env.FUZZ_SLOW_MS ?? 8000);
++const jsonOut = process.argv.includes("--json") ? process.argv[process.argv.indexOf("--json") + 1] : null;
++
++if (/vercel\.app|nowbey\.(app|com)/i.test(BASE)) {
++  console.error("Refusing to fuzz what looks like a production address:", BASE);
++  process.exit(2);
++}
++
++/** Every route.ts under src/app/api, turned into a URL path with its dynamic segments marked. */
++function routes(dir = ROOT) {
++  const out = [];
++  for (const name of readdirSync(dir)) {
++    const full = join(dir, name);
++    if (statSync(full).isDirectory()) out.push(...routes(full));
++    else if (name === "route.ts") out.push("/api/" + relative(ROOT, dir).split(sep).join("/"));
++  }
++  return out.map((p) => p.replace(/\/$/, ""));
++}
++
++const SEGMENTS = [
++  "00000000-0000-0000-0000-000000000000",
++  "not-a-uuid",
++  "%27%20OR%201%3D1--",
++  "..%2F..%2Fetc%2Fpasswd",
++  "9".repeat(400),
++  "%E2%80%AE",
++  "%00",
++];
++
++const LONG = "A".repeat(200_000);
++const BODIES = [
++  { raw: "{", type: "application/json" },
++  { raw: "", type: "application/json" },
++  { raw: "null", type: "application/json" },
++  { raw: "[]", type: "application/json" },
++  { raw: "12345", type: "application/json" },
++  { raw: '"just a string"', type: "application/json" },
++  { raw: "<xml>?</xml>", type: "application/xml" },
++  { raw: "a=1&b=2", type: "application/x-www-form-urlencoded" },
++  { raw: "--x\r\nContent-Disposition: form-data; name=\"f\"\r\n\r\n\r\n--x--", type: "multipart/form-data; boundary=x" },
++  { raw: "--broken", type: "multipart/form-data" },
++  { json: { __proto__: { isAdmin: true }, constructor: { prototype: { isAdmin: true } } } },
++  { json: { handle: LONG, email: LONG, password: LONG, body: LONG, title: LONG, url: LONG } },
++  {
++    json: {
++      intent: "signin",
++      handle: "' OR 1=1 --",
++      password: { $ne: null },
++      email: ["a@b.c"],
++      id: { length: 1e9 },
++      tier: "admiral",
++      role: "admin",
++      action: "setRole",
++      lat: "NaN",
++      lng: Infinity,
++      limit: -1,
++      page: 1e308,
++      parishes: "New Providence",
++      categories: [null, 1, {}],
++      kind: "\u0000",
++      targetId: "00000000-0000-0000-0000-000000000000",
++    },
++  },
++  { json: { a: Array.from({ length: 2000 }, (_, i) => ({ i, s: "x".repeat(20) })) } },
++  { json: JSON.parse("{" + '"a":{'.repeat(200) + "}".repeat(200) + "}") },
++  { json: { text: "\ud800\udfff\u202e<script>alert(1)</script>🙂", note: "javascript:alert(1)", url: "javascript:alert(1)" } },
++];
++
++const QUERIES = ["", "?limit=-5&page=abc", "?limit=99999999999999999999", "?q=" + "%".repeat(5), "?parish[]=x&status[$ne]=1", "?h=" + "a".repeat(5000)];
++const METHODS = ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS", "HEAD"];
++
++/** Patterns that should never reach a visitor. */
++const LEAKS = [/\bat [\w.<>]+ \(.*:\d+:\d+\)/, /node_modules\//, /ECONNREFUSED/, /password_hash/i, /DATABASE_URL=/, /Failed query:/];
++
++const findings = [];
++/** Deliberate "not set up on this server" replies (503 with a JSON error) are listed, not counted as findings. */
++const unavailable = new Set();
++/** Signed-in requests that would end the fuzz session itself and blind the rest of the signed-in pass. */
++const SESSION_ENDERS = /^(DELETE \/api\/session|\w+ \/api\/account\/sessions|DELETE \/api\/account|POST \/api\/account\/password)$/;
++let sent = 0;
++
++async function send(method, path, body, cookie, ip) {
++  const headers = { origin: BASE, "x-forwarded-for": ip };
++  if (cookie) headers.cookie = cookie;
++  let payload;
++  if (body && method !== "GET" && method !== "HEAD") {
++    if (body.json !== undefined) {
++      headers["content-type"] = "application/json";
++      payload = JSON.stringify(body.json);
++    } else {
++      headers["content-type"] = body.type;
++      payload = body.raw;
++    }
++  }
++  const started = Date.now();
++  let status = 0;
++  let text = "";
++  try {
++    const res = await fetch(BASE + path, { method, headers, body: payload, redirect: "manual", signal: AbortSignal.timeout(30_000) });
++    status = res.status;
++    text = method === "HEAD" ? "" : (await res.text()).slice(0, 20_000);
++  } catch (e) {
++    status = -1;
++    text = String(e?.cause?.code ?? e?.message ?? e);
++  }
++  sent += 1;
++  const ms = Date.now() - started;
++  const what = `${method} ${path}${body ? ` body#${BODIES.indexOf(body)}` : ""}${cookie ? " (signed in)" : ""}`;
++  if (status === 503 && /"error"/.test(text)) unavailable.add(`${method} ${path.split("?")[0]} → 503 ${text.slice(0, 80)}`);
++  else if (status >= 500 || status === -1) findings.push({ kind: "server-error", what, status, sample: text.slice(0, 300) });
++  else if (ms > SLOW_MS) findings.push({ kind: "slow", what, status, ms });
++  for (const re of LEAKS) {
++    if (re.test(text)) findings.push({ kind: "leak", what, status, pattern: String(re), sample: text.match(re)?.[0] });
++  }
++}
++
++/** A run of requests at a time: enough to be quick, few enough not to trip every limiter at once. */
++async function pool(tasks, width = 8) {
++  const queue = [...tasks];
++  await Promise.all(
++    Array.from({ length: width }, async () => {
++      while (queue.length) await queue.shift()();
++    }),
++  );
++}
++
++async function signIn() {
++  const handle = `fz_${Math.random().toString(36).slice(2, 8)}`;
++  const res = await fetch(`${BASE}/api/session`, {
++    method: "POST",
++    headers: { "content-type": "application/json", origin: BASE, "x-forwarded-for": `10.250.${Math.floor(Math.random() * 250)}.1` },
++    body: JSON.stringify({ intent: "signup", handle, email: `${handle}@example.test`, password: `Junk-Request_Conch9-${Math.random().toString(36).slice(2, 10)}` }),
++  });
++  const cookie = (res.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
++  return res.ok ? cookie : null;
++}
++
++async function main() {
++  try {
++    await fetch(`${BASE}/api/health`, { signal: AbortSignal.timeout(15_000) });
++  } catch {
++    console.error(`Cannot reach ${BASE}. Start the local stack first (bash tests/run-local.sh).`);
++    process.exit(2);
++  }
++  const list = routes();
++  const cookie = await signIn();
++  console.log(`fuzzing ${list.length} routes at ${BASE} ${cookie ? "(signed out and signed in)" : "(signed out only)"}`);
++
++  let n = 0;
++  const ip = () => `10.${200 + (n % 50)}.${Math.floor(n / 50) % 250}.${(n++ % 250) + 1}`;
++  const tasks = [];
++  for (const route of list) {
++    const concrete = route.includes("[")
++      ? SEGMENTS.map((s) => route.replace(/\[\.\.\.[^\]]+\]/g, `${s}/${s}`).replace(/\[[^\]]+\]/g, s))
++      : [route];
++    for (const path of concrete) {
++      for (const method of METHODS) {
++        for (const q of method === "GET" ? QUERIES : [""]) tasks.push(() => send(method, path + q, null, null, ip()));
++        if (["POST", "PATCH", "PUT", "DELETE"].includes(method)) {
++          for (const body of BODIES) {
++            tasks.push(() => send(method, path, body, null, ip()));
++            if (cookie && !SESSION_ENDERS.test(`${method} ${path}`)) tasks.push(() => send(method, path, body, cookie, ip()));
++          }
++        }
++      }
++    }
++  }
++  // Header-level junk against a few representative routes.
++  for (const path of ["/api/session", "/api/incidents", "/api/comments", "/api/account"]) {
++    for (const h of [
++      { origin: "null" },
++      { cookie: "nowbey_session=" + "x".repeat(4000) },
++      { cookie: "nowbey_session=v1.eyJ1aWQiOiJhZG1pbiJ9.forged" },
++      { authorization: "Bearer " + "y".repeat(3000) },
++      { authorization: "Bearer v1.e30.x" },
++      { "content-length": "99999999" },
++    ]) {
++      tasks.push(async () => {
++        const started = Date.now();
++        let status = -1;
++        let text = "";
++        try {
++          const res = await fetch(BASE + path, { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": ip(), ...h }, body: "{}", signal: AbortSignal.timeout(30_000) });
++          status = res.status;
++          text = await res.text();
++        } catch (e) {
++          text = String(e?.cause?.code ?? e?.message);
++          // A lying content-length is rejected by the client library itself; that is not a server finding.
++          if (h["content-length"]) status = 400;
++        }
++        sent += 1;
++        if (status >= 500 || status === -1) findings.push({ kind: "server-error", what: `POST ${path} header ${Object.keys(h)[0]}`, status, sample: text.slice(0, 300) });
++        if (Date.now() - started > SLOW_MS) findings.push({ kind: "slow", what: `POST ${path} header ${Object.keys(h)[0]}`, status });
++      });
++    }
++  }
++
++  const t0 = Date.now();
++  await pool(tasks);
++  const secs = ((Date.now() - t0) / 1000).toFixed(1);
++  const counts = findings.reduce((m, f) => ((m[f.kind] = (m[f.kind] ?? 0) + 1), m), {});
++  console.log(`${sent} requests in ${secs}s — ${findings.length} findings ${JSON.stringify(counts)}`);
++  const seen = new Set();
++  for (const f of findings) {
++    const key = `${f.kind} ${f.what.replace(/ body#\d+| \(signed in\)/g, "")} ${f.status}`;
++    if (seen.has(key)) continue;
++    seen.add(key);
++    console.log(`  [${f.kind}] ${f.what} → ${f.status}${f.sample ? `  ${String(f.sample).replace(/\s+/g, " ").slice(0, 160)}` : ""}`);
++  }
++  if (unavailable.size) {
++    console.log(`  deliberate 503 "not set up" replies (not findings):`);
++    for (const u of new Set([...unavailable].map((x) => x.replace(/ → 503.*/, "")))) console.log(`    ${u}`);
++  }
++  if (cookie) {
++    const me = await fetch(`${BASE}/api/session`, { headers: { cookie } }).then((r) => r.json()).catch(() => ({}));
++    console.log(`  fuzz session still valid at the end: ${me?.user ? "yes" : "no"}`);
++  }
++  if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ base: BASE, sent, findings }, null, 2));
++  process.exit(findings.length ? 1 : 0);
++}
++
++main();
+diff --git a/tests/run-local.sh b/tests/run-local.sh
+new file mode 100755
+index 0000000..e6819f6
+--- /dev/null
++++ b/tests/run-local.sh
+@@ -0,0 +1,81 @@
++#!/usr/bin/env bash
++# Wires up the local stack the live suites (npm run test:local / test:ui / test:fuzz) expect:
++#   * a throwaway Postgres on 127.0.0.1:55432, database "nowbey", schema pushed from src/db/schema.ts
++#     and seeded by src/db/seed.sql (pass PG_BIN=/path/to/postgres/bin if postgres is not on PATH)
++#   * a self-signed certificate for "localhost", trusted by the app through NODE_EXTRA_CA_CERTS
++#   * the SMTP catcher (tests/harness/smtp-capture.py) on 4465, writing to /tmp/nowbey-mail
++#   * .env.local with test-only values (never real secrets), then `npm run dev` on port 3000
++#
++# Nothing here touches production. Usage:
++#   bash tests/run-local.sh            # start everything, leave the dev server in the foreground
++#   bash tests/run-local.sh --no-dev   # prepare database, mail and .env.local only
++set -euo pipefail
++cd "$(dirname "$0")/.."
++
++PGPORT="${PGPORT:-55432}"
++PGDATA="${PGDATA:-/tmp/nowbey-pg}"
++CERTS=/tmp/nowbey-certs
++MAIL_DIR=/tmp/nowbey-mail
++PG_BIN="${PG_BIN:-$(dirname "$(command -v postgres 2>/dev/null || echo /usr/lib/postgresql/16/bin/postgres)")}"
++DB_URL="postgresql://postgres@127.0.0.1:${PGPORT}/nowbey"
++
++if ! (exec 3<>"/dev/tcp/127.0.0.1/${PGPORT}") 2>/dev/null; then
++  if [ ! -f "$PGDATA/PG_VERSION" ]; then "$PG_BIN/initdb" -D "$PGDATA" -U postgres --auth=trust >/dev/null; fi
++  "$PG_BIN/pg_ctl" -D "$PGDATA" -o "-p ${PGPORT} -k /tmp" -l /tmp/nowbey-pg.log -w start >/dev/null
++fi
++node -e '
++  const pg = require("pg");
++  const c = new pg.Client({ connectionString: process.argv[1].replace(/\/nowbey$/, "/postgres") });
++  c.connect().then(() => c.query("create database nowbey")).catch(() => {}).finally(() => c.end());
++' "$DB_URL"
++
++mkdir -p "$CERTS" "$MAIL_DIR"
++if [ ! -f "$CERTS/cert.pem" ]; then
++  openssl req -x509 -newkey rsa:2048 -nodes -days 30 -subj "/CN=localhost" \
++    -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" \
++    -keyout "$CERTS/key.pem" -out "$CERTS/cert.pem" >/dev/null 2>&1
++fi
++if ! (exec 3<>/dev/tcp/127.0.0.1/4465) 2>/dev/null; then
++  nohup python3 tests/harness/smtp-capture.py --port 4465 --cert "$CERTS/cert.pem" --key "$CERTS/key.pem" \
++    --out "$MAIL_DIR" >/tmp/nowbey-smtp.log 2>&1 &
++fi
++
++if [ ! -f .env.local ] || grep -q "^# generated by tests/run-local.sh" .env.local; then
++  cat > .env.local <<EOF
++# generated by tests/run-local.sh — test-only values, safe to delete
++DATABASE_URL=${DB_URL}
++APP_URL=http://localhost:3000
++AUTH_SECRET=local-test-secret-not-for-production-0123456789
++CRON_SECRET=local-cron-secret-0123456789
++ADMIN_HANDLES=mario242,eastsiderick
++ADMIN_EMAILS=@example.test
++SMTP_HOST=localhost
++SMTP_PORT=4465
++SMTP_USER=catcher
++SMTP_PASS=catcher
++MAIL_FROM=NowBey <alerts@nowbey.test>
++GOOGLE_CLIENT_ID=test-client.apps.googleusercontent.com
++GOOGLE_CLIENT_SECRET=GOCSPX-test-secret
++GOOGLE_OAUTH_BASE=http://127.0.0.1:4466
++NEXT_PUBLIC_LAUNCH_STAGE=nassau
++EOF
++fi
++
++DATABASE_URL="$DB_URL" npx drizzle-kit push --force >/tmp/nowbey-push.log 2>&1 || { cat /tmp/nowbey-push.log; exit 1; }
++node -e '
++  const pg = require("pg"); const fs = require("fs");
++  const c = new pg.Client({ connectionString: process.argv[1] });
++  c.connect().then(() => c.query(fs.readFileSync("src/db/seed.sql", "utf8"))).catch((e) => console.error("seed:", e.message)).finally(() => c.end());
++' "$DB_URL"
++for f in src/db/add-security-fixes.sql; do
++  [ -f "$f" ] && DATABASE_URL="$DB_URL" node -e '
++    const pg = require("pg"); const fs = require("fs");
++    const c = new pg.Client({ connectionString: process.env.DATABASE_URL });
++    c.connect().then(() => c.query(fs.readFileSync(process.argv[1], "utf8"))).finally(() => c.end());
++  ' "$f"
++done
++
++echo "local stack ready: db ${DB_URL}, smtp :4465 -> ${MAIL_DIR}"
++if [ "${1:-}" != "--no-dev" ]; then
++  NODE_EXTRA_CA_CERTS="$CERTS/cert.pem" exec npm run dev
++fi
+diff --git a/tests/security-unit.test.mjs b/tests/security-unit.test.mjs
+new file mode 100644
+index 0000000..84aab75
+--- /dev/null
++++ b/tests/security-unit.test.mjs
+@@ -0,0 +1,148 @@
++/**
++ * Hermetic tests for the security primitives: password hashing and the rate limiter.
++ * No database and no server — these run in CI on every push (npm test).
++ */
++import { test } from "node:test";
++import assert from "node:assert/strict";
++import { randomBytes, scryptSync } from "node:crypto";
++import { hashPassword, passwordNeedsRehash, verifyPassword } from "../src/lib/secret.ts";
++import {
++  __setSharedQuery,
++  clientIp,
++  exhausted,
++  hit,
++  memoryKeyCount,
++  record,
++  sharedExhausted,
++  sharedHit,
++  sharedRecord,
++} from "../src/lib/ratelimit-core.ts";
++
++/** A hash exactly as the old code wrote it: Node's default scrypt, 12-byte salt, 40-byte key. */
++function legacyHash(password) {
++  const salt = randomBytes(12).toString("hex");
++  return `${salt}:${scryptSync(password, salt, 40).toString("hex")}`;
++}
++
++test("new hashes use the versioned scrypt format with OWASP parameters", async () => {
++  const h = await hashPassword("Rum-Cake_42-Conch");
++  assert.match(h, /^scrypt\$15\$8\$3\$[0-9a-f]{32}\$[0-9a-f]{128}$/);
++  assert.equal(await verifyPassword("Rum-Cake_42-Conch", h), true);
++  assert.equal(await verifyPassword("Rum-Cake_42-conch", h), false);
++  assert.equal(passwordNeedsRehash(h), false);
++});
++
++test("two hashes of the same password differ (fresh salt each time)", async () => {
++  const [a, b] = await Promise.all([hashPassword("same"), hashPassword("same")]);
++  assert.notEqual(a, b);
++});
++
++test("every password saved by the old code still verifies, and is flagged for upgrade", async () => {
++  const old = legacyHash("Tide-Pool_7-Sapodilla");
++  assert.equal(await verifyPassword("Tide-Pool_7-Sapodilla", old), true);
++  assert.equal(await verifyPassword("wrong", old), false);
++  assert.equal(passwordNeedsRehash(old), true);
++});
++
++test("the seeded development hash (old format) verifies against nothing it should not", async () => {
++  const seeded = "d222b8b0f3d2232f549618b0:9f379636076ae5974af4bd39affc3325f1ae3253c04424ae019030c9c754238c1f2bc95aac757666";
++  assert.equal(await verifyPassword("", seeded), false);
++  assert.equal(passwordNeedsRehash(seeded), true);
++});
++
++test("corrupt, empty and hostile stored values never verify and never throw", async () => {
++  const hostile = [
++    null,
++    undefined,
++    "",
++    ":",
++    "abc",
++    "salt:",
++    "salt:zz-not-hex",
++    "scrypt$15$8$3$salt",
++    "scrypt$30$8$1$00$" + "a".repeat(128), // N = 2^30 would ask for terabytes: refused before scrypt runs
++    "scrypt$15$999$1$00$" + "a".repeat(128),
++    "scrypt$x$8$1$00$" + "a".repeat(128),
++  ];
++  for (const stored of hostile) {
++    assert.equal(await verifyPassword("anything", stored), false, String(stored));
++  }
++  assert.equal(passwordNeedsRehash(null), false);
++  assert.equal(passwordNeedsRehash("garbage"), false);
++});
++
++test("hashing does not block the event loop", async () => {
++  let ticks = 0;
++  const timer = setInterval(() => (ticks += 1), 5);
++  await Promise.all([hashPassword("a"), hashPassword("b"), hashPassword("c")]);
++  clearInterval(timer);
++  assert.ok(ticks > 0, "timers must keep firing while passwords are hashed");
++});
++
++test("clientIp: first X-Forwarded-For hop off Vercel, x-real-ip on Vercel", () => {
++  const req = (h) => new Request("http://x/", { headers: h });
++  const prev = process.env.VERCEL;
++  delete process.env.VERCEL;
++  assert.equal(clientIp(req({ "x-forwarded-for": "1.1.1.1, 2.2.2.2" })), "1.1.1.1");
++  assert.equal(clientIp(req({})), "local");
++  process.env.VERCEL = "1";
++  assert.equal(clientIp(req({ "x-forwarded-for": "6.6.6.6", "x-real-ip": "3.3.3.3" })), "3.3.3.3");
++  if (prev === undefined) delete process.env.VERCEL;
++  else process.env.VERCEL = prev;
++  assert.equal(clientIp(req({ "x-forwarded-for": "9".repeat(500) })).length, 64);
++});
++
++test("the in-memory limiter counts, blocks and reports a sane Retry-After", () => {
++  const key = `unit:${Math.random()}`;
++  for (let i = 0; i < 3; i += 1) assert.equal(hit(key, 3, 60_000).ok, true);
++  const blocked = hit(key, 3, 60_000);
++  assert.equal(blocked.ok, false);
++  assert.ok(blocked.retryAfter >= 1 && blocked.retryAfter <= 60);
++  const k2 = `unit2:${Math.random()}`;
++  record(k2, 60_000);
++  record(k2, 60_000);
++  assert.equal(exhausted(k2, 2, 60_000).blocked, true);
++});
++
++test("a flood of distinct keys cannot grow memory past the cap", () => {
++  for (let i = 0; i < 12_000; i += 1) hit(`flood:${i}:${"x".repeat(200)}`, 5, 3_600_000);
++  assert.ok(memoryKeyCount() <= 5000, `kept ${memoryKeyCount()} keys`);
++});
++
++test("the shared limiter uses the database answer when there is one", async () => {
++  let hits = 0;
++  __setSharedQuery(async (text) => {
++    if (/^\s*insert/i.test(text)) return { rows: [{ hits: ++hits, ttl: 900 }] };
++    return { rows: [{ hits, ttl: 900 }] };
++  });
++  try {
++    assert.equal((await sharedHit("s:a", 2, 900_000)).ok, true);
++    assert.equal((await sharedHit("s:a", 2, 900_000)).ok, true);
++    const third = await sharedHit("s:a", 2, 900_000);
++    assert.equal(third.ok, false);
++    assert.equal(third.retryAfter, 900);
++    assert.equal((await sharedExhausted("s:a", 2, 900_000)).blocked, true);
++  } finally {
++    __setSharedQuery(null);
++  }
++});
++
++test("without the rate_limits table the shared limiter falls back to per-instance limits", async () => {
++  const missing = Object.assign(new Error('relation "rate_limits" does not exist'), { code: "42P01" });
++  __setSharedQuery(async () => {
++    throw missing;
++  });
++  const warn = console.warn;
++  console.warn = () => {};
++  try {
++    const key = `fallback:${Math.random()}`;
++    assert.equal((await sharedHit(key, 1, 60_000)).ok, true);
++    assert.equal((await sharedHit(key, 1, 60_000)).ok, false, "the old in-memory limit must still apply");
++    const k2 = `fallback2:${Math.random()}`;
++    await sharedRecord(k2, 60_000);
++    assert.equal((await sharedExhausted(k2, 1, 60_000)).blocked, true);
++  } finally {
++    console.warn = warn;
++    __setSharedQuery(null);
++  }
++});
+diff --git a/tests/security.test.mjs b/tests/security.test.mjs
+new file mode 100644
+index 0000000..c08be67
+--- /dev/null
++++ b/tests/security.test.mjs
+@@ -0,0 +1,269 @@
++/**
++ * Live security tests: each one is an attack that worked against master before 2026-10-15
++ * (see audit/2026-10-15_security/REPORT.md), run against the real local server and database.
++ *
++ * Needs the local stack (bash tests/run-local.sh) with ADMIN_HANDLES=mario242,eastsiderick and
++ * ADMIN_EMAILS=@example.test. Uses its own handles and addresses, so it can run beside the other suites.
++ */
++import { test, after } from "node:test";
++import assert from "node:assert/strict";
++import { randomBytes, scryptSync } from "node:crypto";
++import { BASE, api, endDb, jar, query, strongPassword, unique, uniqueIp } from "./harness/env.mjs";
++
++after(async () => {
++  await endDb();
++});
++
++async function newMember(prefix = "sec") {
++  const cookie = jar();
++  const handle = `${prefix}_${unique()}`;
++  const email = `${handle}@example.test`;
++  const password = strongPassword();
++  const res = await api("/api/session", {
++    method: "POST",
++    ip: uniqueIp(),
++    cookie,
++    body: { intent: "signup", handle, email, password, parish: "New Providence" },
++  });
++  assert.equal(res.status, 200, JSON.stringify(res.json));
++  return { cookie, handle, email, password };
++}
++
++/* ---------------------------------------------------------------------------------------------- */
++/* 1. Paid plans could be self-granted while no payment provider is connected (production today)  */
++/* ---------------------------------------------------------------------------------------------- */
++
++test("a member cannot give themselves a paid plan when payments are not set up", async () => {
++  const m = await newMember();
++  const grab = await api("/api/billing/checkout", { method: "POST", cookie: m.cookie, body: { tier: "admiral", interval: "year" } });
++  assert.equal(grab.status, 503, `checkout must refuse, got ${grab.status} ${grab.text}`);
++  assert.match(grab.json.error, /Plans open soon/);
++
++  const [row] = await query("select ad_free_tier, plan_status from users where handle = $1", [m.handle]);
++  assert.equal(row.ad_free_tier, null);
++  assert.equal(row.plan_status, null);
++
++  const me = await api("/api/session", { cookie: m.cookie });
++  assert.equal(me.json.user.plan.tier, null);
++  assert.equal(me.json.user.verified, false);
++  const exp = await api("/api/export", { cookie: m.cookie });
++  assert.equal(exp.status, 403, "the Admiral export must stay locked");
++});
++
++test("a demo plan written before the fix no longer unlocks anything", async () => {
++  const m = await newMember();
++  await query("update users set ad_free_tier = 'admiral', plan_status = 'sandbox' where handle = $1", [m.handle]);
++  const me = await api("/api/session", { cookie: m.cookie });
++  assert.equal(me.json.user.plan.tier, null);
++  assert.equal((await api("/api/export", { cookie: m.cookie })).status, 403);
++});
++
++test("the plans page says plans open soon instead of offering a button that fails", async () => {
++  const page = await api("/support");
++  assert.equal(page.status, 200);
++  assert.match(page.text, /Plans open soon/);
++  assert.match(page.text, /Opening soon/);
++  assert.doesNotMatch(page.text, /You can try a plan with your account/);
++});
++
++/* ---------------------------------------------------------------------------------------------- */
++/* 2. CORS: every API response said Access-Control-Allow-Origin: *                                */
++/* ---------------------------------------------------------------------------------------------- */
++
++test("API responses never carry a wildcard CORS header, and strangers get none at all", async () => {
++  for (const path of ["/api/health", "/api/session", "/api/incidents?limit=1"]) {
++    const res = await fetch(`${BASE}${path}`, { headers: { origin: "https://evil.example" } });
++    assert.equal(res.headers.get("access-control-allow-origin"), null, path);
++    assert.equal(res.headers.get("access-control-allow-credentials"), null, path);
++  }
++  const pre = await fetch(`${BASE}/api/session`, {
++    method: "OPTIONS",
++    headers: { origin: "https://evil.example", "access-control-request-method": "POST" },
++  });
++  assert.equal(pre.status, 204);
++  assert.equal(pre.headers.get("access-control-allow-origin"), null);
++});
++
++test("Expo web's development origin is echoed by a development server and refused by a production one", async () => {
++  // X-Frame-Options is only sent by a production build (next.config.ts), so it tells the two apart.
++  const production = (await fetch(`${BASE}/api/health`)).headers.has("x-frame-options");
++  const res = await fetch(`${BASE}/api/health`, { headers: { origin: "http://localhost:8081" } });
++  const pre = await fetch(`${BASE}/api/session`, {
++    method: "OPTIONS",
++    headers: { origin: "http://localhost:8081", "access-control-request-method": "POST" },
++  });
++  assert.equal(pre.status, 204);
++  assert.equal(res.headers.get("access-control-allow-credentials"), null);
++  assert.match(res.headers.get("vary") ?? "", /Origin/i);
++  if (production) {
++    assert.equal(res.headers.get("access-control-allow-origin"), null, "a production server must not trust a developer's localhost");
++    assert.equal(pre.headers.get("access-control-allow-origin"), null);
++  } else {
++    assert.equal(res.headers.get("access-control-allow-origin"), "http://localhost:8081");
++    assert.equal(pre.headers.get("access-control-allow-origin"), "http://localhost:8081");
++  }
++});
++
++/* ---------------------------------------------------------------------------------------------- */
++/* 3. Cross-site writes reached routes that never checked the Origin themselves                   */
++/* ---------------------------------------------------------------------------------------------- */
++
++test("a write from a foreign website is refused before it reaches any route", async () => {
++  const m = await newMember();
++  const attempts = [
++    ["POST", "/api/comments", { targetType: "incident", targetId: "00000000-0000-0000-0000-000000000000", body: "hi" }],
++    ["POST", "/api/account/password", { current: m.password, next: strongPassword() }],
++    ["DELETE", "/api/account/sessions", {}],
++    ["POST", "/api/billing/checkout", { tier: "conch" }],
++    ["PATCH", "/api/account", { displayName: "Hacked" }],
++    ["POST", "/api/news", { limit: 1 }],
++  ];
++  for (const [method, path, body] of attempts) {
++    for (const origin of ["https://evil.example", "null"]) {
++      const res = await api(path, { method, body, cookie: m.cookie, origin });
++      assert.equal(res.status, 403, `${method} ${path} from ${origin} answered ${res.status}`);
++      assert.equal(res.json?.error, "Bad origin.");
++    }
++  }
++  const [row] = await query("select display_name from users where handle = $1", [m.handle]);
++  assert.notEqual(row.display_name, "Hacked");
++});
++
++test("same-site writes, native-app writes (no Origin) and the Stripe webhook still get through", async () => {
++  const m = await newMember();
++  const same = await api("/api/account", { method: "PATCH", cookie: m.cookie, body: { displayName: "Island Reader", parish: "New Providence" } });
++  assert.equal(same.status, 200, same.text);
++
++  const native = await fetch(`${BASE}/api/session`, {
++    method: "POST",
++    headers: { "content-type": "application/json", "x-nowbey-client": "native", "x-forwarded-for": uniqueIp() },
++    body: JSON.stringify({ intent: "signin", handle: m.handle, password: m.password }),
++  });
++  assert.equal(native.status, 200);
++  assert.ok((await native.json()).token, "the app still receives its bearer token");
++
++  const hook = await fetch(`${BASE}/api/billing/webhook`, { method: "POST", headers: { origin: "https://evil.example" }, body: "{}" });
++  const text = await hook.text();
++  assert.doesNotMatch(text, /Bad origin/, "the webhook authenticates by signature, not by Origin");
++});
++
++/* ---------------------------------------------------------------------------------------------- */
++/* 4. Any handle on ADMIN_HANDLES was an admin seat for whoever registered it first               */
++/* ---------------------------------------------------------------------------------------------- */
++
++test("a stranger cannot register a handle listed in ADMIN_HANDLES", async () => {
++  await query("delete from users where handle = 'eastsiderick'");
++  const res = await api("/api/session", {
++    method: "POST",
++    ip: uniqueIp(),
++    body: { intent: "signup", handle: "eastsiderick", email: `intruder_${unique()}@evil.test`, password: strongPassword() },
++  });
++  assert.equal(res.status, 400);
++  assert.match(res.json.error, /reserved/);
++  const rows = await query("select 1 from users where handle = 'eastsiderick'");
++  assert.equal(rows.length, 0);
++});
++
++test("an ADMIN_HANDLES account gets no admin rights until its email is confirmed", async () => {
++  await query("delete from users where handle = 'eastsiderick'");
++  const cookie = jar();
++  const res = await api("/api/session", {
++    method: "POST",
++    ip: uniqueIp(),
++    cookie,
++    body: { intent: "signup", handle: "eastsiderick", email: `rick_${unique()}@example.test`, password: strongPassword() },
++  });
++  assert.equal(res.status, 200, res.text);
++  let me = await api("/api/session", { cookie });
++  assert.equal(me.json.user.isAdmin, false, "an unconfirmed address must not unlock ADMIN_HANDLES");
++  assert.equal((await api("/admin", { cookie })).status, 404);
++  assert.equal((await api("/api/admin/settings", { method: "PATCH", cookie, body: {} })).status, 403);
++
++  await query("update users set email_verified_at = now() where handle = 'eastsiderick'");
++  me = await api("/api/session", { cookie });
++  assert.equal(me.json.user.isAdmin, true, "once the address is confirmed, ADMIN_HANDLES applies");
++  assert.equal((await api("/admin", { cookie })).status, 200);
++  await query("delete from users where handle = 'eastsiderick'");
++});
++
++/* ---------------------------------------------------------------------------------------------- */
++/* 5. Passwords: stronger hashing without locking anybody out                                     */
++/* ---------------------------------------------------------------------------------------------- */
++
++test("new accounts store the versioned scrypt hash", async () => {
++  const m = await newMember();
++  const [row] = await query("select password_hash from users where handle = $1", [m.handle]);
++  assert.match(row.password_hash, /^scrypt\$15\$8\$3\$[0-9a-f]{32}\$[0-9a-f]{128}$/);
++});
++
++test("a member with an old-format hash signs in normally and is upgraded silently", async () => {
++  const handle = `legacy_${unique()}`;
++  const password = strongPassword();
++  const salt = randomBytes(12).toString("hex");
++  const old = `${salt}:${scryptSync(password, salt, 40).toString("hex")}`;
++  await query("insert into users (handle, display_name, email, password_hash) values ($1, $1, $2, $3)", [handle, `${handle}@example.test`, old]);
++
++  const wrong = await api("/api/session", { method: "POST", ip: uniqueIp(), body: { intent: "signin", handle, password: "not-it" } });
++  assert.equal(wrong.status, 401);
++  let [row] = await query("select password_hash from users where handle = $1", [handle]);
++  assert.equal(row.password_hash, old, "a failed sign-in must not touch the hash");
++
++  // A phone keyboard's trailing space is still forgiven, and the hash is upgraded from the value that matched.
++  const ok = await api("/api/session", { method: "POST", ip: uniqueIp(), body: { intent: "signin", handle, password: `${password} ` } });
++  assert.equal(ok.status, 200, ok.text);
++  [row] = await query("select password_hash from users where handle = $1", [handle]);
++  assert.match(row.password_hash, /^scrypt\$15\$/);
++  const again = await api("/api/session", { method: "POST", ip: uniqueIp(), body: { intent: "signin", handle, password } });
++  assert.equal(again.status, 200, "the upgraded hash must accept the same password");
++});
++
++/* ---------------------------------------------------------------------------------------------- */
++/* 6. Shared rate limits (and the fallback while the migration has not run)                       */
++/* ---------------------------------------------------------------------------------------------- */
++
++test("wrong passwords are counted in the shared table and the seventh attempt is refused", async () => {
++  const m = await newMember();
++  const ip = uniqueIp();
++  const before = Number((await query("select count(*)::int as n from rate_limits"))[0].n);
++  for (let i = 0; i < 6; i += 1) {
++    const r = await api("/api/session", { method: "POST", ip, body: { intent: "signin", handle: m.handle, password: `wrong-${i}` } });
++    assert.equal(r.status, 401);
++  }
++  const blocked = await api("/api/session", { method: "POST", ip, body: { intent: "signin", handle: m.handle, password: m.password } });
++  assert.equal(blocked.status, 429, "even the right password waits once the limit is used up");
++  assert.ok(Number(blocked.headers.get("retry-after")) > 0);
++  const afterCount = Number((await query("select count(*)::int as n from rate_limits"))[0].n);
++  assert.ok(afterCount > before, "the failures must be stored in rate_limits, shared by every instance");
++  const keys = await query("select key, hits from rate_limits where hits >= 6");
++  assert.ok(keys.every((k) => k.key.length <= 64), "long keys are hashed");
++});
++
++test("the gas job no longer writes invented prices", async () => {
++  const before = Number((await query("select count(*)::int as n from gas_reports"))[0].n);
++  const secret = process.env.CRON_SECRET;
++  const res = await api("/api/cron/gas-update", { headers: { authorization: `Bearer ${secret}` } });
++  assert.equal(res.status, 200, res.text);
++  assert.equal(res.json.updated, 0);
++  const afterCount = Number((await query("select count(*)::int as n from gas_reports"))[0].n);
++  assert.equal(afterCount, before);
++  assert.equal((await api("/api/cron/gas-update", { headers: { authorization: "Bearer undefined" } })).status, 404);
++});
++
++test("without the rate_limits table the site keeps working with the old per-instance limits", async () => {
++  await query("alter table rate_limits rename to rate_limits_parked");
++  try {
++    const m = await newMember();
++    const ip = uniqueIp();
++    for (let i = 0; i < 6; i += 1) {
++      const r = await api("/api/session", { method: "POST", ip, body: { intent: "signin", handle: m.handle, password: `wrong-${i}` } });
++      assert.equal(r.status, 401, `attempt ${i} answered ${r.status}: ${r.text}`);
++    }
++    const blocked = await api("/api/session", { method: "POST", ip, body: { intent: "signin", handle: m.handle, password: m.password } });
++    assert.equal(blocked.status, 429, "the in-memory limit must still apply");
++    const fresh = await newMember();
++    const ok = await api("/api/session", { method: "POST", ip: uniqueIp(), body: { intent: "signin", handle: fresh.handle, password: fresh.password } });
++    assert.equal(ok.status, 200, "sign-in itself must keep working");
++  } finally {
++    await query("alter table rate_limits_parked rename to rate_limits");
++  }
++});

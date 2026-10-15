@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { sendResetEmail } from "@/lib/account";
 import { publicBase } from "@/lib/billing";
-import { clientIp, hit, tooMany } from "@/lib/ratelimit";
+import { clientIp, sharedHit, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
 
 
@@ -13,7 +13,7 @@ import { EMAIL_RE, text, readJson } from "@/lib/validate";
  * find out who is registered. The work happens after the reply so the timing does not give it away either.
  */
 export async function POST(req: Request) {
-  const gate = hit(`forgot:${clientIp(req)}`, 6, 60 * 60_000);
+  const gate = await sharedHit(`forgot:${clientIp(req)}`, 6, 60 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "reset requests");
 
   const body = await readJson(req);
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   // At most three reset emails per address per hour, so nobody can be flooded with them.
-  const perAddress = hit(`forgotmail:${email}`, 3, 60 * 60_000);
+  const perAddress = await sharedHit(`forgotmail:${email}`, 3, 60 * 60_000);
   if (perAddress.ok) {
     const base = publicBase(req);
     after(async () => {

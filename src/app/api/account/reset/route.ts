@@ -6,13 +6,13 @@ import { accountTokens, users } from "@/db/schema";
 import { consumeToken, peekToken } from "@/lib/account";
 import { hashPassword } from "@/lib/auth";
 import { checkPassword } from "@/lib/password";
-import { clientIp, hit, tooMany } from "@/lib/ratelimit";
+import { clientIp, sharedHit, tooMany } from "@/lib/ratelimit";
 
 
 const BAD_LINK = "This reset link is not valid any more. Ask for a new one.";
 
 export async function POST(req: Request) {
-  const gate = hit(`reset:${clientIp(req)}`, 10, 15 * 60_000);
+  const gate = await sharedHit(`reset:${clientIp(req)}`, 10, 15 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "attempts");
 
   const body = await readJson(req);
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   await db
     .update(users)
     .set({
-      passwordHash: hashPassword(password),
+      passwordHash: await hashPassword(password),
       passwordChangedAt: new Date(),
       // Changing the password signs the member out everywhere, which is what you want after a reset.
       sessionVersion: sql`${users.sessionVersion} + 1`,

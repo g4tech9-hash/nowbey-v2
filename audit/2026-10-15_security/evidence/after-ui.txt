@@ -1,0 +1,56 @@
+
+> nextjs-postgresql-template@1.0.0 test:ui
+> node --test tests/ui.test.mjs
+
+TAP version 13
+# Subtest: the phone map is short and the pin list sits under it
+ok 1 - the phone map is short and the pin list sits under it
+  ---
+  duration_ms: 133.166598
+  type: 'test'
+  ...
+# Subtest: the alerts page is the Nassau MVP form
+ok 2 - the alerts page is the Nassau MVP form
+  ---
+  duration_ms: 99.646787
+  type: 'test'
+  ...
+# Subtest: push is described as it actually is, on every surface
+ok 3 - push is described as it actually is, on every surface
+  ---
+  duration_ms: 83.627678
+  type: 'test'
+  ...
+# Subtest: no launch document claims push is delivered
+ok 4 - no launch document claims push is delivered
+  ---
+  duration_ms: 1.226737
+  type: 'test'
+  ...
+# Subtest: every phone page sets a real viewport and never locks zoom
+ok 5 - every phone page sets a real viewport and never locks zoom
+  ---
+  duration_ms: 803.847783
+  type: 'test'
+  ...
+# Subtest: the static mobile audit still passes at every phone width
+ok 6 - the static mobile audit still passes at every phone width
+  ---
+  duration_ms: 2919.812664
+  type: 'test'
+  ...
+# Subtest: deployment is gated on the checks, so a red build cannot ship
+ok 7 - deployment is gated on the checks, so a red build cannot ship
+  ---
+  duration_ms: 0.406043
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4130.587278

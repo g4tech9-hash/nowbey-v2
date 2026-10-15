@@ -1,24 +1,64 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
-## 0b. Claim the owner handles (do this first)
+## 0a. After the security update deploys (2026-10-15) — in this order
+
+Full write-up: `audit/2026-10-15_security/REPORT.md`. Do steps 1–3 the same day as the deploy.
+
+1. **Rotate the leaked Vercel credential.** `.env.vercel` (a `VERCEL_OIDC_TOKEN`) is in this *public*
+   repository's history at commit `9e4eb47`; deleting the file does not remove it. In Vercel → Account
+   Settings → Tokens, delete every token you do not recognise, create a new one, and paste it into GitHub →
+   repo Settings → Secrets and variables → Actions → `VERCEL_TOKEN`. Then Vercel → the project →
+   Settings → Security → check "Deployment Protection" and the team's audit log for deploys you did not
+   make. Never commit `.env*` files (they are in `.gitignore`).
+2. **Run the SQL once.** Neon → SQL editor → paste all of `src/db/add-security-fixes.sql` → Run. It
+   creates the shared `rate_limits` table and deletes the invented gas prices the old cron inserted. It is
+   safe to run twice. Until it runs the site works, with the older per-server limits.
+3. **Set `ADMIN_EMAILS` before claiming the admin handle.** Vercel → Settings → Environment Variables →
+   Production: `ADMIN_EMAILS=you@yourdomain.com` (comma-separate several; `@yourdomain.com` allows a
+   whole domain). Redeploy. Without it, nobody — including you — can register `mario242` or
+   `eastsiderick`; the form answers "reserved". Then do §0b.
+4. **Confirm the email on every admin account.** Admin rights from `ADMIN_HANDLES` now need a confirmed
+   email. If `/admin` stops opening, open the confirmation email (or Settings → resend it).
+5. **Check who holds admin.** Neon SQL editor:
+   `select handle, email, role, email_verified_at, created_at from users where role='admin' or handle in ('mario242','eastsiderick');`
+   Anything you do not recognise: Members page → suspend, or `update users set role='user' where handle='…';`.
+6. **Clear self-granted plans.** Before the fix any member could give themselves a paid plan through the
+   pretend checkout; those rows have `plan_status='sandbox'`. They no longer unlock anything, but list
+   and clear them so the Members page is truthful:
+   `select handle, ad_free_tier, plan_interval, created_at from users where plan_status='sandbox';`
+   `update users set ad_free_tier=null, plan_interval=null, plan_status=null, plan_renews_at=null where plan_status='sandbox';`
+   Complimentary plans you gave (`plan_status='comp'`) are untouched.
+7. **Leave `ALLOW_DEMO_PLANS` unset in Production.** Set it to `true` only on Preview/Development if you
+   want the pretend checkout for testing.
+8. **Only if you use the app in a browser (Expo web) against production:** add its address to
+   `ALLOWED_ORIGINS` (comma-separated, e.g. `https://app.example.com`). The Android app needs nothing.
+9. **Only if you self-host behind your own proxy (not Vercel):** make the proxy overwrite
+   `X-Forwarded-For`, or set `TRUST_PROXY=last`. On Vercel leave it unset.
+10. **Background photos.** `src/lib/themes.ts` expects `public/scenes/nassau.jpg`, `aerial.jpg`,
+    `sunset.jpg`, `shore.jpg`, `lagoon.jpg`, but there is no `public/` folder in the repository, so they
+    404 on the live site and pages show the plain dark background instead. Add your own JPEGs (landscape,
+    ~2000 px wide, under 500 KB, photos you have the rights to) under `public/scenes/` and commit them.
+11. **Install the new Android build (1.2.2).** It installs over the old one. If you had changed the
+    server address in the app, it signs you out once — sign in again.
+
+## 0b. Claim the owner handles (after §0a step 3)
 
 **Evidence (2026-10-15, from the production site itself):** signing in as `mario242` or `eastsiderick`
-answers "No account has the handle @…". The deployed code only prints that sentence after looking the
-handle up and finding no row, so **neither account exists in the production database yet** — there is
-no password to reset and no role to restore. Both handles are listed in `ADMIN_HANDLES` /
-`src/db/setup_admins.sql`, which are instructions to *grant* rights, not accounts.
+answers "No account has the handle @…", so **neither account exists in the production database yet**.
+Both handles are listed in `ADMIN_HANDLES` / `src/db/setup_admins.sql`, which are instructions to *grant*
+rights, not accounts.
 
-Until the handle exists, any handle on the `ADMIN_HANDLES` list is a seat waiting to be taken:
-`src/lib/viewer.ts` makes that handle an admin the moment it is registered. So:
+Before the 2026-10-15 security update, an unclaimed handle on that list was a seat waiting to be taken by
+whoever registered it first. It is now locked twice: registering it needs an address in `ADMIN_EMAILS`, and
+its admin rights need a confirmed email. So:
 
-1. On the live site, tap **Create account** and register `mario242` (a second one for `eastsiderick` if
-   you use it) with an email you control and a strong password. Sign-up emails a confirmation link —
-   tap it.
-2. Check Vercel → Settings → Environment Variables: if `ADMIN_HANDLES=mario242` is set, step 1 already
-   made the account an admin (`/admin` opens). If it is not set, either add it there (Production) and
-   redeploy, or run `src/db/setup_admins.sql` in the Neon SQL editor to set `role='admin'`.
-3. Never leave an unclaimed handle in `ADMIN_HANDLES`. If you must keep the list ahead of the account,
-   claim the handle first.
+1. Set `ADMIN_EMAILS` (§0a step 3) and redeploy.
+2. On the live site, tap **Create account** and register `mario242` (a second one for `eastsiderick` if
+   you use it) **with an address in `ADMIN_EMAILS`** and a strong password. Tap the confirmation link in
+   the email — admin rights start only after that.
+3. Check Vercel → Settings → Environment Variables: with `ADMIN_HANDLES=mario242` set, `/admin` now opens.
+   If it is not set, either add it (Production) and redeploy, or run `src/db/setup_admins.sql` in the
+   Neon SQL editor to set `role='admin'`.
 
 `setup_admins.sql` never touches passwords, and the product has no endpoint that reads or writes one.
 The two supported ways back into an existing account are the member's own reset email

@@ -8,6 +8,7 @@ import { SESSION_MAX_AGE, readToken, serverSecret } from "@/lib/secret";
 export {
   SESSION_MAX_AGE,
   hashPassword,
+  passwordNeedsRehash,
   makeToken,
   readPayload,
   readToken,

@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
 import { Platform } from "react-native";
-import { getServer, getToken, setServer } from "./storage";
+import { getServer, getToken, setPushToken, setServer, setToken } from "./storage";
 import type { CategoryKey } from "./geo";
 
 /**
@@ -46,11 +46,59 @@ export async function loadApiBase(): Promise<void> {
   if (saved) API_BASE = clean(saved);
 }
 
-/** Saves a new website address (or clears it with an empty string). */
-export async function changeApiBase(url: string): Promise<void> {
+/**
+ * Plain http is only acceptable on this phone or the local network (a developer's laptop). Anywhere else
+ * the sign-in token and every report would cross the internet unencrypted.
+ */
+export function insecureServer(url: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return true;
+  }
+  if (u.protocol === "https:") return false;
+  if (u.protocol !== "http:") return true;
+  const h = u.hostname;
+  return !(
+    h === "localhost" ||
+    /^127\./.test(h) ||
+    /^10\./.test(h) ||
+    /^192\.168\./.test(h) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
+    h.endsWith(".local")
+  );
+}
+
+function originOf(url: string): string {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Saves a new website address (or clears it with an empty string).
+ *
+ * The sign-in token belongs to the server that issued it. Pointing the app at a different server signs
+ * this phone out first, so a token is never handed to a server that did not create it — otherwise anyone
+ * who talked a member into "changing the server address" would receive their session with the next request.
+ */
+export async function changeApiBase(url: string): Promise<{ signedOut: boolean }> {
   const next = clean(url);
+  if (next && insecureServer(next)) {
+    throw new ApiError("Use an https:// address. Plain http:// only works for a computer on your own Wi-Fi.", 0);
+  }
+  const target = next || initialBase();
+  const moving = originOf(target) !== originOf(API_BASE);
+  if (moving) {
+    await setToken(null);
+    await setPushToken(null);
+  }
   await setServer(next || null);
-  API_BASE = next || initialBase();
+  API_BASE = target;
+  return { signedOut: moving };
 }
 
 export type StationPrice = { station: string; parish: string; fuel: "regular" | "premium" | "diesel"; priceCents: number; reportedAt: string; reports: number };

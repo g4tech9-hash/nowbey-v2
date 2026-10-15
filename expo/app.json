@@ -2,7 +2,7 @@
   "expo": {
     "name": "NowBey",
     "slug": "nowbey",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "ios": {
@@ -16,7 +16,7 @@
     "android": {
       "package": "app.nowbey.mobile",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 2,
+      "versionCode": 3,
       "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -26,7 +26,8 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.POST_NOTIFICATIONS"
-      ]
+      ],
+      "allowBackup": false
     },
     "web": {
       "bundler": "metro",

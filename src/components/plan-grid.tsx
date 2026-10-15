@@ -28,8 +28,10 @@ export function PerkList({ perks, tone }: { perks: Perk[]; tone: string }) {
 }
 
 type Props = {
-  /** true when a payment provider is connected; false means plans are disabled */
+  /** true when a payment provider is connected */
   live: boolean;
+  /** true when a plan can be chosen here (payments are live, or demo plans are switched on) */
+  purchasable?: boolean;
   signedIn: boolean;
   currentTier: TierKey | null;
   currentInterval: Interval | null;
@@ -37,7 +39,7 @@ type Props = {
   complimentary?: boolean;
 };
 
-export function PlanGrid({ live, signedIn, currentTier, currentInterval, complimentary = false }: Props) {
+export function PlanGrid({ live, purchasable = live, signedIn, currentTier, currentInterval, complimentary = false }: Props) {
   const router = useRouter();
   const [billing, setBilling] = useState<Interval>(currentInterval ?? "month");
   const [busy, setBusy] = useState<TierKey | null>(null);
@@ -147,6 +149,13 @@ export function PlanGrid({ live, signedIn, currentTier, currentInterval, complim
                 >
                   Manage your plan
                 </Link>
+              ) : !purchasable ? (
+                <p
+                  className="mt-3 rounded-xl border hairline py-2.5 text-center text-[12.5px] font-bold text-[#a9cdc9]"
+                  aria-label={`${t.name} opens soon`}
+                >
+                  Opening soon
+                </p>
               ) : (
                 <button
                   type="button"

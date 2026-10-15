@@ -5,7 +5,7 @@ import { PlanGrid, PerkList } from "@/components/plan-grid";
 import { AdSlot } from "@/components/ad-slot";
 import { EnterpriseForm } from "@/components/enterprise-form";
 import { getViewer } from "@/lib/viewer";
-import { stripeConfigured } from "@/lib/billing";
+import { demoPlansAllowed, stripeConfigured } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Plans and pricing" };
@@ -22,6 +22,8 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   const checkout = Array.isArray(sp.checkout) ? sp.checkout[0] : sp.checkout;
   const viewer = await getViewer();
   const live = stripeConfigured();
+  const demo = demoPlansAllowed();
+  const purchasable = live || demo;
 
   return (
     <div className="space-y-8">
@@ -43,7 +45,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
       ) : null}
 
       <section aria-label="Plans" className="-mt-2">
-        <PlanGrid live={live} signedIn={viewer.signedIn} currentTier={viewer.tier} currentInterval={viewer.interval} complimentary={viewer.status === "comp"} />
+        <PlanGrid live={live} purchasable={purchasable} signedIn={viewer.signedIn} currentTier={viewer.tier} currentInterval={viewer.interval} complimentary={viewer.status === "comp"} />
 
         <div className="mt-3">
           {live ? (
@@ -51,11 +53,20 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
               Payments are handled securely by Stripe. Cancel any time from your account page and your plan runs to the end of
               the period you paid for. To switch plans, cancel from your account page and choose the new plan when the old one ends. Perks marked <span className="font-bold text-[#cfeee9]">Soon</span> are on the way.
             </p>
-          ) : (
+          ) : demo ? (
             <p className="text-[12px] leading-snug text-[#8fb9b6]">
               <span className="font-bold text-sun-400">Payments are not live yet.</span> You can try a plan with your account to
               switch the ads off. You will not be charged. Perks marked <span className="font-bold text-[#cfeee9]">Soon</span> are
               on the way.
+            </p>
+          ) : (
+            <p className="text-[12px] leading-snug text-[#8fb9b6]">
+              <span className="font-bold text-sun-400">Plans open soon.</span> Payments are not set up yet, so nothing can be bought
+              today and nobody is charged. Everything free on NowBey stays free. Want a plan for your group now?{" "}
+              <a href="#enterprise" className="font-bold text-tide-300 underline-offset-2 hover:underline">
+                Get in touch
+              </a>
+              .
             </p>
           )}
           <p className="mt-1 text-[11px] text-[#6e97a0]">
