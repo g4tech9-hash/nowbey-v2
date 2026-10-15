@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { GAZETTEER, inBahamas, nearestParish, searchGazetteer } from "@/lib/geo";
+import { googleReverse, googleSearch } from "@/lib/geocode";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 
 
@@ -101,8 +102,19 @@ export async function GET(req: Request) {
         } catch {
           results = [];
         }
+        // Second rung: Google knows many Nassau streets the free geocoder misses.
+        if (!results.length) {
+          const g = await googleSearch(q);
+          if (g && g.length) {
+            results = g;
+            source = "google";
+          }
+        }
       }
-      if (!results.length) results = searchGazetteer(q, 6);
+      if (!results.length) {
+        results = searchGazetteer(q, 6);
+        source = "local";
+      }
       const body = { results, source, note: source === "local" ? "Local Bahamas place list" : null };
       remember(key, body);
       return NextResponse.json(body);
@@ -132,6 +144,11 @@ export async function GET(req: Request) {
           };
         } catch {
           body = localReverse(la, ln);
+        }
+        // OSM often names no street for a Nassau pin — ask Google before settling for the local list.
+        if (!body.street) {
+          const g = await googleReverse(la, ln);
+          if (g) body = g;
         }
       } else {
         body = localReverse(la, ln);

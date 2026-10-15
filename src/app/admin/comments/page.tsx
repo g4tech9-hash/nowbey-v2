@@ -26,6 +26,7 @@ export default async function CommentsAdmin({ searchParams }: { searchParams: Pr
     .select({
       c: comments,
       reasons: sql<string | null>`(select string_agg(distinct f.reason, ', ') from comment_flags f where f.comment_id = "comments"."id")`,
+      aiFlagged: sql<boolean>`coalesce((select bool_or(f.actor_key = 'ai:mod') from comment_flags f where f.comment_id = "comments"."id"), false)`,
     })
     .from(comments)
     .where(where)
@@ -58,7 +59,7 @@ export default async function CommentsAdmin({ searchParams }: { searchParams: Pr
       </p>
 
       <ul className="space-y-2">
-        {rows.map(({ c, reasons }) => {
+        {rows.map(({ c, reasons, aiFlagged }) => {
           const t = where2(c);
           return (
             <li key={c.id} className="glass flex flex-wrap items-start justify-between gap-3 rounded-2xl p-3.5">
@@ -84,7 +85,12 @@ export default async function CommentsAdmin({ searchParams }: { searchParams: Pr
                     {t.label}
                   </Link>
                 </p>
-                {reasons ? <p className="mt-0.5 text-[12px] text-sun-400">Reported as: {reasons}</p> : null}
+                {reasons ? (
+                  <p className="mt-0.5 text-[12px] text-sun-400">
+                    Reported as: {reasons}
+                    {aiFlagged ? <span className="ml-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI flag</span> : null}
+                  </p>
+                ) : null}
               </div>
               <CommentModActions id={c.id} status={c.status} flagged={c.flagCount > 0} />
             </li>

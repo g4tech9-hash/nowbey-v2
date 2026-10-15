@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { db } from "@/db";
 import { postPhotos, posts } from "@/db/schema";
 import { findOrCreatePlace } from "@/lib/places";
 import { badgesFor } from "@/lib/badges";
 import { PARISHES, inBahamas, resolveParish } from "@/lib/geo";
 import { PhotoError, processPhoto, type ProcessedPhoto } from "@/lib/images";
+import { autoFlagPost, screenPhotos } from "@/lib/moderation";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { KINDS, LIMITS, isKind, listPosts, publicPost } from "@/lib/life";
@@ -145,6 +146,10 @@ export async function POST(req: Request) {
     throw e;
   }
 
+  // Gemini safe-check on the thumbnails (no-op without a key; fails open when the model is down).
+  const photoProblem = await screenPhotos(processed);
+  if (photoProblem) return bad(photoProblem);
+
   const post = await db.transaction(async (tx) => {
     const placeId = placeName.length >= 2 ? await findOrCreatePlace(tx, { name: placeName, kind, parish, lat, lng, street: text(input.street, 120) || null }) : null;
     const [row] = await tx
@@ -174,5 +179,7 @@ export async function POST(req: Request) {
 
   record(userKey, HOUR);
   record(ipKey, HOUR);
+  // The post is live now; the AI first pass (no-op without a key) can only add a staff flag.
+  after(() => autoFlagPost(post.id));
   return NextResponse.json({ post: publicPost(post) }, { status: 201 });
 }

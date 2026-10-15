@@ -30,6 +30,7 @@ export default async function CommunityAdmin({ searchParams }: { searchParams: P
     .select({
       post: posts,
       reasons: sql<string | null>`(select string_agg(distinct f.reason, ', ') from post_flags f where f.post_id = "posts"."id")`,
+      aiFlagged: sql<boolean>`coalesce((select bool_or(f.actor_key = 'ai:mod') from post_flags f where f.post_id = "posts"."id"), false)`,
     })
     .from(posts)
     .where(where)
@@ -61,7 +62,7 @@ export default async function CommunityAdmin({ searchParams }: { searchParams: P
       </p>
 
       <ul className="space-y-2">
-        {rows.map(({ post: p, reasons }) => {
+        {rows.map(({ post: p, reasons, aiFlagged }) => {
           const k = KINDS[p.kind as KindKey] ?? KINDS.tip;
           return (
             <li key={p.id} className="glass flex flex-wrap items-start justify-between gap-3 rounded-2xl p-3.5" style={{ boxShadow: `inset 3px 0 0 ${k.color}` }}>
@@ -88,7 +89,12 @@ export default async function CommunityAdmin({ searchParams }: { searchParams: P
                   </Link>{" "}
                   · {p.parish ?? "no island"} · {p.photoCount} {p.photoCount === 1 ? "photo" : "photos"} · {(engMap.get(p.id) ?? NO_ENGAGEMENT).comments} comments · {(engMap.get(p.id) ?? NO_ENGAGEMENT).total} reactions
                 </p>
-                {reasons ? <p className="mt-0.5 text-[12px] text-sun-400">Reported as: {reasons}</p> : null}
+                {reasons ? (
+                  <p className="mt-0.5 text-[12px] text-sun-400">
+                    Reported as: {reasons}
+                    {aiFlagged ? <span className="ml-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI flag</span> : null}
+                  </p>
+                ) : null}
               </div>
               <PostModActions id={p.id} status={p.status} flagged={p.flagCount > 0} canDelete={viewer.isAdmin} />
             </li>

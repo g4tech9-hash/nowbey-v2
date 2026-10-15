@@ -1,10 +1,16 @@
 import Link from "next/link";
-import { eq, ne, sql } from "drizzle-orm";
+import { desc, eq, gte, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { enterpriseInquiries, incidents, newsItems, users } from "@/db/schema";
+import { clientErrors, enterpriseInquiries, incidents, newsItems, users } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
 import { stripeConfigured, webhookConfigured } from "@/lib/billing";
+import { aiConfigured } from "@/lib/ai";
+import { googleConfigured } from "@/lib/geocode";
+import { timeAgo } from "@/lib/geo";
 import { mailConfigured } from "@/lib/mail";
+import { moderationOn } from "@/lib/moderation";
+import { pushConfigured } from "@/lib/push";
+import { CrashDismissButton } from "@/components/admin-errors";
 import { MiniBars, StatCard } from "@/components/admin-ui";
 import { PlaceImportButton } from "@/components/admin-place-import";
 
@@ -71,11 +77,32 @@ export default async function AdminOverview() {
   ]);
   void ne;
 
+  // Crash records may not exist yet if add-client-errors.sql has not been run — never break the overview over that.
+  let crashWeek = 0;
+  let crashes: (typeof clientErrors.$inferSelect)[] = [];
+  try {
+    const [countRows, rows] = await Promise.all([
+      db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(clientErrors)
+        .where(gte(clientErrors.lastSeenAt, new Date(Date.now() - 7 * 86_400_000))),
+      db.select().from(clientErrors).orderBy(desc(clientErrors.lastSeenAt)).limit(10),
+    ]);
+    crashWeek = countRows[0]?.n ?? 0;
+    crashes = rows;
+  } catch {
+    /* table not migrated yet */
+  }
+
   const checks: [string, boolean, string][] = [
     ["Payments (Stripe key)", stripeConfigured(), "Add STRIPE_SECRET_KEY. Until then plans are disabled."],
     ["Payment webhook", webhookConfigured(), "Add STRIPE_WEBHOOK_SECRET so paid plans switch on and off by themselves."],
     ["Email sending", mailConfigured(), "Add SMTP_HOST, SMTP_USER and SMTP_PASS (for example a Gmail app password), or RESEND_API_KEY. Without one, confirmation, password-reset and alert emails cannot be sent."],
     ["Enterprise notifications", Boolean(process.env.ENTERPRISE_NOTIFY_TO), "Add ENTERPRISE_NOTIFY_TO to be emailed when an enquiry arrives."],
+    ["AI story briefs & digest writer (Gemini)", aiConfigured(), "Add GEMINI_API_KEY (aistudio.google.com, free tier). Wire stories get plain-English briefs and missing pins; the Community Digest writes its own first draft."],
+    ["AI first-pass moderation", moderationOn(), "Uses GEMINI_API_KEY as well: new reports, comments, Island Life posts and uploaded photos get screened, and confident matches are queued for staff as flags. It never hides anything itself."],
+    ["Push alerts (Firebase)", pushConfigured(), "Add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, plus the NEXT_PUBLIC_FIREBASE_* web keys. Until then visitors only see email alerts."],
+    ["Geocoding fallback (Google)", googleConfigured(), "Add GOOGLE_MAPS_API_KEY with the Geocoding API enabled. Address searches and pin drops then fall back to Google when OpenStreetMap draws a blank — a big upgrade for Nassau streets."],
     ["Site address", Boolean(process.env.APP_URL), "Add APP_URL, your real https address. Emails will not send until it is set, so the links in them cannot be forged."],
     ["Session secret", Boolean(process.env.AUTH_SECRET), "Optional on a single server (a random one is saved in .data/). Set AUTH_SECRET if you run more than one server."],
   ];
@@ -91,11 +118,36 @@ export default async function AdminOverview() {
         <StatCard label="Suspended" value={people.suspended} sub="members" />
         <StatCard label="Email not confirmed" value={people.unverified} sub="members" />
         <StatCard label="No email on file" value={people.noEmail} sub="cannot reset a password by email" />
+        <StatCard label="Crashes (7d)" value={crashWeek} sub="browser + server error groups" tone={crashWeek ? "warn" : undefined} />
       </section>
 
       <section className="grid gap-3 lg:grid-cols-2">
         <MiniBars title="New members" data={signups.rows as Point[]} />
         <MiniBars title="Reports filed" data={filed.rows as Point[]} />
+      </section>
+
+      <section className="glass rounded-2xl p-4">
+        <p className="display text-[15px] font-bold text-sand-100">Crashes</p>
+        <p className="mt-1 text-[13px] text-[#a9cdc9]">
+          Browser and server errors, grouped — one row per bug. If a beta tester says “the map died”, the answer is here. Needs add-client-errors.sql run first.
+        </p>
+        {crashes.length ? (
+          <ul className="mt-3 space-y-1.5">
+            {crashes.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg bg-white/4 px-3 py-2 text-[12px]">
+                <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${e.kind === "server" ? "bg-conch-500/20 text-conch-400" : e.kind === "boundary" ? "bg-sun-500/20 text-sun-400" : "bg-tide-500/18 text-tide-300"}`}>{e.kind}</span>
+                <span className="min-w-0 flex-1 truncate font-semibold text-sand-100" title={e.message}>{e.message}</span>
+                <span className="shrink-0 font-mono text-[11px] text-[#6e97a0]">{e.url ?? "—"}</span>
+                <span className="shrink-0 text-[#8fb9b6]">×{e.count}</span>
+                {e.handle ? <span className="shrink-0 text-[#8fb9b6]">@{e.handle}</span> : null}
+                <span className="shrink-0 text-[11px] text-[#6e97a0]">{timeAgo(e.lastSeenAt)}</span>
+                <span className="shrink-0"><CrashDismissButton id={e.id} /></span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-[12.5px] text-[#6e97a0]">Nothing on record — quiet is good.</p>
+        )}
       </section>
 
       <section className="glass rounded-2xl p-4">

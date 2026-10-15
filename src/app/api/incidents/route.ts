@@ -6,6 +6,9 @@ import { badgesFor } from "@/lib/badges";
 import { getViewer } from "@/lib/viewer";
 import { publicBase } from "@/lib/billing";
 import { dispatchIncidentAlerts } from "@/lib/alerts";
+import { autoFlagIncident } from "@/lib/moderation";
+import { refreshOfficialIfStale } from "@/lib/official";
+import { dispatchIncidentPush } from "@/lib/push";
 import { publicIncident } from "@/lib/public";
 import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
@@ -17,6 +20,8 @@ import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
 const CATEGORIES = new Set<string>(CATEGORY_KEYS);
 
 export async function GET(req: Request) {
+  // Keep official (NHC etc.) pins fresh off the map's own traffic; guarded so it can never break the map.
+  after(() => refreshOfficialIfStale());
   const { searchParams } = new URL(req.url);
   const category = searchParams.get("category");
   const parish = knownParish(searchParams.get("parish"));
@@ -131,10 +136,19 @@ export async function POST(req: Request) {
       } catch (e) {
         console.error("alert dispatch failed", e instanceof Error ? e.message : e);
       }
+      try {
+        await dispatchIncidentPush(row, base);
+      } catch (e) {
+        console.error("push dispatch failed", e instanceof Error ? e.message : e);
+      }
     });
   } else {
     console.warn("[alerts] Skipped sending: APP_URL is not set, and email links need a fixed site address.");
   }
+
+  // AI first-pass moderation (no-op without a key): can only add a staff flag under
+  // "Reported by readers" on the admin reports page — it never hides a report itself.
+  after(() => autoFlagIncident(row.id, row.title, row.details));
 
   return NextResponse.json({ incident: publicIncident(row) }, { status: 201 });
 }

@@ -1,7 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
+
 /** The last line of defence: used when even the page frame cannot be drawn, for example if the database is down. */
-export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => {
+    const message = `${error?.message || "Global error boundary"}${error?.digest ? ` (digest ${error.digest})` : ""}`;
+    // A full-tree crash may also break sendBeacon's host page after this; best effort only.
+    import("@/components/error-reporter")
+      .then(({ reportClientError }) => reportClientError({ kind: "boundary", message, stack: error?.stack }))
+      .catch(() => undefined);
+  }, [error]);
+
   return (
     <html lang="en">
       <body

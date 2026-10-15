@@ -60,7 +60,14 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <h1 className="display mt-2 text-[clamp(1.5rem,4vw,2.1rem)] font-extrabold leading-[1.1] text-sand-100">{story.title}</h1>
-        {story.summary ? <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-[#cfeee9]">{story.summary}</p> : null}
+        {story.aiSummary ? (
+          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-[#cfeee9]">
+            <span className="mr-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI brief</span>
+            {story.aiSummary}
+          </p>
+        ) : story.summary ? (
+          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-[#cfeee9]">{story.summary}</p>
+        ) : null}
 
         <a
           href={story.url}

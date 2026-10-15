@@ -5,7 +5,9 @@ import { db } from "@/db";
 import { alertSubscriptions } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { AlertForm, StopAlertButton } from "@/components/wire-forms";
+import { PushToggle } from "@/components/push-toggle";
 import { CATEGORIES, timeAgo } from "@/lib/geo";
+import { pushConfigured, pushPublicConfig } from "@/lib/push";
 import { getViewer } from "@/lib/viewer";
 import { text } from "@/lib/validate";
 
@@ -19,6 +21,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
   const viewer = await getViewer();
   const confirmed = first(sp.confirmed);
   const stop = text(first(sp.stop), 100) || undefined;
+  const push = pushConfigured() ? pushPublicConfig() : null;
 
   const mine = viewer.userId
     ? await db.select().from(alertSubscriptions).where(eq(alertSubscriptions.userId, viewer.userId)).orderBy(desc(alertSubscriptions.createdAt))
@@ -72,6 +75,8 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
         <div className="glass rounded-2xl p-4">
           <AlertForm plan={viewer.tier} defaultEmail={viewer.email ?? ""} />
         </div>
+
+        {push ? <PushToggle config={push.config} vapidKey={push.vapidKey} parishes={["New Providence"]} /> : null}
 
         {viewer.signedIn ? (
           <section>

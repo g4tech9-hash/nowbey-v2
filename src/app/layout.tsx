@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Manrope, Sora } from "next/font/google";
 import { AppShell, LiveTicker } from "@/components/app-shell";
+import { ErrorReporter } from "@/components/error-reporter";
 import { SceneBackdrop } from "@/components/scene-backdrop";
 import { SplashScreen } from "@/components/splash-screen";
 import { BRAND } from "@/lib/brand";
@@ -49,6 +50,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {settings.splash ? <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} /> : null}
       </head>
       <body className="min-h-screen bg-abyss-950 text-[#e8f6f4] antialiased">
+        <ErrorReporter />
         {settings.theme === "island" ? <SceneBackdrop /> : null}
         {settings.splash ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}
         <AppShell handle={viewer.handle} defaultMode={settings.mode}>
