@@ -185,6 +185,57 @@
 :root {
   --nb-safe-bottom: env(safe-area-inset-bottom, 0px);
   --nb-safe-top: env(safe-area-inset-top, 0px);
+  /* Chrome heights, excluding safe areas (added separately where needed).
+     --nb-header-h tracks the sticky header (py-2.5 + ~36px row + border).
+     --nb-nav-h tracks the fixed bottom nav (48px targets + paddings + border). */
+  --nb-header-h: 58px;
+  --nb-nav-h: 70px;
+}
+
+/* Z-index scale — keep every new fixed/sticky layer on it:
+   0     map tiles and Leaflet panes (contained inside .leaflet-container)
+   500   map chrome: search, layer pills, pegman, pin deck, FAB
+   600   street-view overlay inside the map card
+   650   sticky site header
+   660   header dropdowns
+   700   fixed bottom nav — always reachable, nothing may cover it
+   900   transient drag ghosts (pegman) and toasts                                   */
+
+/* Horizontal chip rails keep swipe scrolling but hide the scrollbar. */
+.nb-no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.nb-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* In-page anchors and focused fields stop above the fixed bottom nav. */
+html {
+  scroll-padding-bottom: calc(var(--nb-nav-h) + var(--nb-safe-bottom) + 12px);
+}
+
+/* Clearance below the footer so the last line of every page sits above the nav.
+   Mobile only — desktop has no fixed nav and uses lg:pb-8 instead. */
+@media (max-width: 1023.98px) {
+  .nb-clear-nav {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* App-like view that fills exactly the space between the sticky header and
+   the fixed bottom nav on phones/tablets. Desktop lays out normally, so this
+   only applies below Tailwind's `lg` breakpoint (same as useIsMobile). */
+@media (max-width: 1023.98px) {
+  .nb-fill-view {
+    display: flex;
+    flex-direction: column;
+    /* header + main top padding + main bottom padding + status-bar safe area */
+    height: calc(100vh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top));
+    height: calc(100svh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top));
+    height: calc(100dvh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top));
+    min-height: 400px;
+  }
 }
 .nb-pad-bottom {
   padding-bottom: calc(0.6rem + var(--nb-safe-bottom));

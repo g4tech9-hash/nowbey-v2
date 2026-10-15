@@ -3,6 +3,8 @@ export type LayerKey = "hybrid" | "satellite" | "road" | "streets";
 export type LayerDef = {
   key: LayerKey;
   label: string;
+  /** Short pill text for narrow phones; the full label shows from `sm` up. */
+  short: string;
   hint: string;
   url: string;
   subdomains?: string;
@@ -20,6 +22,7 @@ export const LAYERS: Record<LayerKey, LayerDef> = {
   hybrid: {
     key: "hybrid",
     label: "Hybrid",
+    short: "Hybrid",
     hint: "Aerial imagery with street names",
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics",
@@ -31,6 +34,7 @@ export const LAYERS: Record<LayerKey, LayerDef> = {
   satellite: {
     key: "satellite",
     label: "Satellite",
+    short: "Sat",
     hint: "Clean aerial imagery, no labels",
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics",
@@ -39,6 +43,7 @@ export const LAYERS: Record<LayerKey, LayerDef> = {
   road: {
     key: "road",
     label: "Road map",
+    short: "Road",
     hint: "OpenStreetMap streets and buildings",
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     subdomains: "abc",
@@ -48,6 +53,7 @@ export const LAYERS: Record<LayerKey, LayerDef> = {
   streets: {
     key: "streets",
     label: "Dark streets",
+    short: "Dark",
     hint: "Night mode, easier on the eyes",
     url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
     subdomains: "abc",

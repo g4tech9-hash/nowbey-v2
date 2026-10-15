@@ -42,7 +42,7 @@ export function AppShell({
 }) {
   return (
     <div className="grain relative min-h-screen">
-      <header className="sticky top-0 z-[650] border-b hairline bg-abyss-950/88 backdrop-blur-lg">
+      <header className="nb-pad-top sticky top-0 z-[650] border-b hairline bg-abyss-950/88 backdrop-blur-lg">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-3.5 py-2.5 sm:px-5">
           <Link href="/" className="flex items-center gap-2.5">
             <NowBeyMark />
@@ -73,9 +73,10 @@ export function AppShell({
         {kicker}
       </header>
 
-      <main className="mx-auto w-full max-w-[1180px] px-3.5 pb-28 pt-3 sm:px-5 sm:pt-4 lg:pb-10">{children}</main>
+      {/* main keeps a small gap above the footer; the footer itself clears the fixed nav (nb-clear-nav) */}
+      <main className="mx-auto w-full max-w-[1180px] px-3.5 pb-6 pt-3 sm:px-5 sm:pt-4 lg:pb-10">{children}</main>
 
-      <footer className="mx-auto max-w-[1180px] px-3.5 pb-28 pt-2 text-[11.5px] text-[#6e97a0] sm:px-5 lg:pb-8">
+      <footer className="nb-clear-nav mx-auto max-w-[1180px] px-3.5 pt-2 text-[11.5px] text-[#6e97a0] sm:px-5 lg:pb-8">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t hairline pt-3">
           <span>
             {BRAND.name} · {BRAND.tagline}. Community safety, news and island life.

@@ -12,9 +12,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // Type errors fail the build on purpose: `npm run typecheck` is clean,
+  // so a red Vercel build means a real regression, not background noise.
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

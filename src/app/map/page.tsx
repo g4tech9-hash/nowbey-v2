@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { MapPanel, type MapPin, type PickResult } from "@/components/map/map-panel";
 import { CATEGORIES, PARISHES, timeAgo, type CategoryKey } from "@/lib/geo";
-import { useIsMobile } from "@/lib/use-is-mobile";
 
 type Row = {
   id: string;
@@ -39,6 +38,9 @@ type WireRow = {
 
 export const dynamic = "force-dynamic";
 
+/** Phone sheet detents. Desktop ignores this and always shows the full rail. */
+type SheetState = "peek" | "open" | "full";
+
 const EMPTY_FORM = {
   title: "",
   details: "",
@@ -71,6 +73,7 @@ export default function MapWorkspace() {
   const [done, setDone] = useState<{ id: string; title: string } | null>(null);
   const [handle, setHandle] = useState<string | null>(null);
   const [focusNonce, setFocusNonce] = useState(0);
+  const [sheet, setSheet] = useState<SheetState>("peek");
 
   useEffect(() => {
     void fetch("/api/session", { cache: "no-store" })
@@ -78,8 +81,6 @@ export default function MapWorkspace() {
       .then((d) => setHandle(d?.user?.handle ?? null))
       .catch(() => {});
   }, []);
-  const [sheet, setSheet] = useState<"closed" | "peek" | "open" | "full">("peek");
-  const isMobile = useIsMobile();
 
   const load = useCallback(async () => {
     try {
@@ -182,6 +183,7 @@ export default function MapWorkspace() {
       setPick(null);
       setStep("spot");
       setForm(EMPTY_FORM);
+      setSheet("open");
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save that report.");
@@ -190,27 +192,56 @@ export default function MapWorkspace() {
     }
   }
 
-  // heights for the mobile bottom sheet
-  const sheetHeight =
-    sheet === "closed"
-      ? 0
-      : sheet === "peek"
-        ? isMobile
-          ? 128
-          : 0
-        : sheet === "open"
-          ? isMobile
-            ? "min(64vh, 540px)"
-            : 0
-          : isMobile
-            ? "calc(100dvh - 88px - env(safe-area-inset-top, 0px))"
-            : 0;
+  function startPinning() {
+    setPickMode(true);
+    setStep("spot");
+    setDone(null);
+    setSheet("open");
+  }
+
+  function cancelPinning() {
+    setPickMode(false);
+    setPick(null);
+    setStep("spot");
+  }
+
+  // While pinning, the sheet stays at least open so the form never hides under the grabber.
+  const effective: SheetState = pickMode && sheet === "peek" ? "open" : sheet;
+
+  // Drag the grabber to snap between detents; a tap toggles peek <-> open.
+  const drag = useRef<{ y: number; moved: boolean } | null>(null);
+  function onGrabberDown(e: React.PointerEvent<HTMLDivElement>) {
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    drag.current = { y: e.clientY, moved: false };
+  }
+  function onGrabberMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (!drag.current) return;
+    if (Math.abs(e.clientY - drag.current.y) > 8) drag.current.moved = true;
+  }
+  function onGrabberUp(e: React.PointerEvent<HTMLDivElement>) {
+    const d = drag.current;
+    drag.current = null;
+    if (!d) return;
+    const dy = e.clientY - d.y;
+    if (!d.moved || Math.abs(dy) < 24) {
+      setSheet((s) => (s === "peek" ? "open" : s === "open" ? "peek" : "open"));
+      return;
+    }
+    if (dy < 0) setSheet((s) => (s === "peek" ? "open" : "full"));
+    else setSheet((s) => (s === "full" ? "open" : "peek"));
+  }
 
   return (
-    <div className="lg:grid lg:gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
-      {/* on phones the map fills the screen and the side rail becomes a bottom sheet */}
-      <div className="lg:order-2">
-        <div className="mb-2 hidden flex-wrap items-end justify-between gap-2 sm:flex">
+    // Phones/tablets: .nb-fill-view makes this exactly viewport-minus-chrome tall, with the
+    // map and the sheet stacked in-flow — the sheet can never slide over the bottom nav.
+    // Desktop: a two-column grid with a static side rail.
+    <div className={`nb-fill-view lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start ${effective === "full" ? "gap-0 lg:gap-4" : "gap-3 lg:gap-4"}`}>
+      <div
+        className={`relative flex min-h-0 min-w-0 flex-col transition-all duration-300 lg:order-2 ${
+          effective === "full" ? "max-h-0 flex-none overflow-hidden opacity-0 lg:max-h-none lg:overflow-visible lg:opacity-100" : "flex-1"
+        }`}
+      >
+        <div className="mb-2 hidden flex-wrap items-end justify-between gap-2 lg:flex">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-tide-400">Safety map</p>
             <h1 className="display text-[clamp(1.4rem,3.4vw,1.9rem)] font-extrabold leading-tight text-sand-100">
@@ -222,63 +253,96 @@ export default function MapWorkspace() {
             <span className="font-bold text-tide-300">no API key needed</span>. Drag the yellow figure onto a road for street level.
           </p>
         </div>
-        <MapPanel
-          mode={pickMode ? "pick" : "browse"}
-          pins={[...pins, ...wirePins]}
-          value={pick ? { lat: pick.lat, lng: pick.lng } : null}
-          onChange={handlePick}
-          center={[25.0629, -77.3417]}
-          zoom={14}
-          initialLayer="hybrid"
-          focusId={selected}
-          focusNonce={focusNonce}
-          className={isMobile ? "h-[calc(100dvh-148px-env(safe-area-inset-top,0px))] w-full" : "h-[clamp(420px,68vh,720px)] w-full"}
-        />
+        <div className="relative min-h-0 flex-1">
+          <MapPanel
+            mode={pickMode ? "pick" : "browse"}
+            pins={[...pins, ...wirePins]}
+            value={pick ? { lat: pick.lat, lng: pick.lng } : null}
+            onChange={handlePick}
+            center={[25.0629, -77.3417]}
+            zoom={14}
+            initialLayer="hybrid"
+            focusId={selected}
+            focusNonce={focusNonce}
+            className="h-full w-full lg:h-[clamp(420px,68vh,720px)]"
+          />
+          {pickMode ? null : (
+            <button
+              type="button"
+              onClick={startPinning}
+              className="absolute bottom-3 left-1/2 z-[500] -translate-x-1/2 rounded-full bg-tide-500 px-4 py-2.5 text-[13px] font-extrabold text-abyss-950 shadow-[0_12px_28px_rgba(0,0,0,.5)] transition active:scale-95 lg:hidden"
+            >
+              + Pin a spot
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* on mobile this is the bottom sheet; on desktop it's a sticky rail */}
+      {/* Phone sheet / desktop rail. In-flow on purpose: fixed sheets covered the nav. */}
       <aside
-        className={`${
-          isMobile
-            ? "fixed inset-x-0 bottom-0 z-[720] overflow-hidden rounded-t-3xl border-t hairline bg-abyss-900/95 shadow-[0_-22px_46px_rgba(0,0,0,.55)] backdrop-blur-md transition-[max-height,height] duration-300"
-            : "order-1 mt-4 space-y-3 lg:order-1 lg:mt-0"
+        className={`flex min-h-0 min-w-0 flex-none flex-col overflow-hidden rounded-2xl border hairline bg-abyss-900/95 shadow-[0_-12px_32px_rgba(0,0,0,.45)] backdrop-blur-md transition-[height] duration-300 lg:order-1 lg:h-auto lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none lg:backdrop-blur-none ${
+          effective === "peek" ? "h-[96px]" : effective === "open" ? "h-[54%]" : "h-full"
         }`}
-        style={
-          isMobile
-            ? { height: typeof sheetHeight === "string" ? sheetHeight : `${sheetHeight}px`, maxHeight: "calc(100dvh - 88px)" }
-            : undefined
-        }
-        aria-hidden={isMobile && sheet === "closed"}
       >
-        {isMobile ? (
-          <div className="flex items-center justify-between px-4 pt-2.5">
-            <button
-              type="button"
-              onClick={() => setSheet((s) => (s === "peek" ? "open" : s === "open" ? "peek" : s))}
-              className="grid h-9 w-12 place-items-center rounded-full bg-white/8 active:scale-95"
-              aria-label={sheet === "peek" ? "Open the pin list" : "Collapse the pin list"}
-            >
-              <span className="h-1 w-6 rounded-full bg-tide-300" />
-            </button>
-            <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#8fb9b6]">
-              {sheet === "open" ? `${visible.length} pins` : "Drag up for filters and pins"}
-            </p>
-            <button
-              type="button"
-              onClick={() => setSheet((s) => (s === "open" ? "full" : s === "full" ? "open" : "open"))}
-              className="grid h-9 w-12 place-items-center rounded-full bg-white/8 active:scale-95"
-              aria-label={sheet === "full" ? "Shrink the sheet" : "Open the sheet full screen"}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#74f3e3" strokeWidth="2">
-                <path d="M7 3h10M7 21h10M3 7v10M21 7v10" />
-              </svg>
-            </button>
-          </div>
-        ) : null}
+        {/* Grabber — phones/tablets only. The whole bar is the drag handle. */}
         <div
-          className={`${
-            isMobile ? "h-[calc(100%-44px)] overflow-y-auto overscroll-contain px-3 pb-6" : "space-y-3"
-          } nb-scroll`}
+          className="flex h-11 flex-none touch-none select-none items-center gap-2 px-3 pt-1 lg:hidden"
+          onPointerDown={onGrabberDown}
+          onPointerMove={onGrabberMove}
+          onPointerUp={onGrabberUp}
+          onPointerCancel={() => (drag.current = null)}
+          role="button"
+          tabIndex={0}
+          aria-label="Drag to resize the pins panel, or tap to expand"
+          aria-expanded={effective !== "peek"}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setSheet((s) => (s === "peek" ? "open" : "peek"));
+            }
+          }}
+        >
+          <span className="grid h-8 w-12 flex-none cursor-grab place-items-center rounded-full bg-white/8 active:cursor-grabbing">
+            <span className="h-1 w-6 rounded-full bg-tide-300" />
+          </span>
+          <p className="min-w-0 flex-1 truncate text-center text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#8fb9b6]">
+            {pickMode ? "Pinning a spot" : loading ? "Loading pins…" : `${visible.length} pin${visible.length === 1 ? "" : "s"} · ${island === "all" ? "Everywhere" : island}`}
+          </p>
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onClick={() => setSheet((s) => (s === "full" ? "open" : "full"))}
+            className="grid h-8 w-12 flex-none place-items-center rounded-full bg-white/8 active:scale-95"
+            aria-label={effective === "full" ? "Shrink the panel" : "Expand the panel full height"}
+            aria-expanded={effective === "full"}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#74f3e3" strokeWidth="2" aria-hidden>
+              {effective === "full" ? <path d="M6 14l6-6 6 6" /> : <path d="M6 10l6 6 6-6" />}
+            </svg>
+          </button>
+        </div>
+
+        {/* Category filters stay visible even in peek, so filtering never needs the full panel. */}
+        <div className="flex-none px-3 pb-2 lg:px-0 lg:pb-0">
+          <div className="nb-no-scrollbar flex gap-1.5 overflow-x-auto pb-0.5 lg:flex-wrap lg:overflow-visible lg:pb-0">
+            <FilterChip active={filter === "all"} onClick={() => setFilter("all")} label={`All · ${rows.filter((r) => r.status !== "archived").length}`} />
+            {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
+              <FilterChip
+                key={k}
+                active={filter === k}
+                onClick={() => setFilter(k)}
+                label={CATEGORIES[k].label}
+                color={CATEGORIES[k].color}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div
+          className={`nb-scroll min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-3 pb-4 lg:gap-3 lg:overflow-visible lg:px-0 lg:pb-0 ${
+            effective === "peek" ? "hidden lg:flex" : "flex"
+          }`}
         >
         {pickMode ? (
           <div className="glass rounded-2xl p-3.5">
@@ -288,12 +352,8 @@ export default function MapWorkspace() {
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  setPickMode(false);
-                  setPick(null);
-                  setStep("spot");
-                }}
-                className="rounded-full bg-white/10 px-2 py-1 text-[11px] font-bold hover:bg-white/20"
+                onClick={cancelPinning}
+                className="min-h-[36px] rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold hover:bg-white/20"
               >
                 Cancel
               </button>
@@ -324,7 +384,7 @@ export default function MapWorkspace() {
                   type="button"
                   disabled={!pick}
                   onClick={openDetails}
-                  className="mt-2.5 w-full rounded-xl bg-tide-500 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-40"
+                  className="mt-2.5 min-h-[44px] w-full rounded-xl bg-tide-500 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-40"
                 >
                   Next: add details →
                 </button>
@@ -360,7 +420,7 @@ export default function MapWorkspace() {
                         key={k}
                         type="button"
                         onClick={() => setForm({ ...form, category: k })}
-                        className="rounded-lg px-2 py-1 text-[11.5px] font-bold"
+                        className="min-h-[32px] rounded-lg px-2 py-1 text-[11.5px] font-bold"
                         style={{
                           background: form.category === k ? `${CATEGORIES[k].color}2e` : "rgba(255,255,255,.06)",
                           color: form.category === k ? CATEGORIES[k].color : "#a9cdc9",
@@ -379,7 +439,7 @@ export default function MapWorkspace() {
                         key={label}
                         type="button"
                         onClick={() => setForm({ ...form, severity: i + 1 })}
-                        className={`flex-1 rounded-lg px-1.5 py-1.5 text-[10.5px] font-bold ${
+                        className={`min-h-[40px] flex-1 rounded-lg px-1.5 py-1.5 text-[10.5px] font-bold ${
                           form.severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9]"
                         }`}
                       >
@@ -411,7 +471,7 @@ export default function MapWorkspace() {
                   <button
                     type="button"
                     onClick={() => setStep("spot")}
-                    className="rounded-xl border hairline px-3 py-2 text-[12.5px] font-bold hover:bg-white/5"
+                    className="min-h-[44px] rounded-xl border hairline px-3 py-2 text-[12.5px] font-bold hover:bg-white/5"
                   >
                     ← Fix the pin
                   </button>
@@ -419,7 +479,7 @@ export default function MapWorkspace() {
                     type="button"
                     onClick={submit}
                     disabled={saving || form.title.trim().length < 5}
-                    className="flex-1 rounded-xl bg-tide-500 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-45"
+                    className="min-h-[44px] flex-1 rounded-xl bg-tide-500 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-45"
                   >
                     {saving ? "Publishing…" : "Publish to the map"}
                   </button>
@@ -433,34 +493,19 @@ export default function MapWorkspace() {
               <p className="display text-[15px] font-extrabold text-sand-100">Live pins</p>
               <button
                 type="button"
-                onClick={() => {
-                  setPickMode(true);
-                  setStep("spot");
-                  setDone(null);
-                }}
-                className="rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950"
+                onClick={startPinning}
+                className="min-h-[36px] rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950"
               >
                 + Pin a spot
               </button>
-            </div>
-            <div className="mt-2.5 flex flex-wrap gap-1.5">
-              <FilterChip active={filter === "all"} onClick={() => setFilter("all")} label="All" />
-              {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
-                <FilterChip
-                  key={k}
-                  active={filter === k}
-                  onClick={() => setFilter(k)}
-                  label={CATEGORIES[k].label}
-                  color={CATEGORIES[k].color}
-                />
-              ))}
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Island</span>
               <select
                 value={island}
                 onChange={(e) => setIsland(e.target.value)}
-                className="rounded-lg border border-white/10 bg-abyss-950/80 px-1.5 py-1 text-[11.5px] outline-none"
+                aria-label="Filter pins by island"
+                className="min-h-[36px] rounded-lg border border-white/10 bg-abyss-950/80 px-1.5 py-1 text-[11.5px] outline-none"
               >
                 <option value="all">Everywhere</option>
                 {PARISHES.map((p) => (
@@ -472,13 +517,14 @@ export default function MapWorkspace() {
               <button
                 type="button"
                 onClick={() => setShowWire((v) => !v)}
-                className={`rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-[#8fb9b6]"}`}
+                aria-pressed={showWire}
+                className={`min-h-[36px] rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-[#8fb9b6]"}`}
               >
                 Wire pins {showWire ? "on" : "off"}
               </button>
             </div>
 
-            <ul className="nb-scroll mt-2.5 max-h-[38vh] space-y-1.5 overflow-auto pr-1">
+            <ul className="nb-scroll mt-2.5 space-y-1.5 pr-1 lg:max-h-[38vh] lg:overflow-auto">
               {loading ? (
                 <li className="text-[12.5px] text-[#6e97a0]">Loading pins…</li>
               ) : visible.length ? (
@@ -490,7 +536,8 @@ export default function MapWorkspace() {
                         setSelected(r.id);
                         setFocusNonce((n) => n + 1);
                       }}
-                      className={`w-full rounded-xl px-2 py-1.5 text-left transition ${
+                      aria-current={selected === r.id ? "true" : undefined}
+                      className={`min-h-[44px] w-full rounded-xl px-2 py-1.5 text-left transition ${
                         selected === r.id ? "bg-tide-500/18 ring-1 ring-tide-400/40" : "hover:bg-white/5"
                       }`}
                     >
@@ -545,7 +592,8 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-full px-2 py-1 text-[11px] font-bold transition"
+      aria-pressed={active}
+      className="min-h-[32px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition active:scale-95"
       style={{
         background: active ? `${color ?? "#2ee6d0"}2e` : "rgba(255,255,255,.06)",
         color: active ? color ?? "#2ee6d0" : "#a9cdc9",
