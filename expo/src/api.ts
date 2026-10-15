@@ -1,6 +1,7 @@
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { getServer, getToken, setPushToken, setServer, setToken } from "./storage";
+import { noteApiFailure, registerApiBase } from "./errorReporting";
 import type { CategoryKey } from "./geo";
 
 /**
@@ -39,6 +40,7 @@ function initialBase(): string {
 
 /** Read by the screens on every render; reassigned by loadApiBase / changeApiBase. */
 export let API_BASE: string = initialBase();
+registerApiBase(() => API_BASE);
 
 /** Called once at start-up: applies an address the person saved earlier. */
 export async function loadApiBase(): Promise<void> {
@@ -238,12 +240,15 @@ async function call<T>(path: string, init: { method?: string; body?: unknown } =
       /* empty body */
     }
     if (!res.ok) {
+      // Server-side failures join the log pipeline (breadcrumbs everywhere, reported at 5xx).
+      noteApiFailure(init.method ?? "GET", path, res.status);
       const message = (data as { error?: string } | null)?.error ?? `Request failed (${res.status}).`;
       throw new ApiError(message, res.status);
     }
     return data as T;
   } catch (e) {
     if (e instanceof ApiError) throw e;
+    noteApiFailure(init.method ?? "GET", path, 0);
     throw new ApiError(`Could not reach NowBey at ${API_BASE}. Open the You tab and set the Server address to where the NowBey website runs.`, 0);
   } finally {
     clearTimeout(timer);

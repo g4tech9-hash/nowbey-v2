@@ -636,11 +636,55 @@ export const clientErrors = pgTable(
     /** The member's handle when they were signed in. Filled by the server, never trusted from the request. */
     handle: text("handle"),
     userAgent: text("user_agent"),
+    /** web | android | ios | server — part of the digest, so the same message on two platforms is two rows. */
+    platform: text("platform").notNull().default("web"),
+    appVersion: text("app_version"),
+    /** Random per tab/app-launch id. Not a user id: it only groups the breadcrumbs of one visit. */
+    sessionId: text("session_id"),
+    /** JSON: newest sanitized breadcrumb trail + small non-sensitive fields (sanitizeContextJson caps it). */
+    context: text("context"),
     count: integer("count").notNull().default(1),
     firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [uniqueIndex("client_errors_digest_idx").on(table.digest), index("client_errors_seen_idx").on(table.lastSeenAt.desc())],
+);
+
+/**
+ * The AI's reading of one crash group, plus the human's decision on it. One row per group
+ * (re-analysis updates it). Flow: (no row) → pending_review → approved → issue_created, or
+ * dismissed. "unavailable" means Gemini was off/down and the cron may retry after 6 hours.
+ * The AI never edits code: approval creates a GitHub issue for a human/Arena session to implement.
+ */
+export const errorAnalyses = pgTable(
+  "error_analyses",
+  {
+    id: serial("id").primaryKey(),
+    errorId: integer("error_id")
+      .notNull()
+      .references(() => clientErrors.id, { onDelete: "cascade" }),
+    digest: text("digest").notNull(),
+    /** pending_review | approved | issue_created | dismissed | unavailable */
+    status: text("status").notNull().default("pending_review"),
+    /** low | medium | high | critical */
+    severity: text("severity").notNull().default("low"),
+    summary: text("summary").notNull(),
+    likelyCause: text("likely_cause"),
+    suggestedFix: text("suggested_fix"),
+    affectedArea: text("affected_area"),
+    /** low | medium | high */
+    confidence: text("confidence").notNull().default("low"),
+    model: text("model"),
+    /** Occurrence count when this analysis was written, so shouldAnalyze can spot a bug that came back. */
+    analyzedCount: integer("analyzed_count").notNull().default(0),
+    githubIssueNumber: integer("github_issue_number"),
+    githubIssueUrl: text("github_issue_url"),
+    reviewedBy: text("reviewed_by"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("error_analyses_error_idx").on(table.errorId), index("error_analyses_status_idx").on(table.status)],
 );
 
 /** Expo push tokens, one row per member per device. Pruned when Expo reports them dead. */

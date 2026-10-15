@@ -5,6 +5,7 @@ import { clientErrors, enterpriseInquiries, incidents, newsItems, users } from "
 import { getViewer } from "@/lib/viewer";
 import { stripeConfigured, webhookConfigured } from "@/lib/billing";
 import { aiConfigured } from "@/lib/ai";
+import { githubConfigured } from "@/lib/error-ai";
 import { googleConfigured } from "@/lib/geocode";
 import { timeAgo } from "@/lib/geo";
 import { mailConfigured } from "@/lib/mail";
@@ -101,6 +102,7 @@ export default async function AdminOverview() {
     ["Enterprise notifications", Boolean(process.env.ENTERPRISE_NOTIFY_TO), "Add ENTERPRISE_NOTIFY_TO to be emailed when an enquiry arrives."],
     ["AI story briefs & digest writer (Gemini)", aiConfigured(), "Add GEMINI_API_KEY (aistudio.google.com, free tier). Wire stories get plain-English briefs and missing pins; the Community Digest writes its own first draft."],
     ["AI first-pass moderation", moderationOn(), "Uses GEMINI_API_KEY as well: new reports, comments, Island Life posts and uploaded photos get screened, and confident matches are queued for staff as flags. It never hides anything itself."],
+    ["AI log diagnosis → GitHub fixes", githubConfigured(), "Uses GEMINI_API_KEY too: crash groups in Admin > Logs get an AI diagnosis you approve or dismiss. Add GITHUB_TOKEN (Issues read/write) + GITHUB_REPO=owner/repo so an approval becomes a GitHub issue for a human/Arena session to implement — the AI never edits code itself. Run add-error-ai.sql and schedule /api/cron/error-analysis first."],
     ["Push alerts (Firebase)", pushConfigured(), "Add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, plus the NEXT_PUBLIC_FIREBASE_* web keys. Until then visitors only see email alerts."],
     ["Geocoding fallback (Google)", googleConfigured(), "Add GOOGLE_MAPS_API_KEY with the Geocoding API enabled. Address searches and pin drops then fall back to Google when OpenStreetMap draws a blank — a big upgrade for Nassau streets."],
     ["Site address", Boolean(process.env.APP_URL), "Add APP_URL, your real https address. Emails will not send until it is set, so the links in them cannot be forged."],
@@ -129,7 +131,11 @@ export default async function AdminOverview() {
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">Crashes</p>
         <p className="mt-1 text-[13px] text-[#a9cdc9]">
-          Browser and server errors, grouped — one row per bug. If a beta tester says “the map died”, the answer is here. Needs add-client-errors.sql run first.
+          Browser, server and app errors, grouped — one row per bug. If a beta tester says “the map died”, the answer is here. Needs add-client-errors.sql run first.{" "}
+          <Link href="/admin/logs" className="font-bold text-tide-300 underline">
+            Open Logs &amp; AI fixes →
+          </Link>{" "}
+          for breadcrumbs, AI diagnoses and approving a fix.
         </p>
         {crashes.length ? (
           <ul className="mt-3 space-y-1.5">

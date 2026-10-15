@@ -22,6 +22,7 @@ npm run lint         # eslint .
 | Android app push | Code complete, **not delivered to a device yet** — it needs the FCM v1 service account and an APK build. See `TODO_HUMAN.md` |
 | iPhone app push | **Not built.** The website can still show push on iOS 16.4+ once the site is added to the Home Screen; email always works |
 | Island guides (`/gas`, `/life`) | Deferred until after the Nassau launch |
+| Log pipeline (AI fixes) | Code complete: web, server and Expo crashes auto-collect with breadcrumbs into Admin → Logs, where Gemini diagnoses each group. An admin approves or dismisses; approval creates a GitHub issue for a human/Arena session to implement. In-app AI never edits or deploys code. Needs `add-error-ai.sql`, `GEMINI_API_KEY`, `GITHUB_TOKEN`/`GITHUB_REPO` and the `/api/cron/error-analysis` cron — see `docs/AI_LOG_FIXES.md` |
 
 Push is never claimed as working in a plan, a page or a document until a real device receives a real
 notification. `/api/health` reports `push: true` only when the server can actually sign FCM requests.
