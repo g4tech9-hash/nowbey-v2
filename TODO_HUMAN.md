@@ -131,6 +131,25 @@ Before the intentionally postponed APK build:
 3. Confirm GitHub Actions has an `EXPO_TOKEN` secret.
 4. Actions → Deploy (Vercel + EAS) → Run workflow → target `mobile`.
 
+**Status 2026-10-15 — the key is on EAS (owner's confirmation); one tap is left.** The FCM V1 key is a
+server-side credential for the Expo push service, not something baked into the APK: the app asks Expo for
+a token (`expo/src/push.ts` → `getExpoPushTokenAsync`) and the server sends to Expo (`src/lib/push.ts`
+→ `exp.host`), so Expo is the FCM sender and needs the key. Without it the app cannot mint a token (or
+Expo answers `InvalidCredentials` on send), which is why the key must exist before a tester's first launch.
+It must come from Firebase project `nowbey-6a30f` — the same project as `google-services.json` — or Expo
+answers `MismatchSenderId`. This key does **not** switch on the **website's** browser push: that path needs
+the separate `FIREBASE_*` and `NEXT_PUBLIC_FIREBASE_*` variables in Vercel, so `/api/health` keeps
+reporting `push:false` for the site even when Android delivery works.
+
+The Arena GitHub integration that edits this repo can read Actions runs but **cannot dispatch a workflow**
+(`HTTP 403: Resource not accessible by integration` on `POST …/actions/workflows/…/dispatches`, verified
+with both tokens in the sandbox), so step 4 is always a human tap. The run to watch — the last mobile
+dispatch, 14 hours before this note, died in *Install Expo dependencies* on the merge-conflict markers in
+`expo/package-lock.json` that PR #4 has since fixed:
+
+<https://github.com/g4tech9-hash/nowbey-v2/actions/workflows/deploy.yml> → **Run workflow** → branch
+**master** → target **mobile** → **Run workflow**.
+
 For a local build only, download `google-services.json` from the existing Android app and save it as `expo/google-services.json` (git-ignored).
 
 Why manual: creating Firebase projects and downloading server keys cannot be
