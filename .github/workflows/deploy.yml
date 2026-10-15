@@ -29,7 +29,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22, not 20: the unit tests import TypeScript directly, which needs Node's type stripping.
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
