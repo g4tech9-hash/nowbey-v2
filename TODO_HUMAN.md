@@ -155,12 +155,22 @@ reporting `push:false` for the site even when Android delivery works.
 
 The Arena GitHub integration that edits this repo can read Actions runs but **cannot dispatch a workflow**
 (`HTTP 403: Resource not accessible by integration` on `POST …/actions/workflows/…/dispatches`, verified
-with both tokens in the sandbox), so step 4 is always a human tap. The run to watch — the last mobile
-dispatch, 14 hours before this note, died in *Install Expo dependencies* on the merge-conflict markers in
-`expo/package-lock.json` that PR #4 has since fixed:
+with both tokens in the sandbox), so step 4 is always a human tap.
 
-<https://github.com/g4tech9-hash/nowbey-v2/actions/workflows/deploy.yml> → **Run workflow** → branch
-**master** → target **mobile** → **Run workflow**.
+**Status 2026-10-15 — the first real dispatch happened, and it failed on a defect that is now fixed.**
+Run `38765056982` (dispatched from **master**): `gate` was green, *Install Expo dependencies* was green —
+so the `expo/package-lock.json` blocker really is gone — and *Install Firebase Android configuration* was
+green, which proves the `FIREBASE_GOOGLE_SERVICES_JSON` secret exists and carries the `app.nowbey.mobile`
+package. The EAS step then failed **29 seconds** later, which is a client-side rejection, not a build-worker
+failure. The cause: `expo/.gitignore` ignores `google-services.json` and EAS Build archives the project with
+the ignore rules applied, so the file `app.json` points at was never uploaded — the documented
+`"google-services.json" is missing … EAS Build only uploads the files tracked by git` failure. PR #9 fixes it
+with a root `.easignore` (restating every ignore rule, plus `!google-services.json`) and adds guards to the
+workflow so neither the missing file nor a rejected `EXPO_TOKEN` can fail silently again.
+
+So the order is: **merge PR #9 into master first**, then dispatch. A red run now names its own cause in a
+`::error` annotation rather than hiding it in a log blob the sandbox cannot read; if it still fails, a
+screenshot of the failed step is enough to go on.
 
 For a local build only, download `google-services.json` from the existing Android app and save it as `expo/google-services.json` (git-ignored).
 
