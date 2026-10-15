@@ -41,6 +41,7 @@ test("health reports the local stack honestly", async () => {
   assert.equal(res.json.checks.database, true);
   assert.equal(res.json.checks.mail, true, "SMTP is configured in .env.local");
   assert.equal(res.json.checks.push, false, "Firebase is deliberately unset here");
+  assert.equal(res.json.checks.rateLimits, true, "run-local.sh applies src/db/add-security-fixes.sql");
   assert.equal(res.json.status, "ready");
 });
 
