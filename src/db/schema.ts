@@ -687,6 +687,20 @@ export const errorAnalyses = pgTable(
   (table) => [uniqueIndex("error_analyses_error_idx").on(table.errorId), index("error_analyses_status_idx").on(table.status)],
 );
 
+/**
+ * Gemini usage ledger, one row per UTC day, written by recordAiUsage in lib/ai.ts.
+ * Powers the daily call cap (the cost kill): AI_DAILY_CALL_LIMIT is enforced against
+ * `calls`, and the Admin overview shows the token counts + estimated spend.
+ */
+export const aiUsageDaily = pgTable("ai_usage_daily", {
+  /** UTC day, YYYY-MM-DD. */
+  day: text("day").primaryKey(),
+  calls: integer("calls").notNull().default(0),
+  promptTokens: integer("prompt_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 /** Expo push tokens, one row per member per device. Pruned when Expo reports them dead. */
 export const serviceStatuses = pgTable(
   "service_statuses",

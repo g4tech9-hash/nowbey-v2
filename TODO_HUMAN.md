@@ -6,7 +6,9 @@ Full write-up: `docs/AI_LOG_FIXES.md`. The code is live-safe without these steps
 collect, diagnoses wait as "unavailable", approvals wait as "approved".
 
 1. **Run the SQL once.** Neon → SQL editor → paste all of `add-error-ai.sql` → Run (safe to
-   run twice; `add-client-errors.sql` must already have run).
+   run twice; `add-client-errors.sql` must already have run). Also run `add-ai-usage.sql`
+   (one tiny table) so the AI daily cost cap counts across servers — the Admin overview
+   shows today's AI calls and estimated spend once it exists.
 2. **Set two env vars.** Vercel → Settings → Environment Variables → Production:
    `GITHUB_TOKEN` (GitHub → Settings → Developer settings → Fine-grained tokens → only
    `g4tech9-hash/nowbey-v2`, Issues: read/write) and `GITHUB_REPO=g4tech9-hash/nowbey-v2`.

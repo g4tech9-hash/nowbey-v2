@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { clientErrors, enterpriseInquiries, incidents, newsItems, users } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
 import { stripeConfigured, webhookConfigured } from "@/lib/billing";
-import { aiConfigured } from "@/lib/ai";
+import { aiBudgetStatus, aiConfigured } from "@/lib/ai";
 import { githubConfigured } from "@/lib/error-ai";
 import { googleConfigured } from "@/lib/geocode";
 import { timeAgo } from "@/lib/geo";
@@ -95,6 +95,8 @@ export default async function AdminOverview() {
     /* table not migrated yet */
   }
 
+  const budget = await aiBudgetStatus();
+
   const checks: [string, boolean, string][] = [
     ["Payments (Stripe key)", stripeConfigured(), "Add STRIPE_SECRET_KEY. Until then plans are disabled."],
     ["Payment webhook", webhookConfigured(), "Add STRIPE_WEBHOOK_SECRET so paid plans switch on and off by themselves."],
@@ -103,6 +105,15 @@ export default async function AdminOverview() {
     ["AI story briefs & digest writer (Gemini)", aiConfigured(), "Add GEMINI_API_KEY (aistudio.google.com, free tier). Wire stories get plain-English briefs and missing pins; the Community Digest writes its own first draft."],
     ["AI first-pass moderation", moderationOn(), "Uses GEMINI_API_KEY as well: new reports, comments, Island Life posts and uploaded photos get screened, and confident matches are queued for staff as flags. It never hides anything itself."],
     ["AI log diagnosis → GitHub fixes", githubConfigured(), "Uses GEMINI_API_KEY too: crash groups in Admin > Logs get an AI diagnosis you approve or dismiss. Add GITHUB_TOKEN (Issues read/write) + GITHUB_REPO=owner/repo so an approval becomes a GitHub issue for a human/Arena session to implement — the AI never edits code itself. Run add-error-ai.sql and schedule /api/cron/error-analysis first."],
+    [
+      `AI cost cap — ${budget.callsToday}/${budget.limit} calls today (~$${budget.estUsd.toFixed(2)})`,
+      !budget.killSwitch && !budget.overLimit && budget.ledgerReady,
+      budget.killSwitch
+        ? "AI_ENABLED=false is set: every AI feature is on its plain fallback. Set AI_ENABLED=true (or remove it) and redeploy to turn AI back on."
+        : budget.overLimit
+          ? "Today's cap is spent — AI resumes tomorrow (UTC), or raise AI_DAILY_CALL_LIMIT and redeploy. Emergency stop at any time: AI_ENABLED=false."
+          : "Run add-ai-usage.sql for shared counts across servers. Cap: AI_DAILY_CALL_LIMIT (default 500/day). Emergency stop: set AI_ENABLED=false and redeploy — see docs/AI_LOG_FIXES.md.",
+    ],
     ["Push alerts (Firebase)", pushConfigured(), "Add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, plus the NEXT_PUBLIC_FIREBASE_* web keys. Until then visitors only see email alerts."],
     ["Geocoding fallback (Google)", googleConfigured(), "Add GOOGLE_MAPS_API_KEY with the Geocoding API enabled. Address searches and pin drops then fall back to Google when OpenStreetMap draws a blank — a big upgrade for Nassau streets."],
     ["Site address", Boolean(process.env.APP_URL), "Add APP_URL, your real https address. Emails will not send until it is set, so the links in them cannot be forged."],

@@ -56,6 +56,36 @@ Without the Gemini key, groups collect and wait honestly as "AI unavailable". Wi
 GitHub token, approvals are saved as "Approved — waiting for GitHub setup" and no issue is
 faked. Admin → Overview's setup checklist and Admin → Logs both show which state you are in.
 
+## Running the cost kill (Gemini spend control)
+
+Every Gemini call in the app (news briefs, moderation, digests, log diagnosis, the
+report copilot) goes through `src/lib/ai.ts`, so one switch stops them all. Calls are
+counted in `ai_usage_daily` (run `add-ai-usage.sql` once) and the Admin overview shows
+"AI cost cap — N/500 calls today (~$X)".
+
+**Emergency stop (about 2 minutes):**
+1. Vercel → your project → Settings → Environment Variables → set `AI_ENABLED` to
+   `false` (Production).
+2. Redeploy (Deployments → ⋯ → Redeploy) — env changes only take effect on a new deploy.
+3. Done: every AI feature silently uses its plain non-AI fallback. Nothing breaks;
+   briefs/digests use templates, moderation queues for humans only, log groups wait.
+   Turn it back on the same way (`AI_ENABLED=true`, redeploy).
+
+**Daily cap (automatic, no action needed):** `AI_DAILY_CALL_LIMIT` (default 500 calls
+per UTC day). When the cap is hit, AI pauses until tomorrow (UTC) — the site never
+errors. Raise/lower it in Environment Variables + redeploy. Admin → Overview shows
+today's count and estimated spend.
+
+**Nuclear option:** delete `GEMINI_API_KEY` + redeploy. Same effect as the kill switch,
+plus the Admin checklist reports AI as unconfigured.
+
+**Local development:** put `AI_ENABLED=false` (or `AI_DAILY_CALL_LIMIT=5` to test the
+cap) in `.env.local` and restart `npm run dev`.
+
+Note the cap counts *calls*, and each call's token usage is ledgered with an estimated
+Flash-price cost — a budget guardrail, not an invoice. Google's own quota/billing caps
+in AI Studio / Google Cloud remain the hard backstop; set a budget alert there too.
+
 ## Daily use
 
 1. Open **Admin → Logs** (tab badge = proposals waiting). Worst-first order.

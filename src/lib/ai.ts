@@ -2,10 +2,124 @@
  * A tiny Gemini client (Google AI Studio key). No SDK: one POST per call, JSON in, text out.
  * Everything here returns null instead of throwing — the news wire, digests and pages must keep
  * working on the plain-English fallbacks when the key is missing, the quota is spent or Google is down.
+ *
+ * Cost kill switch (run instructions: docs/AI_LOG_FIXES.md § "Running the cost kill"):
+ * - AI_ENABLED=false (env) hard-stops every call immediately on next deploy/restart.
+ * - AI_DAILY_CALL_LIMIT (env, default 500) caps calls per UTC day; usage is ledgered in
+ *   ai_usage_daily (add-ai-usage.sql) with token counts, and falls back to a per-instance
+ *   in-memory counter when that table has not been migrated yet.
+ * - Removing GEMINI_API_KEY remains the nuclear option.
  */
 
+export function aiKillSwitchOn(): boolean {
+  const v = (process.env.AI_ENABLED ?? "").trim().toLowerCase();
+  return v === "false" || v === "0" || v === "off";
+}
+
 export function aiConfigured(): boolean {
-  return Boolean(process.env.GEMINI_API_KEY?.trim());
+  return Boolean(process.env.GEMINI_API_KEY?.trim()) && !aiKillSwitchOn();
+}
+
+/** Daily Gemini call cap. Bounded so a typo cannot silently uncap or zero the product. */
+export function aiDailyLimit(): number {
+  const n = Number.parseInt(process.env.AI_DAILY_CALL_LIMIT ?? "", 10);
+  if (!Number.isFinite(n)) return 500;
+  return Math.min(100_000, Math.max(1, n));
+}
+
+export function isOverDailyLimit(callsToday: number, limit: number): boolean {
+  return callsToday >= limit;
+}
+
+/** Rough Gemini Flash text pricing for the ledger display. An estimate, never a bill. */
+export function estimateCostUsd(promptTokens: number, outputTokens: number): number {
+  return (promptTokens * 0.1 + outputTokens * 0.4) / 1_000_000;
+}
+
+export type AiBudgetStatus = {
+  killSwitch: boolean;
+  limit: number;
+  callsToday: number;
+  promptTokens: number;
+  outputTokens: number;
+  estUsd: number;
+  overLimit: boolean;
+  /** False until add-ai-usage.sql has run; the in-memory fallback still enforces the cap per instance. */
+  ledgerReady: boolean;
+};
+
+const dayKey = (d = new Date()): string => d.toISOString().slice(0, 10);
+
+/* Per-instance fallback + 60s cache so the budget check is not a DB query per AI call. */
+let memoryCalls = 0;
+let memoryDay = dayKey();
+let budgetCache: { at: number; status: AiBudgetStatus } | null = null;
+
+function rollMemoryDay(): void {
+  const today = dayKey();
+  if (memoryDay !== today) {
+    memoryDay = today;
+    memoryCalls = 0;
+  }
+}
+
+export async function aiBudgetStatus(): Promise<AiBudgetStatus> {
+  if (budgetCache && Date.now() - budgetCache.at < 60_000) return budgetCache.status;
+  rollMemoryDay();
+  const base: AiBudgetStatus = {
+    killSwitch: aiKillSwitchOn(),
+    limit: aiDailyLimit(),
+    callsToday: memoryCalls,
+    promptTokens: 0,
+    outputTokens: 0,
+    estUsd: 0,
+    overLimit: isOverDailyLimit(memoryCalls, aiDailyLimit()),
+    ledgerReady: false,
+  };
+  try {
+    const { db } = await import("@/db");
+    const { aiUsageDaily } = await import("@/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const [row] = await db.select().from(aiUsageDaily).where(eq(aiUsageDaily.day, dayKey())).limit(1);
+    if (row) {
+      base.callsToday = Math.max(row.calls, memoryCalls);
+      base.promptTokens = row.promptTokens;
+      base.outputTokens = row.outputTokens;
+      base.estUsd = estimateCostUsd(row.promptTokens, row.outputTokens);
+      base.overLimit = isOverDailyLimit(base.callsToday, base.limit);
+    }
+    base.ledgerReady = true;
+  } catch {
+    // Table not migrated (or DB down): the cap still holds per instance via memoryCalls.
+  }
+  budgetCache = { at: Date.now(), status: base };
+  return base;
+}
+
+/** After a real Gemini answer: count it. Ledger problems never break the feature that called. */
+async function recordAiUsage(promptTokens: number, outputTokens: number): Promise<void> {
+  rollMemoryDay();
+  memoryCalls += 1;
+  budgetCache = null;
+  try {
+    const { db } = await import("@/db");
+    const { aiUsageDaily } = await import("@/db/schema");
+    const { sql } = await import("drizzle-orm");
+    await db
+      .insert(aiUsageDaily)
+      .values({ day: dayKey(), calls: 1, promptTokens, outputTokens })
+      .onConflictDoUpdate({
+        target: aiUsageDaily.day,
+        set: {
+          calls: sql`${aiUsageDaily.calls} + 1`,
+          promptTokens: sql`${aiUsageDaily.promptTokens} + ${promptTokens}`,
+          outputTokens: sql`${aiUsageDaily.outputTokens} + ${outputTokens}`,
+          updatedAt: new Date(),
+        },
+      });
+  } catch {
+    // add-ai-usage.sql not run yet — the in-memory counter above still enforces the cap.
+  }
 }
 
 function model(): string {
@@ -45,7 +159,13 @@ type Part = { text: string } | { inlineData: { mimeType: string; data: string } 
 
 async function callGemini(parts: Part[], opts: GenerateOpts): Promise<string | null> {
   const key = process.env.GEMINI_API_KEY?.trim();
-  if (!key) return null;
+  if (!key || aiKillSwitchOn()) return null;
+  // Cost kill, part two: the daily cap. Over it, every feature keeps its plain fallback.
+  const budget = await aiBudgetStatus();
+  if (budget.overLimit) {
+    console.warn(`[ai] daily call limit reached (${budget.callsToday}/${budget.limit}) — using plain fallbacks until tomorrow (UTC)`);
+    return null;
+  }
 
   const wait = MIN_GAP_MS - (Date.now() - lastCall);
   if (wait > 0) await new Promise((r) => setTimeout(r, wait));
@@ -75,7 +195,9 @@ async function callGemini(parts: Part[], opts: GenerateOpts): Promise<string | n
     }
     const data = (await res.json()) as {
       candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[];
+      usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
     };
+    await recordAiUsage(data.usageMetadata?.promptTokenCount ?? 0, data.usageMetadata?.candidatesTokenCount ?? 0);
     const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     return text.trim() || null;
   } catch (err) {
