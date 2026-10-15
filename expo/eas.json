@@ -9,8 +9,10 @@
     },
     "preview": {
       "distribution": "internal",
+      "image": "latest",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "latest"
       },
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://nowbey-v2.vercel.app"
@@ -18,6 +20,10 @@
     },
     "production": {
       "distribution": "store",
+      "image": "latest",
+      "android": {
+        "image": "latest"
+      },
       "env": {
         "EXPO_PUBLIC_API_BASE": "https://nowbey-v2.vercel.app"
       }
