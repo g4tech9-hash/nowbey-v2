@@ -5,11 +5,10 @@
 Token registration, channels, and tap handling work now. Remote delivery needs
 one Firebase step (free, ~10 min):
 
-1. Go to https://console.firebase.google.com/project/nowbey-ed663 (you are
-   signed in as g4tech9@gmail.com, which currently CANNOT add apps — 403).
-   Either get Owner/Editor on that project, or have its owner do this step:
-   Project Overview → gear → Project settings → General → Your apps → Add app
-   → Android, package name `app.nowbey.mobile` → download `google-services.json`.
+1. Go to https://console.firebase.google.com/project/nowbey-6a30f and open
+   Project settings → General → Your apps → Android app `app.nowbey.mobile`
+   → download `google-services.json`. This app was validated against Firebase
+   project `nowbey-6a30f` (project number `437051839288`) on 2026-10-15.
 3. Copy it to `expo/google-services.json` (git-ignored; never commit it).
 4. In `expo/app.json`, under `expo.android`, add:
    `"googleServicesFile": "./google-services.json"`.
