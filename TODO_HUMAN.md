@@ -119,6 +119,18 @@ Run these once in the production Neon SQL Editor — the editor takes SQL statem
 
 * `src/db/add-community-utility.sql` — before using the **Open now** admin page. Adds the `service_statuses` table and indexes only.
 * `src/db/add-google-auth.sql` — before switching on Sign in with Google. Adds `users.google_sub` and its unique index; `NULL` for every existing account, so nothing changes until someone uses the Google button.
+* `src/db/add-profiles.sql` — before the profile pages are used. Adds `member_profiles`, `hidden_profile_reports`, `member_notes` and `badge_grants`, with their indexes and a `user_id` index on `incidents`. Nothing reads these tables until the profile code ships, so running it early (or late) changes no existing page. **Applied 2026-10-15 in the production Neon SQL editor** — the verification query answered with the four expected tables (`badge_grants`, `hidden_profile_reports`, `member_notes`, `member_profiles`) in 184 ms. Because the file runs as one transaction they were created together or not at all, so no half-migrated state exists; the file is idempotent, so a repeat run costs nothing. One last tick, worth doing once: the two indexes at the tail of the file sit outside the table blocks, so a paste that stopped early is the only realistic way to miss them.
+
+  ```sql
+  select
+    (select count(*) from pg_indexes where schemaname = 'public' and indexname in
+      ('hidden_profile_reports_user_incident_idx','hidden_profile_reports_user_idx','member_notes_user_idx',
+       'badge_grants_user_idx','incidents_user_idx','incident_updates_actor_idx')) as indexes,
+    (select count(*) from information_schema.table_constraints where constraint_type = 'FOREIGN KEY' and table_name in
+      ('member_profiles','hidden_profile_reports','member_notes','badge_grants')) as foreign_keys;
+  ```
+
+  Expect `indexes = 6` and `foreign_keys = 5`; if either is short, re-run the whole file and ask again.
 
 ## 1. Firebase (required for actual push delivery)
 
@@ -130,6 +142,35 @@ Before the intentionally postponed APK build:
 2. Upload that private-key file **directly** at expo.dev → NowBey → Credentials → Android → FCM V1. Never put it in chat or Git.
 3. Confirm GitHub Actions has an `EXPO_TOKEN` secret.
 4. Actions → Deploy (Vercel + EAS) → Run workflow → target `mobile`.
+
+**Status 2026-10-15 — the key is on EAS (owner's confirmation); one tap is left.** The FCM V1 key is a
+server-side credential for the Expo push service, not something baked into the APK: the app asks Expo for
+a token (`expo/src/push.ts` → `getExpoPushTokenAsync`) and the server sends to Expo (`src/lib/push.ts`
+→ `exp.host`), so Expo is the FCM sender and needs the key. Without it the app cannot mint a token (or
+Expo answers `InvalidCredentials` on send), which is why the key must exist before a tester's first launch.
+It must come from Firebase project `nowbey-6a30f` — the same project as `google-services.json` — or Expo
+answers `MismatchSenderId`. This key does **not** switch on the **website's** browser push: that path needs
+the separate `FIREBASE_*` and `NEXT_PUBLIC_FIREBASE_*` variables in Vercel, so `/api/health` keeps
+reporting `push:false` for the site even when Android delivery works.
+
+The Arena GitHub integration that edits this repo can read Actions runs but **cannot dispatch a workflow**
+(`HTTP 403: Resource not accessible by integration` on `POST …/actions/workflows/…/dispatches`, verified
+with both tokens in the sandbox), so step 4 is always a human tap.
+
+**Status 2026-10-15 — the first real dispatch happened, and it failed on a defect that is now fixed.**
+Run `38765056982` (dispatched from **master**): `gate` was green, *Install Expo dependencies* was green —
+so the `expo/package-lock.json` blocker really is gone — and *Install Firebase Android configuration* was
+green, which proves the `FIREBASE_GOOGLE_SERVICES_JSON` secret exists and carries the `app.nowbey.mobile`
+package. The EAS step then failed **29 seconds** later, which is a client-side rejection, not a build-worker
+failure. The cause: `expo/.gitignore` ignores `google-services.json` and EAS Build archives the project with
+the ignore rules applied, so the file `app.json` points at was never uploaded — the documented
+`"google-services.json" is missing … EAS Build only uploads the files tracked by git` failure. PR #9 fixes it
+with a root `.easignore` (restating every ignore rule, plus `!google-services.json`) and adds guards to the
+workflow so neither the missing file nor a rejected `EXPO_TOKEN` can fail silently again.
+
+So the order is: **merge PR #9 into master first**, then dispatch. A red run now names its own cause in a
+`::error` annotation rather than hiding it in a log blob the sandbox cannot read; if it still fails, a
+screenshot of the failed step is enough to go on.
 
 For a local build only, download `google-services.json` from the existing Android app and save it as `expo/google-services.json` (git-ignored).
 

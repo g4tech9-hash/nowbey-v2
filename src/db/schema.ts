@@ -84,6 +84,9 @@ export const incidents = pgTable(
     index("incidents_created_idx").on(table.createdAt.desc()),
     index("incidents_status_idx").on(table.status),
     index("incidents_parish_idx").on(table.parish),
+    // Declared here because src/db/add-profiles.sql creates it: a member's profile reads their own
+    // reports by user id, and a schema that did not know about the index would have drizzle-kit drop it.
+    index("incidents_user_idx").on(table.userId),
   ],
 );
 
@@ -101,7 +104,11 @@ export const incidentUpdates = pgTable(
     actorKey: text("actor_key"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("incident_updates_incident_idx").on(table.incidentId)],
+  (table) => [
+    index("incident_updates_incident_idx").on(table.incidentId),
+    // Also from add-profiles.sql: profiles count a member's confirmations by actor.
+    index("incident_updates_actor_idx").on(table.actorKey),
+  ],
 );
 
 export const newsItems = pgTable(
@@ -230,6 +237,90 @@ export const adminAudit = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("admin_audit_created_idx").on(table.createdAt.desc())],
+);
+
+/**
+ * The member's own profile settings, in their own table rather than as columns on `users`.
+ *
+ * That is deliberate. The app reads whole user and incident rows with `select *` in the sign-in route, the
+ * password reset, the report pages and the feed, so a column added to either table would break every one of
+ * those pages on a database where the migration had not been applied yet. Here, a missing row means "the
+ * defaults", and a missing table only affects the pages that are actually about profiles.
+ */
+export const memberProfiles = pgTable("member_profiles", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** open | private. A missing row is open, which is the default agreed for launch. */
+  visibility: text("visibility").notNull().default("open"),
+  /** Optional short line at the top of the profile. Never required, never longer than 200 characters. */
+  bio: text("bio"),
+  /** Opt-in: show "receives alerts for N islands". The address and the chosen categories are never shown. */
+  showAlertSummary: boolean("show_alert_summary").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+/**
+ * Reports a member has kept off their profile. A row here changes nothing about the report: it stays on the
+ * map, keeps its confirmations and still counts toward the record. It only stops being listed by name.
+ */
+export const hiddenProfileReports = pgTable(
+  "hidden_profile_reports",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    incidentId: uuid("incident_id")
+      .notNull()
+      .references(() => incidents.id, { onDelete: "cascade" }),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("hidden_profile_reports_user_incident_idx").on(table.userId, table.incidentId),
+    index("hidden_profile_reports_user_idx").on(table.userId),
+  ],
+);
+
+/**
+ * Staff notes about a member. Append-only, admin-only, and never shown to the member.
+ * Kept separate from adminAudit because these are sentences a person wrote, not actions a system took.
+ */
+export const memberNotes = pgTable(
+  "member_notes",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    authorHandle: text("author_handle").notNull(),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("member_notes_user_idx").on(table.userId, table.createdAt.desc())],
+);
+
+/**
+ * Badges a human granted, with the reason and (optionally) an expiry. The public "verified" badge means
+ * a person checked this account — it is deliberately not for sale and not tied to a plan.
+ */
+export const badgeGrants = pgTable(
+  "badge_grants",
+  {
+    id: serial("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** verified (a human checked this account) — desk comes from the role, not from here. */
+    badge: text("badge").notNull(),
+    reason: text("reason").notNull(),
+    grantedBy: text("granted_by").notNull(),
+    grantedAt: timestamp("granted_at", { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokedBy: text("revoked_by"),
+  },
+  (table) => [index("badge_grants_user_idx").on(table.userId)],
 );
 
 /** Raw bytes, used to keep member photos in the database so there is nothing extra to host or back up. */
