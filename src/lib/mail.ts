@@ -41,7 +41,8 @@ export async function sendMail(mail: Mail): Promise<MailResult> {
         host: process.env.SMTP_HOST!,
         port: Number(process.env.SMTP_PORT) || 465,
         user: process.env.SMTP_USER!,
-        pass: process.env.SMTP_PASS!,
+        // Google displays 16-character app passwords in groups; pasted spaces are not part of the password.
+        pass: process.env.SMTP_HOST!.toLowerCase() === "smtp.gmail.com" ? process.env.SMTP_PASS!.replace(/\s/g, "") : process.env.SMTP_PASS!,
         from,
         to: mail.to,
         subject: mail.subject,

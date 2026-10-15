@@ -15,6 +15,7 @@
     },
     "android": {
       "package": "app.nowbey.mobile",
+      "googleServicesFile": "./google-services.json",
       "versionCode": 2,
       "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {

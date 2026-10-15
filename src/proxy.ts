@@ -6,6 +6,17 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 export function proxy(req: NextRequest) {
   const path = new URL(req.url).pathname;
+
+  // Deferred launch features are unreachable as well as hidden. This prevents stale bookmarks,
+  // mobile clients, or direct API calls from bypassing the Nassau MVP scope.
+  const lifeOff = process.env.NEXT_PUBLIC_FEATURE_ISLAND_LIFE !== "true" && (path === "/life" || path.startsWith("/life/") || path === "/api/life" || path.startsWith("/api/life/"));
+  const gasOff = process.env.NEXT_PUBLIC_FEATURE_GAS_TRACKER !== "true" && (path === "/gas" || path.startsWith("/gas/") || path === "/api/gas" || path.startsWith("/api/gas/"));
+  if (lifeOff || gasOff) {
+    return path.startsWith("/api/")
+      ? NextResponse.json({ error: "Not found" }, { status: 404 })
+      : new NextResponse("Not found", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  }
+
   try {
     decodeURIComponent(path);
   } catch {

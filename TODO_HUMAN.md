@@ -17,7 +17,7 @@ one Firebase step (free, ~10 min):
    `eas credentials -p android` → pick this build profile → upload the
    `google-services.json` when asked; OR paste a Cloud Messaging **v1** private
    key at expo.dev → project nowbey → Credentials → Android → FCM V1.
-6. Rebuild: `eas build --platform android --profile preview --non-interactive`.
+5. Rebuild: `eas build --platform android --profile preview --non-interactive`.
 
 Why manual: creating Firebase projects and downloading server keys cannot be
 done from here without your Google account.
