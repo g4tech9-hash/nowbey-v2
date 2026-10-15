@@ -97,7 +97,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22, not 20: the EAS CLI now says a future release will require Node 22 or newer, and
+          # it says so on every build. The gate job already runs on 22.
+          node-version: 22
           cache: npm
           cache-dependency-path: expo/package-lock.json
 
