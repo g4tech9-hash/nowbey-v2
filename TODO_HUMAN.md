@@ -29,12 +29,19 @@ The two supported ways back into an existing account are the member's own reset 
 The code is in place and tested against a fake Google. It stays switched off until these exist, and the
 sign-in page hides the button until they do.
 
-1. `console.google.com` (phone browser is fine) → create or pick a project → **APIs & Services → OAuth
-   consent screen** → External → app name `NowBey`, support email, developer contact. Add the scope
-   `.../auth/userinfo.email` and `.../auth/userinfo.profile` (these two are not "sensitive", so no Google
-   review is needed, and no logo verification), then publish the app.
-2. **APIs & Services → Credentials → Create credentials → OAuth client ID → Web application**, name it
-   `NowBey web`. Under **Authorised redirect URIs** add exactly, one per line:
+> The console is at **`console.cloud.google.com`**. (`console.google.com` does not exist.) Because the
+> Firebase project and the Google Cloud project are the same thing, use the existing Firebase project
+> **`nowbey-6a30f`** — everything then lives together, and nothing needs recreating.
+
+1. Open **`console.cloud.google.com/auth/overview?project=nowbey-6a30f`** (phone browser is fine) →
+   **Get started** on the Google Auth Platform page (this is the old "OAuth consent screen"): app name
+   `NowBey`, your support email, developer contact. Audience: **External**. Data access: add
+   `.../auth/userinfo.email` and `.../auth/userinfo.profile` (neither is "sensitive", so no Google
+   review, no logo verification). Finish, then make sure **Audience → Publishing status** says
+   **In production** — while it says "Testing", only listed test users can sign in.
+2. Open **`console.cloud.google.com/apis/credentials?project=nowbey-6a30f`** → **Create credentials →
+   OAuth client ID → Web application**, name it `NowBey web`. Under **Authorised redirect URIs** add
+   exactly, one per line:
    * `https://nowbey-v2.vercel.app/api/auth/google/callback`
    * `http://localhost:3000/api/auth/google/callback`  (local development)
    Do **not** add a `nowbey://` redirect: the app's browser handshake finishes on the website and only
@@ -49,6 +56,13 @@ sign-in page hides the button until they do.
 5. Run the column migration once (see §0): `src/db/add-google-auth.sql`.
 6. Redeploy. `/api/auth/google/status` should answer `{"enabled":true}` and the button appears on
    `/login`.
+**Shortcut if the Cloud console UI fights you on a phone:** `console.firebase.google.com` → project
+`nowbey-6a30f` → **Build → Authentication → Get started → Sign-in method → Google → Enable** (set the
+public-facing name `NowBey` and a support email), then copy the **Web client ID** and **Client secret**
+from Google → **Web SDK configuration**. That creates the client and the consent screen for you. You
+still have to add the two redirect URIs above to that client, in the Cloud console credentials page —
+the redirect flow only works if they are registered character for character.
+
 7. Test on a phone: tap **Sign up with Google** with a fresh address → the account appears with a handle
    derived from the address and a confirmed email; sign out; tap **Sign in with Google** again → same
    account, no duplicate. Then check that an address whose local part matches an `ADMIN_HANDLES` entry

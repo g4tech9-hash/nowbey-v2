@@ -142,9 +142,10 @@ never confirmed drops existing sessions and emails the member; a suspended accou
 trip cannot be redirected off-site (`//evil.com`); the PKCE verifier never travels in a URL; handles from
 Google can never claim an `ADMIN_HANDLES` name; the app's code is single-use.
 
-Two production steps remain, both needing a human: create the OAuth client (exact redirect URIs in
-`TODO_HUMAN.md` §0c), set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in Vercel, and run
-`src/db/add-google-auth.sql`. Until then the button stays hidden and `/api/auth/google/status` is false —
+Two production steps remain, both needing a human: create the OAuth client (exact redirect URIs and the
+console addresses in `TODO_HUMAN.md` §0c — the Google Cloud console is at `console.cloud.google.com`,
+and the existing Firebase project `nowbey-6a30f` can be reused as the Cloud project), set
+`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in Vercel, and run `src/db/add-google-auth.sql`. Until then the button stays hidden and `/api/auth/google/status` is false —
 nothing is half-on.
 
 ## 6. Still open (needs a human or a device)
