@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/collect.test.mjs",
-    "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs",
+    "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs",
     "test:ui": "node --test tests/ui.test.mjs",
     "audit:mobile": "node scripts/mobile-audit.mjs"
   },

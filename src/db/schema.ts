@@ -35,6 +35,8 @@ export const users = pgTable(
   stripeSubscriptionId: text("stripe_subscription_id"),
   /** Set when the owner clicks the link we emailed. Cleared whenever the email address changes. */
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+  /** Google's stable subject id ("sub"). Present when the account can be opened with Google. */
+  googleSub: text("google_sub"),
   /** Bumped to sign a member out of every device at once (password change, reset, admin action). */
   sessionVersion: integer("session_version").notNull().default(0),
   /** active | suspended. A suspended member cannot sign in, and their sessions stop working. */
@@ -46,7 +48,8 @@ export const users = pgTable(
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   // Emails are stored in lower case, so one plain unique index stops two accounts sharing an address.
-  (table) => [uniqueIndex("users_email_idx").on(table.email)],
+  // Postgres lets any number of NULLs through a unique index, so unlinked accounts are unaffected.
+  (table) => [uniqueIndex("users_email_idx").on(table.email), uniqueIndex("users_google_sub_idx").on(table.googleSub)],
 );
 
 export const incidents = pgTable(

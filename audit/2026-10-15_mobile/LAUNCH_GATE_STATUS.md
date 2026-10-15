@@ -112,6 +112,41 @@ not a pixel one. Client-rendered regions (the pin list markup, the Leaflet canva
 source-level assertions in `tests/ui.test.mjs`. Anything that needs eyes and a thumb — real iPhone and
 Android rendering, the iOS Home Screen push flow, the Android APK — is on the human checklist.
 
+## 5b. Sign in with Google (added after the mobile pass)
+
+Requested on 2026-10-15: "users should be able to sign in and sign up with a Google account or email".
+Email + password already worked; Google is new.
+
+Design: OAuth 2.0 authorization code flow **with PKCE**, built on `node:crypto` rather than an auth
+framework, because NowBey already owns its session (signed cookie on the web, bearer token in the app)
+and only needs one thing from Google — a verified address.
+
+* `src/lib/google.ts` — PKCE, the authorization URL, the token exchange, ID-token claim checks, and
+  handle derivation. Google returns the ID token straight to our server over TLS, so the signature is
+  the transport; audience, issuer, expiry and `email_verified` are still checked.
+* `GET /api/auth/google/start` — sets a signed, HttpOnly, SameSite=Lax handshake cookie (state + PKCE
+  verifier, ten minutes) and redirects to Google. `SameSite=Lax` is deliberate: `Strict` would break the
+  return trip from google.com.
+* `GET /api/auth/google/callback` — verifies state, exchanges the code, then: links an existing account
+  by its verified Google address, or creates a new one with a handle derived from that address. Never
+  hands out a handle from `ADMIN_HANDLES`. Creating an account needs no password at all.
+* `POST /api/auth/google/native` — the app's half: it opens the system browser, and the callback deep-links
+  back with a five-minute single-use code that becomes the app's own bearer token.
+* `/login` gained the button plus honest copy ("we never see your Google password"); the app's You tab
+  gained the same button.
+
+Safety rules, each covered by a test in `tests/google.test.mjs` (17 checks, run against a fake Google the
+suite starts on `127.0.0.1:4466`, so no account or network is needed): state mismatch and a cookie-less
+callback sign nobody in; an unverified Google address cannot open an account; linking an address that was
+never confirmed drops existing sessions and emails the member; a suspended account is refused; the return
+trip cannot be redirected off-site (`//evil.com`); the PKCE verifier never travels in a URL; handles from
+Google can never claim an `ADMIN_HANDLES` name; the app's code is single-use.
+
+Two production steps remain, both needing a human: create the OAuth client (exact redirect URIs in
+`TODO_HUMAN.md` §0c), set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` in Vercel, and run
+`src/db/add-google-auth.sql`. Until then the button stays hidden and `/api/auth/google/status` is false —
+nothing is half-on.
+
 ## 6. Still open (needs a human or a device)
 
 1. **Physical push delivery.** No Firebase service account exists in this environment and production
@@ -133,8 +168,10 @@ Android rendering, the iOS Home Screen push flow, the Android APK — is on the 
    After the next deploy of this branch the probe reports `appUrl:true` on its own.
 3. **`mario242` in production.** The two levers in §4 are the whole toolkit; run one of them when you
    have the account's email or an admin session.
-4. **CI depth (optional).** The gate runs typecheck, lint, unit tests and a build. The live suites need
+4. **Google sign-in credentials.** See §5b: the code is done and tested; the OAuth client, the two
+   Vercel variables and the column migration are the remaining steps (`TODO_HUMAN.md` §0c).
+5. **CI depth (optional).** The gate runs typecheck, lint, unit tests and a build. The live suites need
    Postgres and the SMTP catcher, so they run locally today; wiring them into Actions with service
    containers is a follow-up.
-5. **Real-device checklist** — `TODO_HUMAN.md` §4: deny/allow notification permission without a
+6. **Real-device checklist** — `TODO_HUMAN.md` §4: deny/allow notification permission without a
    crash, tap a notification and land on the report, revoke permission in Android settings.

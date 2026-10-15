@@ -115,6 +115,18 @@ function SignIn({
         ) : null}
         {error ? <Text style={[t.error, { marginTop: 10 }]}>{error}</Text> : null}
         <Btn label={mode === "signin" ? "Sign in" : "Create account"} busy={busy} disabled={mode === "signup" && !agreed} onPress={go} style={{ marginTop: 14 }} />
+        {/*
+          Google sign-in opens the system browser, and the browser comes back to nowbey://auth,
+          which expo-router sends to app/auth.tsx. Embedded web views are not used: Google blocks
+          them for good reason, and the address bar is how someone checks who they are talking to.
+        */}
+        <Btn
+          label={mode === "signin" ? "Sign in with Google" : "Sign up with Google"}
+          kind="ghost"
+          onPress={() => void Linking.openURL(`${API_BASE}/api/auth/google/start?client=native`).catch(() => setError("Could not open the browser."))}
+          style={{ marginTop: 8 }}
+        />
+        <Text style={[t.subtle, { marginTop: 6 }]}>One button for both. Google tells us your name and email address; we never see your Google password.</Text>
         {mode === "signin" ? (
           <Btn label="Forgot your password?" kind="ghost" onPress={() => void Linking.openURL(`${API_BASE}/forgot-password`).catch(() => {})} style={{ marginTop: 8 }} />
         ) : null}

@@ -257,6 +257,8 @@ export const api = {
   signUp: (body: { handle: string; email: string; password: string; displayName?: string; parish?: string }) =>
     call<{ token?: string }>("/api/session", { method: "POST", body: { intent: "signup", ...body } }),
   signOut: () => call<{ ok: boolean }>("/api/session", { method: "DELETE" }),
+  /** Trades the one-time code from the Google deep link for this app's own bearer token. */
+  googleExchange: (code: string) => call<{ token?: string }>("/api/auth/google/native", { method: "POST", body: { code } }),
   deleteAccount: (password: string) => call<{ ok: boolean }>("/api/account", { method: "DELETE", body: { password } }),
   flagPost: (id: string, reason: string) => call<{ ok: boolean; already?: boolean }>(`/api/life/${id}/flag`, { method: "POST", body: { reason } }),
   flagIncident: (id: string, reason: string) => call<{ ok: boolean }>(`/api/incidents/${id}/updates`, { method: "POST", body: { kind: "flag", reason } }),

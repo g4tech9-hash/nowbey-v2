@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
   stripe_customer_id text,
   stripe_subscription_id text,
   email_verified_at timestamptz,
+  google_sub text,
   session_version integer NOT NULL DEFAULT 0,
   status text NOT NULL DEFAULT 'active',
   suspended_reason text,
@@ -23,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_idx ON users (email);
+CREATE UNIQUE INDEX IF NOT EXISTS users_google_sub_idx ON users (google_sub);
 
 CREATE TABLE IF NOT EXISTS incidents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

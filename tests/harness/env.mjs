@@ -6,7 +6,31 @@
  * touches production, and no credential is ever printed.
  */
 import { readFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import pg from "pg";
+
+/**
+ * The test process needs the same environment the running server got, because tests assert on values
+ * that come from it (the Google client id, the SMTP port, the database). Node does not read .env.local
+ * for a plain script, so it is loaded here — only for keys that are not already set.
+ */
+function loadLocalEnv() {
+  const path = new URL("../../.env.local", import.meta.url);
+  if (!existsSync(path)) return;
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq < 1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    if (process.env[key] === undefined) process.env[key] = value;
+  }
+}
+loadLocalEnv();
 
 export const BASE = (process.env.TEST_BASE ?? "http://localhost:3000").replace(/\/+$/, "");
 export const MAIL_DIR = process.env.TEST_MAIL_DIR ?? "/tmp/nowbey-mail";

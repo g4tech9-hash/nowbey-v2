@@ -1,81 +1,22 @@
-import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+/**
+ * Session plumbing for route handlers and server components: the cookie, the bearer header, and the
+ * re-exports of everything in `src/lib/secret.ts` so callers keep importing from one place.
+ */
 import { cookies, headers } from "next/headers";
+import { SESSION_MAX_AGE, readToken, serverSecret } from "@/lib/secret";
+
+export {
+  SESSION_MAX_AGE,
+  hashPassword,
+  makeToken,
+  readPayload,
+  readToken,
+  serverSecret,
+  signPayload,
+  verifyPassword,
+} from "@/lib/secret";
 
 const COOKIE = "nowbey_session";
-
-let cachedSecret: string | null = null;
-
-/**
- * The key that signs sign-in sessions. Use AUTH_SECRET when it is set. Otherwise a random key is
- * generated once and kept in .data/auth-secret, so sessions survive restarts and nobody can forge
- * one from the source code. (Running several servers? Set the same AUTH_SECRET on all of them.)
- */
-export function serverSecret(): string {
-  if (cachedSecret) return cachedSecret;
-  const fromEnv = process.env.AUTH_SECRET?.trim();
-  if (fromEnv && fromEnv.length >= 32) return (cachedSecret = fromEnv);
-  if (process.env.NODE_ENV === "production") {
-    throw new Error("AUTH_SECRET must be set to at least 32 characters in production");
-  }
-  try {
-    const dir = join(process.cwd(), ".data");
-    const file = join(dir, "auth-secret");
-    if (existsSync(file)) {
-      const saved = readFileSync(file, "utf8").trim();
-      if (saved.length >= 32) return (cachedSecret = saved);
-    }
-    mkdirSync(dir, { recursive: true });
-    const fresh = randomBytes(32).toString("hex");
-    writeFileSync(file, fresh, { mode: 0o600 });
-    return (cachedSecret = fresh);
-  } catch {
-    // Read-only disk: a per-process key is still safe, it just signs everyone out on restart.
-    return (cachedSecret = randomBytes(32).toString("hex"));
-  }
-}
-
-export function hashPassword(password: string): string {
-  const salt = randomBytes(12).toString("hex");
-  const hash = scryptSync(password, salt, 40).toString("hex");
-  return `${salt}:${hash}`;
-}
-
-export function verifyPassword(password: string, stored: string | null | undefined): boolean {
-  if (!stored || !stored.includes(":")) return false;
-  const [salt, hash] = stored.split(":");
-  const candidate = scryptSync(password, salt, 40);
-  const expected = Buffer.from(hash, "hex");
-  return candidate.length === expected.length && timingSafeEqual(candidate, expected);
-}
-
-function sign(payload: string): string {
-  return createHmac("sha256", serverSecret()).update(payload).digest("base64url");
-}
-
-export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
-
-export function makeToken(userId: string, handle: string, version = 0): string {
-  const body = Buffer.from(JSON.stringify({ uid: userId, h: handle, v: version, exp: Date.now() + SESSION_MAX_AGE * 1000 })).toString(
-    "base64url",
-  );
-  return `${body}.${sign(body)}`;
-}
-
-export function readToken(token: string | undefined | null): { uid: string; handle: string; v: number } | null {
-  if (!token || token.length > 2048 || !token.includes(".")) return null;
-  const [body, sig] = token.split(".");
-  const expected = sign(body);
-  if (sig.length !== expected.length || !timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
-  try {
-    const parsed = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
-    if (typeof parsed.exp === "number" && parsed.exp < Date.now()) return null;
-    return { uid: String(parsed.uid), handle: String(parsed.h), v: typeof parsed.v === "number" ? parsed.v : 0 };
-  } catch {
-    return null;
-  }
-}
 
 /** The session token from an `Authorization: Bearer` header (mobile app) or the session cookie (website). */
 export async function sessionToken(): Promise<string | undefined> {

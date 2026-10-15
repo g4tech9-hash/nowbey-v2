@@ -24,9 +24,47 @@ Until the handle exists, any handle on the `ADMIN_HANDLES` list is a seat waitin
 The two supported ways back into an existing account are the member's own reset email
 (`/forgot-password`) and an admin-issued one-hour link (Members page → "Create a password reset link").
 
+## 0c. Sign in with Google (needs a Google Cloud project)
+
+The code is in place and tested against a fake Google. It stays switched off until these exist, and the
+sign-in page hides the button until they do.
+
+1. `console.google.com` (phone browser is fine) → create or pick a project → **APIs & Services → OAuth
+   consent screen** → External → app name `NowBey`, support email, developer contact. Add the scope
+   `.../auth/userinfo.email` and `.../auth/userinfo.profile` (these two are not "sensitive", so no Google
+   review is needed, and no logo verification), then publish the app.
+2. **APIs & Services → Credentials → Create credentials → OAuth client ID → Web application**, name it
+   `NowBey web`. Under **Authorised redirect URIs** add exactly, one per line:
+   * `https://nowbey-v2.vercel.app/api/auth/google/callback`
+   * `http://localhost:3000/api/auth/google/callback`  (local development)
+   Do **not** add a `nowbey://` redirect: the app's browser handshake finishes on the website and only
+   then deep-links into the app, so Google never sees the custom scheme.
+3. Copy the **Client ID** and **Client secret**.
+4. Vercel → project → **Settings → Environment Variables** → add for **Production** (and Preview if you
+   want previews to work):
+   * `GOOGLE_CLIENT_ID`
+   * `GOOGLE_CLIENT_SECRET`
+   Never set `GOOGLE_OAUTH_BASE` there — that variable exists only so tests can point the token call at
+   a local fake.
+5. Run the column migration once (see §0): `src/db/add-google-auth.sql`.
+6. Redeploy. `/api/auth/google/status` should answer `{"enabled":true}` and the button appears on
+   `/login`.
+7. Test on a phone: tap **Sign up with Google** with a fresh address → the account appears with a handle
+   derived from the address and a confirmed email; sign out; tap **Sign in with Google** again → same
+   account, no duplicate. Then check that an address whose local part matches an `ADMIN_HANDLES` entry
+   (for example `mario242@…`) does **not** become an admin: the handle is adjusted, never the rights.
+
+Rules that are already enforced in code, for the record: an unverified Google address can never open an
+account; linking an address that was never confirmed drops any existing session and emails the member;
+the return trip can never be redirected off-site; the handshake cookie is HttpOnly, SameSite=Lax and
+expires in ten minutes; the app trades a five-minute single-use code for its own token.
+
 ## 0. Additive database migration
 
-Run `src/db/add-community-utility.sql` once in the production Neon SQL Editor before using the **Open now** admin page. It only adds the `service_statuses` table and indexes; it does not modify existing member or incident data.
+Run these once in the production Neon SQL Editor (each is additive and safe to re-run):
+
+* `src/db/add-community-utility.sql` — before using the **Open now** admin page. Adds the `service_statuses` table and indexes only.
+* `src/db/add-google-auth.sql` — before switching on Sign in with Google. Adds `users.google_sub` and its unique index; `NULL` for every existing account, so nothing changes until someone uses the Google button.
 
 ## 1. Firebase (required for actual push delivery)
 
