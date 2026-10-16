@@ -1,0 +1,11 @@
+node_modules
+.expo
+google-services.json
+dist
+web-build
+.env
+*.log
+.DS_Store
+ios
+android
+.claude/preflight-logs/
