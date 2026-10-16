@@ -43,6 +43,12 @@ export function AppShell({
 }) {
   return (
     <div className="grain relative min-h-screen">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[800] focus:rounded-full focus:bg-tide-500 focus:px-4 focus:py-2 focus:text-[13px] focus:font-extrabold focus:text-abyss-950"
+      >
+        Skip to content
+      </a>
       <header className="nb-pad-top sticky top-0 z-[650] border-b hairline bg-abyss-950/88 backdrop-blur-lg">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-3.5 py-2.5 sm:px-5">
           <Link href="/" className="flex items-center gap-2.5">
@@ -75,7 +81,7 @@ export function AppShell({
       </header>
 
       {/* main keeps a small gap above the footer; the footer itself clears the fixed nav (nb-clear-nav) */}
-      <main className="mx-auto min-w-0 w-full max-w-[1180px] overflow-x-clip px-3.5 pb-6 pt-3 sm:px-5 sm:pt-4 lg:pb-10">{children}</main>
+      <main id="main" className="mx-auto min-w-0 w-full max-w-[1180px] overflow-x-clip px-3.5 pb-6 pt-3 sm:px-5 sm:pt-4 lg:pb-10">{children}</main>
 
       <footer className="nb-clear-nav mx-auto min-w-0 w-full max-w-[1180px] overflow-x-clip px-3.5 pt-2 text-[11.5px] text-[#6e97a0] sm:px-5 lg:pb-8">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-t hairline pt-3">

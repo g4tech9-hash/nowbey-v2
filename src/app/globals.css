@@ -158,6 +158,28 @@ canvas {
   color: #03121b;
   font-weight: 800;
 }
+/* A cluster of pins that share a screen cell at this zoom. One badge with a
+   count replaces the stack of overlapping circles; tapping it zooms in. */
+.nb-cluster {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(3, 18, 27, 0.88);
+  border: 2px solid rgba(46, 230, 208, 0.85);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.15s ease;
+}
+.nb-cluster:hover {
+  transform: scale(1.1);
+}
+.nb-cluster span {
+  font-size: 13px;
+  line-height: 1;
+  color: #74f3e3;
+  font-weight: 800;
+}
 .nb-pin-live::after {
   content: "";
   position: absolute;
@@ -269,6 +291,21 @@ html {
     height: calc(100dvh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top) - var(--nb-nav-h) - var(--nb-safe-bottom));
     /* Below this the map + list would be unusable; let the page scroll instead. */
     min-height: 340px;
+  }
+}
+/* Desktop /map workspace: exactly the viewport minus the sticky header and
+   <main>'s padding (sm:pt-4 + lg:pb-10), the same contract .nb-fill-view gives
+   phones. Without a bounded height the pin rail grew to all ~160 pins, the
+   page ran for screens, and the map (capped, unstuck) scrolled away — the
+   "pins run the entire length of the page" fault. Inside the bound, the rail
+   scrolls its own list and the map fills its column. min-height keeps the
+   workspace usable on short landscape windows, where the page may scroll. */
+@media (min-width: 1024px) {
+  .nb-map-workspace {
+    height: calc(100vh - var(--nb-header-h) - 16px - 40px);
+    height: calc(100svh - var(--nb-header-h) - 16px - 40px);
+    height: calc(100dvh - var(--nb-header-h) - 16px - 40px);
+    min-height: 540px;
   }
 }
 .nb-pad-bottom {

@@ -102,21 +102,21 @@ export type CategoryKey =
 
 export const CATEGORIES: Record<
   CategoryKey,
-  { label: string; color: string; glyph: string; blurb: string }
+  { label: string; color: string; glyph: string; blurb: string; pin: string }
 > = {
-  flood: { label: "Flooding", color: "#38bdf8", glyph: "wave", blurb: "Standing water, washover, flash flood" },
-  storm: { label: "Storm", color: "#fbbf24", glyph: "cloud", blurb: "Squall, surge, hurricane watch" },
-  power: { label: "Power", color: "#facc15", glyph: "bolt", blurb: "Outage, lines down, generator" },
-  water: { label: "Water", color: "#22d3ee", glyph: "drop", blurb: "No water, main break, boil notice" },
-  crime: { label: "Safety", color: "#fb7185", glyph: "shield", blurb: "Theft, break-in, suspicious" },
-  road: { label: "Road", color: "#f97316", glyph: "cone", blurb: "Pothole, blockage, closure" },
-  marine: { label: "Marine", color: "#2dd4bf", glyph: "anchor", blurb: "Debris, grounding, sea state" },
-  fire: { label: "Fire", color: "#ef4444", glyph: "flame", blurb: "Brush or structure fire, smoke" },
-  health: { label: "Health", color: "#a78bfa", glyph: "cross", blurb: "Assistance, medical, rescue" },
-  trash: { label: "Sanitation", color: "#84cc16", glyph: "bin", blurb: "Missed pickup, dumping" },
-  event: { label: "Community", color: "#f472b6", glyph: "star", blurb: "Junkanoo, regatta, fundraiser" },
-  notice: { label: "Notice", color: "#94a3b8", glyph: "info", blurb: "General heads-up" },
-  accident: { label: "Car Accident", color: "#ef4444", glyph: "car", blurb: "Traffic accident, road blockage, or vehicle hazard" },
+  flood: { label: "Flooding", color: "#38bdf8", glyph: "wave", pin: "FL", blurb: "Standing water, washover, flash flood" },
+  storm: { label: "Storm", color: "#fbbf24", glyph: "cloud", pin: "ST", blurb: "Squall, surge, hurricane watch" },
+  power: { label: "Power", color: "#facc15", glyph: "bolt", pin: "PW", blurb: "Outage, lines down, generator" },
+  water: { label: "Water", color: "#22d3ee", glyph: "drop", pin: "WA", blurb: "No water, main break, boil notice" },
+  crime: { label: "Safety", color: "#fb7185", glyph: "shield", pin: "SF", blurb: "Theft, break-in, suspicious" },
+  road: { label: "Road", color: "#f97316", glyph: "cone", pin: "RD", blurb: "Pothole, blockage, closure" },
+  marine: { label: "Marine", color: "#2dd4bf", glyph: "anchor", pin: "MR", blurb: "Debris, grounding, sea state" },
+  fire: { label: "Fire", color: "#ef4444", glyph: "flame", pin: "FR", blurb: "Brush or structure fire, smoke" },
+  health: { label: "Health", color: "#a78bfa", glyph: "cross", pin: "HL", blurb: "Assistance, medical, rescue" },
+  trash: { label: "Sanitation", color: "#84cc16", glyph: "bin", pin: "TR", blurb: "Missed pickup, dumping" },
+  event: { label: "Community", color: "#f472b6", glyph: "star", pin: "EV", blurb: "Junkanoo, regatta, fundraiser" },
+  notice: { label: "Notice", color: "#94a3b8", glyph: "info", pin: "NT", blurb: "General heads-up" },
+  accident: { label: "Car Accident", color: "#ef4444", glyph: "car", pin: "AC", blurb: "Traffic accident, road blockage, or vehicle hazard" },
 };
 
 export const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];

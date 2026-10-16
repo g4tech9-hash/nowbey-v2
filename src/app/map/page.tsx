@@ -87,6 +87,10 @@ export default function MapWorkspace() {
   const [handle, setHandle] = useState<string | null>(null);
   const [focusNonce, setFocusNonce] = useState(0);
   const [mode, setMode] = useState<PhoneMode>("split");
+  // The rail renders a page of rows at a time. With ~160 pins open, mounting
+  // every row made the list (and the page, before the workspace was bounded)
+  // run for screens; "Show more" grows it in place inside the rail's scroll box.
+  const [listLimit, setListLimit] = useState(40);
   // The island/wire extras start folded on a phone (they are one tap away) so the list gets the room.
   const [moreFilters, setMoreFilters] = useState(false);
   const isMobile = useIsMobile();
@@ -104,6 +108,9 @@ export default function MapWorkspace() {
         fetch("/api/incidents?limit=160&status=all", { cache: "no-store" }).then((r) => r.json()),
         fetch("/api/news?limit=40", { cache: "no-store" }).then((r) => r.json()),
       ]);
+      // A 500 with a JSON error body is a failure, not an empty island: say so
+      // (with a retry) instead of "No pins match those filters."
+      if (a?.error) throw new Error(a.error);
       setError(null);
       setRows((a.incidents ?? []) as Row[]);
       setWire(((b.items ?? []) as WireRow[]).filter((n) => n.lat != null && n.lng != null));
@@ -237,24 +244,24 @@ export default function MapWorkspace() {
     // behind the nav. The map is deliberately short in "split" mode, which is what puts the first
     // rows of the pin list above the fold. Desktop keeps the two-column layout and ignores the
     // phone modes entirely.
-    <div className="nb-fill-view gap-2.5 lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start lg:gap-4">
+    <div className="nb-fill-view nb-map-workspace gap-2.5 lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:items-stretch lg:gap-4">
       {/* The map */}
-      <div className={`relative flex min-h-0 min-w-0 flex-col lg:order-2 ${view === "list" ? "hidden lg:flex" : ""}`}>
+      <div className={`relative flex min-h-0 min-w-0 flex-col lg:h-full lg:order-2 ${view === "list" ? "hidden lg:flex" : ""}`}>
         <div className="mb-2 hidden flex-wrap items-end justify-between gap-2 lg:flex">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-tide-400">Safety map</p>
             <h1 className="display text-[clamp(1.4rem,3.4vw,1.9rem)] font-extrabold leading-tight text-sand-100">
-              Aerial streets, street names, your pin to the metre
+              What is happening, street by street
             </h1>
           </div>
           <p className="max-w-[46ch] text-[11.5px] leading-snug text-[#8fb9b6]">
-            Hybrid imagery by Esri, streets from OpenStreetMap, search and street matching from Nominatim —{" "}
-            <span className="font-bold text-tide-300">no API key needed</span>. Drag the yellow figure onto a road for street level.
+            Tap a pin to read the report, or <span className="font-bold text-tide-300">Pin a spot</span> to add your own.
+            Drag the yellow figure onto a road for street level.
           </p>
         </div>
         <div
-          className={`relative min-h-0 overflow-hidden lg:flex-1 lg:overflow-visible ${
-            pickMode || view === "map" ? "flex-1" : "nb-map-split flex-none"
+          className={`relative min-h-0 overflow-hidden lg:flex-1 ${
+            pickMode || view === "map" ? "flex-1" : "nb-map-split flex-none lg:flex-1"
           }`}
         >
           <MapPanel
@@ -268,7 +275,7 @@ export default function MapWorkspace() {
             initialLayer="hybrid"
             focusId={selected}
             focusNonce={focusNonce}
-            className="h-full w-full rounded-2xl lg:h-[clamp(420px,68vh,720px)]"
+            className="h-full w-full rounded-2xl"
           />
           {pickMode || view !== "map" ? null : (
             <button
@@ -303,7 +310,7 @@ export default function MapWorkspace() {
 
       {/* Phones: the pin list (or the pin form while pinning). Desktop: the left rail. */}
       <aside
-        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border hairline bg-abyss-900/95 shadow-[0_-12px_32px_rgba(0,0,0,.45)] backdrop-blur-md lg:order-1 lg:h-auto lg:flex-none lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none lg:backdrop-blur-none ${
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border hairline bg-abyss-900/95 shadow-[0_-12px_32px_rgba(0,0,0,.45)] backdrop-blur-md lg:order-1 lg:h-full lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none lg:backdrop-blur-none ${
           view === "map" ? "hidden lg:flex" : ""
         }`}
       >
@@ -336,12 +343,12 @@ export default function MapWorkspace() {
         <div className="flex-none px-3 pt-2 lg:px-0">
           <div className="flex items-center gap-1.5">
             <div className="nb-no-scrollbar flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 lg:flex-wrap lg:overflow-visible lg:pb-0">
-              <FilterChip active={filter === "all"} onClick={() => setFilter("all")} label={`All · ${rows.filter((r) => r.status !== "archived").length}`} />
+              <FilterChip active={filter === "all"} onClick={() => { setFilter("all"); setListLimit(40); }} label={`All · ${rows.filter((r) => r.status !== "archived").length}`} />
               {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
                 <FilterChip
                   key={k}
                   active={filter === k}
-                  onClick={() => setFilter(k)}
+                  onClick={() => { setFilter(k); setListLimit(40); }}
                   label={CATEGORIES[k].label}
                   color={CATEGORIES[k].color}
                 />
@@ -367,9 +374,9 @@ export default function MapWorkspace() {
             <span className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Island</span>
             <select
               value={island}
-              onChange={(e) => setIsland(e.target.value)}
+              onChange={(e) => { setIsland(e.target.value); setListLimit(40); }}
               aria-label="Filter pins by island"
-              className="min-h-[36px] rounded-lg border border-white/10 bg-abyss-950/80 px-1.5 py-1 text-[11.5px] outline-none"
+              className="min-h-[40px] rounded-lg border border-white/10 bg-abyss-950/80 px-1.5 py-1 text-[11.5px] outline-none"
             >
               <option value="all">Everywhere</option>
               {PARISHES.map((p) => (
@@ -383,11 +390,37 @@ export default function MapWorkspace() {
             type="button"
             onClick={() => setShowWire((v) => !v)}
             aria-pressed={showWire}
-            className={`min-h-[36px] rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-[#8fb9b6]"}`}
+            className={`min-h-[40px] rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-[#8fb9b6]"}`}
           >
             Wire pins {showWire ? "on" : "off"}
           </button>
         </div>
+
+        {/* What the pin codes mean. Collapsed, so it costs no list room until asked for. */}
+        <details className="flex-none px-3 pt-1.5 lg:px-0">
+          <summary className="min-h-[32px] cursor-pointer py-1 text-[11.5px] font-bold text-[#8fb9b6] hover:text-tide-300">
+            What the pins mean
+          </summary>
+          <ul className="flex flex-wrap gap-x-3 gap-y-1 pb-1">
+            {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
+              <li key={k} className="flex items-center gap-1.5 text-[11px] text-[#a9cdc9]">
+                <span
+                  className="grid h-[22px] w-[22px] place-items-center rounded-full border border-white/70 text-[8px] font-extrabold text-abyss-950"
+                  style={{ background: CATEGORIES[k].color }}
+                >
+                  {CATEGORIES[k].pin}
+                </span>
+                {CATEGORIES[k].label}
+              </li>
+            ))}
+            <li className="flex items-center gap-1.5 text-[11px] text-[#a9cdc9]">
+              <span className="grid h-[22px] w-[22px] place-items-center rounded-full border-2 border-tide-400 bg-abyss-950 text-[9px] font-extrabold text-tide-300">
+                12
+              </span>
+              Several reports — tap to zoom in
+            </li>
+          </ul>
+        </details>
 
         {/* The pin just tapped: one clear line and the way into its report. */}
         {current ? (
@@ -405,7 +438,7 @@ export default function MapWorkspace() {
           </div>
         ) : null}
 
-        <div className="nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 lg:overflow-visible lg:px-0 lg:pb-0">
+        <div className="nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 lg:px-0 lg:pb-3 lg:pr-1.5">
           {pickMode ? (
             <div className="glass rounded-2xl p-3.5">
               {step === "spot" ? (
@@ -538,11 +571,19 @@ export default function MapWorkspace() {
             </div>
           ) : (
             <div className="glass rounded-2xl p-2.5 lg:p-3.5">
-              <ul className="space-y-1.5">
+              <ul className="space-y-1.5" aria-busy={loading}>
                 {loading ? (
-                  <li className="px-1 py-2 text-[12.5px] text-[#6e97a0]">Loading pins…</li>
+                  <>
+                    <li className="sr-only">Loading pins…</li>
+                    {[0, 1, 2, 3, 4].map((i) => (
+                      <li key={i} className="min-h-[52px] animate-pulse rounded-xl bg-white/[.04] px-2 py-2" aria-hidden>
+                        <span className="block h-3 w-3/4 rounded bg-white/10" />
+                        <span className="mt-2 block h-2.5 w-1/2 rounded bg-white/[.07]" />
+                      </li>
+                    ))}
+                  </>
                 ) : visible.length ? (
-                  visible.map((r) => (
+                  visible.slice(0, listLimit).map((r) => (
                     <li key={r.id}>
                       <button
                         type="button"
@@ -558,17 +599,50 @@ export default function MapWorkspace() {
                         <span className="flex items-center gap-1.5">
                           <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: CATEGORIES[r.category]?.color }} />
                           <span className="truncate text-[12.5px] font-semibold text-sand-100">{r.title}</span>
+                          {r.status === "resolved" ? (
+                            <span className="flex-none rounded-full bg-tide-500/15 px-1.5 py-0.5 text-[10px] font-bold text-tide-300">Resolved</span>
+                          ) : r.severity >= 3 ? (
+                            <span className="flex-none rounded-full bg-conch-500/15 px-1.5 py-0.5 text-[10px] font-bold text-conch-400">
+                              {r.severity >= 4 ? "Dangerous" : "Blocking"}
+                            </span>
+                          ) : null}
                         </span>
-                        <span className="mt-0.5 block truncate text-[11px] text-[#6e97a0]">
-                          {r.street ?? "unmapped"} · {timeAgo(r.createdAt)} · {r.confirmations} ✓
+                        <span className="mt-0.5 block truncate text-[11px] text-[#8fb9b6]">
+                          <span style={{ color: CATEGORIES[r.category]?.color }}>{CATEGORIES[r.category]?.label}</span>
+                          {" · "}
+                          {r.street ?? "unmapped"} · {timeAgo(r.createdAt)} · {r.confirmations} confirmed
                         </span>
                       </button>
                     </li>
                   ))
-                ) : (
-                  <li className="px-1 py-2 text-[12.5px] text-[#6e97a0]">No pins match those filters.</li>
+                ) : error ? null : (
+                  <li className="px-1 py-2 text-[12.5px] text-[#8fb9b6]">
+                    <p>No pins match those filters.</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilter("all");
+                        setIsland("all");
+                        setShowWire(true);
+                        setListLimit(40);
+                      }}
+                      className="mt-2 min-h-[40px] rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/20"
+                    >
+                      Clear filters
+                    </button>
+                  </li>
                 )}
               </ul>
+
+              {!loading && visible.length > listLimit ? (
+                <button
+                  type="button"
+                  onClick={() => setListLimit((n) => n + 40)}
+                  className="mt-2 min-h-[44px] w-full rounded-xl bg-white/[.07] py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/[.12]"
+                >
+                  Show more pins ({visible.length - listLimit} left)
+                </button>
+              ) : null}
 
               {done ? (
                 <div className="mt-2.5 rounded-xl border border-tide-400/40 bg-tide-500/10 p-3 text-[12.5px]">
@@ -580,7 +654,21 @@ export default function MapWorkspace() {
                 </div>
               ) : null}
 
-              {error ? <p className="mt-2.5 rounded-xl bg-conch-500/15 px-3 py-2 text-[12px] text-conch-400">{error}</p> : null}
+              {error ? (
+                <div role="alert" className="mt-2.5 rounded-xl bg-conch-500/15 px-3 py-2.5 text-[12px] text-conch-400">
+                  <p>Could not load the map feed. {error}</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoading(true);
+                      void load();
+                    }}
+                    className="mt-1.5 min-h-[40px] rounded-full bg-conch-500/20 px-3 py-1.5 text-[12px] font-extrabold text-conch-400 hover:bg-conch-500/30"
+                  >
+                    Try again
+                  </button>
+                </div>
+              ) : null}
             </div>
           )}
         </div>
@@ -606,7 +694,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="min-h-[32px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition active:scale-95"
+      className="min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition active:scale-95"
       style={{
         background: active ? `${color ?? "#2ee6d0"}2e` : "rgba(255,255,255,.06)",
         color: active ? color ?? "#2ee6d0" : "#a9cdc9",
