@@ -26,3 +26,6 @@ expo/android
 .neon
 
 .vercel
+
+# the Vercel CLI's deploy transcript, written by the deploy-web job
+vercel-out.txt
