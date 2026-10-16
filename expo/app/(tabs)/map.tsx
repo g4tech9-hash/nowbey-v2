@@ -6,7 +6,7 @@ import { api, errMsg, type Incident, type NewsItem } from "../../src/api";
 import { CATEGORIES, CATEGORY_KEYS, categoryOf, timeAgo, type CategoryKey } from "../../src/geo";
 import MapCanvas from "../../src/MapCanvas";
 import type { MapPinData } from "../../src/map-types";
-import { color } from "../../src/theme";
+import { color, sevColor } from "../../src/theme";
 import { Btn, Card, Pill, t, useTopInset } from "../../src/ui";
 
 /**
@@ -78,6 +78,15 @@ export default function MapTab() {
     [visible, wire],
   );
   const current = rows.find((r) => r.id === selected) ?? null;
+
+  // Island pulse: which categories are loudest right now (top 3 + the open total).
+  const pulse = useMemo(() => {
+    const counts = new Map<CategoryKey, number>();
+    for (const r of rows) counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const max = top.length ? top[0][1] : 1;
+    return { top, max, open: rows.length };
+  }, [rows]);
 
   const select = (r: Incident) => {
     setSelected(r.id);
@@ -156,6 +165,38 @@ export default function MapTab() {
           </ScrollView>
         </View>
 
+        {/* Island pulse: the loudest categories right now, as a compact bento strip. */}
+        {pulse.top.length ? (
+          <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 12, paddingTop: 8 }}>
+            {pulse.top.slice(0, 3).map(([k, n]) => (
+              <View
+                key={k}
+                style={{
+                  flex: 1,
+                  backgroundColor: color.panel2,
+                  borderColor: color.line,
+                  borderWidth: 1,
+                  borderRadius: 14,
+                  paddingHorizontal: 10,
+                  paddingVertical: 8,
+                  gap: 6,
+                }}
+              >
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: CATEGORIES[k].color }} />
+                  <Text style={[t.subtle, { flex: 1, fontSize: 10, fontWeight: "800", letterSpacing: 0.6 }]} numberOfLines={1}>
+                    {CATEGORIES[k].label.toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={{ color: color.sand, fontSize: 19, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{n}</Text>
+                <View style={{ height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <View style={{ width: `${(n / pulse.max) * 100}%`, height: 4, borderRadius: 2, backgroundColor: CATEGORIES[k].color }} />
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         {error ? <Text style={[t.error, { paddingHorizontal: 12, paddingTop: 6 }]}>{error}</Text> : null}
         {current ? (
           <Card style={{ marginHorizontal: 12, marginTop: 8, padding: 10 }} accent={categoryOf(current.category).color}>
@@ -170,7 +211,9 @@ export default function MapTab() {
         ) : null}
 
         <ScrollView style={{ flex: 1, minHeight: 0 }} contentContainerStyle={{ padding: 12, paddingBottom: 28, gap: 6 }} nestedScrollEnabled>
-          {visible.map((r) => (
+          {visible.map((r) => {
+            const sev = Math.min(Math.max(r.severity ?? 1, 1), 5);
+            return (
             <Pressable
               key={r.id}
               onPress={() => select(r)}
@@ -178,24 +221,42 @@ export default function MapTab() {
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 10,
-                minHeight: 56,
+                minHeight: 60,
                 padding: 10,
-                borderRadius: 12,
-                backgroundColor: selected === r.id ? "rgba(0,201,183,0.14)" : "rgba(255,255,255,0.04)",
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: selected === r.id ? "rgba(46,230,208,0.45)" : "transparent",
+                backgroundColor: selected === r.id ? "rgba(0,201,183,0.14)" : color.panel2,
               }}
             >
               <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: categoryOf(r.category).color }} />
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ color: color.sand, fontSize: 13, fontWeight: "700" }} numberOfLines={1}>
+                <Text style={{ color: color.sand, fontSize: 14, fontWeight: "800", letterSpacing: -0.2 }} numberOfLines={1}>
                   {r.title}
                 </Text>
-                <Text style={t.subtle} numberOfLines={1}>
-                  {r.street ?? "Unmapped"} · {timeAgo(r.createdAt)}
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 }}>
+                  <Text style={[t.subtle, { fontSize: 11, fontVariant: ["tabular-nums"] }]} numberOfLines={1}>
+                    {r.street ?? "Unmapped"} · {timeAgo(r.createdAt)}
+                  </Text>
+                  <View style={{ flexDirection: "row", gap: 2 }} accessibilityLabel={`Severity ${Math.min(Math.max(r.severity ?? 1, 1), 5)} of 5`}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <View
+                        key={i}
+                        style={{
+                          width: 10,
+                          height: 3,
+                          borderRadius: 2,
+                          backgroundColor: i <= sev ? sevColor(r.severity) : "rgba(255,255,255,0.10)",
+                        }}
+                      />
+                    ))}
+                  </View>
+                </View>
               </View>
-              <Text style={{ color: color.tidePale, fontSize: 11, fontWeight: "700" }}>{r.confirmations}</Text>
+              <Text style={{ color: color.tidePale, fontSize: 12, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{r.confirmations}</Text>
             </Pressable>
-          ))}
+            );
+          })}
           {visible.length === 0 ? <Text style={t.muted}>No open pins match that filter.</Text> : null}
         </ScrollView>
 
@@ -220,6 +281,11 @@ export default function MapTab() {
             paddingHorizontal: 16,
             minHeight: 44,
             justifyContent: "center",
+            shadowColor: color.tide,
+            shadowOpacity: 0.45,
+            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: 8,
           }}
         >
           <Text style={{ color: color.bg, fontSize: 13, fontWeight: "800" }}>+ Pin a spot</Text>

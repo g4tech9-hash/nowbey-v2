@@ -1,24 +1,133 @@
 @import "tailwindcss";
 
 @theme {
+  /* ---- Typography (2026 "Tideglass") ------------------------------------- */
   --font-display: var(--font-sora), "Segoe UI", ui-sans-serif, sans-serif;
   --font-sans: var(--font-manrope), "Segoe UI", ui-sans-serif, sans-serif;
+  /* Technical numerics: timestamps, coordinates, counts, pin codes. */
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --color-abyss-950: #03121b;
-  --color-abyss-900: #061c28;
-  --color-abyss-800: #0a2735;
-  --color-abyss-700: #10394c;
-  --color-abyss-600: #1a5069;
+  /* Fluid type scale — no breakpoint jumps. */
+  --text-2xs: clamp(0.625rem, 0.6rem + 0.15vw, 0.6875rem);
+  --text-xs: clamp(0.6875rem, 0.66rem + 0.2vw, 0.75rem);
+  --text-sm: clamp(0.8125rem, 0.78rem + 0.25vw, 0.875rem);
+  --text-base: clamp(0.9375rem, 0.9rem + 0.3vw, 1rem);
+  --text-lg: clamp(1.0625rem, 1rem + 0.4vw, 1.1875rem);
+  --text-xl: clamp(1.25rem, 1.15rem + 0.6vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --text-3xl: clamp(1.9rem, 1.5rem + 1.8vw, 2.75rem);
 
+  /* ---- Surfaces: "abyss" (blue-shifted deep grays, calibrated contrast) --- */
+  --color-abyss-975: #03080f;
+  --color-abyss-950: #050d16;
+  --color-abyss-900: #081522;
+  --color-abyss-850: #0b1d2e;
+  --color-abyss-800: #0e2637;
+  --color-abyss-700: #143349;
+  --color-abyss-600: #1b4560;
+
+  /* ---- Primary: "tide" (luminous signal teal) ----------------------------- */
+  --color-tide-650: #00988a;
+  --color-tide-600: #00a896;
   --color-tide-500: #00c9b7;
   --color-tide-400: #2ee6d0;
   --color-tide-300: #74f3e3;
+  --color-tide-200: #a8f7ec;
+
+  /* ---- Secondary & caution ------------------------------------------------ */
+  --color-conch-600: #e4534a;
   --color-conch-500: #ff7a6b;
   --color-conch-400: #ff9d8f;
+  --color-sun-600: #e0a800;
   --color-sun-500: #ffc531;
   --color-sun-400: #ffd766;
   --color-sand-100: #f6ead8;
+  --color-sand-50: #fbf6ee;
   --color-rum-500: #b4713f;
+
+  /* ---- Semantic (600 tier = the text tier; light mode re-points it deep) -- */
+  --color-ok-500: #3ecf9a;
+  --color-ok-400: #6fe3b6;
+  --color-ok-600: #6fe3b6;
+  --color-warn-500: #ffc531;
+  --color-warn-600: #ffd766;
+  --color-danger-500: #f43f5e;
+  --color-danger-400: #fb7185;
+  --color-danger-600: #fb7185;
+  --color-info-500: #7dd3fc;
+  --color-info-600: #bae6fd;
+
+  /* ---- Severity ramp (calm → critical) ------------------------------------ */
+  --color-sev-1: #3ecf9a;
+  --color-sev-2: #ffd766;
+  --color-sev-3: #ffa94d;
+  --color-sev-4: #ff7a6b;
+  --color-sev-5: #f43f5e;
+
+  /* ---- Category colors (product taxonomy — preserved from the live app) --- */
+  --color-cat-flood: #38bdf8;
+  --color-cat-storm: #fbbf24;
+  --color-cat-power: #facc15;
+  --color-cat-water: #22d3ee;
+  --color-cat-crime: #fb7185;
+  --color-cat-road: #f97316;
+  --color-cat-marine: #2dd4bf;
+  --color-cat-fire: #ef4444;
+  --color-cat-health: #a78bfa;
+  --color-cat-trash: #84cc16;
+  --color-cat-event: #f472b6;
+  --color-cat-notice: #94a3b8;
+  --color-cat-accident: #ef4444;
+
+  /* Category TEXT/DOT tier — identical to fills on dark; light mode re-points
+     each to a ≥3:1-on-white variant. */
+  --color-cat-flood-t: #38bdf8;
+  --color-cat-storm-t: #fbbf24;
+  --color-cat-power-t: #facc15;
+  --color-cat-water-t: #22d3ee;
+  --color-cat-crime-t: #fb7185;
+  --color-cat-road-t: #f97316;
+  --color-cat-marine-t: #2dd4bf;
+  --color-cat-fire-t: #ef4444;
+  --color-cat-health-t: #a78bfa;
+  --color-cat-trash-t: #84cc16;
+  --color-cat-event-t: #f472b6;
+  --color-cat-notice-t: #94a3b8;
+  --color-cat-accident-t: #ef4444;
+
+  /* ---- Text --------------------------------------------------------------- */
+  --color-ink-100: #eaf6f4;
+  --color-ink-200: #b9d4d2;
+  --color-ink-300: #8fb9b6;
+  --color-ink-400: #6e97a0;
+
+  /* ---- Radii -------------------------------------------------------------- */
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl2: 28px;
+  --radius-2xl2: 36px;
+
+  /* ---- Elevation (calibrated for deep backgrounds) ------------------------- */
+  --shadow-l1: 0 1px 2px rgba(2, 8, 16, 0.4);
+  --shadow-l2: 0 8px 24px -8px rgba(2, 8, 16, 0.55);
+  --shadow-l3: 0 18px 48px -12px rgba(2, 8, 16, 0.65);
+  --shadow-l4: 0 32px 80px -16px rgba(2, 8, 16, 0.75);
+  --shadow-glow-tide: 0 0 0 1px rgba(0, 201, 183, 0.35), 0 8px 32px -8px rgba(0, 201, 183, 0.45);
+  --shadow-glow-danger: 0 0 0 1px rgba(244, 63, 94, 0.4), 0 8px 32px -8px rgba(244, 63, 94, 0.4);
+
+  /* ---- Motion ------------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-entrance: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-pulse-dot: nb-pulse 2.4s var(--ease-standard) infinite;
+  --animate-pulse-ring: nb-pulse-ring 2s var(--ease-standard) infinite;
+  --animate-aurora: nb-aurora 26s ease-in-out infinite alternate;
+  --animate-rise: nb-rise 0.32s var(--ease-spring) both;
+  --animate-sheen: nb-sheen 0.6s var(--ease-standard);
 }
 
 @layer base {
@@ -28,9 +137,9 @@
     max-width: 100%;
     overflow-x: hidden; /* fallback for browsers without overflow: clip */
     overflow-x: clip;
-    background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 201, 183, 0.18), transparent 60%),
-      radial-gradient(900px 500px at 5% 0%, rgba(255, 122, 107, 0.12), transparent 55%), var(--color-abyss-950);
-    color: #e8f6f4;
+    background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 201, 183, 0.14), transparent 60%),
+      radial-gradient(900px 500px at 5% 0%, rgba(255, 122, 107, 0.09), transparent 55%), var(--color-abyss-950);
+    color: var(--color-ink-100);
     font-family: var(--font-sans);
     min-height: 100%;
   }
@@ -45,12 +154,19 @@
 
   ::selection {
     background: var(--color-tide-500);
-    color: #03121b;
+    color: var(--color-abyss-950);
   }
 
   *:focus-visible {
     outline: 2px solid var(--color-tide-400);
     outline-offset: 2px;
+  }
+
+  /* Tabular numerics everywhere numbers matter (counts, times, coords). */
+  .num,
+  time,
+  .font-mono {
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -225,11 +341,21 @@ canvas {
 }
 
 /* ---------- App furniture ---------- */
+/* 2026 Tideglass control material: deeper blur, tide-tinted edge, inset
+   highlight, ambient shadow. Used by nav, map controls, overlays, chips. */
 .glass {
-  background: linear-gradient(180deg, rgba(16, 57, 76, 0.55), rgba(6, 28, 40, 0.72));
+  background: linear-gradient(180deg, rgba(16, 57, 76, 0.5), rgba(6, 28, 40, 0.7));
   border: 1px solid rgba(120, 220, 214, 0.16);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: var(--shadow-l2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.glass-strong {
+  background: linear-gradient(180deg, rgba(16, 57, 76, 0.66), rgba(6, 28, 40, 0.84));
+  border: 1px solid rgba(120, 220, 214, 0.2);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+  box-shadow: var(--shadow-l3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 /* honour iOS / Android bottom safe area for the nav and the home indicator */
@@ -633,50 +759,105 @@ html[data-low-data="true"] * { scroll-behavior: auto !important; }
 }
 
 /* =====================================================================
-   LIGHT MODE
-   Same tokens, light values. The visitor toggle sets
+   LIGHT MODE — 2026 "Tideglass" remediation
+   Same tokens, light values, WCAG AAA on white and raised surfaces
+   (ink-100 16.5:1 · ink-200 11.2:1 · ink-300 7.5:1 · ink-400 7.6:1 ·
+   tide text tier 7.2:1). The visitor toggle sets
    <html data-mode="light"> (see ModeToggle + MODE_BOOT in layout.tsx);
    the admin default comes from site_settings.mode / NOWBEY_MODE.
    ===================================================================== */
 html[data-mode="light"] {
-  --color-abyss-950: #f4ede0;
-  --color-abyss-900: #fdf9f0;
-  --color-abyss-800: #efe6d2;
-  --color-abyss-700: #e0d1b4;
-  --color-abyss-600: #b9a67f;
+  --color-abyss-975: #edf2f5;
+  --color-abyss-950: #f7fafb;
+  --color-abyss-900: #ffffff;
+  --color-abyss-850: #fbfdfe;
+  --color-abyss-800: #e9f0f3;
+  --color-abyss-700: #dce7ec;
+  --color-abyss-600: #7b96a1;
+
+  --color-ink-100: #0a1a24;
+  --color-ink-200: #2a3e45;
+  --color-ink-300: #38505a;
+  --color-ink-400: #3a4e57;
+
+  --color-tide-650: #00635a;
+  --color-tide-600: #00756a;
   --color-tide-500: #00897b;
-  --color-tide-400: #00796b;
-  --color-tide-300: #00695c;
-  --color-conch-500: #d84a35;
-  --color-conch-400: #b53a28;
-  --color-sun-500: #9a6b00;
-  --color-sun-400: #7a5500;
-  --color-sand-100: #143038;
+  --color-tide-400: #00897b;
+  --color-tide-300: #00635a;
+  --color-tide-200: #00443d;
+
+  --color-ok-500: #0b8a64;
+  --color-ok-600: #065c43;
+  --color-warn-500: #a87c00;
+  --color-warn-600: #6e4e00;
+  --color-danger-500: #be123c;
+  --color-danger-600: #a10e33;
+  --color-info-500: #0e7490;
+  --color-info-600: #155e75;
+
+  --color-sev-1: #0b8a64;
+  --color-sev-2: #a87c00;
+  --color-sev-3: #c2410c;
+  --color-sev-4: #d64550;
+  --color-sev-5: #a10e33;
+
+  --color-conch-600: #c2413c;
+  --color-conch-500: #d64550;
+  --color-conch-400: #b23332;
+  --color-sun-600: #6e4e00;
+  --color-sun-500: #a87c00;
+  --color-sun-400: #8a6100;
+  --color-sand-100: #0a1a24;
+  --color-sand-50: #2a3e45;
   --color-rum-500: #8a5a2b;
+
+  --color-cat-flood-t: #0369a1;
+  --color-cat-storm-t: #a16207;
+  --color-cat-power-t: #a16207;
+  --color-cat-water-t: #0e7490;
+  --color-cat-crime-t: #be123c;
+  --color-cat-road-t: #c2410c;
+  --color-cat-marine-t: #0f766e;
+  --color-cat-fire-t: #b91c1c;
+  --color-cat-health-t: #6d28d9;
+  --color-cat-trash-t: #4d7c0f;
+  --color-cat-event-t: #be185d;
+  --color-cat-notice-t: #5b6b7a;
+  --color-cat-accident-t: #b91c1c;
+
+  --shadow-l1: 0 1px 2px rgba(16, 42, 58, 0.08);
+  --shadow-l2: 0 8px 24px -8px rgba(16, 42, 58, 0.14);
+  --shadow-l3: 0 18px 48px -12px rgba(16, 42, 58, 0.18);
+  --shadow-l4: 0 32px 80px -16px rgba(16, 42, 58, 0.22);
+  --shadow-glow-tide: 0 0 0 1px rgba(0, 99, 90, 0.35), 0 8px 32px -8px rgba(0, 99, 90, 0.22);
+  --shadow-glow-danger: 0 0 0 1px rgba(169, 14, 51, 0.35), 0 8px 32px -8px rgba(169, 14, 51, 0.22);
 }
 html[data-mode="light"],
 html[data-mode="light"] body {
-  background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 137, 123, 0.12), transparent 60%),
-    radial-gradient(900px 500px at 5% 0%, rgba(216, 74, 53, 0.1), transparent 55%), var(--color-abyss-950);
-  color: #143038;
+  background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 137, 123, 0.05), transparent 60%),
+    radial-gradient(900px 500px at 5% 0%, rgba(214, 69, 80, 0.035), transparent 55%), var(--color-abyss-950);
+  color: var(--color-ink-100);
 }
 html[data-mode="light"] body {
-  color: #143038;
+  color: var(--color-ink-100);
 }
 html[data-mode="light"] ::selection {
-  background: var(--color-tide-500);
-  color: #fffdf4;
+  background: var(--color-tide-650);
+  color: #ffffff;
 }
 html[data-mode="light"] .glass {
-  background: linear-gradient(180deg, rgba(255, 253, 244, 0.85), rgba(239, 230, 210, 0.9));
-  border-color: rgba(0, 105, 92, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(233, 240, 243, 0.85));
+  border-color: rgba(16, 42, 58, 0.1);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
 }
 html[data-mode="light"] .hairline {
-  border-color: rgba(20, 48, 56, 0.14);
+  border-color: rgba(16, 42, 58, 0.12);
 }
 html[data-mode="light"] .grain::before {
-  opacity: 0.04;
-  background-image: radial-gradient(rgba(20, 48, 56, 0.4) 1px, transparent 1px);
+  opacity: 0.035;
+  background-image: radial-gradient(rgba(16, 42, 58, 0.35) 1px, transparent 1px);
 }
 /* Hardcoded dark-ink utilities need explicit light counterparts. */
 html[data-mode="light"] .text-sand-100 {
@@ -687,15 +868,18 @@ html[data-mode="light"] .text-tide-400 {
   color: var(--color-tide-300) !important;
 }
 html[data-mode="light"] .nb-tagline {
-  color: var(--color-sun-400) !important;
+  color: var(--color-sun-600) !important;
 }
 /* Muted body copy that was hardcoded for dark. */
 html[data-mode="light"] :is(.text-\[\#a9cdc9\], .text-\[\#8fb9b6\], .text-\[\#6e97a0\], .text-\[\#bfe4e0\], .text-\[\#cfeee9\], .text-\[\#d6f5f1\], .text-\[\#e8f6f4\], .text-\[\#4f7a83\]) {
-  color: #40616b !important;
+  color: var(--color-ink-300) !important;
+}
+html[data-mode="light"] :focus-visible {
+  outline-color: var(--color-tide-650);
 }
 /* Leaflet controls were styled for night. */
 html[data-mode="light"] .leaflet-container {
-  background: #e8dfc9;
+  background: #e9f0f3;
 }
 html[data-mode="light"] .leaflet-control-attribution {
   background: rgba(253, 249, 240, 0.88) !important;
@@ -769,5 +953,103 @@ html[data-mode="light"] .nb-pagescene-veil {
   select,
   textarea {
     font-size: 16px;
+  }
+}
+
+/* =====================================================================
+   2026 "TIDEGLASS" MATERIALS — control layer only
+   Liquid Glass is a CONTROL-LAYER material (nav, overlays, sheets,
+   floating chips). Data surfaces stay solid for legibility.
+   ===================================================================== */
+@layer components {
+  .nb-glass {
+    background: color-mix(in srgb, var(--color-abyss-800) 62%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-tide-300) 14%, transparent);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    box-shadow: var(--shadow-l2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .nb-glass-strong {
+    background: color-mix(in srgb, var(--color-abyss-900) 82%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-tide-300) 16%, transparent);
+    backdrop-filter: blur(32px) saturate(1.6);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6);
+    box-shadow: var(--shadow-l3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  /* Solid data surface — never glass. */
+  .nb-surface {
+    background: var(--color-abyss-900);
+    border: 1px solid color-mix(in srgb, var(--color-ink-400) 18%, transparent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-l1);
+  }
+
+  /* Live indicator dot. */
+  .nb-live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--color-ok-500);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok-500) 60%, transparent);
+    animation: var(--animate-pulse-dot);
+  }
+
+  /* Severity meter segment. */
+  .nb-sev {
+    display: inline-block;
+    width: 14px;
+    height: 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-ink-400) 30%, transparent);
+  }
+  .nb-sev[data-on="true"] {
+    background: var(--sev-color, var(--color-sev-3));
+    box-shadow: 0 0 8px var(--sev-color, var(--color-sev-3));
+  }
+
+  .nb-focus:focus-visible {
+    outline: 2px solid var(--color-tide-400);
+    outline-offset: 2px;
+  }
+}
+
+/* Mesh-gradient aurora field behind the shell. */
+.nb-aurora::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(42rem 28rem at 82% -8%, color-mix(in srgb, var(--color-tide-500) 16%, transparent), transparent 62%),
+    radial-gradient(34rem 24rem at 6% 4%, color-mix(in srgb, var(--color-conch-500) 11%, transparent), transparent 58%),
+    radial-gradient(50rem 30rem at 50% 110%, color-mix(in srgb, var(--color-cat-health) 8%, transparent), transparent 60%);
+  animation: var(--animate-aurora);
+  pointer-events: none;
+}
+
+@keyframes nb-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok-500) 55%, transparent); }
+  70% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-ok-500) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok-500) 0%, transparent); }
+}
+@keyframes nb-pulse-ring {
+  0% { transform: scale(0.7); opacity: 0.7; }
+  80% { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes nb-aurora {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(2%, -1.5%, 0) rotate(4deg); }
+  100% { transform: translate3d(-1.5%, 1%, 0) rotate(-3deg); }
+}
+@keyframes nb-rise {
+  from { transform: translateY(14px) scale(0.985); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-aurora::before,
+  .nb-live-dot {
+    animation: none;
   }
 }

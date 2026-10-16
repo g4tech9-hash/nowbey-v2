@@ -55,7 +55,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           scroll
         />
 
-        <p className="text-[12px] text-[#8fb9b6]">
+        <p className="text-[12px] text-ink-400">
           {total} {total === 1 ? "place" : "places"}
           {kind ? ` in ${KINDS[kind].label}` : ""}
           {parish ? ` on ${parish}` : ""}, best rated first.
@@ -76,8 +76,8 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                       {p.name}
                     </Link>
                   </h2>
-                  {p.address ? <p className="mt-0.5 break-words text-[12px] text-[#8fb9b6]">{p.address}</p> : null}
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-[#cfeee9]">
+                  {p.address ? <p className="mt-0.5 break-words text-[12px] text-ink-400">{p.address}</p> : null}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-ink-200">
                     {p.avg ? (
                       <>
                         <Stars value={Math.round(p.avg)} size={13} />
@@ -86,7 +86,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                         </span>
                       </>
                     ) : (
-                      <span className="text-[#8fb9b6]">Not rated yet</span>
+                      <span className="text-ink-400">Not rated yet</span>
                     )}
                     <span aria-hidden="true">·</span>
                     <span>{dollars(p.price)}</span>
@@ -101,7 +101,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                       </>
                     ) : null}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#8fb9b6]">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-ink-400">
                     {p.hours ? (
                       <span className="flex items-center gap-1">
                         <span className="opacity-50">🕒</span> {p.hours}
@@ -123,9 +123,9 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
             })}
           </div>
         ) : (
-          <div className="glass rounded-2xl p-7 text-center">
+          <div className="nb-surface rounded-xl2 p-7 text-center">
             <p className="display text-[17px] font-bold text-sand-100">No places here yet</p>
-            <p className="mx-auto mt-1.5 max-w-[44ch] text-[13px] leading-relaxed text-[#a9cdc9]">
+            <p className="mx-auto mt-1.5 max-w-[44ch] text-[13px] leading-relaxed text-ink-300">
               {viewer.signedIn ? "Try another filter. Places appear once an admin imports them, or a member reviews one." : "Sign in and review a place to start the list."}
             </p>
           </div>

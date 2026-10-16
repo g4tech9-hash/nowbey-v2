@@ -78,8 +78,8 @@ export function SubmitLink() {
       >
         {busy ? "Filing…" : "Send to the desk"}
       </button>
-      {msg ? <p className={`text-[11.5px] ${msg.ok ? "text-tide-300" : "text-conch-400"}`}>{msg.text}</p> : null}
-      <p className="text-[10.5px] leading-snug text-[#6e97a0]">
+      {msg ? <p className={`text-[11.5px] ${msg.ok ? "text-tide-300" : "text-danger-500"}`}>{msg.text}</p> : null}
+      <p className="text-[10.5px] leading-snug text-ink-400">
         Every link is checked by a NowBey editor before anyone sees it, and shows up marked “Reader tip”.
       </p>
     </form>
@@ -187,7 +187,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
           placeholder="you@example.com"
           className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2.5 text-[16px] outline-none focus:border-tide-400 sm:text-[14px]"
         />
-        <span className="mt-1 block text-[11.5px] text-[#8fb9b6]">Every alert email has a one-tap “Stop these alerts” link.</span>
+        <span className="mt-1 block text-[11.5px] text-ink-400">Every alert email has a one-tap “Stop these alerts” link.</span>
       </label>
 
       {/* 2 · The island. Nassau is already chosen, so this reads as a fact rather than a question. */}
@@ -199,7 +199,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
             type="button"
             onClick={() => setShowIslands((v) => !v)}
             aria-expanded={showIslands}
-            className="min-h-[34px] rounded-lg bg-white/6 px-2.5 py-1.5 text-[12px] font-semibold text-[#a9cdc9] hover:bg-white/12"
+            className="min-h-[34px] rounded-lg bg-white/6 px-2.5 py-1.5 text-[12px] font-semibold text-ink-300 hover:bg-white/12"
           >
             {showIslands ? "Hide other islands" : "Other islands"}
           </button>
@@ -213,13 +213,13 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
                 onClick={() => toggleIsland(p)}
                 aria-pressed={islands.includes(p)}
                 className={`min-h-[34px] rounded-lg px-2 py-1 text-[11.5px] font-semibold ${
-                  islands.includes(p) ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
+                  islands.includes(p) ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"
                 }`}
               >
                 {p}
               </button>
             ))}
-            <p className="w-full px-1 pt-1 text-[11.5px] text-[#8fb9b6]">
+            <p className="w-full px-1 pt-1 text-[11.5px] text-ink-400">
               Nassau is live today; reports elsewhere depend on neighbours filing them.{" "}
               {multi ? "Your plan can follow as many islands as you like." : (
                 <>
@@ -255,7 +255,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
             );
           })}
         </div>
-        <p className="mt-1.5 text-[11.5px] text-[#8fb9b6]">
+        <p className="mt-1.5 text-[11.5px] text-ink-400">
           Leave everything unselected to hear about every report. Reports rated “annoying” never trigger an email.
         </p>
       </div>
@@ -283,7 +283,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
                   onClick={() => setRadiusKm(r)}
                   aria-pressed={radiusKm === r}
                   className={`min-h-[34px] rounded-lg px-2.5 py-1 text-[11.5px] font-semibold ${
-                    radiusKm === r ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
+                    radiusKm === r ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"
                   }`}
                 >
                   {r} km
@@ -301,18 +301,18 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
                 <button
                   type="button"
                   onClick={() => setCentre(null)}
-                  className="min-h-[34px] rounded-lg px-2 py-1.5 text-[12px] font-bold text-[#8fb9b6] hover:text-sand-100"
+                  className="min-h-[34px] rounded-lg px-2 py-1.5 text-[12px] font-bold text-ink-400 hover:text-sand-100"
                 >
                   Clear
                 </button>
               ) : null}
             </div>
-            <p className="mt-1.5 text-[11.5px] text-[#8fb9b6]">
+            <p className="mt-1.5 text-[11.5px] text-ink-400">
               {centre
                 ? `Only reports within ${radiusKm} km of where you are now will email you.`
                 : "Without a location we match the whole island. Your position is only used for matching and is never shown to anyone."}
             </p>
-            {locMsg ? <p className="mt-1 text-[11.5px] text-conch-400">{locMsg}</p> : null}
+            {locMsg ? <p className="mt-1 text-[11.5px] text-danger-500">{locMsg}</p> : null}
           </div>
         ) : null}
       </div>
@@ -324,8 +324,8 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
       >
         {busy ? "Saving…" : "Send me a confirmation email"}
       </button>
-      {msg ? <p className={`text-[12.5px] leading-snug ${msg.ok ? "text-tide-300" : "text-conch-400"}`}>{msg.text}</p> : null}
-      <p className="text-[11.5px] leading-relaxed text-[#8fb9b6]">
+      {msg ? <p className={`text-[12.5px] leading-snug ${msg.ok ? "text-tide-300" : "text-danger-500"}`}>{msg.text}</p> : null}
+      <p className="text-[11.5px] leading-relaxed text-ink-400">
         Email is the one channel that always works today. Phone push is a separate switch — it stays off until you turn it on, and only the
         Android app and some browsers can show it. Text messages are not available yet.
       </p>
@@ -369,7 +369,7 @@ export function StopAlertButton({ token, id, label = "Stop these alerts" }: { to
       >
         {busy ? "Stopping…" : label}
       </button>
-      {err ? <p className="mt-1 text-[11.5px] text-conch-400">{err}</p> : null}
+      {err ? <p className="mt-1 text-[11.5px] text-danger-500">{err}</p> : null}
     </div>
   );
 }

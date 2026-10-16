@@ -87,7 +87,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           <h1 className="display mt-1.5 text-[clamp(1.55rem,6.2vw,2.6rem)] font-extrabold leading-[1.04] text-sand-100">
             What is actually happening, <span className="text-tide-400">street by street.</span>
           </h1>
-          <p className="mt-2 max-w-[54ch] text-[13.5px] leading-relaxed text-[#a9cdc9]">
+          <p className="mt-2 max-w-[54ch] text-[13.5px] leading-relaxed text-ink-300">
             Residents pin floods, outages, road damage and safety hazards on real aerial imagery — zoom to the roof, drag the
             pin tip to the kerb, and neighbours confirm it. No accounts required to read the map.
           </p>
@@ -106,7 +106,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             </Link>
             <Link
               href="/wire"
-              className="rounded-full border hairline px-4 py-2 text-center text-[13px] font-bold text-[#bfe4e0] hover:bg-white/5"
+              className="rounded-full border hairline px-4 py-2 text-center text-[13px] font-bold text-ink-200 hover:bg-white/5"
             >
               Read the news wire
             </Link>
@@ -118,7 +118,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               ["Wire stories", String(wire.length)],
             ].map(([k, v]) => (
               <div key={k}>
-                <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">{k}</dt>
+                <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">{k}</dt>
                 <dd className="display text-[19px] font-extrabold text-sand-100">{v}</dd>
               </div>
             ))}
@@ -142,7 +142,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                     key={s}
                     href={{ pathname: "/", query: { ...(category ? { category } : {}), ...(parish ? { parish } : {}), status: s } }}
                     className={`rounded-full px-3 py-1.5 text-[12px] font-bold ${
-                      status === s ? "bg-tide-500 text-abyss-950" : "border hairline text-[#a9cdc9] hover:bg-white/5"
+                      status === s ? "bg-tide-500 text-abyss-950" : "border hairline text-ink-300 hover:bg-white/5"
                     }`}
                   >
                     {s === "all" ? "All" : s === "active" ? "Open" : "Resolved"}
@@ -155,7 +155,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           <div className="mb-3 -mx-3.5 flex gap-1.5 overflow-x-auto px-3.5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0" style={{ scrollbarWidth: "none" }}>
             <Link
               href="/"
-              className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${!category ? "bg-sand-100 text-abyss-950" : "border hairline text-[#a9cdc9] hover:bg-white/5"}`}
+              className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${!category ? "bg-sand-100 text-abyss-950" : "border hairline text-ink-300 hover:bg-white/5"}`}
             >
               Everything
             </Link>
@@ -182,9 +182,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               ))}
             </div>
           ) : (
-            <div className="glass rounded-2xl p-6 text-center">
+            <div className="nb-surface rounded-xl2 p-6 text-center">
               <p className="display text-[17px] font-bold text-sand-100">Nothing filed under that yet</p>
-              <p className="mx-auto mt-1.5 max-w-[46ch] text-[13px] text-[#a9cdc9]">
+              <p className="mx-auto mt-1.5 max-w-[46ch] text-[13px] text-ink-300">
                 Clear the filters, or be the first to report it — the pin takes about twenty seconds and neighbours see it
                 immediately.
               </p>
@@ -201,7 +201,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
         </div>
 
         <aside className="min-w-0 space-y-4">
-          <div className="glass rounded-2xl p-3.5">
+          <div className="nb-surface rounded-xl2 p-3.5">
             <p className="display text-[14.5px] font-bold text-sand-100">Jump to an island</p>
             <div className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 sm:flex-wrap sm:overflow-visible" style={{ scrollbarWidth: "none" }}>
               {PARISHES.slice(0, 12).map((p) => (
@@ -209,7 +209,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                   key={p}
                   href={{ pathname: "/", query: { parish: p, ...(category ? { category } : {}) } }}
                   className={`shrink-0 rounded-lg px-2 py-1 text-[11.5px] font-semibold ${
-                    parish === p ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
+                    parish === p ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"
                   }`}
                 >
                   {p}
@@ -220,7 +220,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
           <AdSlot index={1} adFree={adFree} variant="rail" />
 
-          <div className="glass rounded-2xl p-3.5">
+          <div className="nb-surface rounded-xl2 p-3.5">
             <div className="flex items-baseline justify-between">
               <p className="display text-[14.5px] font-bold text-sand-100">From the wire</p>
               <Link href="/wire" className="text-[11.5px] font-bold text-tide-300 hover:underline">
@@ -232,8 +232,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                 wire.map((n) => (
                   <li key={n.id}>
                     <a href={n.url} target="_blank" rel="noreferrer" className="group block">
-                      <p className="text-[13px] font-semibold leading-snug text-[#dff3f0] group-hover:text-tide-300">{n.title}</p>
-                      <p className="mt-0.5 text-[11px] text-[#6e97a0]">
+                      <p className="text-[13px] font-semibold leading-snug text-ink-200 group-hover:text-tide-300">{n.title}</p>
+                      <p className="mt-0.5 text-[11px] text-ink-400">
                         {n.sourceName} · {timeAgo(n.publishedAt)}
                         {n.parish ? ` · ${n.parish}` : ""}
                       </p>
@@ -241,7 +241,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                   </li>
                 ))
               ) : (
-                <li className="text-[12.5px] text-[#6e97a0]">
+                <li className="text-[12.5px] text-ink-400">
                   No stories on the wire yet.{" "}
                   <Link href="/wire" className="font-bold text-tide-300 hover:underline">
                     Refresh the wire
@@ -252,7 +252,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             </ul>
           </div>
 
-          {life ? <div className="glass rounded-2xl p-3.5">
+          {life ? <div className="nb-surface rounded-xl2 p-3.5">
             <div className="flex items-baseline justify-between">
               <p className="display text-[14.5px] font-bold text-sand-100">Island Life</p>
               <Link href="/life" className="text-[11.5px] font-bold text-tide-300 hover:underline">
@@ -263,14 +263,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               {life.rows.map((p) => (
                 <li key={p.id}>
                   <Link href={`/life/${p.id}`} className="group block">
-                    <p className="text-[13px] font-semibold leading-snug text-[#dff3f0] group-hover:text-tide-300">{p.title}</p>
-                    <p className="mt-0.5 text-[11px] text-[#6e97a0]">
+                    <p className="text-[13px] font-semibold leading-snug text-ink-200 group-hover:text-tide-300">{p.title}</p>
+                    <p className="mt-0.5 text-[11px] text-ink-400">
                       {(KINDS[p.kind as KindKey] ?? KINDS.tip).label} · {p.placeName ?? p.parish} · {timeAgo(p.createdAt)}
                     </p>
                   </Link>
                 </li>
               ))}
-              {life.rows.length === 0 ? <li className="text-[12.5px] text-[#6e97a0]">Be the first to share a favourite spot or how an event went.</li> : null}
+              {life.rows.length === 0 ? <li className="text-[12.5px] text-ink-400">Be the first to share a favourite spot or how an event went.</li> : null}
             </ul>
             <Link href="/life/new" className="mt-2.5 inline-block rounded-full bg-sun-500 px-3.5 py-1.5 text-[12.5px] font-extrabold text-abyss-950">
               Share an experience

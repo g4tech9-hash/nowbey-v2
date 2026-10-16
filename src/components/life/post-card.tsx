@@ -29,8 +29,8 @@ export function PostCard({ post, eng, signedIn, badge }: { post: PostRow; eng: E
           <span className="rounded-full px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide" style={{ background: `${kind.color}26`, color: kind.color }}>
             {kind.label}
           </span>
-          {post.parish ? <span className="text-[11.5px] text-[#8fb9b6]">{post.parish}</span> : null}
-          <span className="ml-auto text-[11px] text-[#6e97a0]">{timeAgo(post.createdAt)}</span>
+          {post.parish ? <span className="text-[11.5px] text-ink-400">{post.parish}</span> : null}
+          <span className="ml-auto text-[11px] text-ink-400">{timeAgo(post.createdAt)}</span>
         </div>
 
         {post.placeName ? (
@@ -46,18 +46,18 @@ export function PostCard({ post, eng, signedIn, badge }: { post: PostRow; eng: E
             {post.title}
           </Link>
         </h3>
-        <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-[#a9cdc9]">{post.body}</p>
+        <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-ink-300">{post.body}</p>
 
         <div className="mt-auto pt-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[12px] text-[#8fb9b6]">@{post.authorHandle}</span>
+            <span className="text-[12px] text-ink-400">@{post.authorHandle}</span>
             <BadgeMark kind={badge} />
           </div>
           <div className="mt-2 flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
             <ReactionBar type="post" id={post.id} initial={eng} signedIn={signedIn} variant="compact" />
             <Link
               href={`/life/${post.id}#comments`}
-              className="inline-flex min-h-[36px] items-center rounded-full bg-white/8 px-3 text-[12.5px] font-bold text-[#cfeee9] hover:bg-white/14"
+              className="inline-flex min-h-[36px] items-center rounded-full bg-white/8 px-3 text-[12.5px] font-bold text-ink-200 hover:bg-white/14"
               aria-label={`${eng.comments} comments`}
             >
               {eng.comments} {eng.comments === 1 ? "comment" : "comments"}

@@ -11,7 +11,7 @@ type Msg = { ok: boolean; text: string } | null;
 function Note({ msg }: { msg: Msg }) {
   if (!msg) return null;
   return (
-    <p role={msg.ok ? "status" : "alert"} className={`mt-2.5 rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>
+    <p role={msg.ok ? "status" : "alert"} className={`mt-2.5 rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
       {msg.text}
     </p>
   );
@@ -234,7 +234,7 @@ export function DeleteAccount({ hasPaidPlan }: { hasPaidPlan: boolean }) {
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="rounded-full border border-conch-500/40 px-3.5 py-2 text-[12.5px] font-bold text-conch-400 hover:bg-conch-500/10">
+      <button type="button" onClick={() => setOpen(true)} className="rounded-full border border-conch-500/40 px-3.5 py-2 text-[12.5px] font-bold text-danger-500 hover:bg-conch-500/10">
         Delete my account…
       </button>
     );
@@ -256,7 +256,7 @@ export function DeleteAccount({ hasPaidPlan }: { hasPaidPlan: boolean }) {
       }}
       className="rounded-xl border border-conch-500/30 bg-conch-500/8 p-3"
     >
-      <p className="text-[13px] font-bold text-conch-400">This cannot be undone.</p>
+      <p className="text-[13px] font-bold text-danger-500">This cannot be undone.</p>
       <p className="mt-1 text-[12.5px] leading-relaxed text-[#e8c8c4]">
         Your account, alert settings and sign-in are removed. Reports you filed stay on the map so neighbours who confirmed them are not left confused, but
         your name comes off them. Your Island Life posts and photos, and every comment and reaction you have left, are deleted.

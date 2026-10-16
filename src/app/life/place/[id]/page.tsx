@@ -81,7 +81,7 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
             {s.avg.toFixed(1)} from {s.ratings} {s.ratings === 1 ? "rating" : "ratings"}
           </span>
         ) : (
-          <span className="text-[13px] text-[#8fb9b6]">Not rated yet</span>
+          <span className="text-[13px] text-ink-400">Not rated yet</span>
         )}
         <a href={directions} target="_blank" rel="noopener noreferrer" className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
           Directions
@@ -94,7 +94,7 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-5">
           {generalPhotos.length ? (
-            <section className="glass rounded-2xl p-4">
+            <section className="nb-surface rounded-xl2 p-4">
               <h2 className="display text-[15px] font-bold text-sand-100">Photos</h2>
               <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {generalPhotos.map((p) => (
@@ -106,7 +106,7 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
           ) : null}
 
           {showMenu ? (
-            <section className="glass rounded-2xl p-4">
+            <section className="nb-surface rounded-xl2 p-4">
               <h2 className="display text-[15px] font-bold text-sand-100">Menu</h2>
               {menuPhotos.length ? (
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -119,13 +119,13 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
               {menuLines.length ? (
                 <ul className="mt-3 divide-y divide-white/5">
                   {menuLines.map((l, i) => (
-                    <li key={i} className="py-1.5 text-[13.5px] text-[#cfeee9]">
+                    <li key={i} className="py-1.5 text-[13.5px] text-ink-200">
                       {l}
                     </li>
                   ))}
                 </ul>
               ) : null}
-              {!hasMenu ? <p className="mt-2 text-[13px] text-[#8fb9b6]">No menu added yet. Add a photo or the popular items below.</p> : null}
+              {!hasMenu ? <p className="mt-2 text-[13px] text-ink-400">No menu added yet. Add a photo or the popular items below.</p> : null}
             </section>
           ) : null}
 
@@ -138,30 +138,30 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
                 ))}
               </div>
             ) : (
-              <p className="text-[13px] text-[#8fb9b6]">No reviews yet. Be the first to review {place.name}.</p>
+              <p className="text-[13px] text-ink-400">No reviews yet. Be the first to review {place.name}.</p>
             )}
           </section>
         </div>
 
         <aside className="space-y-4">
-          <div className="glass rounded-2xl p-4">
+          <div className="nb-surface rounded-xl2 p-4">
             <h2 className="display text-[15px] font-bold text-sand-100">Opening hours</h2>
             {note && Object.keys(hours).length === 0 ? (
-              <p className="mt-2 text-[13px] font-bold text-sun-400">{note}</p>
+              <p className="mt-2 text-[13px] font-bold text-sun-600">{note}</p>
             ) : null}
             <ul className="mt-2 space-y-1 text-[13px]">
               {DAYS.map((d) => (
                 <li key={d} className="flex justify-between gap-3">
                   <span className="text-sand-200">{DAY_LABELS[d]}</span>
-                  <span className="text-right text-[#cfeee9]">{hours[d] ?? "Not added"}</span>
+                  <span className="text-right text-ink-200">{hours[d] ?? "Not added"}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="glass rounded-2xl p-4 text-[13px]">
+          <div className="nb-surface rounded-xl2 p-4 text-[13px]">
             <h2 className="display text-[15px] font-bold text-sand-100">Address</h2>
-            <p className="mt-2 text-[#cfeee9]">{place.address ?? "Not added yet."}</p>
+            <p className="mt-2 text-ink-200">{place.address ?? "Not added yet."}</p>
             {place.contactNumber ? (
               <p className="mt-1.5">
                 <a href={`tel:${place.contactNumber.replace(/[^+\d]/g, "")}`} className="font-bold text-tide-300 underline">
@@ -181,9 +181,9 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
             </a>
           </div>
 
-          <div className="glass rounded-2xl p-4">
+          <div className="nb-surface rounded-xl2 p-4">
             <h2 className="display text-[15px] font-bold text-sand-100">Add details</h2>
-            <p className="mt-1 text-[12px] text-[#8fb9b6]">Anyone signed in can add or correct hours, the address, the menu and photos.</p>
+            <p className="mt-1 text-[12px] text-ink-400">Anyone signed in can add or correct hours, the address, the menu and photos.</p>
             <div className="mt-3">
               <PlaceEditor
                 placeId={place.id}

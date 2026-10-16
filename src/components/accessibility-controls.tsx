@@ -66,7 +66,7 @@ function PreferenceButton({ active, label, detail, onClick, compact }: { active:
       </span>
       <span>
         <span className="block">{label}</span>
-        {!compact ? <span className="mt-0.5 block text-[12px] font-normal leading-snug text-[#8fb9b6]">{detail}</span> : null}
+        {!compact ? <span className="mt-0.5 block text-[12px] font-normal leading-snug text-ink-400">{detail}</span> : null}
       </span>
     </button>
   );

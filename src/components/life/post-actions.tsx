@@ -60,7 +60,7 @@ export function PostActions({ id, title, isOwner, canDelete }: { id: string; tit
     }
   }
 
-  const btn = "inline-flex min-h-[36px] items-center rounded-full bg-white/8 px-3.5 text-[12.5px] font-bold text-[#cfeee9] hover:bg-white/14 disabled:opacity-50";
+  const btn = "inline-flex min-h-[36px] items-center rounded-full bg-white/8 px-3.5 text-[12.5px] font-bold text-ink-200 hover:bg-white/14 disabled:opacity-50";
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
@@ -73,7 +73,7 @@ export function PostActions({ id, title, isOwner, canDelete }: { id: string; tit
           </button>
         ) : null}
         {canDelete ? (
-          <button type="button" disabled={busy !== null} onClick={remove} className={`${btn} text-conch-400`}>
+          <button type="button" disabled={busy !== null} onClick={remove} className={`${btn} text-danger-500`}>
             {busy === "delete" ? "Deleting…" : "Delete"}
           </button>
         ) : null}
@@ -105,7 +105,7 @@ export function PostActions({ id, title, isOwner, canDelete }: { id: string; tit
         </div>
       ) : null}
       {note ? (
-        <p role="status" className={`mt-2 text-[12.5px] ${note.ok ? "text-tide-300" : "text-conch-400"}`}>
+        <p role="status" className={`mt-2 text-[12.5px] ${note.ok ? "text-tide-300" : "text-danger-500"}`}>
           {note.text}
         </p>
       ) : null}

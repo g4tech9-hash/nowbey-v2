@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { adminAudit, bannedDevices, deviceTokens, incidents, memberNotes, pushTokens, users } from "@/db/schema";
 import { badgeHistory } from "@/lib/profile";
 import { getViewer } from "@/lib/viewer";
-import { isEnvAdmin, normalizeHandle } from "@/lib/handles";
+import { adminAccess, isEnvAdmin, normalizeHandle } from "@/lib/handles";
 import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
 import { TIERS, isTierKey } from "@/lib/tiers";
 import { AdminUserActions } from "@/components/admin-user-actions";
@@ -57,6 +57,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
   const tier = isTierKey(u.adFreeTier) ? TIERS[u.adFreeTier] : null;
   const payingViaStripe = Boolean(u.stripeSubscriptionId) && !["sandbox", "comp"].includes(u.planStatus ?? "");
   const envAdmin = isEnvAdmin(u.handle);
+  const access = adminAccess(u);
 
   return (
     <div className="space-y-4">
@@ -135,6 +136,15 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
           </div>
         </section>
       </div>
+
+      {/* Why this account is (or is not) staff — the same verdict the member sees on /admin-access,
+          so an admin answering "why can't they open /admin?" is never guessing. */}
+      <section className={`rounded-2xl p-4 ${access.isAdmin ? "bg-tide-500/12" : "bg-sun-500/12"}`}>
+        <p className="display text-[15px] font-bold text-sand-100">
+          {access.isAdmin ? "Admin access" : "No admin access"}
+        </p>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-sand-100/90">{access.reason}</p>
+      </section>
 
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">Recent reports</p>

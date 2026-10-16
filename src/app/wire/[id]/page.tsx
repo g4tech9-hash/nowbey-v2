@@ -49,24 +49,24 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
           ← News wire
         </Link>
 
-        {!open ? <p className="mt-2 rounded-xl bg-sun-500/12 px-3.5 py-2.5 text-[12.5px] text-sun-400">This link is waiting for review, so only staff can see it.</p> : null}
+        {!open ? <p className="mt-2 rounded-xl bg-sun-500/12 px-3.5 py-2.5 text-[12.5px] text-sun-600">This link is waiting for review, so only staff can see it.</p> : null}
 
         <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] font-bold uppercase tracking-wide">
           <span style={{ color: c.color }}>{c.label}</span>
-          <span className="normal-case tracking-normal text-[#6e97a0]">
+          <span className="normal-case tracking-normal text-ink-400">
             {story.sourceName} · {timeAgo(story.publishedAt)}
           </span>
-          {story.parish ? <span className="rounded-full bg-white/8 px-2 py-0.5 text-[10.5px] normal-case tracking-normal text-[#cfeee9]">{story.parish}</span> : null}
+          {story.parish ? <span className="rounded-full bg-white/8 px-2 py-0.5 text-[10.5px] normal-case tracking-normal text-ink-200">{story.parish}</span> : null}
         </div>
 
         <h1 className="display mt-2 text-[clamp(1.5rem,4vw,2.1rem)] font-extrabold leading-[1.1] text-sand-100">{story.title}</h1>
         {story.aiSummary ? (
-          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-[#cfeee9]">
+          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-ink-200">
             <span className="mr-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI brief</span>
             {story.aiSummary}
           </p>
         ) : story.summary ? (
-          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-[#cfeee9]">{story.summary}</p>
+          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-ink-200">{story.summary}</p>
         ) : null}
 
         <a
@@ -104,7 +104,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       </article>
 
       <aside className="space-y-4">
-        <div className="glass rounded-2xl p-3.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+        <div className="nb-surface rounded-xl2 p-3.5 text-[12.5px] leading-relaxed text-ink-300">
           <p className="display text-[14.5px] font-bold text-sand-100">About this story</p>
           <p className="mt-1.5">
             NowBey shows the headline and a short summary, and links to the outlet for the full story. The conversation here is between NowBey members, so please keep it kind.

@@ -100,12 +100,12 @@ export default function ReportWizard() {
   if (madeId) {
     return (
       <div className="mx-auto max-w-[640px] py-6">
-        <div className="glass rounded-2xl p-6 text-center">
+        <div className="nb-surface rounded-xl2 p-6 text-center">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-tide-500 text-[22px] font-black text-abyss-950">
             ✓
           </span>
           <h1 className="display mt-3 text-[24px] font-extrabold text-sand-100">It is on the map</h1>
-          <p className="mx-auto mt-2 max-w-[48ch] text-[13.5px] leading-relaxed text-[#a9cdc9]">
+          <p className="mx-auto mt-2 max-w-[48ch] text-[13.5px] leading-relaxed text-ink-300">
             Your report is live for everyone in {pick?.parish ?? island}. Neighbours can confirm it, add “saw it too”, or mark
             it cleared.
           </p>
@@ -156,7 +156,7 @@ export default function ReportWizard() {
               type="button"
               onClick={() => setStep(i)}
               className={`rounded-full px-3 py-1.5 text-[12px] font-bold transition ${
-                i === step ? "bg-sand-100 text-abyss-950" : "border hairline text-[#a9cdc9] hover:bg-white/5"
+                i === step ? "bg-sand-100 text-abyss-950" : "border hairline text-ink-300 hover:bg-white/5"
               } ${i > step && !pick && i > 0 ? "opacity-60" : ""}`}
             >
               <span className="mr-1.5 opacity-60">{i + 1}</span>
@@ -188,13 +188,13 @@ export default function ReportWizard() {
                   <span className="display mt-2 block text-[15px] font-extrabold" style={{ color: active ? c.color : "#f6ead8" }}>
                     {c.label}
                   </span>
-                  <span className="mt-0.5 block text-[11.5px] leading-snug text-[#8fb9b6]">{c.blurb}</span>
+                  <span className="mt-0.5 block text-[11.5px] leading-snug text-ink-400">{c.blurb}</span>
                 </button>
               );
             })}
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-[#6e97a0]">Severity</span>
+            <span className="text-[11px] font-bold uppercase tracking-wide text-ink-400">Severity</span>
             <div className="flex gap-1.5">
               {["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"].map((label, i) => (
                 <button
@@ -202,7 +202,7 @@ export default function ReportWizard() {
                   type="button"
                   onClick={() => setSeverity(i + 1)}
                   className={`rounded-lg px-2.5 py-1.5 text-[11.5px] font-bold ${
-                    severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"
+                    severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"
                   }`}
                 >
                   {label}
@@ -233,9 +233,9 @@ export default function ReportWizard() {
             className="h-[58dvh] min-h-[340px] w-full lg:h-[clamp(400px,64vh,620px)]"
           />
           <div className="space-y-3">
-            <div className="glass rounded-2xl p-3.5">
+            <div className="nb-surface rounded-xl2 p-3.5">
               <p className="display text-[14.5px] font-bold text-sand-100">Where exactly?</p>
-              <p className="mt-1 text-[12px] leading-relaxed text-[#a9cdc9]">
+              <p className="mt-1 text-[12px] leading-relaxed text-ink-300">
                 Tap the spot, then drag the pin tip. Zoom to 19 for kerb-level accuracy; the readout tells you how wide the
                 screen is in metres.
               </p>
@@ -246,13 +246,13 @@ export default function ReportWizard() {
                       {pick.lat.toFixed(6)}, {pick.lng.toFixed(6)}
                     </p>
                     <p className="font-semibold text-sand-100">{pick.street ?? "Finding the street…"}</p>
-                    <p className="text-[11.5px] text-[#8fb9b6]">{pick.address ?? "No matched address yet"}</p>
-                    <p className="text-[11px] text-[#6e97a0]">
+                    <p className="text-[11.5px] text-ink-400">{pick.address ?? "No matched address yet"}</p>
+                    <p className="text-[11px] text-ink-400">
                       Parish {pick.parish ?? island} · accuracy estimate ± {pick.precisionM.toFixed(1)} m
                     </p>
                   </>
                 ) : (
-                  <p className="text-[#8fb9b6]">Nothing pinned yet.</p>
+                  <p className="text-ink-400">Nothing pinned yet.</p>
                 )}
               </div>
               <label className="mt-2.5 block">
@@ -264,7 +264,7 @@ export default function ReportWizard() {
                   className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[13px] outline-none focus:border-tide-400"
                 />
               </label>
-              <label className="mt-2 flex items-start gap-2 text-[11.5px] leading-snug text-[#8fb9b6]">
+              <label className="mt-2 flex items-start gap-2 text-[11.5px] leading-snug text-ink-400">
                 <input
                   type="checkbox"
                   checked={prefillOn}
@@ -309,7 +309,7 @@ export default function ReportWizard() {
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-tide-500/25 bg-tide-500/8 p-3 text-[12px] text-tide-300 lg:hidden">
             <p className="font-bold">Pinned at {pick ? `${pick.lat.toFixed(5)}, ${pick.lng.toFixed(5)}` : "nothing yet"}.</p>
-            <p className="text-[#bfe4e0]">Scroll for the form — a thumbnail of the pin is at the bottom.</p>
+            <p className="text-ink-200">Scroll for the form — a thumbnail of the pin is at the bottom.</p>
           </div>
           <div className="space-y-3">
             <label className="block">
@@ -339,11 +339,11 @@ export default function ReportWizard() {
                 placeholder="Water up to the first step of the bus shelter, facing east"
                 className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/60 px-3 py-2 text-[13px] outline-none focus:border-tide-400"
               />
-              <span className="mt-1 block text-[10.5px] text-[#6e97a0]">
+              <span className="mt-1 block text-[10.5px] text-ink-400">
                 Photo uploads are not available yet. A line describing what you see helps neighbours who cannot view images.
               </span>
             </label>
-            <label className="flex items-center gap-2 text-[12.5px] text-[#a9cdc9]">
+            <label className="flex items-center gap-2 text-[12.5px] text-ink-300">
               <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="h-3.5 w-3.5 accent-[#00c9b7]" />
               {handle !== "neighbour" ? `Post anonymously instead of as @${handle}` : "Post anonymously"}
             </label>
@@ -360,7 +360,7 @@ export default function ReportWizard() {
               onHeadline={setTitle}
               onMovePin={handlePick}
             />
-            {error ? <p className="rounded-lg bg-conch-500/15 px-3 py-2 text-[12.5px] text-conch-400">{error}</p> : null}
+            {error ? <p className="rounded-lg bg-danger-500/15 px-3 py-2 text-[12.5px] text-danger-500">{error}</p> : null}
             <div className="flex gap-2">
               <button
                 type="button"
@@ -381,15 +381,15 @@ export default function ReportWizard() {
           </div>
 
           <div className="space-y-3">
-            <div className="glass rounded-2xl p-3.5">
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-[#6e97a0]">Preview</p>
+            <div className="nb-surface rounded-xl2 p-3.5">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Preview</p>
               <p className="display mt-1 text-[16px] font-extrabold leading-snug text-sand-100">
                 {title.trim() || "Your headline appears here"}
               </p>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+              <p className="mt-1 text-[12.5px] leading-relaxed text-ink-300">
                 {details.trim() || CATEGORIES[category].blurb}
               </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11.5px] text-[#8fb9b6]">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11.5px] text-ink-400">
                 <span className="rounded-full px-2 py-0.5 font-bold" style={{ background: `${CATEGORIES[category].color}26`, color: CATEGORIES[category].color }}>
                   {CATEGORIES[category].label}
                 </span>

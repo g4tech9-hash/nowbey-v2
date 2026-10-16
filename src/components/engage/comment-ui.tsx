@@ -32,7 +32,7 @@ export function CommentComposer({
 
   if (!signedIn) {
     return (
-      <p className="rounded-xl bg-white/[.04] px-3.5 py-3 text-[13px] text-[#a9cdc9]">
+      <p className="rounded-xl bg-white/[.04] px-3.5 py-3 text-[13px] text-ink-300">
         <Link href={`/login?mode=signin&next=${encodeURIComponent(`${pathname}#comments`)}`} className="font-bold text-tide-300 underline">
           Sign in
         </Link>{" "}
@@ -90,12 +90,12 @@ export function CommentComposer({
             Cancel
           </button>
         ) : null}
-        <span className="ml-auto text-[11px] text-[#6e97a0]">
+        <span className="ml-auto text-[11px] text-ink-400">
           {body.length}/{COMMENT_MAX}
         </span>
       </div>
       {error ? (
-        <p role="alert" className="mt-2 text-[12.5px] text-conch-400">
+        <p role="alert" className="mt-2 text-[12.5px] text-danger-500">
           {error}
         </p>
       ) : null}
@@ -151,7 +151,7 @@ export function CommentTools({
     }
   }
 
-  const link = "text-[11.5px] font-bold text-[#8fb9b6] hover:text-tide-300 disabled:opacity-50";
+  const link = "text-[11.5px] font-bold text-ink-400 hover:text-tide-300 disabled:opacity-50";
   return (
     <div className="mt-1">
       <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1">
@@ -169,7 +169,7 @@ export function CommentTools({
           <button
             type="button"
             disabled={busy !== null}
-            className={`${link} !text-conch-400`}
+            className={`${link} !text-danger-500`}
             onClick={() => {
               if (window.confirm("Delete this comment?")) void call("delete", `/api/comments/${commentId}`, { method: "DELETE" });
             }}
@@ -228,7 +228,7 @@ export function CommentTools({
       ) : null}
 
       {note ? (
-        <p role={note.ok ? "status" : "alert"} className={`mt-1.5 text-[12px] ${note.ok ? "text-tide-300" : "text-conch-400"}`}>
+        <p role={note.ok ? "status" : "alert"} className={`mt-1.5 text-[12px] ${note.ok ? "text-tide-300" : "text-danger-500"}`}>
           {note.text}
         </p>
       ) : null}

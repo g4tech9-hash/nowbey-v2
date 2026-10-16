@@ -71,14 +71,14 @@ export function AppearanceForm(props: Props) {
                     {THEMES[key].label}
                     {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
                   </p>
-                  <p className="mt-0.5 text-[12.5px] leading-snug text-[#a9cdc9]">{THEMES[key].blurb}</p>
+                  <p className="mt-0.5 text-[12.5px] leading-snug text-ink-300">{THEMES[key].blurb}</p>
                 </div>
               </label>
             );
           })}
         </div>
         {props.themeLocked ? (
-          <p className="mt-2 text-[12px] text-sun-400">
+          <p className="mt-2 text-[12px] text-sun-600">
             The look is fixed by <code className="rounded bg-white/10 px-1">NOWBEY_THEME</code> in the server settings. Remove that setting to choose it here.
           </p>
         ) : null}
@@ -105,18 +105,18 @@ export function AppearanceForm(props: Props) {
                     {MODES[key].label}
                     {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
                   </p>
-                  <p className="mt-0.5 text-[12.5px] leading-snug text-[#a9cdc9]">{MODES[key].blurb}</p>
+                  <p className="mt-0.5 text-[12.5px] leading-snug text-ink-300">{MODES[key].blurb}</p>
                 </div>
               </label>
             );
           })}
         </div>
         {props.modeLocked ? (
-          <p className="mt-2 text-[12px] text-sun-400">
+          <p className="mt-2 text-[12px] text-sun-600">
             The brightness is fixed by <code className="rounded bg-white/10 px-1">NOWBEY_MODE</code> in the server settings. Remove that setting to choose it here.
           </p>
         ) : (
-          <p className="mt-2 text-[12px] text-[#8fb9b6]">Visitors can still switch anytime with the sun/moon button in the header.</p>
+          <p className="mt-2 text-[12px] text-ink-400">Visitors can still switch anytime with the sun/moon button in the header.</p>
         )}
       </fieldset>
 
@@ -131,14 +131,14 @@ export function AppearanceForm(props: Props) {
           />
           <span>
             <span className="font-bold">Show the opening splash screen</span>
-            <span className="block text-[12px] text-[#8fb9b6]">
+            <span className="block text-[12px] text-ink-400">
               A short welcome with the NowBey mark and tagline, once per visit. Visitors can tap to skip it.
               {theme !== "island" ? " It only appears in the Island look." : ""}
             </span>
           </span>
         </label>
         {props.splashLocked ? (
-          <p className="mt-1.5 text-[12px] text-sun-400">
+          <p className="mt-1.5 text-[12px] text-sun-600">
             The splash is fixed by <code className="rounded bg-white/10 px-1">NOWBEY_SPLASH</code> in the server settings.
           </p>
         ) : null}
@@ -158,7 +158,7 @@ export function AppearanceForm(props: Props) {
         </button>
       </div>
       {msg ? (
-        <p role="status" className={`rounded-lg px-3 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>
+        <p role="status" className={`rounded-lg px-3 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
           {msg.text}
         </p>
       ) : null}

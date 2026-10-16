@@ -71,14 +71,14 @@ export function IncidentCard({
         <span style={{ color: meta.color }}>{meta.label}</span>
         <SeverityMeter level={row.severity} tone={meta.color} />
         {row.status !== "active" ? (
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-[#a9cdc9]">{row.status}</span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-ink-300">{row.status}</span>
         ) : stale ? (
-          <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[10px] text-sun-400">needs a re-check</span>
+          <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[10px] text-sun-600">needs a re-check</span>
         ) : null}
         {row.sourceKind === "news" ? (
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-[#a9cdc9]">from the wire</span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-ink-300">from the wire</span>
         ) : null}
-        <span className="ml-auto text-[10.5px] font-semibold normal-case tracking-normal text-[#6e97a0]">
+        <span className="ml-auto text-[10.5px] font-semibold normal-case tracking-normal text-ink-400">
           {timeAgo(row.createdAt)}
         </span>
       </div>
@@ -89,12 +89,12 @@ export function IncidentCard({
         </Link>
       </h3>
 
-      {row.details ? <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-[#a9cdc9]">{row.details}</p> : null}
+      {row.details ? <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-ink-300">{row.details}</p> : null}
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px] text-[#8fb9b6]">
-        <span className="font-semibold text-[#cfeee9]">{row.street ?? "Unmapped spot"}</span>
+      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px] text-ink-400">
+        <span className="font-semibold text-ink-200">{row.street ?? "Unmapped spot"}</span>
         {row.parish ? <span>· {row.parish}</span> : null}
-        <span className="font-mono text-[10.5px] text-[#6e97a0]">
+        <span className="font-mono text-[10.5px] text-ink-400">
           {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
         </span>
         {row.accuracyMeters ? (
@@ -106,19 +106,19 @@ export function IncidentCard({
       </div>
 
       {row.address && row.address !== row.street ? (
-        <p className="mt-1 text-[11.5px] text-[#6e97a0]">{row.address}</p>
+        <p className="mt-1 text-[11.5px] text-ink-400">{row.address}</p>
       ) : null}
 
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11px] font-semibold text-[#cfeee9]">
+        <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11px] font-semibold text-ink-200">
           {row.confirmations} confirm{row.confirmations === 1 ? "" : "s"}
         </span>
         {row.sightings > 0 ? (
-          <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11px] font-semibold text-[#cfeee9]">
+          <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11px] font-semibold text-ink-200">
             {row.sightings} “saw it too”
           </span>
         ) : null}
-        <span className="text-[11.5px] text-[#6e97a0]">reported by @{row.authorHandle ?? "someone"}</span>
+        <span className="text-[11.5px] text-ink-400">reported by @{row.authorHandle ?? "someone"}</span>
         <BadgeMark kind={badge} />
       </div>
 
@@ -138,7 +138,7 @@ export function IncidentCard({
 }
 
 export function IncidentRail({ rows, empty }: { rows: IncidentRow[]; empty: string }) {
-  if (!rows.length) return <p className="px-1 text-[12.5px] text-[#6e97a0]">{empty}</p>;
+  if (!rows.length) return <p className="px-1 text-[12.5px] text-ink-400">{empty}</p>;
   return (
     <ul className="space-y-2">
       {rows.map((row) => {
@@ -149,7 +149,7 @@ export function IncidentRail({ rows, empty }: { rows: IncidentRow[]; empty: stri
               <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: meta.color }} />
               <span className="min-w-0">
                 <span className="block truncate text-[13px] font-semibold text-sand-100 group-hover:text-tide-300">{row.title}</span>
-                <span className="block truncate text-[11px] text-[#6e97a0]">
+                <span className="block truncate text-[11px] text-ink-400">
                   {row.street ?? row.parish ?? "The Bahamas"} · {timeAgo(row.createdAt)}
                 </span>
               </span>

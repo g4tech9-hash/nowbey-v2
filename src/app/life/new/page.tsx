@@ -17,7 +17,7 @@ export default async function NewPostPage() {
         title="Share an experience"
         blurb="A great meal, a festival, a perfect beach or a tip for visitors. Your handle goes on it, so keep it honest and kind."
       />
-      <div className="glass rounded-2xl p-4 sm:p-5">
+      <div className="nb-surface rounded-xl2 p-4 sm:p-5">
         <PostForm defaultParish={viewer.parish} />
       </div>
     </div>

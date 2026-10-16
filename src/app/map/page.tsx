@@ -179,6 +179,18 @@ export default function MapWorkspace() {
   // The pin the user tapped last (in the list or on the map), shown as a one-line card above the list.
   const current = rows.find((r) => r.id === selected) ?? null;
 
+  // Island pulse: which categories are loudest right now (top 4, plus the open total).
+  const pulse = useMemo(() => {
+    const counts = new Map<CategoryKey, number>();
+    for (const r of rows) {
+      if (r.status === "archived") continue;
+      counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const max = top.length ? top[0][1] : 1;
+    return { top, max, open: rows.filter((r) => r.status !== "archived").length };
+  }, [rows]);
+
   const openDetails = () => setStep("details");
 
   async function submit() {
@@ -254,7 +266,7 @@ export default function MapWorkspace() {
               What is happening, street by street
             </h1>
           </div>
-          <p className="max-w-[46ch] text-[11.5px] leading-snug text-[#8fb9b6]">
+          <p className="max-w-[46ch] text-[11.5px] leading-snug text-ink-400">
             Tap a pin to read the report, or <span className="font-bold text-tide-300">Pin a spot</span> to add your own.
             Drag the yellow figure onto a road for street level.
           </p>
@@ -299,7 +311,7 @@ export default function MapWorkspace() {
               onClick={() => setMode(m.key)}
               aria-pressed={view === m.key}
               className={`min-h-[40px] flex-1 rounded-lg px-2 text-[12px] font-bold transition ${
-                view === m.key ? "bg-tide-500 text-abyss-950" : "text-[#bfe4e0] hover:bg-white/10"
+                view === m.key ? "bg-tide-500 text-abyss-950" : "text-ink-200 hover:bg-white/10"
               }`}
             >
               {m.label}
@@ -318,7 +330,7 @@ export default function MapWorkspace() {
         <div className="flex flex-none items-center gap-2 px-3 pt-2.5 lg:px-0 lg:pt-0">
           <p className="display min-w-0 flex-1 truncate text-[13.5px] font-extrabold text-sand-100">
             {pickMode ? (step === "spot" ? "1 · Pick the exact spot" : "2 · Add details") : loading ? "Loading pins…" : `${visible.length} open pin${visible.length === 1 ? "" : "s"}`}
-            {pickMode ? null : <span className="ml-1.5 text-[11.5px] font-semibold text-[#8fb9b6]">{island === "all" ? "everywhere" : island}</span>}
+            {pickMode ? null : <span className="ml-1.5 text-[11.5px] font-semibold text-ink-400">{island === "all" ? "everywhere" : island}</span>}
           </p>
           {pickMode ? (
             <button
@@ -337,6 +349,49 @@ export default function MapWorkspace() {
               + Pin a spot
             </button>
           )}
+        </div>
+
+        {/* Tideglass bento: island pulse (2/3) + open/confirmed tiles (1/3). */}
+        <div className="grid flex-none grid-cols-3 gap-2 px-3 pt-2 lg:px-0">
+          <section className="nb-surface col-span-2 p-3">
+            <div className="mb-2 flex items-center gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-400">Island pulse</p>
+              <span className="nb-live-dot ml-auto" aria-hidden />
+            </div>
+            {pulse.top.length ? (
+              <ul className="space-y-1.5">
+                {pulse.top.map(([k, n]) => (
+                  <li key={k} className="flex items-center gap-2">
+                    <span className="flex w-[86px] shrink-0 items-center gap-1.5 text-[11px] font-bold text-ink-200">
+                      <span className="h-2 w-2 rounded-full" style={{ background: CATEGORIES[k]?.color }} />
+                      <span className="truncate">{CATEGORIES[k]?.label ?? k}</span>
+                    </span>
+                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/8">
+                      <span
+                        className="block h-full rounded-full transition-[width] duration-500 ease-standard"
+                        style={{ width: `${(n / pulse.max) * 100}%`, background: CATEGORIES[k]?.color, boxShadow: `0 0 10px ${CATEGORIES[k]?.color}88` }}
+                      />
+                    </span>
+                    <span className="num w-5 text-right font-mono text-[11px] text-ink-300">{n}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="py-2 text-[11.5px] text-ink-400">The island is quiet — no open pins.</p>
+            )}
+          </section>
+          <div className="flex flex-col gap-2">
+            <div className="nb-surface flex flex-1 flex-col justify-center p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Open pins</p>
+              <p className="num display mt-1 text-2xl font-extrabold text-tide-300">{pulse.open}</p>
+            </div>
+            <div className="nb-surface flex flex-1 flex-col justify-center p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmed</p>
+              <p className="num display mt-1 text-2xl font-extrabold text-ink-100">
+                {rows.reduce((sum, r) => sum + (r.confirmations ?? 0), 0).toLocaleString("en-US")}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Row B — category filters, always visible (they are the whole point of the list). */}
@@ -360,7 +415,7 @@ export default function MapWorkspace() {
               aria-expanded={moreFilters}
               aria-label="Island and wire-pin filters"
               className={`min-h-[34px] flex-none rounded-full px-2.5 text-[11.5px] font-bold lg:hidden ${
-                moreFilters ? "bg-tide-500/20 text-tide-300" : "bg-white/8 text-[#a9cdc9]"
+                moreFilters ? "bg-tide-500/20 text-tide-300" : "bg-white/8 text-ink-300"
               }`}
             >
               {moreFilters ? "Less" : "More"}
@@ -371,7 +426,7 @@ export default function MapWorkspace() {
         {/* Row C — island + wire pins. Folded away on a phone until asked for, always open on desktop. */}
         <div className={`${moreFilters ? "flex" : "hidden lg:flex"} flex-none flex-wrap items-center gap-1.5 px-3 pt-2 lg:px-0`}>
           <label className="flex items-center gap-1.5">
-            <span className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Island</span>
+            <span className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Island</span>
             <select
               value={island}
               onChange={(e) => { setIsland(e.target.value); setListLimit(40); }}
@@ -390,7 +445,7 @@ export default function MapWorkspace() {
             type="button"
             onClick={() => setShowWire((v) => !v)}
             aria-pressed={showWire}
-            className={`min-h-[40px] rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-[#8fb9b6]"}`}
+            className={`min-h-[40px] rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-ink-400"}`}
           >
             Wire pins {showWire ? "on" : "off"}
           </button>
@@ -398,12 +453,12 @@ export default function MapWorkspace() {
 
         {/* What the pin codes mean. Collapsed, so it costs no list room until asked for. */}
         <details className="flex-none px-3 pt-1.5 lg:px-0">
-          <summary className="min-h-[32px] cursor-pointer py-1 text-[11.5px] font-bold text-[#8fb9b6] hover:text-tide-300">
+          <summary className="min-h-[32px] cursor-pointer py-1 text-[11.5px] font-bold text-ink-400 hover:text-tide-300">
             What the pins mean
           </summary>
           <ul className="flex flex-wrap gap-x-3 gap-y-1 pb-1">
             {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
-              <li key={k} className="flex items-center gap-1.5 text-[11px] text-[#a9cdc9]">
+              <li key={k} className="flex items-center gap-1.5 text-[11px] text-ink-300">
                 <span
                   className="grid h-[22px] w-[22px] place-items-center rounded-full border border-white/70 text-[8px] font-extrabold text-abyss-950"
                   style={{ background: CATEGORIES[k].color }}
@@ -413,7 +468,7 @@ export default function MapWorkspace() {
                 {CATEGORIES[k].label}
               </li>
             ))}
-            <li className="flex items-center gap-1.5 text-[11px] text-[#a9cdc9]">
+            <li className="flex items-center gap-1.5 text-[11px] text-ink-300">
               <span className="grid h-[22px] w-[22px] place-items-center rounded-full border-2 border-tide-400 bg-abyss-950 text-[9px] font-extrabold text-tide-300">
                 12
               </span>
@@ -424,11 +479,11 @@ export default function MapWorkspace() {
 
         {/* The pin just tapped: one clear line and the way into its report. */}
         {current ? (
-          <div className="mx-3 mt-2 flex flex-none items-center gap-2 rounded-xl border hairline bg-white/[.05] px-2.5 py-2 lg:mx-0">
+          <div className="nb-glass mx-3 mt-2 flex flex-none items-center gap-2 rounded-xl px-2.5 py-2 lg:mx-0">
             <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: CATEGORIES[current.category]?.color }} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[12.5px] font-bold text-sand-100">{current.title}</span>
-              <span className="block truncate text-[11px] text-[#8fb9b6]">
+              <span className="block truncate text-[11px] text-ink-400">
                 {current.street ?? "unmapped"} · {timeAgo(current.createdAt)} · {current.confirmations} ✓
               </span>
             </span>
@@ -440,12 +495,12 @@ export default function MapWorkspace() {
 
         <div className="nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 lg:px-0 lg:pb-3 lg:pr-1.5">
           {pickMode ? (
-            <div className="glass rounded-2xl p-3.5">
+            <div className="nb-surface rounded-xl2 p-3.5">
               {step === "spot" ? (
                 <>
-                  <p className="text-[12.5px] leading-relaxed text-[#a9cdc9]">
+                  <p className="text-[12.5px] leading-relaxed text-ink-300">
                     Search a street, tap the map, then drag the pin tip onto the gate, drain or pothole. Use{" "}
-                    <span className="font-bold text-sun-400">Aim at centre</span> for the last few metres — the crosshair is the pin.
+                    <span className="font-bold text-sun-600">Aim at centre</span> for the last few metres — the crosshair is the pin.
                   </p>
                   <div className="mt-2.5 rounded-xl bg-white/5 p-2.5 text-[12px]">
                     {pick ? (
@@ -454,12 +509,12 @@ export default function MapWorkspace() {
                           {pick.lat.toFixed(6)}, {pick.lng.toFixed(6)}
                         </p>
                         <p className="mt-1 font-semibold text-sand-100">{pick.street ?? "Street name pending…"}</p>
-                        <p className="text-[11.5px] text-[#8fb9b6]">
+                        <p className="text-[11.5px] text-ink-400">
                           {pick.address ?? "Matching address…"} · {pick.parish ?? "Bahamas"} · ± {pick.precisionM.toFixed(1)} m
                         </p>
                       </>
                     ) : (
-                      <p className="text-[#8fb9b6]">No spot chosen yet.</p>
+                      <p className="text-ink-400">No spot chosen yet.</p>
                     )}
                   </div>
                   <button
@@ -490,7 +545,7 @@ export default function MapWorkspace() {
                       placeholder="Bay Street"
                       className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[16px] outline-none focus:border-tide-400 sm:text-[13px]"
                     />
-                    <span className="mt-1 block text-[10.5px] text-[#6e97a0]">
+                    <span className="mt-1 block text-[10.5px] text-ink-400">
                       Prefilled from the pin. Edit it if locals call the spot something else.
                     </span>
                   </label>
@@ -522,7 +577,7 @@ export default function MapWorkspace() {
                           type="button"
                           onClick={() => setForm({ ...form, severity: i + 1 })}
                           className={`min-h-[40px] rounded-lg px-1.5 py-1.5 text-[10.5px] font-bold ${
-                            form.severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9]"
+                            form.severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-ink-300"
                           }`}
                         >
                           {label}
@@ -540,7 +595,7 @@ export default function MapWorkspace() {
                       className="mt-1 w-full resize-none rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[16px] leading-relaxed outline-none focus:border-tide-400 sm:text-[13px]"
                     />
                   </label>
-                  <label className="flex items-center gap-2 text-[12px] text-[#a9cdc9]">
+                  <label className="flex items-center gap-2 text-[12px] text-ink-300">
                     <input
                       type="checkbox"
                       checked={form.anonymous}
@@ -570,7 +625,7 @@ export default function MapWorkspace() {
               )}
             </div>
           ) : (
-            <div className="glass rounded-2xl p-2.5 lg:p-3.5">
+            <div className="nb-surface rounded-xl2 p-2.5 lg:p-3.5">
               <ul className="space-y-1.5" aria-busy={loading}>
                 {loading ? (
                   <>
@@ -583,40 +638,61 @@ export default function MapWorkspace() {
                     ))}
                   </>
                 ) : visible.length ? (
-                  visible.slice(0, listLimit).map((r) => (
-                    <li key={r.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelected(r.id);
-                          setFocusNonce((n) => n + 1);
-                        }}
-                        aria-current={selected === r.id ? "true" : undefined}
-                        className={`min-h-[52px] w-full rounded-xl px-2 py-2 text-left transition ${
-                          selected === r.id ? "bg-tide-500/18 ring-1 ring-tide-400/40" : "hover:bg-white/5"
-                        }`}
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: CATEGORIES[r.category]?.color }} />
-                          <span className="truncate text-[12.5px] font-semibold text-sand-100">{r.title}</span>
-                          {r.status === "resolved" ? (
-                            <span className="flex-none rounded-full bg-tide-500/15 px-1.5 py-0.5 text-[10px] font-bold text-tide-300">Resolved</span>
-                          ) : r.severity >= 3 ? (
-                            <span className="flex-none rounded-full bg-conch-500/15 px-1.5 py-0.5 text-[10px] font-bold text-conch-400">
-                              {r.severity >= 4 ? "Dangerous" : "Blocking"}
+                  visible.slice(0, listLimit).map((r) => {
+                    const cat = CATEGORIES[r.category];
+                    const sev = Math.min(Math.max(r.severity ?? 1, 1), 5);
+                    return (
+                      <li key={r.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelected(r.id);
+                            setFocusNonce((n) => n + 1);
+                          }}
+                          aria-current={selected === r.id ? "true" : undefined}
+                          className={`group min-h-[56px] w-full rounded-xl border p-2.5 text-left transition duration-200 ease-standard ${
+                            selected === r.id
+                              ? "border-tide-400/50 bg-tide-500/12 shadow-[0_0_0_1px_var(--color-tide-400)]"
+                              : "border-transparent hover:border-white/10 hover:bg-white/[.04]"
+                          }`}
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <span
+                              className="h-2 w-2 shrink-0 rounded-full"
+                              style={{ background: cat?.color, boxShadow: `0 0 8px ${cat?.color}80` }}
+                            />
+                            <span className="truncate text-[12.5px] font-bold tracking-tight text-sand-100">{r.title}</span>
+                            {r.status === "resolved" ? (
+                              <span className="flex-none rounded-full bg-ok-500/15 px-1.5 py-0.5 text-[10px] font-bold text-ok-600">
+                                Resolved
+                              </span>
+                            ) : r.severity >= 3 ? (
+                              <span className="flex-none rounded-full bg-danger-500/15 px-1.5 py-0.5 text-[10px] font-bold text-danger-500">
+                                {r.severity >= 4 ? "Dangerous" : "Blocking"}
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="mt-1 flex items-center gap-2">
+                            <span className="num font-mono text-[11px] text-ink-400">
+                              {r.street ?? "unmapped"} · {timeAgo(r.createdAt)} · {r.confirmations} confirmed
                             </span>
-                          ) : null}
-                        </span>
-                        <span className="mt-0.5 block truncate text-[11px] text-[#8fb9b6]">
-                          <span style={{ color: CATEGORIES[r.category]?.color }}>{CATEGORIES[r.category]?.label}</span>
-                          {" · "}
-                          {r.street ?? "unmapped"} · {timeAgo(r.createdAt)} · {r.confirmations} confirmed
-                        </span>
-                      </button>
-                    </li>
-                  ))
+                            <span className="ml-auto flex flex-none items-center gap-1" aria-label={`Severity ${sev} of 5`}>
+                              {[1, 2, 3, 4, 5].map((i) => (
+                                <span
+                                  key={i}
+                                  className="nb-sev"
+                                  data-on={i <= sev}
+                                  style={{ ["--sev-color" as string]: `var(--color-sev-${sev})` }}
+                                />
+                              ))}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })
                 ) : error ? null : (
-                  <li className="px-1 py-2 text-[12.5px] text-[#8fb9b6]">
+                  <li className="px-1 py-2 text-[12.5px] text-ink-400">
                     <p>No pins match those filters.</p>
                     <button
                       type="button"
@@ -645,17 +721,17 @@ export default function MapWorkspace() {
               ) : null}
 
               {done ? (
-                <div className="mt-2.5 rounded-xl border border-tide-400/40 bg-tide-500/10 p-3 text-[12.5px]">
-                  <p className="font-bold text-tide-300">On the map.</p>
-                  <p className="mt-1 text-[#cfeee9]">“{done.title}” is live at your pin. Neighbours can confirm or clear it.</p>
-                  <Link href={`/incident/${done.id}`} className="mt-2 inline-block font-bold text-tide-300 underline">
+                <div className="mt-2.5 rounded-xl border border-ok-500/40 bg-ok-500/10 p-3 text-[12.5px]">
+                  <p className="font-bold text-ok-600">On the map.</p>
+                  <p className="mt-1 text-ink-200">“{done.title}” is live at your pin. Neighbours can confirm or clear it.</p>
+                  <Link href={`/incident/${done.id}`} className="mt-2 inline-block font-bold text-ok-600 underline">
                     Open the report
                   </Link>
                 </div>
               ) : null}
 
               {error ? (
-                <div role="alert" className="mt-2.5 rounded-xl bg-conch-500/15 px-3 py-2.5 text-[12px] text-conch-400">
+                <div role="alert" className="mt-2.5 rounded-xl bg-danger-500/12 px-3 py-2.5 text-[12px] text-danger-500">
                   <p>Could not load the map feed. {error}</p>
                   <button
                     type="button"
@@ -663,7 +739,7 @@ export default function MapWorkspace() {
                       setLoading(true);
                       void load();
                     }}
-                    className="mt-1.5 min-h-[40px] rounded-full bg-conch-500/20 px-3 py-1.5 text-[12px] font-extrabold text-conch-400 hover:bg-conch-500/30"
+                    className="mt-1.5 min-h-[40px] rounded-full bg-danger-500/20 px-3 py-1.5 text-[12px] font-extrabold text-danger-500 hover:bg-danger-500/30"
                   >
                     Try again
                   </button>
@@ -694,13 +770,17 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition active:scale-95"
+      className="min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition duration-200 ease-standard active:scale-95"
       style={{
-        background: active ? `${color ?? "#2ee6d0"}2e` : "rgba(255,255,255,.06)",
-        color: active ? color ?? "#2ee6d0" : "#a9cdc9",
+        background: active ? `${color ?? "var(--color-tide-400)"}26` : "rgba(255,255,255,.05)",
+        border: `1px solid ${active ? `${color ?? "var(--color-tide-400)"}66` : "rgba(255,255,255,.08)"}`,
+        color: active ? color ?? "#8ff0e4" : "#a9cdc9",
       }}
     >
-      {label}
+      <span className="inline-flex items-center gap-1.5">
+        {color ? <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} /> : null}
+        {label}
+      </span>
     </button>
   );
 }

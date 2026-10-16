@@ -17,7 +17,7 @@ export function AdminNav({ tabs }: { tabs: AdminTab[] }) {
             href={t.href}
             aria-current={active ? "page" : undefined}
             className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-bold ${
-              active ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-[#a9cdc9] hover:bg-white/6"
+              active ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-ink-300 hover:bg-white/6"
             }`}
           >
             {t.label}

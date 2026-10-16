@@ -12,7 +12,7 @@ const BIO_MAX = 200;
 function Note({ msg }: { msg: Msg }) {
   if (!msg) return null;
   return (
-    <p role={msg.ok ? "status" : "alert"} className={`mt-2.5 rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>
+    <p role={msg.ok ? "status" : "alert"} className={`mt-2.5 rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
       {msg.text}
     </p>
   );
@@ -68,7 +68,7 @@ export function ProfileForm({ settings }: { settings: ProfileSettingsInput }) {
           className={`${INPUT} mt-1 resize-none`}
         />
       </label>
-      <p className="mt-1 text-[11.5px] text-[#8fb9b6]">
+      <p className="mt-1 text-[11.5px] text-ink-400">
         {BIO_MAX - bio.length} characters left. It appears at the top of your profile.
       </p>
 
@@ -79,7 +79,7 @@ export function ProfileForm({ settings }: { settings: ProfileSettingsInput }) {
             <input type="radio" name="visibility" checked={visibility === "open"} onChange={() => setVisibility("open")} className="mt-0.5" />
             <span className="text-[13px] text-sand-100">
               <span className="font-bold">Open</span>
-              <span className="block text-[12px] text-[#8fb9b6]">
+              <span className="block text-[12px] text-ink-400">
                 Anyone can open your profile and see your reports, your badge and, if you switch it on below, how many islands your alerts cover.
               </span>
             </span>
@@ -88,7 +88,7 @@ export function ProfileForm({ settings }: { settings: ProfileSettingsInput }) {
             <input type="radio" name="visibility" checked={visibility === "private"} onChange={() => setVisibility("private")} className="mt-0.5" />
             <span className="text-[13px] text-sand-100">
               <span className="font-bold">Private</span>
-              <span className="block text-[12px] text-[#8fb9b6]">
+              <span className="block text-[12px] text-ink-400">
                 Your handle still appears on the reports you file, but nobody can open a profile page about you. Your reports stay on the map either way.
               </span>
             </span>
@@ -100,7 +100,7 @@ export function ProfileForm({ settings }: { settings: ProfileSettingsInput }) {
         <input type="checkbox" checked={showAlertSummary} onChange={(e) => setShowAlertSummary(e.target.checked)} className="mt-0.5" />
         <span className="text-[13px] text-sand-100">
           <span className="font-bold">Show how many islands my alerts cover</span>
-          <span className="block text-[12px] text-[#8fb9b6]">
+          <span className="block text-[12px] text-ink-400">
             Just the number. Your email address and the kinds of alerts you chose are never shown to anyone.
           </span>
         </span>

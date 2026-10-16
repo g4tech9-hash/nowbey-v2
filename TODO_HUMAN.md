@@ -93,6 +93,14 @@ its admin rights need a confirmed email. So:
    If it is not set, either add it (Production) and redeploy, or run `src/db/setup_admins.sql` in the
    Neon SQL editor to set `role='admin'`.
 
+**To find out which of those is the blocker, open `/admin-access` while signed in as the account.** It
+reports, for you and nobody else: the role on the row, whether the handle is in `ADMIN_HANDLES`, whether
+the email is confirmed, whether `ADMIN_EMAILS` covers the address, and the one sentence saying what to do
+next. It is deliberately *not* behind the admin gate — the moment you need it is the moment the gate says
+no. An admin can read the same verdict for any member on the Members page. The rules behind it are
+`src/lib/admin-access-core.ts`, unit-tested by `tests/admin-access.test.mjs`; `getViewer` computes
+`isAdmin` from the same two rules, so the page cannot disagree with the gate.
+
 `setup_admins.sql` never touches passwords, and the product has no endpoint that reads or writes one.
 The two supported ways back into an existing account are the member's own reset email
 (`/forgot-password`) and an admin-issued one-hour link (Members page → "Create a password reset link").

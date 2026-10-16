@@ -62,7 +62,7 @@ export default function PrivacyPage() {
           <section key={s.h}>
             <h2 className="display text-[15px] font-extrabold text-sand-100">{s.h}</h2>
             {s.p.map((t, i) => (
-              <p key={i} className="mt-1.5 text-[13px] leading-relaxed text-[#a9cdc9]">
+              <p key={i} className="mt-1.5 text-[13px] leading-relaxed text-ink-300">
                 {t}
               </p>
             ))}

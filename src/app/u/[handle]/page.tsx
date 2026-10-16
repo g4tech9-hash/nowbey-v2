@@ -40,8 +40,8 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
     return (
       <div className="mx-auto max-w-[680px] space-y-4">
         <PageHead eyebrow="Profile" title={`@${member.handle}`} />
-        <section className="glass rounded-2xl p-4">
-          <p className="text-[13px] text-[#cfeee9]">
+        <section className="nb-surface rounded-xl2 p-4">
+          <p className="text-base text-ink-200">
             @{member.handle} keeps their profile private, so there is nothing to show here. Their reports are unaffected — anything they file still appears on
             the{" "}
             <Link href="/map" className="font-bold text-tide-300 underline">
@@ -87,7 +87,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       />
 
       {isPrivate ? (
-        <p className="rounded-xl bg-sun-500/12 px-3.5 py-2.5 text-[12.5px] text-sun-400">
+        <p className="nb-surface rounded-xl border-sun-500/30 bg-sun-500/12 px-3.5 py-2.5 text-sm text-sun-600">
           This profile is private. You are seeing it because you are {isSelf ? "its owner" : "staff"}.
         </p>
       ) : null}
@@ -101,35 +101,38 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         </div>
       ) : null}
 
-      {settings.bio ? <p className="text-[13.5px] leading-relaxed text-[#cfeee9]">{settings.bio}</p> : null}
+      {settings.bio ? <p className="text-base leading-relaxed text-ink-200">{settings.bio}</p> : null}
 
-      <dl className="grid grid-cols-3 gap-3 rounded-2xl border hairline p-3.5 text-[13px]">
-        <div>
-          <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Reports</dt>
-          <dd className="mt-0.5 font-bold text-sand-100">{record.reports}</dd>
+      <dl className="grid grid-cols-3 gap-2">
+        <div className="nb-surface p-3">
+          <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Reports</dt>
+          <dd className="num display mt-1 text-2xl font-extrabold text-tide-300">{record.reports}</dd>
         </div>
-        <div>
-          <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Confirmations</dt>
-          <dd className="mt-0.5 font-bold text-sand-100">{record.confirmations}</dd>
+        <div className="nb-surface p-3">
+          <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmations</dt>
+          <dd className="num display mt-1 text-2xl font-extrabold text-ok-500">{record.confirmations}</dd>
         </div>
-        <div>
-          <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Alert islands</dt>
-          <dd className="mt-0.5 font-bold text-sand-100">{settings.showAlertSummary && islands ? islands : "—"}</dd>
+        <div className="nb-surface p-3">
+          <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Alert islands</dt>
+          <dd className="num display mt-1 text-2xl font-extrabold text-ink-100">{settings.showAlertSummary && islands ? islands : "—"}</dd>
         </div>
       </dl>
 
-      <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-extrabold text-sand-100">Reports</p>
-        <p className="mt-0.5 text-[12.5px] text-[#8fb9b6]">The reports this member filed under their own name.</p>
+      <section className="nb-surface rounded-xl2 p-4">
+        <p className="display text-base font-extrabold tracking-tight text-sand-100">Reports</p>
+        <p className="mt-0.5 text-sm text-ink-400">The reports this member filed under their own name.</p>
         {listed.length ? (
           <ul className="mt-3 space-y-2">
             {listed.map((r) => {
               const meta = CATEGORIES[r.category as CategoryKey] ?? CATEGORIES.notice;
               return (
                 <li key={r.id}>
-                  <Link href={`/incident/${r.id}`} className="block rounded-xl border hairline p-3 hover:bg-white/5">
-                    <p className="text-[13px] font-bold text-sand-100">{r.title}</p>
-                    <p className="mt-0.5 text-[11.5px] text-[#8fb9b6]">
+                  <Link href={`/incident/${r.id}`} className="block rounded-xl border border-white/8 p-3 transition duration-200 ease-standard hover:border-tide-400/30 hover:bg-white/[.04]">
+                    <p className="inline-flex items-center gap-2 text-base font-bold tracking-tight text-sand-100">
+                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: meta.color, boxShadow: `0 0 8px ${meta.color}80` }} />
+                      {r.title}
+                    </p>
+                    <p className="num mt-0.5 text-xs text-ink-400">
                       {meta.label}
                       {r.parish ? ` · ${r.parish}` : ""} · {timeAgo(r.createdAt)} · {r.confirmations} confirmation{r.confirmations === 1 ? "" : "s"}
                     </p>
@@ -139,11 +142,11 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             })}
           </ul>
         ) : (
-          <p className="mt-2 text-[12.5px] text-[#8fb9b6]">Nothing listed yet.</p>
+          <p className="mt-2 text-sm text-ink-400">Nothing listed yet.</p>
         )}
       </section>
 
-      <p className="text-[11.5px] leading-relaxed text-[#6e97a0]">
+      <p className="text-xs leading-relaxed text-ink-400">
         Badges are granted by a person at NowBey after a member’s reports have held up. They cannot be bought, and a report stays usable whether or not its
         author has one.
       </p>

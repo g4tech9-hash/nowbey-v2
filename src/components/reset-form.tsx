@@ -16,7 +16,7 @@ export function ResetForm({ token }: { token: string }) {
   if (!token) {
     return (
       <div className="glass mt-4 rounded-2xl p-4">
-        <p className="text-[13px] text-[#cfeee9]">This page needs the link from your email.</p>
+        <p className="text-[13px] text-ink-200">This page needs the link from your email.</p>
         <Link href="/forgot-password" className="mt-2 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">
           Ask for a new link
         </Link>
@@ -54,7 +54,7 @@ export function ResetForm({ token }: { token: string }) {
         <PasswordField label="Confirm new password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
       </div>
       {error ? (
-        <p role="alert" className="mt-3 rounded-lg bg-conch-500/15 px-2.5 py-2 text-[12.5px] text-conch-400">
+        <p role="alert" className="mt-3 rounded-lg bg-danger-500/15 px-2.5 py-2 text-[12.5px] text-danger-500">
           {error}{" "}
           {/not valid/i.test(error) ? (
             <Link href="/forgot-password" className="font-bold underline">
@@ -66,7 +66,7 @@ export function ResetForm({ token }: { token: string }) {
       <button type="submit" disabled={busy} className="mt-3 w-full rounded-xl bg-tide-500 py-2.5 text-[13.5px] font-extrabold text-abyss-950 disabled:opacity-50">
         {busy ? "Saving…" : "Save new password"}
       </button>
-      <p className="mt-2 text-[11.5px] text-[#8fb9b6]">Saving signs you out on every device, so you can sign in fresh.</p>
+      <p className="mt-2 text-[11.5px] text-ink-400">Saving signs you out on every device, so you can sign in fresh.</p>
     </form>
   );
 }

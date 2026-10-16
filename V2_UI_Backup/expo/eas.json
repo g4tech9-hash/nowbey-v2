@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "image": "latest"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE": "https://nowbey-v2.vercel.app"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "image": "latest"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_BASE": "https://nowbey-v2.vercel.app"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

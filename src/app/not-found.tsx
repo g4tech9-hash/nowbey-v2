@@ -6,7 +6,7 @@ export default function NotFound() {
     <div className="mx-auto max-w-[520px] py-14 text-center">
       <NowBeyMark size={44} />
       <h1 className="display mt-3 text-[28px] font-extrabold text-sand-100">No pin at those coordinates</h1>
-      <p className="mx-auto mt-2 max-w-[44ch] text-[13.5px] leading-relaxed text-[#a9cdc9]">
+      <p className="mx-auto mt-2 max-w-[44ch] text-[13.5px] leading-relaxed text-ink-300">
         That page is not on the NowBey map. It may have been cleared up and archived, or the link lost its way over the water.
       </p>
       <div className="mt-4 flex flex-wrap justify-center gap-2">

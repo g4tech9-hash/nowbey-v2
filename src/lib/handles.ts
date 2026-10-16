@@ -1,4 +1,9 @@
 import { clean } from "@/lib/validate";
+import { isEnvAdmin } from "./admin-access-core";
+
+// The admin-access rules live in admin-access-core so they can be unit-tested without a bundler.
+// Re-exported here so every caller keeps importing them from one place.
+export * from "./admin-access-core";
 
 export const HANDLE_RE = /^[a-z0-9_]{3,18}$/;
 
@@ -37,45 +42,4 @@ export function handleProblem(h: string): string | null {
   if (isEnvAdmin(h)) return null;
   if (RESERVED.has(h) || h.startsWith("nowbey")) return "That handle is reserved. Please choose another.";
   return null;
-}
-
-/** Handles listed in ADMIN_HANDLES are always admins, whatever their role says in the database. */
-export function envAdminHandles(): string[] {
-  return (process.env.ADMIN_HANDLES ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase().replace(/^@/, ""))
-    .filter(Boolean);
-}
-
-export function isEnvAdmin(handle: string): boolean {
-  return envAdminHandles().includes(handle.toLowerCase());
-}
-
-/**
- * Who may *register* a handle that is listed in ADMIN_HANDLES. A handle on that list carries admin rights,
- * so it must never be a prize for whoever signs up first. ADMIN_EMAILS is a comma-separated list of full
- * addresses (`owner@example.com`) or whole domains (`@example.com`); with it unset, nobody can register
- * such a handle through the sign-up form at all.
- *
- * This is one of two locks: the rights themselves also need a confirmed email (see `envAdminActive`), so
- * typing the owner's address without being able to read their inbox gains nothing.
- */
-export function adminClaimEmails(): string[] {
-  return (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-export function mayClaimAdminHandle(email: string): boolean {
-  const e = email.trim().toLowerCase();
-  const at = e.lastIndexOf("@");
-  if (at < 1) return false;
-  const domain = e.slice(at);
-  return adminClaimEmails().some((entry) => (entry.startsWith("@") ? entry === domain : entry === e));
-}
-
-/** ADMIN_HANDLES rights apply only once the account's email address is confirmed. */
-export function envAdminActive(u: { handle: string; emailVerifiedAt: Date | null }): boolean {
-  return isEnvAdmin(u.handle) && u.emailVerifiedAt !== null;
 }

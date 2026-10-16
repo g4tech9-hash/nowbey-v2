@@ -44,22 +44,22 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
         />
 
         {confirmed === "1" ? (
-          <p className="rounded-xl border border-tide-400/40 bg-tide-500/10 px-4 py-3 text-[13px] text-tide-300">
+          <p className="nb-surface rounded-xl border-ok-500/40 bg-ok-500/10 px-4 py-3 text-base text-ok-600">
             You are confirmed. We will email you when a matching report is filed.
           </p>
         ) : null}
         {confirmed === "0" ? (
-          <p className="rounded-xl bg-conch-500/15 px-4 py-3 text-[13px] text-conch-400">
+          <p className="nb-surface rounded-xl bg-danger-500/12 px-4 py-3 text-base text-danger-500">
             That confirmation link is not valid any more. Fill in the form below and we will send a fresh one.
           </p>
         ) : null}
 
         {stop ? (
-          <div className="glass rounded-2xl p-4">
+          <div className="nb-surface rounded-xl2 p-4">
             {stopRow ? (
               <>
-                <p className="display text-[15px] font-bold text-sand-100">Stop alerts to {mask(stopRow.target)}?</p>
-                <p className="mt-1 text-[12.5px] text-[#a9cdc9]">
+                <p className="display text-base font-bold tracking-tight text-sand-100">Stop alerts to {mask(stopRow.target)}?</p>
+                <p className="mt-1 text-sm text-ink-300">
                   This profile covers {stopRow.parishes.split(",").join(", ")}. You can set up a new one at any time.
                 </p>
                 <div className="mt-3">
@@ -67,19 +67,19 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
                 </div>
               </>
             ) : (
-              <p className="text-[13px] text-[#cfeee9]">That alert profile has already been stopped.</p>
+              <p className="text-base text-ink-200">That alert profile has already been stopped.</p>
             )}
           </div>
         ) : null}
 
-        <div className="glass rounded-2xl p-4">
+        <div className="nb-surface rounded-xl2 p-4">
           <AlertForm plan={viewer.tier} defaultEmail={viewer.email ?? ""} />
         </div>
 
         {push ? <PushToggle config={push.config} vapidKey={push.vapidKey} parishes={["New Providence"]} /> : (
-          <div className="glass rounded-2xl p-4">
-            <p className="display text-[15px] font-bold text-sand-100">Push alerts on this device</p>
-            <p className="mt-0.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+          <div className="nb-surface rounded-xl2 p-4">
+            <p className="display text-base font-bold tracking-tight text-sand-100">Push alerts on this device</p>
+            <p className="mt-0.5 text-sm leading-relaxed text-ink-300">
               Not switched on for this site yet. Email is the channel that works today; the Android app has a push switch of its own once it is
               installed.
             </p>
@@ -88,24 +88,24 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
 
         {viewer.signedIn ? (
           <section>
-            <p className="display text-[15px] font-extrabold text-sand-100">Your alert profiles</p>
+            <p className="display text-base font-extrabold tracking-tight text-sand-100">Your alert profiles</p>
             {mine.length ? (
               <ul className="mt-2 space-y-2">
                 {mine.map((s) => (
-                  <li key={s.id} className="glass flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl px-3 py-2.5 text-[12px]">
+                  <li key={s.id} className="nb-surface flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl px-3 py-2.5 text-sm">
                     <span
-                      className={`rounded-full px-2 py-0.5 font-bold ${s.verified ? "bg-tide-500/18 text-tide-300" : "bg-sun-500/15 text-sun-400"}`}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-bold ${s.verified ? "bg-ok-500/15 text-ok-600" : "bg-sun-500/15 text-sun-600"}`}
                     >
-                      {s.verified ? "On" : "Waiting for your confirmation email"}
+                      {s.verified ? <><span className="nb-live-dot" aria-hidden />On</> : "Waiting for your confirmation email"}
                     </span>
-                    <span className="font-mono text-[11.5px] text-[#cfeee9]">{s.target}</span>
-                    <span className="text-[#8fb9b6]">{s.parishes.split(",").join(" · ")}</span>
-                    <span className="text-[#6e97a0]">
+                    <span className="num font-mono text-xs text-ink-200">{s.target}</span>
+                    <span className="text-ink-300">{s.parishes.split(",").join(" · ")}</span>
+                    <span className="num text-ink-400">
                       {typeof s.lat === "number" && typeof s.lng === "number"
                         ? `within ${s.radiusKm ?? 12} km of you`
                         : "whole island"}
                     </span>
-                    <span className="text-[#6e97a0]">
+                    <span className="num text-ink-400">
                       {s.categories
                         ? s.categories
                             .split(",")
@@ -114,7 +114,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
                             .join(", ")
                         : "every category"}
                     </span>
-                    <span className="text-[11px] text-[#4f7a83]">{timeAgo(s.createdAt)}</span>
+                    <span className="num text-xs text-ink-400">{timeAgo(s.createdAt)}</span>
                     <span className="ml-auto">
                       <StopAlertButton id={s.id} label="Remove" />
                     </span>
@@ -122,11 +122,11 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-[12.5px] text-[#6e97a0]">You have no alert profiles yet.</p>
+              <p className="mt-2 text-sm text-ink-400">You have no alert profiles yet.</p>
             )}
           </section>
         ) : (
-          <p className="text-[12.5px] text-[#8fb9b6]">
+          <p className="text-sm text-ink-400">
             <Link href="/login?next=/alerts" className="font-bold text-tide-300 underline">
               Sign in
             </Link>{" "}
@@ -136,16 +136,16 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
       </div>
 
       <aside className="space-y-4">
-        <div className="glass rounded-2xl p-3.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">
-          <p className="display text-[14.5px] font-bold text-sand-100">How a report reaches you</p>
+        <div className="nb-surface rounded-xl2 p-3.5 text-sm leading-relaxed text-ink-300">
+          <p className="display text-base font-bold tracking-tight text-sand-100">How a report reaches you</p>
           <Step n="1" title="Filed">A neighbour or the news wire puts a pin on the map with a category.</Step>
           <Step n="2" title="Matched">We check it against the island and categories you picked — and, if you switched on “only near me”, the kilometres you chose.</Step>
           <Step n="3" title="Sent">An email arrives with the street, how serious it is, and a link to the live report. You get at most one every three minutes.</Step>
         </div>
 
-        <div className="rounded-2xl border border-sun-500/35 bg-sun-500/10 p-3.5">
-          <p className="display text-[14.5px] font-bold text-sand-100">Storm warnings</p>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-[#e6dcc0]">
+        <div className="nb-surface rounded-xl2 border-sun-500/35 bg-sun-500/10 p-3.5">
+          <p className="display text-base font-bold tracking-tight text-sand-100">Storm warnings</p>
+          <p className="mt-1 text-sm leading-relaxed text-ink-200">
             Storm reports for your islands always reach you, even if you did not tick the Storm category. That is the same for everyone,
             Free plan included — a warning a household needs is never something we charge for.
           </p>
@@ -158,7 +158,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
 function Step({ n, title, children }: { n: string; title: string; children: ReactNode }) {
   return (
     <p className="mt-2 flex gap-2">
-      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-tide-500/20 text-[11px] font-extrabold text-tide-300">
+      <span className="num mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tide-500/20 text-[11px] font-extrabold text-tide-300">
         {n}
       </span>
       <span>

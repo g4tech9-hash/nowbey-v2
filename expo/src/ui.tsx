@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { categoryOf } from "./geo";
-import { color, radius } from "./theme";
+import { color, radius, sevColor } from "./theme";
 import type { Badge } from "./api";
 
 export { color };
@@ -22,15 +22,17 @@ export function useTopInset() {
 }
 
 export const t = StyleSheet.create({
-  h1: { color: color.sand, fontSize: 26, fontWeight: "800", lineHeight: 30 },
-  h2: { color: color.sand, fontSize: 18, fontWeight: "800" },
-  h3: { color: color.sand, fontSize: 15, fontWeight: "700" },
-  body: { color: color.text, fontSize: 14, lineHeight: 20 },
-  muted: { color: color.muted, fontSize: 13, lineHeight: 18 },
-  subtle: { color: color.subtle, fontSize: 12 },
+  // 2026 "Tideglass" type scale: fluid steps, tight display tracking, tabular
+  // numerals anywhere a number changes (counts, times, coordinates).
+  h1: { color: color.sand, fontSize: 30, fontWeight: "800", lineHeight: 34, letterSpacing: -0.8 },
+  h2: { color: color.sand, fontSize: 20, fontWeight: "800", letterSpacing: -0.4 },
+  h3: { color: color.sand, fontSize: 15, fontWeight: "800", letterSpacing: -0.2 },
+  body: { color: color.text, fontSize: 15, lineHeight: 22 },
+  muted: { color: color.muted, fontSize: 14, lineHeight: 20 },
+  subtle: { color: color.subtle, fontSize: 12, fontVariant: ["tabular-nums"] },
   label: { color: color.tideLight, fontSize: 11, fontWeight: "800", letterSpacing: 0.8, textTransform: "uppercase" },
-  error: { color: color.conchLight, fontSize: 12.5, lineHeight: 17 },
-  ok: { color: color.tidePale, fontSize: 12.5, lineHeight: 17 },
+  error: { color: color.danger500, fontSize: 12.5, lineHeight: 17 },
+  ok: { color: color.ok500, fontSize: 12.5, lineHeight: 17 },
 });
 
 export function Card({ children, style, accent }: { children: ReactNode; style?: StyleProp<ViewStyle>; accent?: string }) {
@@ -38,10 +40,11 @@ export function Card({ children, style, accent }: { children: ReactNode; style?:
     <View
       style={[
         {
-          backgroundColor: "rgba(16,57,76,0.45)",
+          // Solid data surface: numbers and headlines stay legible over anything.
+          backgroundColor: color.panel2,
           borderColor: color.line,
           borderWidth: 1,
-          borderRadius: radius.lg,
+          borderRadius: radius.xl2,
           padding: 14,
         },
         accent ? { borderLeftColor: accent, borderLeftWidth: 3 } : null,
@@ -87,7 +90,17 @@ export function Btn({
           opacity: disabled ? 0.4 : pressed ? 0.85 : 1,
           borderWidth: kind === "ghost" ? 1 : 0,
           borderColor: color.line,
+          transform: [{ scale: pressed && !disabled ? 0.97 : 1 }],
         },
+        kind === "primary"
+          ? {
+              shadowColor: color.tide,
+              shadowOpacity: 0.4,
+              shadowRadius: 14,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 6,
+            }
+          : null,
         style,
       ]}
     >
@@ -128,24 +141,36 @@ export function Pill({
         opacity: disabled ? 0.45 : 1,
       }}
     >
-      <Text style={{ color: active ? c : color.muted, fontSize: 12, fontWeight: "700" }}>{label}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        {tint ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c }} /> : null}
+        <Text style={{ color: active ? c : color.muted, fontSize: 12, fontWeight: "700" }}>{label}</Text>
+      </View>
     </Pressable>
   );
 }
 
 export function Field({ label, style, ...rest }: { label: string } & TextInputProps) {
+  const [focused, setFocused] = useState(false);
   return (
     <View style={{ marginTop: 10 }}>
       <Text style={t.label}>{label}</Text>
       <TextInput
         placeholderTextColor={color.subtle}
         autoCapitalize="none"
+        onFocus={(e) => {
+          setFocused(true);
+          rest.onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          rest.onBlur?.(e);
+        }}
         {...rest}
         style={[
           {
             marginTop: 5,
             backgroundColor: "rgba(3,18,27,0.7)",
-            borderColor: color.line,
+            borderColor: focused ? color.tide400 : color.line,
             borderWidth: 1,
             borderRadius: radius.md,
             color: color.sand,
@@ -170,9 +195,17 @@ export function CategoryBadge({ category, severity }: { category: string; severi
         <Text style={{ color: meta.color, fontSize: 11, fontWeight: "800", letterSpacing: 0.6 }}>{meta.label.toUpperCase()}</Text>
       </View>
       {severity ? (
-        <View style={{ flexDirection: "row", gap: 2 }} accessibilityLabel={`Severity ${severity} of 4`}>
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={{ width: 4, height: 12, borderRadius: 2, backgroundColor: i <= severity ? meta.color : "rgba(255,255,255,0.14)" }} />
+        <View style={{ flexDirection: "row", gap: 2 }} accessibilityLabel={`Severity ${Math.min(Math.max(severity, 1), 5)} of 5`}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <View
+              key={i}
+              style={{
+                width: 8,
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: i <= Math.min(Math.max(severity, 1), 5) ? sevColor(severity) : "rgba(255,255,255,0.12)",
+              }}
+            />
           ))}
         </View>
       ) : null}

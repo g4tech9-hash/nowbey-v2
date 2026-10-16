@@ -9,7 +9,7 @@ import { DigestError, draftPartnerDigest, sendDigestDraft } from "@/lib/digest/g
 import { CATEGORY_KEYS, PARISHES, knownParish } from "@/lib/geo";
 import { mailConfigured } from "@/lib/mail";
 import { requireStaff } from "@/lib/staff";
-import { UUID_RE, readJson, text } from "@/lib/validate";
+import { EMAIL_RE, UUID_RE, readJson, text } from "@/lib/validate";
 
 /** The Community Digest: draft it (AI when set up), review it, email it to partners. Admins only. */
 export async function GET() {
@@ -87,6 +87,71 @@ export async function POST(req: Request) {
       const done = await db.delete(digestDrafts).where(eq(digestDrafts.id, id)).returning({ id: digestDrafts.id });
       if (done.length) await audit(actorName, "digest.delete", "digest", id, "");
       return NextResponse.json({ ok: done.length > 0 });
+    }
+
+    if (body.action === "partnerCreate") {
+      const organisation = text(body.organisation, 120);
+      const contactName = text(body.contactName, 120);
+      const email = text(body.email, 160).toLowerCase();
+      const parish = knownParish(text(body.parish, 60));
+      const categories = text(body.categories, 200);
+
+      if (organisation.length < 2) return NextResponse.json({ error: "Give the organisation a name." }, { status: 400 });
+      if (!EMAIL_RE.test(email)) return NextResponse.json({ error: "That email address is not valid." }, { status: 400 });
+      if (!parish) return NextResponse.json({ error: "Pick an island." }, { status: 400 });
+
+      const [row] = await db.insert(digestPartners).values({ organisation, contactName, email, parish, categories }).returning();
+      await audit(actorName, "partner.create", "partner", row.id, organisation, email);
+      return NextResponse.json({ ok: true, partner: row });
+    }
+
+    if (body.action === "partnerUpdate") {
+      const id = String(body.id ?? "");
+      if (!UUID_RE.test(id)) return NextResponse.json({ error: "Unknown partner." }, { status: 400 });
+
+      const organisation = text(body.organisation, 120);
+      const contactName = text(body.contactName, 120);
+      const email = text(body.email, 160).toLowerCase();
+      const parish = knownParish(text(body.parish, 60));
+      const categories = text(body.categories, 200);
+
+      if (organisation.length < 2) return NextResponse.json({ error: "Give the organisation a name." }, { status: 400 });
+      if (!EMAIL_RE.test(email)) return NextResponse.json({ error: "That email address is not valid." }, { status: 400 });
+      if (!parish) return NextResponse.json({ error: "Pick an island." }, { status: 400 });
+
+      const [row] = await db
+        .update(digestPartners)
+        .set({ organisation, contactName, email, parish, categories, updatedAt: new Date() })
+        .where(eq(digestPartners.id, id))
+        .returning();
+      if (!row) return NextResponse.json({ error: "Unknown partner." }, { status: 404 });
+      await audit(actorName, "partner.update", "partner", id, organisation, email);
+      return NextResponse.json({ ok: true, partner: row });
+    }
+
+    if (body.action === "partnerPayment") {
+      const id = String(body.id ?? "");
+      const paymentStatus = text(body.paymentStatus, 20);
+      if (!UUID_RE.test(id)) return NextResponse.json({ error: "Unknown partner." }, { status: 400 });
+      if (!["unpaid", "paid", "comp"].includes(paymentStatus)) {
+        return NextResponse.json({ error: "Pick unpaid, paid or comp." }, { status: 400 });
+      }
+      const [row] = await db
+        .update(digestPartners)
+        .set({ paymentStatus, lastPaymentAt: paymentStatus === "paid" ? new Date() : null, updatedAt: new Date() })
+        .where(eq(digestPartners.id, id))
+        .returning();
+      if (!row) return NextResponse.json({ error: "Unknown partner." }, { status: 404 });
+      await audit(actorName, "partner.payment", "partner", id, row.organisation, paymentStatus);
+      return NextResponse.json({ ok: true, partner: row });
+    }
+
+    if (body.action === "partnerDelete") {
+      const id = String(body.id ?? "");
+      if (!UUID_RE.test(id)) return NextResponse.json({ error: "Unknown partner." }, { status: 400 });
+      const gone = await db.delete(digestPartners).where(eq(digestPartners.id, id)).returning({ organisation: digestPartners.organisation });
+      if (gone.length) await audit(actorName, "partner.delete", "partner", id, gone[0].organisation, null);
+      return NextResponse.json({ ok: gone.length > 0 });
     }
 
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });

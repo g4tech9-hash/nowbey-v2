@@ -39,6 +39,9 @@
   "exclude": [
     "node_modules",
     "expo",
+    "V2_UI_Backup",
+    "design-preview-2026",
+    "audit-staging",
     "capacitor.config.ts"
   ]
 }

@@ -583,7 +583,7 @@ export default function NowBeyMap({
                 }}
                 placeholder="Search street, dock, landmark…"
                 aria-label="Search for a street or landmark"
-                className="w-full bg-transparent text-[13px] text-sand-100 outline-none placeholder:text-[#6e97a0]"
+                className="w-full bg-transparent text-[13px] text-sand-100 outline-none placeholder:text-ink-400"
               />
               {searching ? <span className="text-[11px] text-tide-300">…</span> : null}
             </div>
@@ -600,7 +600,7 @@ export default function NowBeyMap({
                       }}
                     >
                       <span className="block text-[13px] font-semibold">{r.label}</span>
-                      <span className="block text-[11px] text-[#8fb9b6]">
+                      <span className="block text-[11px] text-ink-400">
                         {formatCoord(r.lat, "lat")} · {formatCoord(r.lng, "lng")}
                         {r.parish ? ` · ${r.parish}` : ""}
                       </span>
@@ -622,7 +622,7 @@ export default function NowBeyMap({
                 aria-pressed={layer === key}
                 onClick={() => setLayer(key)}
                 className={`min-h-[40px] rounded-lg px-2.5 py-1.5 transition ${
-                  layer === key ? "bg-tide-500 text-abyss-950" : "text-[#bfe4e0] hover:bg-white/10"
+                  layer === key ? "bg-tide-500 text-abyss-950" : "text-ink-200 hover:bg-white/10"
                 }`}
               >
                 <span className="sm:hidden">{LAYERS[key].short}</span>
@@ -635,7 +635,7 @@ export default function NowBeyMap({
             onClick={() => setShowPins((v) => !v)}
             title={showPins ? "Hide other pins" : "Show other pins"}
             aria-pressed={showPins}
-            className={`glass min-h-[40px] shrink-0 rounded-xl px-2.5 py-2 text-[11.5px] font-bold ${showPins ? "text-tide-300" : "text-[#8fb9b6]"}`}
+            className={`glass min-h-[40px] shrink-0 rounded-xl px-2.5 py-2 text-[11.5px] font-bold ${showPins ? "text-tide-300" : "text-ink-400"}`}
           >
             Pins
           </button>
@@ -707,13 +707,13 @@ export default function NowBeyMap({
           crosshair stays clear; on wider screens it docks bottom-right, left of the zoom control. */}
       {mode === "pick" ? (
         <div className={`absolute right-2.5 z-[500] w-[min(300px,84vw)] sm:bottom-2.5 sm:right-14 sm:top-auto ${compact ? "top-2.5" : "top-[68px]"}`}>
-          <div className="glass rounded-xl p-2.5 text-[12px] shadow-[0_18px_40px_rgba(0,0,0,.5)]">
+          <div className="nb-surface rounded-xl2 p-2.5 text-[12px] shadow-[0_18px_40px_rgba(0,0,0,.5)]">
             {pick ? (
               <>
                 <p className="font-mono text-[11.5px] text-tide-300">
                   {pick.lat.toFixed(6)}, {pick.lng.toFixed(6)}
                 </p>
-                <p className="mt-0.5 text-[11.5px] text-[#bfe4e0]">
+                <p className="mt-0.5 text-[11.5px] text-ink-200">
                   {geoNote ?? (aim ? "Nudge the map, not the pin — the crosshair is the pin." : "Drag the pin tip, or use the arrows.")}
                 </p>
                 <div className="mt-2 flex items-center gap-2">
@@ -740,14 +740,14 @@ export default function NowBeyMap({
                           {cell.g}
                         </button>
                       ) : (
-                        <span key={i} className="grid h-6 w-6 place-items-center text-[9px] text-[#4f7a83]">
+                        <span key={i} className="grid h-6 w-6 place-items-center text-[9px] text-ink-400">
                           {cell.g || "\u00b7"}
                         </span>
                       ),
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="mb-1 text-[10.5px] leading-tight text-[#8fb9b6]">
+                    <p className="mb-1 text-[10.5px] leading-tight text-ink-400">
                       Nudge the pin tip onto the kerb, gate or drain.
                     </p>
                     <div className="flex gap-1">
@@ -757,7 +757,7 @@ export default function NowBeyMap({
                           type="button"
                           onClick={() => setStep(s)}
                           className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-bold ${
-                            step === s ? "bg-tide-500 text-abyss-950" : "bg-white/10 text-[#bfe4e0]"
+                            step === s ? "bg-tide-500 text-abyss-950" : "bg-white/10 text-ink-200"
                           }`}
                         >
                           {s} m
@@ -789,7 +789,7 @@ export default function NowBeyMap({
                 </div>
               </>
             ) : (
-              <p className="text-[12px] text-[#bfe4e0]">
+              <p className="text-[12px] text-ink-200">
                 Tap the exact spot on the map, or search a street. Then drag the pin tip onto the kerb, gate or pothole.
               </p>
             )}
@@ -805,7 +805,7 @@ export default function NowBeyMap({
               type="button"
               onClick={() => setFallbackNote(null)}
               aria-label="Dismiss"
-              className="min-h-[32px] min-w-[32px] rounded-md text-[13px] font-bold text-[#8fb9b6] hover:bg-white/10"
+              className="min-h-[32px] min-w-[32px] rounded-md text-[13px] font-bold text-ink-400 hover:bg-white/10"
             >
               ✕
             </button>
@@ -833,7 +833,7 @@ export default function NowBeyMap({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="display text-[15px] font-bold">Street level</p>
-              <p className="text-[11px] text-[#8fb9b6]">
+              <p className="text-[11px] text-ink-400">
                 {formatCoord(streetView.lat, "lat")} · {formatCoord(streetView.lng, "lng")}
               </p>
             </div>
@@ -870,10 +870,10 @@ export default function NowBeyMap({
             ) : (
               <div className="grid h-full place-items-center p-5 text-center">
                 <div className="max-w-[420px] space-y-2">
-                  <p className="display text-[15px] font-bold text-sun-400">
+                  <p className="display text-[15px] font-bold text-sun-600">
                     {googleKey ? "No Street View photos at this exact spot" : "Street level opens in Google Maps"}
                   </p>
-                  <p className="text-[12.5px] text-[#bfe4e0]">
+                  <p className="text-[12.5px] text-ink-200">
                     {googleKey
                       ? "Coverage in The Bahamas is strongest around Nassau, Paradise Island and Freeport. Zoom the satellite layer for the closest thing to a photo."
                       : "Street photos are not built into NowBey yet. Open this exact spot in Google Maps to look around at street level."}

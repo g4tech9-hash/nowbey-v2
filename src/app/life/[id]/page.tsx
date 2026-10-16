@@ -59,7 +59,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         </Link>
 
         {hidden ? (
-          <p className="mt-2 rounded-xl bg-conch-500/12 px-3.5 py-2.5 text-[12.5px] text-conch-400">
+          <p className="mt-2 rounded-xl bg-conch-500/12 px-3.5 py-2.5 text-[12.5px] text-danger-500">
             This post is hidden from the public{viewer.isEditor ? ". Staff can restore it below." : ", and only you can see it. Our team may have taken it down."}
           </p>
         ) : null}
@@ -68,8 +68,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           <span className="rounded-full px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide" style={{ background: `${kind.color}26`, color: kind.color }}>
             {kind.label}
           </span>
-          {post.parish ? <span className="text-[12px] text-[#8fb9b6]">{post.parish}</span> : null}
-          <span className="text-[11.5px] text-[#6e97a0]">{timeAgo(post.createdAt)}</span>
+          {post.parish ? <span className="text-[12px] text-ink-400">{post.parish}</span> : null}
+          <span className="text-[11.5px] text-ink-400">{timeAgo(post.createdAt)}</span>
         </div>
 
         {post.placeName ? (
@@ -82,7 +82,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
         <h1 className="display mt-1 text-[clamp(1.5rem,4vw,2.15rem)] font-extrabold leading-[1.08] text-sand-100">{post.title}</h1>
 
-        <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12.5px] text-[#8fb9b6]">
+        <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12.5px] text-ink-400">
           <span className="font-semibold text-sand-100">@{post.authorHandle}</span>
           <BadgeMark kind={badges.get(post.authorHandle) ?? null} />
         </div>
@@ -111,7 +111,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           </div>
         ) : null}
 
-        <p className="mt-4 max-w-[68ch] whitespace-pre-line text-[15px] leading-relaxed text-[#dff3f0]">{post.body}</p>
+        <p className="mt-4 max-w-[68ch] whitespace-pre-line text-[15px] leading-relaxed text-ink-200">{post.body}</p>
 
         {!hidden ? (
           <div className="mt-4">
@@ -146,7 +146,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                 pins={[{ id: post.id, lat: post.lat, lng: post.lng, category: "notice", color: kind.color, label: kind.label, title: post.title, meta: post.placeName ?? post.street ?? "" }]}
               />
             </div>
-            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-[12px] text-[#8fb9b6]">
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-[12px] text-ink-400">
               <span className="font-mono text-[11.5px]">
                 {formatCoord(post.lat, "lat")} {formatCoord(post.lng, "lng")}
               </span>
@@ -163,15 +163,15 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       </article>
 
       <aside className="space-y-4">
-        <div className="glass rounded-2xl p-3.5">
+        <div className="nb-surface rounded-xl2 p-3.5">
           <p className="display text-[14.5px] font-bold text-sand-100">More in {kind.label}</p>
           {others.length ? (
             <ul className="mt-2 space-y-2.5">
               {others.map((o) => (
                 <li key={o.id}>
                   <Link href={`/life/${o.id}`} className="group block">
-                    <span className="block text-[13px] font-semibold leading-snug text-[#dff3f0] group-hover:text-tide-300">{o.title}</span>
-                    <span className="block text-[11px] text-[#6e97a0]">
+                    <span className="block text-[13px] font-semibold leading-snug text-ink-200 group-hover:text-tide-300">{o.title}</span>
+                    <span className="block text-[11px] text-ink-400">
                       {o.placeName ?? o.parish} · {timeAgo(o.createdAt)}
                     </span>
                   </Link>
@@ -179,7 +179,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
               ))}
             </ul>
           ) : (
-            <p className="mt-1.5 text-[12.5px] text-[#6e97a0]">This is the first one in this section.</p>
+            <p className="mt-1.5 text-[12.5px] text-ink-400">This is the first one in this section.</p>
           )}
           <Link href="/life/new" className="mt-3 inline-block rounded-full bg-sun-500 px-3.5 py-1.5 text-[12.5px] font-extrabold text-abyss-950">
             Share your own

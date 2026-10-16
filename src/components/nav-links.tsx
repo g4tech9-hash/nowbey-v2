@@ -99,7 +99,7 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
   if (variant === "bar") {
     return (
       <nav
-        className="nb-pad-bottom fixed inset-x-0 bottom-0 z-[700] border-t hairline bg-abyss-950/92 backdrop-blur-md lg:hidden"
+        className="glass-strong nb-pad-bottom fixed inset-x-0 bottom-0 z-[700] border-t hairline lg:hidden"
         aria-label="Primary"
       >
         <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
@@ -110,8 +110,8 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
                 <Link
                   href={l.href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10.5px] font-bold active:scale-[0.97] ${
-                    active ? "bg-tide-500 text-abyss-950" : "text-[#bfe4e0] hover:bg-white/8"
+                  className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10.5px] font-bold transition duration-200 ease-standard active:scale-[0.97] ${
+                    active ? "bg-tide-500 text-abyss-950 shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
                   }`}
                 >
                   <Glyph name={l.icon} active={active} />
@@ -136,8 +136,8 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
               <Link
                 href={l.href}
                 aria-current={active || childActive ? "page" : undefined}
-                className={`rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition ${
-                  active || childActive ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100"
+                className={`rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition duration-200 ease-standard ${
+                  active || childActive ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-ink-300 hover:bg-white/5 hover:text-sand-100"
                 }`}
               >
                 {l.label}
@@ -150,7 +150,7 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
                       href={c.href}
                       aria-current={pathname.startsWith(c.href) ? "page" : undefined}
                       className={`block rounded-lg px-2.5 py-2 text-[13px] font-semibold ${
-                        pathname.startsWith(c.href) ? "bg-tide-500/18 text-tide-300" : "text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100"
+                        pathname.startsWith(c.href) ? "bg-tide-500/18 text-tide-300" : "text-ink-300 hover:bg-white/5 hover:text-sand-100"
                       }`}
                     >
                       {c.label}
@@ -166,8 +166,8 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
             key={l.href}
             href={l.href}
             aria-current={active ? "page" : undefined}
-            className={`rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition ${
-              active ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-[#a9cdc9] hover:bg-white/5 hover:text-sand-100"
+            className={`rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition duration-200 ease-standard ${
+              active ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-ink-300 hover:bg-white/5 hover:text-sand-100"
             }`}
           >
             {l.label}
@@ -176,11 +176,11 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
       })}
       <span
         title={online ? "Browser is online" : "Browser is offline — showing the last cached feed"}
-        className={`ml-1 hidden items-center gap-1 rounded-full px-2 py-1 text-[10.5px] font-bold lg:inline-flex ${
-          online ? "bg-tide-500/15 text-tide-300" : "bg-conch-500/20 text-conch-400"
+        className={`ml-1 hidden items-center gap-1.5 rounded-full px-2 py-1 text-[10.5px] font-bold lg:inline-flex ${
+          online ? "bg-ok-500/15 text-ok-600" : "bg-danger-500/15 text-danger-500"
         }`}
       >
-        <span className={`h-1.5 w-1.5 rounded-full ${online ? "bg-tide-400" : "bg-conch-500"}`} />
+        {online ? <span className="nb-live-dot" aria-hidden /> : <span className="h-1.5 w-1.5 rounded-full bg-danger-500" aria-hidden />}
         {online ? "live" : "cached"}
       </span>
     </div>
@@ -201,7 +201,7 @@ export function SessionChip({ handle }: { handle: string | null }) {
   ) : (
     <Link
       href="/login"
-      className="flex min-h-[40px] items-center rounded-full border hairline px-3 py-1.5 text-[12.5px] font-bold text-[#bfe4e0] hover:bg-white/5 sm:min-h-0"
+      className="flex min-h-[40px] items-center rounded-full border hairline px-3 py-1.5 text-[12.5px] font-bold text-ink-200 hover:bg-white/5 sm:min-h-0"
     >
       Sign in
     </Link>
