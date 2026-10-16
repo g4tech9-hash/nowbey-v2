@@ -485,6 +485,94 @@ footer a { color: var(--tide-300); }
   </div>
 </section>
 
+<!-- ==================== LIGHT MODE FIX + PROFILE ==================== -->
+<section id="lightfix" class="wrap">
+  <p class="kicker">Remediation · v2026.10-b</p>
+  <h2 class="title">Light mode, rebuilt — and the Island Record</h2>
+  <p class="lede">The old light mode failed contrast at nearly every text tier. The rebuild keeps the technical
+  character by earning precision from <b style="color:var(--ink-200)">crisp cool off-whites, structural hairlines and a deep teal text tier</b> —
+  "instrument panel on paper" instead of "neon on black". Every text token now passes WCAG AAA on both white and raised surfaces.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;margin-top:26px;align-items:start">
+    <!-- contrast ledger -->
+    <div class="surface" style="padding:22px">
+      <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:12px">Contrast ledger (on white)</h4>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+        <thead><tr style="text-align:left;color:var(--ink-400);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em">
+          <th style="padding:6px 0">Token</th><th>Old</th><th>New</th><th>Ratio</th><th>Verdict</th></tr></thead>
+        <tbody style="color:var(--ink-200)">
+          <tr style="border-top:1px solid var(--line-soft)"><td style="padding:7px 0">ink-300</td><td class="mono">6.7:1</td><td class="mono">7.5:1</td><td class="mono" style="color:var(--ok-500);font-weight:800">AAA</td><td style="color:var(--ok-500)">✓</td></tr>
+          <tr style="border-top:1px solid var(--line-soft)"><td style="padding:7px 0">ink-400</td><td class="mono">4.3:1</td><td class="mono">7.6:1</td><td class="mono" style="color:var(--ok-500);font-weight:800">AAA</td><td style="color:var(--ok-500)">✓</td></tr>
+          <tr style="border-top:1px solid var(--line-soft)"><td style="padding:7px 0">tide links</td><td class="mono">5.6:1</td><td class="mono">7.2:1</td><td class="mono" style="color:var(--ok-500);font-weight:800">AAA</td><td style="color:var(--ok-500)">✓</td></tr>
+          <tr style="border-top:1px solid var(--line-soft)"><td style="padding:7px 0">primary btn</td><td class="mono">2.7:1</td><td class="mono">7.2:1</td><td class="mono" style="color:var(--ok-500);font-weight:800">AAA</td><td style="color:var(--ok-500)">✓</td></tr>
+          <tr style="border-top:1px solid var(--line-soft)"><td style="padding:7px 0">sev-2 graphic</td><td class="mono">1.4:1</td><td class="mono">3.8:1</td><td class="mono" style="color:var(--ok-500);font-weight:800">UI</td><td style="color:var(--ok-500)">✓</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:11.5px;color:var(--ink-400);margin-top:12px;line-height:1.6">Surfaces step <span class="mono">#EDF2F5 → #F7FAFB → #FFF → #E9F0F3</span> so white cards lift with cool blue-tinted shadows, not gray mud.</p>
+    </div>
+
+    <!-- live light-mode profile mock (scoped light theme) -->
+    <div data-theme="light" style="border-radius:var(--r-lg);overflow:hidden;border:1px solid rgba(16,42,58,0.12);box-shadow:var(--shadow-l3)">
+      <div style="background:linear-gradient(120deg,#E9F0F3,#DCE7EC 60%,#EDF2F5);padding:16px;position:relative">
+        <div style="display:flex;align-items:flex-end;gap:12px">
+          <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#00897B,#D64550);border:3px solid #fff;display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;box-shadow:var(--shadow-l2)">SB</div>
+          <div style="padding-bottom:2px">
+            <div style="font-family:var(--font-display);font-weight:800;font-size:16px;color:#0a1a24">Sasha Bethel <span style="font-size:10px;background:rgba(214,69,80,.12);color:#c2413c;border-radius:999px;padding:2px 7px;font-weight:800;vertical-align:2px">VERIFIED</span></div>
+            <div style="font-family:var(--font-mono);font-size:11.5px;color:#00635a">@sasha.b · 🏝 New Providence · since March 2024</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:#fff;padding:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div style="background:#fbfdfe;border:1px solid rgba(16,42,58,.09);border-radius:12px;padding:9px"><div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#3a4e57">Reports</div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#0a1a24">47</div></div>
+        <div style="background:#fbfdfe;border:1px solid rgba(0,99,90,.4);border-radius:12px;padding:9px"><div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#3a4e57">Confirms</div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#00635a">312</div></div>
+        <div style="background:#fbfdfe;border:1px solid rgba(16,42,58,.09);border-radius:12px;padding:9px"><div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#3a4e57">Islands</div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#0a1a24">3</div></div>
+        <div style="background:#fbfdfe;border:1px solid rgba(16,42,58,.09);border-radius:12px;padding:9px"><div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#3a4e57">Weeks</div><div style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#0a1a24">96</div></div>
+      </div>
+      <div style="background:#fff;padding:0 14px 14px">
+        <div style="border:1px solid rgba(16,42,58,.09);border-radius:12px;padding:11px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#3a4e57">Trust ratio</span>
+            <span style="font-family:var(--font-mono);font-size:13px;font-weight:800;color:#00635a">6.6 <span style="font-size:9.5px;color:#3a4e57">confirms/report</span></span>
+          </div>
+          <div style="height:8;height:8px;border-radius:8px;background:#dce7ec;margin-top:7px;overflow:hidden"><div style="width:66%;height:8px;border-radius:8px;background:#00897b"></div></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <div style="flex:1;border:1px solid rgba(16,42,58,.09);border-radius:12px;padding:10px;display:flex;gap:9px;align-items:center">
+            <span style="width:8px;height:8px;border-radius:8px;background:#facc15;display:inline-block"></span>
+            <div style="flex:1"><div style="font-size:11.5px;font-weight:800;color:#0a1a24">Filed · Lines down after squall</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+              <span class="sev"><i class="on" style="color:#a10e33"></i><i class="on" style="color:#a10e33"></i><i class="on" style="color:#a10e33"></i><i class="on" style="color:#a10e33"></i><i class="on" style="color:#a10e33"></i></span>
+              <span style="font-family:var(--font-mono);font-size:10px;color:#3a4e57">2h</span>
+              <span style="font-family:var(--font-mono);font-size:10px;color:#065c43;font-weight:700">✓ 41</span>
+            </div></div>
+            <span style="font-size:9.5px;font-weight:800;background:rgba(168,124,0,.14);color:#6e4e00;border-radius:999px;padding:3px 8px;text-transform:uppercase">open</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:800;background:rgba(0,137,123,.1);color:#00635a;border:1px solid rgba(0,137,123,.4);border-radius:999px;padding:4px 9px">🏅 First report</span>
+          <span style="font-size:10px;font-weight:800;background:rgba(0,137,123,.1);color:#00635a;border:1px solid rgba(0,137,123,.4);border-radius:999px;padding:4px 9px">🏅 Storm watcher</span>
+          <span style="font-size:10px;font-weight:800;background:rgba(0,137,123,.1);color:#00635a;border:1px solid rgba(0,137,123,.4);border-radius:999px;padding:4px 9px">🏅 Island guardian</span>
+          <span style="font-size:10px;font-weight:800;color:#3a4e57;border:1px dashed rgba(16,42,58,.25);border-radius:999px;padding:4px 9px">🔒 Century · 47/100</span>
+        </div>
+        <div style="margin-top:12px;background:#00635a;color:#fff;border-radius:999px;min-height:40px;display:grid;place-items:center;font-size:13px;font-weight:800">Endorse a neighbour’s report</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass" style="margin-top:20px;border-radius:var(--r-lg);padding:20px 22px">
+    <h3 style="font-size:14px;margin-bottom:10px">The Island Record — social paradigms, mapped to utility</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;font-size:12.5px;color:var(--ink-200);line-height:1.55">
+      <div><b style="color:var(--tide-300)">Impact bento</b><br>Reports · confirmations · islands on alert · weeks active</div>
+      <div><b style="color:var(--tide-300)">Trust panel</b><br>Verified badge with grant reason + trust ratio (accuracy, not popularity)</div>
+      <div><b style="color:var(--tide-300)">Coverage fingerprint</b><br>Which of the 13 categories this member reports</div>
+      <div><b style="color:var(--tide-300)">Activity timeline</b><br>Reports, confirmations, badges — anonymous stays unnamed</div>
+      <div><b style="color:var(--tide-300)">Achievement shelf</b><br>Earned by contributing, never bought; locked ones show progress</div>
+      <div><b style="color:var(--tide-300)">Neighbour graph</b><br>The confirmation network — not a follower list</div>
+    </div>
+    <p class="cite" style="margin-top:12px">Full code: <b>Profile_Social_Web_Preview.tsx</b> · <b>Profile_Social_Mobile_Preview.tsx</b> · tokens in <b>Theme_LightMode_Fix.css</b> · strategy in <b>Profile_2026_Strategy.md</b></p>
+  </div>
+</section>
+
 <footer class="wrap">
   <p><b style="color:var(--ink-200)">NowBey “Tideglass” v2026.10 — preview build.</b> Nothing in <span class="mono">src/</span> or <span class="mono">expo/</span> has been modified. Preview artifacts live in <span class="mono">design-preview-2026/</span>.</p>
   <p class="cite" style="margin-top:10px">

@@ -58,10 +58,16 @@
   /* ---- Semantic ----------------------------------------------------------- */
   --color-ok-500: #3ecf9a; /* confirmed, resolved, safe                    */
   --color-ok-400: #6fe3b6;
+  --color-ok-600: #6fe3b6; /* semantic TEXT tier (dark: the lighter one)   */
   --color-warn-500: #ffc531; /* caution                                     */
+  --color-warn-600: #ffd766;
   --color-danger-500: #f43f5e; /* critical                                   */
   --color-danger-400: #fb7185;
+  --color-danger-600: #fb7185;
   --color-info-500: #7dd3fc; /* neutral information                         */
+  --color-info-600: #bae6fd;
+  /* Light mode re-points every *-600 tier to its deep, AAA-on-white twin
+     (see Theme_LightMode_Fix.css). Dark mode's text tier is the lighter one. */
 
   /* ---- Severity ramp (perceptual: calm → critical) ------------------------- */
   --color-sev-1: #3ecf9a;
@@ -84,6 +90,22 @@
   --color-cat-event: #f472b6;
   --color-cat-notice: #94a3b8;
   --color-cat-accident: #ef4444;
+
+  /* Category TEXT/DOT tier — identical to fills on dark; Theme_LightMode_Fix.css
+     re-points each to a ≥3:1-on-white variant for dots and colored text. */
+  --color-cat-flood-t: #38bdf8;
+  --color-cat-storm-t: #fbbf24;
+  --color-cat-power-t: #facc15;
+  --color-cat-water-t: #22d3ee;
+  --color-cat-crime-t: #fb7185;
+  --color-cat-road-t: #f97316;
+  --color-cat-marine-t: #2dd4bf;
+  --color-cat-fire-t: #ef4444;
+  --color-cat-health-t: #a78bfa;
+  --color-cat-trash-t: #84cc16;
+  --color-cat-event-t: #f472b6;
+  --color-cat-notice-t: #94a3b8;
+  --color-cat-accident-t: #ef4444;
 
   /* ---- Text --------------------------------------------------------------- */
   --color-ink-100: #eaf6f4; /* primary text on dark                        */
