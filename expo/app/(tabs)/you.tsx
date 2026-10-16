@@ -179,6 +179,34 @@ function Account() {
         ) : null}
       </View>
 
+      {/* Island Record: plan, reach and reach-back as one bento strip. */}
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        {[
+          { label: "PLAN", value: user.plan.tier ? TIER_NAMES[user.plan.tier] : "Free", tone: color.sun },
+          { label: "ISLANDS", value: String(islands.length), tone: color.tideLight },
+          { label: "REPORT KINDS", value: String(cats.length), tone: color.tidePale },
+        ].map((cell) => (
+          <View
+            key={cell.label}
+            style={{
+              flex: 1,
+              backgroundColor: color.panel2,
+              borderColor: color.line,
+              borderWidth: 1,
+              borderRadius: 14,
+              paddingHorizontal: 10,
+              paddingVertical: 10,
+              gap: 4,
+            }}
+          >
+            <Text style={[t.subtle, { fontSize: 9.5, fontWeight: "800", letterSpacing: 0.8 }]}>{cell.label}</Text>
+            <Text style={{ color: cell.tone, fontSize: 15, fontWeight: "800", fontVariant: ["tabular-nums"] }} numberOfLines={1}>
+              {cell.value}
+            </Text>
+          </View>
+        ))}
+      </View>
+
       {user.email && user.emailVerified === false ? (
         <Card>
           <Text style={t.h3}>Confirm your email</Text>
