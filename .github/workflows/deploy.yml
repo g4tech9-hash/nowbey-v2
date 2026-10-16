@@ -121,18 +121,35 @@ jobs:
 
           # A token copied from the Vercel page often arrives with a trailing newline, a stray
           # carriage return, or wrapped in quotes. Vercel then rejects a perfectly good credential
-          # with "not valid", which is indistinguishable from a revoked one. Clean it here, and say
-          # whether cleaning changed anything.
+          # with "not valid", which is indistinguishable from a revoked one.
+          #
+          # A Vercel token never contains whitespace, so removing every whitespace character
+          # cannot corrupt a good one, and it repairs the usual pastes: a trailing newline, a
+          # leading newline, a quote at either end, or a token that arrived wrapped over two
+          # lines. One layer of surrounding quotes comes off after that. The shape report below
+          # says how many lines and how much whitespace the raw value had, so a bad paste is
+          # visible instead of looking exactly like a revoked token.
           raw_token="${VERCEL_TOKEN:-}"
-          token="$(printf '%s' "$raw_token" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"\(.*\)$/\1/' -e "s/^'\(.*\)$/\1/")"
+          # The quote patterns need the closing quote *inside* the group (`^"\(.*\)"$`): with it
+          # outside, a greedy `.*` swallows the closing quote and leaves it behind. A lone quote at
+          # either end is stripped too, because a token never contains one.
+          token="$(printf '%s' "$raw_token" | tr -d '[:space:]' | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/" -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+          raw_lines="$(printf '%s\n' "$raw_token" | grep -c . || true)"
+          raw_ws="$(printf '%s' "$raw_token" | tr -cd '[:space:]' | wc -c | tr -d ' ')"
           if [ "$token" != "$raw_token" ]; then
             echo "VERCEL_TOKEN carried whitespace or quotes; they were removed before use."
+          fi
+          if [ "${raw_lines:-0}" -gt 1 ]; then
+            echo "VERCEL_TOKEN has $raw_lines non-empty lines; a Vercel token is one unbroken string."
           fi
 
           echo "== secrets handed to this step (values are never printed) =="
           describe VERCEL_TOKEN      "$token"
           describe VERCEL_ORG_ID     "${VERCEL_ORG_ID:-}"
           describe VERCEL_PROJECT_ID "${VERCEL_PROJECT_ID:-}"
+          # The shape of the token, still without the value: lines > 1 or raw_whitespace > 0 means
+          # the value was pasted badly.
+          printf '%-18s lines=%-3s raw_whitespace=%-3s\n' VERCEL_TOKEN "$raw_lines" "$raw_ws"
 
           # What commit is the live site serving? This one fact is the difference between "the
           # release is live" and "the release is missing", so it is read straight from the site.
@@ -180,9 +197,16 @@ jobs:
             # token, and something about the network for a runner that cannot reach
             # api.vercel.com. Those are different problems with different fixes, so tell them
             # apart instead of calling both "the token was rejected".
-            flat="$(printf '%s' "$whoami_out" | tr '\n' ' ' | cut -c1-240)"
+            #
+            # Quote the lines that actually say what went wrong: the CLI prints a version banner
+            # and a telemetry notice first, so the first lines of its output are noise.
+            detail="$(printf '%s\n' "$whoami_out" | grep -iE "error|not valid|unauthorized|forbidden|denied|expired|invalid" | head -3)"
+            if [ -z "$detail" ]; then
+              detail="$(printf '%s\n' "$whoami_out" | grep -v '^[[:space:]]*$' | tail -2)"
+            fi
+            flat="$(printf '%s' "$detail" | tr '\n' ' ' | cut -c1-300)"
             if printf '%s' "$whoami_out" | grep -qiE "not valid|NOT_AUTHORIZED|unauthorized|forbidden|401|403"; then
-              blocked="Vercel rejected VERCEL_TOKEN (sha256:$(fp "$token"), length ${#token}): $flat"
+              blocked="Vercel rejected VERCEL_TOKEN (sha256:$(fp "$token"), length ${#token}, lines ${raw_lines}, raw_whitespace ${raw_ws}): $flat"
             elif printf '%s' "$whoami_out" | grep -qiE "ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|getaddrinfo|socket hang up|network|TLS"; then
               blocked="the runner could not reach api.vercel.com: $flat"
             else
