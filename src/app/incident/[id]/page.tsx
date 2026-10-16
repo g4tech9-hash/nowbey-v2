@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, desc, eq, ne, notInArray } from "drizzle-orm";
 import { db } from "@/db";
 import { incidentUpdates, incidents, newsItems, users } from "@/db/schema";
 import { MapPanel } from "@/components/map/map-panel";
 import { IncidentActions } from "@/components/incident-actions";
 import { AdSlot } from "@/components/ad-slot";
 import { CATEGORIES, type CategoryKey, formatCoord, haversineMeters, timeAgo } from "@/lib/geo";
+import { HIDDEN_STATUSES, isHiddenStatus } from "@/lib/command";
 import { UUID_RE } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 import { badgesFor } from "@/lib/badges";
@@ -24,8 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   if (!UUID_RE.test(id)) return { title: "Report not found" };
   const [row] = await db.select({ title: incidents.title, status: incidents.status }).from(incidents).where(eq(incidents.id, id)).limit(1);
-  // A hidden report never leaks its title into the page title.
-  return { title: row && row.status !== "archived" ? row.title : "Report" };
+  // A hidden or unfounded report never leaks its title into the page title.
+  return { title: row && !isHiddenStatus(row.status) ? row.title : "Report" };
 }
 
 export default async function IncidentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,7 +37,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
 
   const [updates, nearby, wire, viewer] = await Promise.all([
     db.select().from(incidentUpdates).where(and(eq(incidentUpdates.incidentId, id), ne(incidentUpdates.kind, "flag"))).orderBy(desc(incidentUpdates.createdAt)),
-    db.select().from(incidents).where(ne(incidents.status, "archived")).orderBy(desc(incidents.createdAt)).limit(120),
+    db.select().from(incidents).where(notInArray(incidents.status, HIDDEN_STATUSES)).orderBy(desc(incidents.createdAt)).limit(120),
     db
       .select()
       .from(newsItems)
@@ -46,7 +47,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
     getViewer(),
   ]);
 
-  if (row.status === "archived" && !viewer.isEditor) notFound();
+  if (isHiddenStatus(row.status) && !viewer.isEditor) notFound();
   const badges = await badgesFor([row.anonymous ? null : row.authorHandle]);
   const meta = CATEGORIES[row.category as CategoryKey] ?? CATEGORIES.notice;
   const neighbours = nearby
@@ -231,7 +232,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
         </div>
 
         <div className="mt-6">
-          <Discussion type="incident" id={row.id} viewer={viewer} open={row.status !== "archived"} />
+          <Discussion type="incident" id={row.id} viewer={viewer} open={!isHiddenStatus(row.status)} />
         </div>
       </article>
 

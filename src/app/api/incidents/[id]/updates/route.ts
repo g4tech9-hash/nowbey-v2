@@ -4,6 +4,7 @@ import { and, eq, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { incidents, incidentUpdates } from "@/db/schema";
 import { getViewer, type Viewer } from "@/lib/viewer";
+import { isHiddenStatus } from "@/lib/command";
 import { publicIncident } from "@/lib/public";
 import { serverSecret } from "@/lib/auth";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
@@ -42,7 +43,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   const [existing] = await db.select().from(incidents).where(eq(incidents.id, id)).limit(1);
-  if (!existing || existing.status === "archived") return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!existing || isHiddenStatus(existing.status)) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const viewer = await getViewer();
   const actor = actorKey(req, viewer);

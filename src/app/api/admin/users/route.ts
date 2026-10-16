@@ -1,20 +1,24 @@
 import { NextResponse } from "next/server";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { badgeGrants, memberNotes, users } from "@/db/schema";
+import { badgeGrants, bannedDevices, deviceTokens, memberNotes, pushTokens, users } from "@/db/schema";
 import { issueToken } from "@/lib/account";
 import { audit } from "@/lib/audit";
 import { baseUrl } from "@/lib/billing";
+import { tokenFingerprint } from "@/lib/command";
 import { isEnvAdmin, normalizeHandle } from "@/lib/handles";
 import { requireStaff } from "@/lib/staff";
 import { isTierKey } from "@/lib/tiers";
-import { dbInt, text, readJson } from "@/lib/validate";
+import { UUID_RE, dbInt, text, readJson } from "@/lib/validate";
 
 
 const ROLES = ["resident", "editor", "admin"];
 
-/** The one badge a person can hand out. "desk" comes from the role and is never granted here. */
-const GRANTABLE = ["verified"];
+/**
+ * Badges a person can hand out. "desk" comes from the role and is never granted here.
+ * "broadcaster" marks a trusted member whose phone can go live on the map (see /api/streams).
+ */
+const GRANTABLE = ["verified", "broadcaster"];
 
 const fail = (error: string, status = 409) => NextResponse.json({ error }, { status });
 
@@ -80,6 +84,73 @@ export async function PATCH(req: Request) {
         )
         .where(eq(users.id, t.id));
       await audit(actorName, tier ? "plan.grant" : "plan.remove", "user", t.id, t.handle, tier ? `complimentary ${tier}` : `was ${t.adFreeTier ?? "none"}`);
+      return NextResponse.json({ ok: true });
+    }
+
+    /**
+     * Ban one of this member's devices. The token row is deleted and its one-way fingerprint goes
+     * on the ban list, so the device cannot re-register and every send path skips it. Banned by row
+     * id (never by token) so the raw token never leaves the server. Use for stolen phones and
+     * push abuse — for people, suspend the account instead.
+     */
+    case "banDevice": {
+      const kind = String(body.kind ?? "");
+      const rawId = kind === "app" ? String(body.id ?? "") : null;
+      const webId = kind === "web" ? dbInt(body.id) : null;
+      const reason = text(body.reason, 200) || "banned by staff";
+      let token: string | null = null;
+      let platform: string | null = null;
+      if (kind !== "app" && kind !== "web") return fail("Unknown device kind.", 400);
+      if (kind === "app" && rawId) {
+        if (!UUID_RE.test(rawId)) return fail("Unknown device.", 400);
+        const [row] = await db
+          .select({ token: deviceTokens.token })
+          .from(deviceTokens)
+          .where(and(eq(deviceTokens.userId, t.id), eq(deviceTokens.id, rawId)))
+          .limit(1);
+        if (row) {
+          token = row.token;
+          platform = "expo";
+          await db.delete(deviceTokens).where(and(eq(deviceTokens.userId, t.id), eq(deviceTokens.id, rawId)));
+        }
+      } else if (kind === "web" && webId) {
+        const [row] = await db
+          .select({ token: pushTokens.token, platform: pushTokens.platform })
+          .from(pushTokens)
+          .where(and(eq(pushTokens.userId, t.id), eq(pushTokens.id, webId)))
+          .limit(1);
+        if (row) {
+          token = row.token;
+          platform = row.platform;
+          await db.delete(pushTokens).where(and(eq(pushTokens.userId, t.id), eq(pushTokens.id, webId)));
+        }
+      }
+      if (!token) return fail("That device is not on this member's account (it may already be gone).", 404);
+      try {
+        await db
+          .insert(bannedDevices)
+          .values({ tokenHash: tokenFingerprint(token), platform, userId: t.id, reason, bannedBy: actorName })
+          .onConflictDoNothing({ target: bannedDevices.tokenHash });
+      } catch {
+        return fail("Device bans are not switched on yet. Run add-banned-devices.sql on the database first.", 503);
+      }
+      await audit(actorName, "device.ban", "user", t.id, t.handle, `${platform ?? "device"}: ${reason}`);
+      return NextResponse.json({ ok: true });
+    }
+
+    /** Lift a device ban. The device can register again; nothing else changes. */
+    case "unbanDevice": {
+      const id = dbInt(body.id);
+      if (!id) return fail("Which ban?", 400);
+      let ban;
+      try {
+        [ban] = await db.select().from(bannedDevices).where(and(eq(bannedDevices.id, id), eq(bannedDevices.userId, t.id))).limit(1);
+      } catch {
+        return fail("Device bans are not switched on yet. Run add-banned-devices.sql on the database first.", 503);
+      }
+      if (!ban) return fail("No such ban on this member.", 404);
+      await db.delete(bannedDevices).where(eq(bannedDevices.id, id));
+      await audit(actorName, "device.unban", "user", t.id, t.handle, ban.reason);
       return NextResponse.json({ ok: true });
     }
 

@@ -1,5 +1,19 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
+## 0. Switch on Incident Command extras (2026-10-16) — one SQL step
+
+The deploy carries four staff upgrades: report editing + merging + "unfounded" status
+(/admin/reports), comment Approve / Delete-&-warn, the live-stream grid with Kill Stream
+(/admin/streams), custom geofenced blasts (/admin/alerts), and Ban Device on member pages.
+Everything except the two new tables works the moment the deploy lands.
+
+1. **Run the SQL once.** Neon → SQL editor → paste all of `add-live-streams.sql` → Run →
+   then paste all of `add-banned-devices.sql` → Run. Both are safe to run twice. Until they
+   run, /admin/streams shows a "not switched on yet" panel (nothing 500s) and Ban Device
+   answers 503 with the same message; reports, comments, alerts and push are unaffected.
+2. **Grant broadcaster status** to the first trusted phones: Admin → Members → open the
+   member → "Verified broadcaster status" → Grant. Only they (and staff) can go live.
+
 ## 0. Turn on AI log fixes (Admin → Logs)
 
 Full write-up: `docs/AI_LOG_FIXES.md`. The code is live-safe without these steps — logs

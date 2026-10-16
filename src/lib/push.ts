@@ -7,7 +7,8 @@
 import { createSign } from "node:crypto";
 import { eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { deviceTokens, pushTokens, type Incident, type NewsItem } from "@/db/schema";
+import { bannedDevices, deviceTokens, pushTokens, type Incident, type NewsItem } from "@/db/schema";
+import { tokenFingerprint } from "@/lib/command";
 import { oneLine } from "@/lib/ai";
 import { chunkArray, isDeadReceipt, isExpoPushToken, type PushReceipt } from "@/lib/collect";
 import { CATEGORIES, nearestParish, type CategoryKey } from "@/lib/geo";
@@ -137,9 +138,23 @@ async function sendOne(oauth: string, projectId: string, token: string, p: PushP
 
 export type PushStats = { matched: number; sent: number; skipped: number; failed: number; pruned: number };
 
+/**
+ * Fingerprints of every banned device. A banned token is refused at registration AND skipped by
+ * every send path, so banning works even for tokens registered before the ban. If the table does
+ * not exist yet (migration not run), sending continues normally instead of breaking.
+ */
+export async function bannedTokenHashes(): Promise<Set<string>> {
+  try {
+    const rows = await db.select({ h: bannedDevices.tokenHash }).from(bannedDevices);
+    return new Set(rows.map((r) => r.h));
+  } catch {
+    return new Set();
+  }
+}
+
 const COOLDOWN_MS = 3 * 60 * 1000;
 
-/** Shared matching + sending for both incidents and wire stories. */
+/** Shared matching + sending for incidents, wire stories and manual blasts. */
 async function dispatch(opts: {
   parish: string | null;
   category: string;
@@ -147,6 +162,8 @@ async function dispatch(opts: {
   lng: number | null;
   payload: (originLink: string) => PushPayload;
   link: string;
+  /** A hand-sent admin blast goes to the whole island, ignoring category prefs. Never set by automation. */
+  allCategories?: boolean;
 }): Promise<PushStats> {
   const stats: PushStats = { matched: 0, sent: 0, skipped: 0, failed: 0, pruned: 0 };
   if (!pushConfigured()) return stats;
@@ -159,15 +176,22 @@ async function dispatch(opts: {
   const oauth = await accessToken();
   if (!oauth) return stats;
 
+  const banned = await bannedTokenHashes();
   const now = Date.now();
   const targets: typeof rows = [];
   for (const row of rows) {
+    if (banned.has(tokenFingerprint(row.token))) {
+      stats.skipped += 1;
+      continue;
+    }
     const islands = row.parishes.split(",").map((s) => s.trim()).filter(Boolean);
     // Content with no island can never match a device safely — skip it rather than wake the wrong island.
     if (!opts.parish) continue;
     if (islands.length && !islands.includes(opts.parish)) continue;
-    const cats = row.categories.split(",").map((s) => s.trim()).filter(Boolean);
-    if (cats.length && !cats.includes(opts.category)) continue;
+    if (!opts.allCategories) {
+      const cats = row.categories.split(",").map((s) => s.trim()).filter(Boolean);
+      if (cats.length && !cats.includes(opts.category)) continue;
+    }
     stats.matched += 1;
     if (row.lastPushAt && now - row.lastPushAt.getTime() < COOLDOWN_MS) {
       stats.skipped += 1;
@@ -248,6 +272,23 @@ export async function dispatchNewsPush(story: Pick<NewsItem, "id" | "title" | "p
   });
 }
 
+/**
+ * Push for a hand-sent admin blast. Web tokens carry no location, so this reaches the island the
+ * geofence sits on (email is the precisely-geofenced half — see dispatchCustomAlerts). The cooldown
+ * still applies; category prefs do not, because a person explicitly chose this audience.
+ */
+export async function dispatchCustomPush(parish: string, title: string, body: string, link: string, base: string): Promise<PushStats> {
+  return dispatch({
+    parish,
+    category: "notice",
+    lat: null,
+    lng: null,
+    link,
+    allCategories: true,
+    payload: () => ({ title: oneLine(title, 100), body: oneLine(body, 220), url: link, kind: "custom", icon: `${base}/icon.svg` }),
+  });
+}
+
 /* --- Expo Push Service (mobile app) --- */
 
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
@@ -277,7 +318,8 @@ export async function sendPushForUsers(userIds: string[], msg: PushMessage): Pro
       .select({ token: deviceTokens.token })
       .from(deviceTokens)
       .where(inArray(deviceTokens.userId, ids));
-    const tokens = [...new Set(rows.map((r) => r.token).filter(isExpoPushToken))];
+    const banned = await bannedTokenHashes();
+    const tokens = [...new Set(rows.map((r) => r.token).filter(isExpoPushToken).filter((t) => !banned.has(tokenFingerprint(t))))];
     if (!tokens.length) return out;
 
     const h = expoHeaders();

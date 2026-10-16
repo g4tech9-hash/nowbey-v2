@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { adminAudit, incidents, memberNotes, users } from "@/db/schema";
+import { adminAudit, bannedDevices, deviceTokens, incidents, memberNotes, pushTokens, users } from "@/db/schema";
 import { badgeHistory } from "@/lib/profile";
 import { getViewer } from "@/lib/viewer";
 import { isEnvAdmin, normalizeHandle } from "@/lib/handles";
@@ -32,7 +32,9 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
   const [u] = await db.select().from(users).where(eq(users.handle, normalizeHandle(handle))).limit(1);
   if (!u) notFound();
 
-  const [reports, history, notes, badges] = await Promise.all([
+  // Token previews only (first 8 chars) — the full token never leaves the server.
+  const preview = (t: string) => `${t.slice(0, 8)}…`;
+  const [reports, history, notes, badges, appDevices, webDevices, bans] = await Promise.all([
     db.select().from(incidents).where(eq(incidents.userId, u.id)).orderBy(desc(incidents.createdAt)).limit(8),
     db
       .select()
@@ -42,7 +44,15 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
       .limit(10),
     db.select().from(memberNotes).where(eq(memberNotes.userId, u.id)).orderBy(desc(memberNotes.createdAt)).limit(20),
     badgeHistory(u.id),
+    db.select({ id: deviceTokens.id, token: deviceTokens.token, at: deviceTokens.updatedAt }).from(deviceTokens).where(eq(deviceTokens.userId, u.id)).orderBy(desc(deviceTokens.updatedAt)).limit(10),
+    db.select({ id: pushTokens.id, token: pushTokens.token, platform: pushTokens.platform, at: pushTokens.lastSeenAt }).from(pushTokens).where(eq(pushTokens.userId, u.id)).orderBy(desc(pushTokens.lastSeenAt)).limit(10),
+    // The ban table may not be migrated yet — a missing table must never hide the member page.
+    db.select().from(bannedDevices).where(eq(bannedDevices.userId, u.id)).orderBy(desc(bannedDevices.createdAt)).limit(10).catch(() => []),
   ]);
+  const devices = [
+    ...appDevices.map((d) => ({ kind: "app" as const, id: d.id, label: `App · ${preview(d.token)}`, at: d.at })),
+    ...webDevices.map((d) => ({ kind: "web" as const, id: String(d.id), label: `${d.platform === "web" ? "Browser" : d.platform} · ${preview(d.token)}`, at: d.at })),
+  ];
 
   const tier = isTierKey(u.adFreeTier) ? TIERS[u.adFreeTier] : null;
   const payingViaStripe = Boolean(u.stripeSubscriptionId) && !["sandbox", "comp"].includes(u.planStatus ?? "");
@@ -119,6 +129,8 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
               hasEmail={Boolean(u.email)}
               emailVerified={Boolean(u.emailVerifiedAt)}
               badges={badges}
+              devices={devices}
+              bans={bans.map((b) => ({ id: b.id, platform: b.platform, reason: b.reason, at: b.createdAt }))}
             />
           </div>
         </section>

@@ -1,6 +1,7 @@
-import { and, desc, eq, gt, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, gt, isNull, ne, notInArray, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSubscriptions, badgeGrants, hiddenProfileReports, incidents, memberProfiles } from "@/db/schema";
+import { HIDDEN_STATUSES } from "@/lib/command";
 
 /**
  * Reading half of member profiles. The tables are described in src/db/add-profiles.sql, and this file is the
@@ -129,7 +130,7 @@ export async function reportsFor(
   handle: string | null,
   { includeAnonymous = false, includeHidden = true, limit = 20 }: { includeAnonymous?: boolean; includeHidden?: boolean; limit?: number } = {},
 ): Promise<ProfileReport[]> {
-  const conds: SQL[] = [ne(incidents.status, "archived")];
+  const conds: SQL[] = [notInArray(incidents.status, HIDDEN_STATUSES)];
   const owner = ownedBy(userId, handle);
   if (owner) conds.push(owner);
   if (!includeAnonymous) conds.push(eq(incidents.anonymous, false));
@@ -158,7 +159,7 @@ export async function reportsFor(
 
 /** How many reports this member has filed, and how many confirmations they have gathered. */
 export async function reportRecord(userId: string, handle: string | null): Promise<{ reports: number; confirmations: number }> {
-  const conds: SQL[] = [ne(incidents.status, "archived"), eq(incidents.anonymous, false)];
+  const conds: SQL[] = [notInArray(incidents.status, HIDDEN_STATUSES), eq(incidents.anonymous, false)];
   const owner = ownedBy(userId, handle);
   if (owner) conds.push(owner);
   const [row] = await db

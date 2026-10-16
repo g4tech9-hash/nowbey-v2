@@ -103,8 +103,18 @@ export function ReportActions({ id, status, canDelete }: { id: string; status: s
     <div className="flex flex-col items-start gap-1">
       <div className="flex flex-wrap gap-1.5">
         {status === "active" ? (
-          <button type="button" disabled={busy !== null} onClick={() => go("resolve")} className={soft}>
-            {busy === "resolve" ? "…" : "Mark resolved"}
+          <>
+            <button type="button" disabled={busy !== null} onClick={() => go("resolve")} className={soft}>
+              {busy === "resolve" ? "…" : "Mark resolved"}
+            </button>
+            <button type="button" disabled={busy !== null} onClick={() => go("unfounded", "Mark this report unfounded? It stays on record but leaves the active map.")} className={soft}>
+              {busy === "unfounded" ? "…" : "Mark unfounded"}
+            </button>
+          </>
+        ) : null}
+        {status === "unfounded" ? (
+          <button type="button" disabled={busy !== null} onClick={() => go("reopen")} className={soft}>
+            {busy === "reopen" ? "…" : "Reopen"}
           </button>
         ) : null}
         {status === "resolved" ? (
