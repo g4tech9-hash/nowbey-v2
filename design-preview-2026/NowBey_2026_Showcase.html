@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NowBey 2026 — “Tideglass” Design System Showcase</title>
+<style>
+/* ============================================================================
+   Standalone mirror of design-preview-2026/nowbey-2026-tokens.css
+   ========================================================================== */
+:root {
+  --font-sans: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Sora", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --abyss-975:#03080f; --abyss-950:#050d16; --abyss-900:#081522; --abyss-850:#0b1d2e;
+  --abyss-800:#0e2637; --abyss-700:#143349; --abyss-600:#1b4560;
+  --tide-600:#00a896; --tide-500:#00c9b7; --tide-400:#2ee6d0; --tide-300:#74f3e3; --tide-200:#a8f7ec;
+  --conch-600:#e4534a; --conch-500:#ff7a6b; --conch-400:#ff9d8f;
+  --sun-600:#e0a800; --sun-500:#ffc531; --sun-400:#ffd766;
+  --sand-100:#f6ead8; --sand-50:#fbf6ee;
+  --ok-500:#3ecf9a; --ok-400:#6fe3b6; --warn-500:#ffc531; --danger-500:#f43f5e; --info-500:#7dd3fc;
+  --sev-1:#3ecf9a; --sev-2:#ffd766; --sev-3:#ffa94d; --sev-4:#ff7a6b; --sev-5:#f43f5e;
+  --ink-100:#eaf6f4; --ink-200:#b9d4d2; --ink-300:#8fb9b6; --ink-400:#6e97a0;
+  --line: rgba(110,151,160,.22); --line-soft: rgba(110,151,160,.13);
+  --shadow-l1: 0 1px 2px rgba(2,8,16,.4);
+  --shadow-l2: 0 8px 24px -8px rgba(2,8,16,.55);
+  --shadow-l3: 0 18px 48px -12px rgba(2,8,16,.65);
+  --shadow-l4: 0 32px 80px -16px rgba(2,8,16,.75);
+  --glow-tide: 0 0 0 1px rgba(0,201,183,.35), 0 8px 32px -8px rgba(0,201,183,.45);
+  --ease-standard: cubic-bezier(.2,0,0,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+  --r-xs:8px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-2xl:36px;
+}
+[data-theme="light"] {
+  --abyss-975:#eef3f6; --abyss-950:#f4f7f9; --abyss-900:#ffffff; --abyss-850:#f7fafb;
+  --abyss-800:#eaf1f4; --abyss-700:#dde8ed; --abyss-600:#c3d3da;
+  --tide-300:#00756a; --tide-400:#00897b; --tide-500:#00a896; --tide-600:#007f70;
+  --ink-100:#0a1a24; --ink-200:#33494f; --ink-300:#46606c; --ink-400:#647f8a;
+  --line: rgba(10,26,36,.14); --line-soft: rgba(10,26,36,.08);
+  --shadow-l1: 0 1px 2px rgba(10,26,36,.08);
+  --shadow-l2: 0 8px 24px -8px rgba(10,26,36,.14);
+  --shadow-l3: 0 18px 48px -12px rgba(10,26,36,.18);
+  --shadow-l4: 0 32px 80px -16px rgba(10,26,36,.22);
+  --glow-tide: 0 0 0 1px rgba(0,168,150,.35), 0 8px 32px -8px rgba(0,168,150,.25);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans); background: var(--abyss-950); color: var(--ink-100);
+  -webkit-font-smoothing: antialiased; overflow-x: hidden; transition: background .3s var(--ease-standard);
+}
+h1,h2,h3,.display { font-family: var(--font-display); letter-spacing: -.02em; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); }
+::selection { background: var(--tide-500); color: var(--abyss-950); }
+
+/* aurora backdrop */
+.aurora { position: fixed; inset: -20%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(42rem 28rem at 82% -8%, rgba(0,201,183,.14), transparent 62%),
+    radial-gradient(34rem 24rem at 6% 4%, rgba(255,122,107,.10), transparent 58%),
+    radial-gradient(50rem 30rem at 50% 110%, rgba(167,139,250,.07), transparent 60%);
+  animation: drift 26s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: rotate(0deg) translateX(0); } to { transform: rotate(3deg) translateX(2%); } }
+
+/* ---------- materials ---------- */
+.glass { background: rgba(14,38,55,.62); border: 1px solid rgba(116,243,227,.14); backdrop-filter: blur(20px) saturate(1.5); box-shadow: var(--shadow-l2), inset 0 1px 0 rgba(255,255,255,.06); }
+[data-theme="light"] .glass { background: rgba(255,255,255,.72); border-color: rgba(10,26,36,.08); }
+.glass-strong { background: rgba(8,21,34,.86); border: 1px solid rgba(116,243,227,.16); backdrop-filter: blur(32px) saturate(1.6); box-shadow: var(--shadow-l3), inset 0 1px 0 rgba(255,255,255,.07); }
+[data-theme="light"] .glass-strong { background: rgba(255,255,255,.9); }
+.surface { background: var(--abyss-900); border: 1px solid var(--line-soft); border-radius: var(--r-lg); box-shadow: var(--shadow-l1); }
+
+/* ---------- layout ---------- */
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+section { padding: 72px 0 8px; }
+.kicker { font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--tide-300); margin-bottom: 10px; }
+h2.title { font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.2rem); font-weight: 800; margin-bottom: 8px; }
+p.lede { color: var(--ink-300); max-width: 62ch; line-height: 1.65; }
+
+/* ---------- top bar ---------- */
+header.top { position: sticky; top: 0; z-index: 500; }
+header.top .inner { display: flex; align-items: center; gap: 14px; padding: 12px 24px; max-width: 1200px; margin: 0 auto; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink-100); }
+.brand b { font-family: var(--font-display); font-size: 19px; font-weight: 800; }
+.brand b i { color: var(--tide-400); font-style: normal; }
+.brand small { display: block; font-size: 9.5px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-400); }
+nav.links { display: flex; gap: 4px; margin-left: auto; }
+nav.links a { color: var(--ink-300); text-decoration: none; font-size: 13px; font-weight: 700; padding: 8px 12px; border-radius: 999px; transition: .2s; }
+nav.links a:hover { color: var(--ink-100); background: rgba(255,255,255,.07); }
+[data-theme="light"] nav.links a:hover { background: rgba(10,26,36,.06); }
+
+/* ---------- buttons ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 20px; border-radius: 999px; font-family: var(--font-sans); font-size: 14px; font-weight: 800; border: none; cursor: pointer; transition: transform .15s var(--ease-spring), background .2s, box-shadow .2s; }
+.btn:active { transform: scale(.96); }
+.btn-primary { background: var(--tide-500); color: var(--abyss-950); box-shadow: var(--glow-tide); }
+.btn-primary:hover { background: var(--tide-400); }
+.btn-ghost { background: rgba(255,255,255,.07); color: var(--ink-100); border: 1px solid var(--line); }
+.btn-ghost:hover { background: rgba(255,255,255,.13); }
+[data-theme="light"] .btn-ghost { background: rgba(10,26,36,.05); }
+.btn-sand { background: var(--sand-100); color: var(--abyss-950); }
+.btn[disabled] { opacity: .45; pointer-events: none; }
+.btn .kbd { font-family: var(--font-mono); font-size: 10.5px; border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+
+/* ---------- chips & meters ---------- */
+.chip { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink-300); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: .2s; }
+.chip:hover { background: rgba(255,255,255,.08); color: var(--ink-100); }
+.chip.on { background: var(--tide-500); color: var(--abyss-950); border-color: transparent; }
+.dot { width: 8px; height: 8px; border-radius: 8px; }
+.sev { display: inline-flex; gap: 3px; }
+.sev i { width: 13px; height: 4px; border-radius: 4px; background: var(--abyss-600); }
+[data-theme="light"] .sev i { background: var(--abyss-600); }
+.sev i.on { box-shadow: 0 0 8px currentColor; background: currentColor; }
+
+/* ---------- swatches ---------- */
+.sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 12px; }
+.sw { border-radius: var(--r-md); border: 1px solid var(--line-soft); overflow: hidden; background: var(--abyss-900); }
+.sw .c { height: 56px; }
+.sw .m { padding: 8px 10px; }
+.sw .m b { display: block; font-size: 12px; }
+.sw .m span { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-400); }
+
+/* ---------- bento demo ---------- */
+.bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 150px; gap: 14px; }
+.tile { border-radius: var(--r-lg); padding: 18px; position: relative; overflow: hidden; }
+.tile h4 { font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-400); margin-bottom: 10px; }
+.span2 { grid-column: span 2; } .row2 { grid-row: span 2; }
+.big-num { font-family: var(--font-display); font-size: 40px; font-weight: 800; }
+.bar { height: 6px; border-radius: 6px; background: var(--abyss-700); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 6px; }
+.live-dot { width: 7px; height: 7px; border-radius: 7px; background: var(--ok-500); animation: pulse 2.4s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(62,207,154,.55); } 70% { box-shadow: 0 0 0 7px rgba(62,207,154,0); } 100% { box-shadow: 0 0 0 0 rgba(62,207,154,0); } }
+
+/* ---------- command palette demo ---------- */
+.palette { max-width: 560px; margin: 0 auto; border-radius: var(--r-xl); overflow: hidden; text-align: left; }
+.palette .head { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line-soft); }
+.palette input { flex: 1; background: none; border: none; outline: none; color: var(--ink-100); font-size: 15px; font-family: var(--font-sans); }
+.palette input::placeholder { color: var(--ink-400); }
+.palette .row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; font-size: 14px; color: var(--ink-200); cursor: pointer; }
+.palette .row.sel, .palette .row:hover { background: rgba(0,201,183,.14); color: var(--ink-100); }
+.palette .row .kbd { margin-left: auto; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-400); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; }
+.palette .group { padding: 12px 16px 4px; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-400); }
+.palette .foot { display: flex; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--line-soft); font-size: 11px; color: var(--ink-400); }
+.palette .foot .kbd { font-family: var(--font-mono); }
+
+/* ---------- phone mock ---------- */
+.phone { width: 300px; height: 620px; border-radius: 44px; background: var(--abyss-950); border: 3px solid var(--abyss-600); overflow: hidden; position: relative; box-shadow: var(--shadow-l4); margin: 0 auto; }
+.phone .notch { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 100px; height: 22px; border-radius: 12px; background: #000; z-index: 5; }
+.phone .scr { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.p-seg { display: flex; margin: 46px 12px 8px; background: rgba(14,38,55,.72); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+[data-theme="light"] .p-seg { background: rgba(255,255,255,.8); }
+.p-seg button { flex: 1; min-height: 32px; border: none; border-radius: 999px; background: none; color: var(--ink-200); font-size: 11.5px; font-weight: 700; cursor: pointer; }
+.p-seg button.on { background: var(--tide-500); color: var(--abyss-950); font-weight: 800; }
+.p-map { flex: 1; margin: 0 10px; border-radius: var(--r-xl); background: radial-gradient(75% 65% at 58% 38%, var(--abyss-800), var(--abyss-975)); border: 1px solid var(--line); position: relative; overflow: hidden; }
+.p-pin { position: absolute; width: 30px; height: 30px; border-radius: 15px; border: 2px solid rgba(255,255,255,.7); display: grid; place-items: center; font-size: 9px; font-weight: 900; color: var(--abyss-950); }
+.p-ring { position: absolute; inset: -6px; border-radius: 20px; border: 2px solid currentColor; opacity: .7; animation: ring 2s infinite; }
+@keyframes ring { 0% { transform: scale(.7); opacity: .7; } 80%,100% { transform: scale(1.8); opacity: 0; } }
+.p-banner { position: absolute; left: 10px; right: 10px; top: 10px; display: flex; gap: 8px; align-items: center; background: var(--abyss-900); border: 1px solid rgba(255,197,49,.4); border-radius: var(--r-md); padding: 8px 10px; }
+.p-sheet { background: var(--abyss-900); border: 1px solid var(--line); border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 8px 0 0; }
+.p-handle { width: 38px; height: 5px; border-radius: 5px; background: var(--abyss-600); margin: 0 auto; }
+.p-tiles { display: flex; gap: 8px; padding: 10px 12px; overflow-x: auto; }
+.p-tile { min-width: 96px; background: var(--abyss-850); border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 9px 10px; }
+.p-tile b { font-size: 19px; font-family: var(--font-display); }
+.p-card { display: flex; gap: 9px; margin: 0 12px 8px; background: var(--abyss-850); border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 10px; }
+.p-nav { display: flex; padding: 8px 8px 22px; background: rgba(8,21,34,.96); border-top: 1px solid var(--line); }
+[data-theme="light"] .p-nav { background: rgba(255,255,255,.96); }
+.p-nav .it { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 9.5px; font-weight: 700; color: var(--ink-400); }
+.p-nav .it.on { color: var(--tide-300); }
+.p-nav .g { width: 42px; height: 32px; border-radius: 999px; display: grid; place-items: center; font-size: 14px; font-weight: 800; }
+.p-nav .it.on .g { background: rgba(0,201,183,.16); }
+.p-nav .cta { width: 50px; height: 50px; border-radius: 25px; background: var(--tide-500); color: var(--abyss-950); font-size: 22px; margin-top: -20px; border: 3px solid var(--abyss-900); box-shadow: 0 6px 16px rgba(0,201,183,.5); }
+
+/* ---------- motion lab ---------- */
+.hoverlift { transition: transform .25s var(--ease-spring), box-shadow .25s; }
+.hoverlift:hover { transform: translateY(-4px); box-shadow: var(--shadow-l3); }
+
+/* ---------- marquee ---------- */
+.marquee { overflow: hidden; }
+.marquee .track { display: flex; gap: 40px; width: max-content; animation: mq 30s linear infinite; white-space: nowrap; }
+.marquee:hover .track { animation-play-state: paused; }
+@keyframes mq { to { transform: translateX(-50%); } }
+
+/* ---------- footer ---------- */
+footer { margin-top: 90px; border-top: 1px solid var(--line-soft); padding: 36px 0 60px; color: var(--ink-400); font-size: 13px; line-height: 1.8; }
+footer a { color: var(--tide-300); }
+.cite { font-size: 12px; color: var(--ink-400); }
+.cite a { color: var(--tide-300); text-decoration: none; border-bottom: 1px dotted; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+@media (max-width: 820px) { .bento { grid-template-columns: repeat(2, 1fr); } .span2 { grid-column: span 2; } }
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+
+<!-- ==================== TOP BAR ==================== -->
+<header class="top">
+  <div class="inner glass">
+    <a class="brand" href="#">
+      <svg width="32" height="32" viewBox="0 0 40 40" aria-hidden">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2ee6d0"/><stop offset="55%" stop-color="#00c9b7"/><stop offset="100%" stop-color="#ff7a6b"/></linearGradient></defs>
+        <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="var(--abyss-800)" stroke="url(#g)" stroke-width="2"/>
+        <path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#2ee6d0" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z" fill="none" stroke="url(#g)" stroke-width="2.2"/>
+        <circle cx="20" cy="15.2" r="2.4" fill="#ffc531"/>
+      </svg>
+      <span><b>Now<i>Bey</i></b><small>Stay safe, Bahamas</small></span>
+    </a>
+    <nav class="links">
+      <a href="#philosophy">Philosophy</a>
+      <a href="#tokens">Tokens</a>
+      <a href="#components">Components</a>
+      <a href="#bento">Bento</a>
+      <a href="#palette">⌘K</a>
+      <a href="#mobile">Mobile</a>
+    </nav>
+    <button class="btn btn-ghost" id="themeBtn" style="min-height:38px;padding:0 14px" onclick="toggleTheme()">🌗 Theme</button>
+  </div>
+</header>
+
+<!-- ==================== HERO / PHILOSOPHY ==================== -->
+<section id="philosophy" class="wrap" style="padding-top:48px">
+  <p class="kicker">NowBey Design System · v2026.10 · Preview</p>
+  <h1 style="font-size:clamp(2.2rem,1.4rem+3.4vw,3.6rem);font-weight:800;line-height:1.05;max-width:18ch">Tideglass — <span style="color:var(--tide-300)">calm signal</span> for a living island.</h1>
+  <p class="lede" style="margin-top:18px;font-size:17px">
+    A ground-up identity for 2026: <b style="color:var(--ink-200)">dark-first tokens</b> with calibrated contrast,
+    <b style="color:var(--ink-200)">liquid glass reserved for control layers</b> (never the data),
+    <b style="color:var(--ink-200)">bento modularity</b> for glanceable scanning, a <b style="color:var(--ink-200)">⌘K command palette</b> that augments visible navigation,
+    and a <b style="color:var(--ink-200)">thumb-zone mobile shell</b> synced token-for-token with the web.
+  </p>
+  <div style="display:flex;gap:12px;margin-top:26px;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="document.getElementById('palette').scrollIntoView()">Try the ⌘K palette</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('bento').scrollIntoView()">See the bento workspace</button>
+  </div>
+  <div class="glass" style="margin-top:36px;border-radius:var(--r-lg);padding:22px 24px">
+    <h3 style="font-size:15px;margin-bottom:14px">Five principles</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;font-size:13.5px;color:var(--ink-200);line-height:1.55">
+      <div><b style="color:var(--tide-300)">1 · Signal over noise</b><br>Severity is encoded in color, glow and meter — readable in a glance at 3am.</div>
+      <div><b style="color:var(--tide-300)">2 · Calm glass</b><br>Translucency on navigation and overlays only. Numbers stay on solid surfaces.</div>
+      <div><b style="color:var(--tide-300)">3 · Honest states</b><br>No dark patterns. Confirmations, “soon” labels and empty states tell the truth.</div>
+      <div><b style="color:var(--tide-300)">4 · Thumb-first</b><br>Primary actions live in the bottom 20% of the phone; nav is bottom-heavy.</div>
+      <div><b style="color:var(--tide-300)">5 · Motion with a job</b><br>Every animation communicates state; all of it yields to prefers-reduced-motion.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== COLOR TOKENS ==================== -->
+<section id="tokens" class="wrap">
+  <p class="kicker">Global tokens</p>
+  <h2 class="title">Color — dark-first, light as a first-class twin</h2>
+  <p class="lede">The same custom-property names drive both themes; components never branch on theme. Brand DNA (abyss · tide · conch · sun) is preserved and re-calibrated for OLED blacks and WCAG AA on every text pairing.</p>
+
+  <h3 style="margin:28px 0 12px;font-size:14px">Surfaces — “abyss”</h3>
+  <div class="sw-grid">
+    <div class="sw"><div class="c" style="background:#03080f"></div><div class="m"><b>abyss-975</b><span>#03080F void</span></div></div>
+    <div class="sw"><div class="c" style="background:#050d16"></div><div class="m"><b>abyss-950</b><span>#050D16 base</span></div></div>
+    <div class="sw"><div class="c" style="background:#081522"></div><div class="m"><b>abyss-900</b><span>#081522 surface 1</span></div></div>
+    <div class="sw"><div class="c" style="background:#0e2637"></div><div class="m"><b>abyss-800</b><span>#0E2637 surface 2</span></div></div>
+    <div class="sw"><div class="c" style="background:#143349"></div><div class="m"><b>abyss-700</b><span>#143349 raised</span></div></div>
+    <div class="sw"><div class="c" style="background:#1b4560"></div><div class="m"><b>abyss-600</b><span>#1B4560 strong line</span></div></div>
+  </div>
+
+  <h3 style="margin:28px 0 12px;font-size:14px">Accents &amp; semantic</h3>
+  <div class="sw-grid">
+    <div class="sw"><div class="c" style="background:#00c9b7"></div><div class="m"><b>tide-500</b><span>#00C9B7 primary</span></div></div>
+    <div class="sw"><div class="c" style="background:#2ee6d0"></div><div class="m"><b>tide-400</b><span>#2EE6D0 glow</span></div></div>
+    <div class="sw"><div class="c" style="background:#74f3e3"></div><div class="m"><b>tide-300</b><span>#74F3E3 text</span></div></div>
+    <div class="sw"><div class="c" style="background:#ff7a6b"></div><div class="m"><b>conch-500</b><span>#FF7A6B secondary</span></div></div>
+    <div class="sw"><div class="c" style="background:#ffc531"></div><div class="m"><b>sun-500</b><span>#FFC531 caution</span></div></div>
+    <div class="sw"><div class="c" style="background:#3ecf9a"></div><div class="m"><b>ok-500</b><span>#3ECF9A confirmed</span></div></div>
+    <div class="sw"><div class="c" style="background:#f43f5e"></div><div class="m"><b>danger-500</b><span>#F43F5E critical</span></div></div>
+    <div class="sw"><div class="c" style="background:#7dd3fc"></div><div class="m"><b>info-500</b><span>#7DD3FC info</span></div></div>
+  </div>
+
+  <h3 style="margin:28px 0 12px;font-size:14px">Severity ramp — the safety language</h3>
+  <div class="sw-grid" style="grid-template-columns:repeat(5,1fr)">
+    <div class="sw"><div class="c" style="background:#3ecf9a"></div><div class="m"><b>sev-1</b><span>minor</span></div></div>
+    <div class="sw"><div class="c" style="background:#ffd766"></div><div class="m"><b>sev-2</b><span>moderate</span></div></div>
+    <div class="sw"><div class="c" style="background:#ffa94d"></div><div class="m"><b>sev-3</b><span>elevated</span></div></div>
+    <div class="sw"><div class="c" style="background:#ff7a6b"></div><div class="m"><b>sev-4</b><span>high</span></div></div>
+    <div class="sw"><div class="c" style="background:#f43f5e"></div><div class="m"><b>sev-5</b><span>critical</span></div></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;margin-top:16px" class="surface">
+    <div style="padding:16px 20px">
+      <p style="font-size:12px;color:var(--ink-400);margin-bottom:6px">severity meter in situ</p>
+      <span class="sev"><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i></i></span>
+      <span style="margin-left:10px;font-size:12.5px;color:var(--ink-200)">sev 4 · lines down</span>
+    </div>
+  </div>
+
+  <h3 style="margin:34px 0 12px;font-size:14px">Typography — Sora display · Manrope body · IBM Plex Mono numerics</h3>
+  <div class="surface" style="padding:24px;display:grid;gap:14px">
+    <div style="font-family:var(--font-display);font-size:clamp(1.9rem,1.5rem+1.8vw,2.75rem);font-weight:800;letter-spacing:-.03em">What is happening, street by street</div>
+    <div style="font-size:15px;color:var(--ink-200);line-height:1.6">Community reports, confirmed by neighbours, rendered in a fluid scale that never jumps at a breakpoint.</div>
+    <div class="mono num" style="color:var(--tide-300);font-size:13px">25.0629° N · 77.3417° W · 142 open pins · updated 00:12 ago</div>
+  </div>
+</section>
+
+<!-- ==================== COMPONENTS ==================== -->
+<section id="components" class="wrap">
+  <p class="kicker">Cross-platform components</p>
+  <h2 class="title">One system, two platforms</h2>
+  <p class="lede">Borders, radii, elevation, states and transitions are identical in intent across web and Expo; only the material recipe differs (CSS glass vs. native blur layers).</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:26px">
+    <div class="surface hoverlift" style="padding:22px">
+      <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:14px">Buttons — states</h4>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-primary">Pin a spot</button>
+        <button class="btn btn-ghost">Show more</button>
+        <button class="btn btn-sand">Confirm ✓ 23</button>
+        <button class="btn btn-primary" disabled>Disabled</button>
+      </div>
+    </div>
+    <div class="surface hoverlift" style="padding:22px">
+      <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:14px">Chips — filters</h4>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="chip on">All · 142</button>
+        <button class="chip"><span class="dot" style="background:#38bdf8"></span>Flooding</button>
+        <button class="chip"><span class="dot" style="background:#facc15"></span>Power</button>
+        <button class="chip"><span class="dot" style="background:#fb7185"></span>Safety</button>
+      </div>
+    </div>
+    <div class="surface hoverlift" style="padding:22px">
+      <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:14px">Pin card — data surface</h4>
+      <div style="display:flex;gap:10px">
+        <span style="width:34px;height:34px;border-radius:8px;background:#facc15;display:grid;place-items:center;font-size:10px;font-weight:900;color:var(--abyss-950);box-shadow:0 0 14px rgba(250,204,21,.5)">PW</span>
+        <div style="flex:1">
+          <div style="font-size:13.5px;font-weight:800">Lines down after squall</div>
+          <div style="font-size:11.5px;color:var(--ink-300)">East St &amp; Sandyport</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:7px">
+            <span class="sev"><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i></span>
+            <span class="mono num" style="font-size:10.5px;color:var(--ink-400)">12m ago</span>
+            <span class="mono num" style="margin-left:auto;font-size:10.5px;color:var(--tide-300)">✓ 41</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="glass hoverlift" style="padding:22px">
+      <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:14px">Glass — control layer only</h4>
+      <p style="font-size:13px;color:var(--ink-200);line-height:1.6">Blur 20–32px · saturate 1.5–1.6 · inner hairline highlight. Used on the top bar, floating chips, sheets and the palette — never behind numbers.</p>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <span class="chip on" style="pointer-events:none">Hybrid</span><span class="chip" style="pointer-events:none">Sat</span><span class="chip" style="pointer-events:none">Road</span><span class="chip" style="pointer-events:none">Dark</span>
+      </div>
+    </div>
+    <div class="surface hoverlift" style="padding:22px">
+      <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:14px">Motion with a job</h4>
+      <div style="display:flex;align-items:center;gap:16px">
+        <span style="display:flex;align-items:center;gap:8px"><span class="live-dot"></span><span style="font-size:12.5px;color:var(--ink-200)">live feed</span></span>
+        <span style="width:34px;height:34px;border-radius:17px;background:#ef4444;position:relative"><span style="position:absolute;inset:-6px;border-radius:20px;border:2px solid #f43f5e;animation:ring 2s infinite"></span></span>
+        <span style="font-size:12.5px;color:var(--ink-200)">critical pulse</span>
+      </div>
+      <p style="font-size:12px;color:var(--ink-400);margin-top:12px">120ms state · 200ms move · 320ms sheet · spring on press. All collapse under reduced-motion.</p>
+    </div>
+    <div class="surface hoverlift" style="padding:22px;overflow:hidden">
+      <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:14px">Live wire ticker</h4>
+      <div class="marquee"><div class="track" style="font-size:12px;color:var(--ink-200)">
+        <span><b class="mono" style="color:var(--tide-300)">NEMA</b> coastal flood watch until 8pm</span>
+        <span><b class="mono" style="color:var(--tide-300)">BPL</b> crews dispatched to East St</span>
+        <span><b class="mono" style="color:var(--tide-300)">WSC</b> pressure restored in Blue Lagoon</span>
+        <span><b class="mono" style="color:var(--tide-300)">ZNS</b> regatta qualifiers postponed</span>
+        <span><b class="mono" style="color:var(--tide-300)">NEMA</b> coastal flood watch until 8pm</span>
+        <span><b class="mono" style="color:var(--tide-300)">BPL</b> crews dispatched to East St</span>
+        <span><b class="mono" style="color:var(--tide-300)">WSC</b> pressure restored in Blue Lagoon</span>
+        <span><b class="mono" style="color:var(--tide-300)">ZNS</b> regatta qualifiers postponed</span>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== BENTO WORKSPACE ==================== -->
+<section id="bento" class="wrap">
+  <p class="kicker">Bento workspace</p>
+  <h2 class="title">The Island Pulse dashboard</h2>
+  <p class="lede">Modular tiles: hierarchy through size, not noise. Tiles re-stack from 4 columns to 2 on tablets and a single column on phones — the same grid drives the web rail and the mobile sheet.</p>
+  <div class="bento" style="margin-top:26px">
+    <div class="tile surface row2">
+      <h4><span class="live-dot" style="display:inline-block;margin-right:6px"></span>Island pulse</h4>
+      <div style="display:grid;gap:12px">
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-200);margin-bottom:4px"><span>Flooding</span><span class="num mono">38</span></div><div class="bar"><i style="width:100%;background:#38bdf8"></i></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-200);margin-bottom:4px"><span>Power</span><span class="num mono">24</span></div><div class="bar"><i style="width:63%;background:#facc15"></i></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-200);margin-bottom:4px"><span>Road</span><span class="num mono">19</span></div><div class="bar"><i style="width:50%;background:#f97316"></i></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-200);margin-bottom:4px"><span>Safety</span><span class="num mono">12</span></div><div class="bar"><i style="width:32%;background:#fb7185"></i></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-200);margin-bottom:4px"><span>Marine</span><span class="num mono">9</span></div><div class="bar"><i style="width:24%;background:#2dd4bf"></i></div></div>
+      </div>
+    </div>
+    <div class="tile glass span2" style="background:linear-gradient(135deg, rgba(0,201,183,.16), rgba(255,122,107,.10)), var(--abyss-900)">
+      <h4>Live map</h4>
+      <div style="position:relative;height:calc(100% - 34px);border-radius:var(--r-md);background:radial-gradient(70% 70% at 60% 40%, var(--abyss-800), var(--abyss-975));overflow:hidden">
+        <span class="p-pin" style="left:22%;top:30%;background:#facc15">PW</span>
+        <span class="p-pin" style="left:52%;top:52%;background:#38bdf8">FL</span>
+        <span class="p-pin" style="left:74%;top:26%;background:#ef4444">AC</span>
+        <span style="position:absolute;left:40%;top:66%;width:34px;height:34px;border-radius:17px;background:rgba(5,13,22,.85);border:2px solid var(--tide-300);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--tide-300)">12</span>
+      </div>
+    </div>
+    <div class="tile surface">
+      <h4>Open pins</h4>
+      <div class="big-num num" style="color:var(--tide-300)">142</div>
+      <p style="font-size:11.5px;color:var(--ok-500);margin-top:2px">▼ 12% vs yesterday</p>
+    </div>
+    <div class="tile surface">
+      <h4>Confirmed today</h4>
+      <div class="big-num num">1,204</div>
+      <p style="font-size:11.5px;color:var(--ink-400);margin-top:2px">by 318 neighbours</p>
+    </div>
+    <div class="tile surface span2" style="border-color:rgba(255,197,49,.35)">
+      <h4 style="color:var(--sun-500)">⚠ Official watch</h4>
+      <p style="font-size:13px;color:var(--ink-200);line-height:1.5">NEMA: coastal flood watch in effect for New Providence until 8:00pm. Storm warnings are always sent — never gated.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== COMMAND PALETTE ==================== -->
+<section id="palette" class="wrap">
+  <p class="kicker">Keyboard-first</p>
+  <h2 class="title">⌘K — the command palette</h2>
+  <p class="lede">Typed intent beats menu hierarchy for power users, but the palette <b style="color:var(--ink-200)">augments</b> the visible top bar and bottom nav — it never replaces them. Try typing below.</p>
+  <div class="palette glass-strong" style="margin-top:26px">
+    <div class="head">
+      <span style="color:var(--ink-400)">🔍</span>
+      <input id="palInput" placeholder="Search pins, places, actions…" oninput="filterPalette()" />
+      <span class="kbd" style="font-family:var(--font-mono);font-size:10.5px;color:var(--ink-400);border:1px solid var(--line);border-radius:6px;padding:2px 6px">esc</span>
+    </div>
+    <div id="palList"></div>
+    <div class="foot"><span><span class="kbd">↑↓</span> navigate</span><span><span class="kbd">↵</span> select</span><span style="margin-left:auto">NowBey Signal</span></div>
+  </div>
+</section>
+
+<!-- ==================== MOBILE ==================== -->
+<section id="mobile" class="wrap">
+  <p class="kicker">Synced mobile shell</p>
+  <h2 class="title">Thumb-zone Expo app</h2>
+  <p class="lede">Same tokens, same severity language, same motion — re-arched for one hand: bottom-heavy navigation, a raised center action, spring press feedback, and a bento sheet that lives one swipe from the map.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-top:26px;align-items:start">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scr">
+        <div class="p-seg"><button class="on">Map</button><button>Both</button><button>List</button></div>
+        <div class="p-map">
+          <span class="p-pin" style="left:20%;top:24%;background:#facc15">PW<span class="p-ring" style="color:#f43f5e"></span></span>
+          <span class="p-pin" style="left:52%;top:44%;background:#38bdf8">FL<span class="p-ring" style="color:#ff7a6b"></span></span>
+          <span class="p-pin" style="left:72%;top:28%;background:#ef4444">AC<span class="p-ring" style="color:#f43f5e"></span></span>
+          <span style="position:absolute;left:44%;top:62%;width:38px;height:38px;border-radius:19px;background:rgba(5,13,22,.85);border:2px solid var(--tide-300);display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--tide-300)">12</span>
+          <div class="p-banner"><span>⚠️</span><div style="flex:1"><div style="font-size:11.5px;font-weight:800">Coastal flood watch</div><div style="font-size:9.5px;color:var(--ink-300)">NEMA · until 8:00pm</div></div><span style="color:var(--ink-300)">›</span></div>
+        </div>
+        <div class="p-sheet">
+          <div class="p-handle"></div>
+          <div class="p-tiles">
+            <div class="p-tile"><div style="font-size:10.5px;color:var(--ink-300);font-weight:700">Flooding</div><b class="num">38</b></div>
+            <div class="p-tile"><div style="font-size:10.5px;color:var(--ink-300);font-weight:700">Power</div><b class="num">24</b></div>
+            <div class="p-tile" style="border-color:rgba(0,201,183,.4)"><div style="font-size:10.5px;color:var(--ink-300);font-weight:700">Open</div><b class="num" style="color:var(--tide-300)">142</b></div>
+          </div>
+          <div class="p-card"><span style="width:32px;height:32px;border-radius:8px;background:#facc15;display:grid;place-items:center;font-size:10px;font-weight:900;color:var(--abyss-950)">PW</span><div style="flex:1"><div style="font-size:12.5px;font-weight:800">Lines down after squall</div><div style="font-size:10.5px;color:var(--ink-300)">East St &amp; Sandyport</div><div style="display:flex;gap:8px;align-items:center;margin-top:5px"><span class="sev"><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i><i class="on" style="color:#f43f5e"></i></span><span class="mono num" style="font-size:9.5px;color:var(--ink-400)">12m</span><span class="mono num" style="margin-left:auto;font-size:9.5px;color:var(--tide-300)">✓ 41</span></div></div></div>
+          <div style="padding:4px 12px 12px"><div style="background:var(--tide-500);border-radius:999px;min-height:44px;display:grid;place-items:center;color:var(--abyss-950);font-weight:800;font-size:14px">+  Pin a spot</div></div>
+        </div>
+        <div class="p-nav">
+          <div class="it on"><span class="g">◉</span>Map</div>
+          <div class="it"><span class="g">≋</span>Wire</div>
+          <div class="it"><span class="g cta">+</span>Report</div>
+          <div class="it"><span class="g">◔</span>Alerts</div>
+          <div class="it"><span class="g">☺</span>You</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="surface hoverlift" style="padding:20px;margin-bottom:14px">
+        <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:10px">Mobile adaptations</h4>
+        <ul style="font-size:13.5px;color:var(--ink-200);line-height:1.9;padding-left:18px">
+          <li>Bottom tab bar inside the thumb arc; center Report action raised with a tide glow</li>
+          <li>Primary actions bottom 20% — “Pin a spot” sits above the nav, never the top</li>
+          <li>Spring press scale + light haptic on every control (expo-haptics)</li>
+          <li>Bottom sheet with bento tiles — one swipe from map to full list</li>
+          <li>Severity rings pulse only at sev ≥ 4; static everywhere else</li>
+          <li>Reduced-motion setting collapses every animation</li>
+        </ul>
+      </div>
+      <div class="glass hoverlift" style="padding:20px">
+        <h4 style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-400);margin-bottom:10px">Token sync</h4>
+        <p style="font-size:13px;color:var(--ink-200);line-height:1.7">Web CSS custom properties ↔ <span class="mono" style="color:var(--tide-300)">expo/src/theme.ts</span> tokens share names, hex values, severity ramp and radii — one source of truth, two renderers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p><b style="color:var(--ink-200)">NowBey “Tideglass” v2026.10 — preview build.</b> Nothing in <span class="mono">src/</span> or <span class="mono">expo/</span> has been modified. Preview artifacts live in <span class="mono">design-preview-2026/</span>.</p>
+  <p class="cite" style="margin-top:10px">
+    Research grounding:
+    <a href="https://www.sanjaydey.com/ux-ui-design-trends-2026-biggest/">2026 UX trends (bento, dark-first)</a> ·
+    <a href="https://fuselabcreative.com/ui-ux-design-trends-2026-modern-ui-trends-ux-trends-guide/">Liquid Glass verdicts</a> ·
+    <a href="https://www.gleamstudio.design/blog-post/ui-design-trends-2026">command palettes &amp; view transitions</a> ·
+    <a href="https://brainy.ink/paper/navigation-design-patterns">navigation patterns</a> ·
+    <a href="https://www.sanjaydey.com/mobile-ux-ui-design-patterns-2026-data-backed/">thumb-zone mobile</a>
+  </p>
+</footer>
+
+<script>
+/* theme */
+function toggleTheme() {
+  const el = document.documentElement;
+  el.dataset.theme = el.dataset.theme === "dark" ? "light" : "dark";
+}
+
+/* command palette demo */
+const ITEMS = [
+  { g: "Navigate", l: "Safety map", k: "G M", i: "◉" },
+  { g: "Navigate", l: "News wire", k: "G W", i: "≋" },
+  { g: "Navigate", l: "Alerts inbox", k: "G A", i: "◔" },
+  { g: "Actions", l: "Pin a spot…", k: "P", i: "+" },
+  { g: "Actions", l: "Toggle wire pins", k: "", i: "≋" },
+  { g: "Actions", l: "Switch island — Grand Bahama", k: "", i: "◉" },
+  { g: "Actions", l: "Toggle light / dark", k: "", i: "🌗" },
+  { g: "Recent", l: "Lines down after squall — East St", k: "", i: "⚡" },
+  { g: "Recent", l: "Knee-deep water on Bay Street", k: "", i: "🌊" },
+];
+function renderPalette(q = "") {
+  const list = document.getElementById("palList");
+  const s = q.trim().toLowerCase();
+  const rows = ITEMS.filter(x => !s || x.l.toLowerCase().includes(s));
+  let html = "", lastG = "", idx = 0;
+  rows.forEach(x => {
+    if (x.g !== lastG) { html += `<div class="group">${x.g}</div>`; lastG = x.g; }
+    html += `<div class="row${idx === 0 ? " sel" : ""}"><span>${x.i}</span><span>${x.l}</span>${x.k ? `<span class="kbd">${x.k}</span>` : ""}</div>`;
+    idx++;
+  });
+  if (!rows.length) html = `<div style="padding:26px;text-align:center;color:var(--ink-400);font-size:13px">No matches — try “flood”, “wire”, “island”…</div>`;
+  list.innerHTML = html;
+}
+function filterPalette() { renderPalette(document.getElementById("palInput").value); }
+renderPalette();
+document.addEventListener("keydown", e => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    e.preventDefault();
+    document.getElementById("palette").scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => document.getElementById("palInput").focus(), 400);
+  }
+});
+</script>
+</body>
+</html>
