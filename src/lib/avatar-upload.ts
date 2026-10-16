@@ -22,4 +22,3 @@ export async function readAvatarBody(req: Request, maxBytes = AVATAR_MAX_BYTES):
   if (!size) throw new Error("Choose a photo first.");
   return Buffer.concat(chunks);
 }
-
