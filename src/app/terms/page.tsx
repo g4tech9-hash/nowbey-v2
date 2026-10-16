@@ -9,7 +9,7 @@ const SECTIONS: { h: string; p: string[] }[] = [
   {
     h: "1. What NowBey is",
     p: [
-      "NowBey is a community map and news wire for The Bahamas. Residents report hazards such as flooding, road blocks and outages, and neighbours confirm or clear them.",
+      "NowBey is a community map and news wire for The Bahamas. Residents report hazards such as flooding, storms, fires, road damage, water and power outages, marine and safety incidents, missed sanitation pickups and community events, and neighbours confirm or clear them.",
       "NowBey is not an emergency service. In an emergency call 919 or 911. Reports come from the public, may be late, wrong or incomplete, and must not be relied on for safety decisions.",
     ],
   },
