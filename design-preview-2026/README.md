@@ -20,6 +20,8 @@ additive and disposable.
 | `nowbey-2026-tokens.css` | Tailwind 4 `@theme` token set + materials (glass / aurora / severity) + light theme + motion tokens. Drop-in candidate for `src/app/globals.css`. |
 | `Map_2026_Web_Preview.tsx` | High-fidelity preview of the redesigned **Safety Map workspace** (the web app's critical screen): glass command bar, bento island-pulse rail, glowing severity pins, ⌘K command palette, report sheet, live wire ticker. Mock data, no API calls. |
 | `Map_2026_Mobile_Preview.tsx` | High-fidelity preview of the synced **Expo Map tab**: thumb-zone bottom nav, raised center action, bottom sheet with bento tiles, spring press feedback, pulsing severity rings. Core-RN only, so it reviews anywhere. |
+| `Wire_2026_Web_Preview.tsx` | The redesigned **News Wire**: category-accent story cards, AI-brief treatment, pinned/unpinned honesty states, engagement row, wire-map + sources sidebar. |
+| `Wire_2026_Mobile_Preview.tsx` | Synced Expo Wire tab: pull-to-refresh feed, source filter rail, thumb-zone nav with Wire active. |
 
 ## How to view
 
