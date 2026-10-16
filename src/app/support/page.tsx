@@ -39,7 +39,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
         </p>
       ) : null}
       {checkout === "cancelled" ? (
-        <p className="rounded-xl border hairline bg-white/5 px-4 py-3 text-[13px] text-[#cfeee9]">
+        <p className="rounded-xl border hairline bg-white/5 px-4 py-3 text-[13px] text-ink-200">
           Checkout was cancelled and you were not charged. Pick a plan whenever you are ready.
         </p>
       ) : null}
@@ -49,19 +49,19 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
 
         <div className="mt-3">
           {live ? (
-            <p className="text-[12px] leading-snug text-[#8fb9b6]">
+            <p className="text-[12px] leading-snug text-ink-400">
               Payments are handled securely by Stripe. Cancel any time from your account page and your plan runs to the end of
-              the period you paid for. To switch plans, cancel from your account page and choose the new plan when the old one ends. Perks marked <span className="font-bold text-[#cfeee9]">Soon</span> are on the way.
+              the period you paid for. To switch plans, cancel from your account page and choose the new plan when the old one ends. Perks marked <span className="font-bold text-ink-200">Soon</span> are on the way.
             </p>
           ) : demo ? (
-            <p className="text-[12px] leading-snug text-[#8fb9b6]">
-              <span className="font-bold text-sun-400">Payments are not live yet.</span> You can try a plan with your account to
-              switch the ads off. You will not be charged. Perks marked <span className="font-bold text-[#cfeee9]">Soon</span> are
+            <p className="text-[12px] leading-snug text-ink-400">
+              <span className="font-bold text-sun-600">Payments are not live yet.</span> You can try a plan with your account to
+              switch the ads off. You will not be charged. Perks marked <span className="font-bold text-ink-200">Soon</span> are
               on the way.
             </p>
           ) : (
-            <p className="text-[12px] leading-snug text-[#8fb9b6]">
-              <span className="font-bold text-sun-400">Plans open soon.</span> Payments are not set up yet, so nothing can be bought
+            <p className="text-[12px] leading-snug text-ink-400">
+              <span className="font-bold text-sun-600">Plans open soon.</span> Payments are not set up yet, so nothing can be bought
               today and nobody is charged. Everything free on NowBey stays free. Want a plan for your group now?{" "}
               <a href="#enterprise" className="font-bold text-tide-300 underline-offset-2 hover:underline">
                 Get in touch
@@ -69,7 +69,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
               .
             </p>
           )}
-          <p className="mt-1 text-[11px] text-[#6e97a0]">
+          <p className="mt-1 text-[11px] text-ink-400">
             Prices are in US dollars. The Bahamian dollar is pegged one to one, so $10 is B$10.
           </p>
         </div>
@@ -84,13 +84,13 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
             <h2 className="display mt-1 text-[clamp(1.4rem,3.6vw,1.9rem)] font-extrabold leading-tight text-sand-100">
               NowBey for your whole team
             </h2>
-            <p className="mt-1.5 max-w-[52ch] text-[13.5px] leading-relaxed text-[#a9cdc9]">{ENTERPRISE.blurb}</p>
+            <p className="mt-1.5 max-w-[52ch] text-[13.5px] leading-relaxed text-ink-300">{ENTERPRISE.blurb}</p>
             <p className="mt-3 flex items-baseline gap-2">
               <span className="display text-[26px] font-extrabold text-sand-100">{ENTERPRISE.price}</span>
-              <span className="text-[12px] text-[#8fb9b6]">priced to fit your team</span>
+              <span className="text-[12px] text-ink-400">priced to fit your team</span>
             </p>
             <PerkList perks={ENTERPRISE.perks} tone={ENTERPRISE.tone} />
-            <p className="mt-4 text-[12px] leading-relaxed text-[#8fb9b6]">
+            <p className="mt-4 text-[12px] leading-relaxed text-ink-400">
               Tell us what you need and someone from NowBey will reply with a quote. No commitment to ask.
             </p>
           </div>
@@ -104,23 +104,23 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
       </section>
 
       <section className="grid gap-3 sm:grid-cols-2">
-        <div className="glass rounded-2xl p-4">
+        <div className="nb-surface rounded-xl2 p-4">
           <p className="display text-[15px] font-bold text-sand-100">Where the money goes</p>
-          <ul className="mt-2 space-y-2 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+          <ul className="mt-2 space-y-2 text-[12.5px] leading-relaxed text-ink-300">
             {COSTS.map(([k, v]) => (
               <li key={k}>
-                <span className="font-bold text-[#dff3f0]">{k}.</span> {v}
+                <span className="font-bold text-ink-200">{k}.</span> {v}
               </li>
             ))}
           </ul>
         </div>
-        <div className="glass rounded-2xl p-4">
+        <div className="nb-surface rounded-xl2 p-4">
           <p className="display text-[15px] font-bold text-sand-100">Ads, honestly</p>
-          <p className="mt-2 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+          <p className="mt-2 text-[12.5px] leading-relaxed text-ink-300">
             NowBey shows a few ads from Bahamian businesses, with no trackers and nothing that follows you between pages.
             Ads never appear as reports, and every paid listing is marked “Promoted”.
           </p>
-          <p className="mt-2 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+          <p className="mt-2 text-[12.5px] leading-relaxed text-ink-300">
             In the mobile app, plans are bought here on the website and follow your account to your phone.
           </p>
           <Link href="/" className="mt-3 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">

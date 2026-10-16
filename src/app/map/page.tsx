@@ -266,7 +266,7 @@ export default function MapWorkspace() {
               What is happening, street by street
             </h1>
           </div>
-          <p className="max-w-[46ch] text-[11.5px] leading-snug text-[#8fb9b6]">
+          <p className="max-w-[46ch] text-[11.5px] leading-snug text-ink-400">
             Tap a pin to read the report, or <span className="font-bold text-tide-300">Pin a spot</span> to add your own.
             Drag the yellow figure onto a road for street level.
           </p>
@@ -311,7 +311,7 @@ export default function MapWorkspace() {
               onClick={() => setMode(m.key)}
               aria-pressed={view === m.key}
               className={`min-h-[40px] flex-1 rounded-lg px-2 text-[12px] font-bold transition ${
-                view === m.key ? "bg-tide-500 text-abyss-950" : "text-[#bfe4e0] hover:bg-white/10"
+                view === m.key ? "bg-tide-500 text-abyss-950" : "text-ink-200 hover:bg-white/10"
               }`}
             >
               {m.label}
@@ -330,7 +330,7 @@ export default function MapWorkspace() {
         <div className="flex flex-none items-center gap-2 px-3 pt-2.5 lg:px-0 lg:pt-0">
           <p className="display min-w-0 flex-1 truncate text-[13.5px] font-extrabold text-sand-100">
             {pickMode ? (step === "spot" ? "1 · Pick the exact spot" : "2 · Add details") : loading ? "Loading pins…" : `${visible.length} open pin${visible.length === 1 ? "" : "s"}`}
-            {pickMode ? null : <span className="ml-1.5 text-[11.5px] font-semibold text-[#8fb9b6]">{island === "all" ? "everywhere" : island}</span>}
+            {pickMode ? null : <span className="ml-1.5 text-[11.5px] font-semibold text-ink-400">{island === "all" ? "everywhere" : island}</span>}
           </p>
           {pickMode ? (
             <button
@@ -415,7 +415,7 @@ export default function MapWorkspace() {
               aria-expanded={moreFilters}
               aria-label="Island and wire-pin filters"
               className={`min-h-[34px] flex-none rounded-full px-2.5 text-[11.5px] font-bold lg:hidden ${
-                moreFilters ? "bg-tide-500/20 text-tide-300" : "bg-white/8 text-[#a9cdc9]"
+                moreFilters ? "bg-tide-500/20 text-tide-300" : "bg-white/8 text-ink-300"
               }`}
             >
               {moreFilters ? "Less" : "More"}
@@ -426,7 +426,7 @@ export default function MapWorkspace() {
         {/* Row C — island + wire pins. Folded away on a phone until asked for, always open on desktop. */}
         <div className={`${moreFilters ? "flex" : "hidden lg:flex"} flex-none flex-wrap items-center gap-1.5 px-3 pt-2 lg:px-0`}>
           <label className="flex items-center gap-1.5">
-            <span className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Island</span>
+            <span className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Island</span>
             <select
               value={island}
               onChange={(e) => { setIsland(e.target.value); setListLimit(40); }}
@@ -445,7 +445,7 @@ export default function MapWorkspace() {
             type="button"
             onClick={() => setShowWire((v) => !v)}
             aria-pressed={showWire}
-            className={`min-h-[40px] rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-[#8fb9b6]"}`}
+            className={`min-h-[40px] rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-ink-400"}`}
           >
             Wire pins {showWire ? "on" : "off"}
           </button>
@@ -453,12 +453,12 @@ export default function MapWorkspace() {
 
         {/* What the pin codes mean. Collapsed, so it costs no list room until asked for. */}
         <details className="flex-none px-3 pt-1.5 lg:px-0">
-          <summary className="min-h-[32px] cursor-pointer py-1 text-[11.5px] font-bold text-[#8fb9b6] hover:text-tide-300">
+          <summary className="min-h-[32px] cursor-pointer py-1 text-[11.5px] font-bold text-ink-400 hover:text-tide-300">
             What the pins mean
           </summary>
           <ul className="flex flex-wrap gap-x-3 gap-y-1 pb-1">
             {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
-              <li key={k} className="flex items-center gap-1.5 text-[11px] text-[#a9cdc9]">
+              <li key={k} className="flex items-center gap-1.5 text-[11px] text-ink-300">
                 <span
                   className="grid h-[22px] w-[22px] place-items-center rounded-full border border-white/70 text-[8px] font-extrabold text-abyss-950"
                   style={{ background: CATEGORIES[k].color }}
@@ -468,7 +468,7 @@ export default function MapWorkspace() {
                 {CATEGORIES[k].label}
               </li>
             ))}
-            <li className="flex items-center gap-1.5 text-[11px] text-[#a9cdc9]">
+            <li className="flex items-center gap-1.5 text-[11px] text-ink-300">
               <span className="grid h-[22px] w-[22px] place-items-center rounded-full border-2 border-tide-400 bg-abyss-950 text-[9px] font-extrabold text-tide-300">
                 12
               </span>
@@ -483,7 +483,7 @@ export default function MapWorkspace() {
             <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: CATEGORIES[current.category]?.color }} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[12.5px] font-bold text-sand-100">{current.title}</span>
-              <span className="block truncate text-[11px] text-[#8fb9b6]">
+              <span className="block truncate text-[11px] text-ink-400">
                 {current.street ?? "unmapped"} · {timeAgo(current.createdAt)} · {current.confirmations} ✓
               </span>
             </span>
@@ -495,12 +495,12 @@ export default function MapWorkspace() {
 
         <div className="nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 lg:px-0 lg:pb-3 lg:pr-1.5">
           {pickMode ? (
-            <div className="glass rounded-2xl p-3.5">
+            <div className="nb-surface rounded-xl2 p-3.5">
               {step === "spot" ? (
                 <>
-                  <p className="text-[12.5px] leading-relaxed text-[#a9cdc9]">
+                  <p className="text-[12.5px] leading-relaxed text-ink-300">
                     Search a street, tap the map, then drag the pin tip onto the gate, drain or pothole. Use{" "}
-                    <span className="font-bold text-sun-400">Aim at centre</span> for the last few metres — the crosshair is the pin.
+                    <span className="font-bold text-sun-600">Aim at centre</span> for the last few metres — the crosshair is the pin.
                   </p>
                   <div className="mt-2.5 rounded-xl bg-white/5 p-2.5 text-[12px]">
                     {pick ? (
@@ -509,12 +509,12 @@ export default function MapWorkspace() {
                           {pick.lat.toFixed(6)}, {pick.lng.toFixed(6)}
                         </p>
                         <p className="mt-1 font-semibold text-sand-100">{pick.street ?? "Street name pending…"}</p>
-                        <p className="text-[11.5px] text-[#8fb9b6]">
+                        <p className="text-[11.5px] text-ink-400">
                           {pick.address ?? "Matching address…"} · {pick.parish ?? "Bahamas"} · ± {pick.precisionM.toFixed(1)} m
                         </p>
                       </>
                     ) : (
-                      <p className="text-[#8fb9b6]">No spot chosen yet.</p>
+                      <p className="text-ink-400">No spot chosen yet.</p>
                     )}
                   </div>
                   <button
@@ -545,7 +545,7 @@ export default function MapWorkspace() {
                       placeholder="Bay Street"
                       className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[16px] outline-none focus:border-tide-400 sm:text-[13px]"
                     />
-                    <span className="mt-1 block text-[10.5px] text-[#6e97a0]">
+                    <span className="mt-1 block text-[10.5px] text-ink-400">
                       Prefilled from the pin. Edit it if locals call the spot something else.
                     </span>
                   </label>
@@ -577,7 +577,7 @@ export default function MapWorkspace() {
                           type="button"
                           onClick={() => setForm({ ...form, severity: i + 1 })}
                           className={`min-h-[40px] rounded-lg px-1.5 py-1.5 text-[10.5px] font-bold ${
-                            form.severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-[#a9cdc9]"
+                            form.severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-ink-300"
                           }`}
                         >
                           {label}
@@ -595,7 +595,7 @@ export default function MapWorkspace() {
                       className="mt-1 w-full resize-none rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[16px] leading-relaxed outline-none focus:border-tide-400 sm:text-[13px]"
                     />
                   </label>
-                  <label className="flex items-center gap-2 text-[12px] text-[#a9cdc9]">
+                  <label className="flex items-center gap-2 text-[12px] text-ink-300">
                     <input
                       type="checkbox"
                       checked={form.anonymous}
@@ -625,7 +625,7 @@ export default function MapWorkspace() {
               )}
             </div>
           ) : (
-            <div className="glass rounded-2xl p-2.5 lg:p-3.5">
+            <div className="nb-surface rounded-xl2 p-2.5 lg:p-3.5">
               <ul className="space-y-1.5" aria-busy={loading}>
                 {loading ? (
                   <>
@@ -692,7 +692,7 @@ export default function MapWorkspace() {
                     );
                   })
                 ) : error ? null : (
-                  <li className="px-1 py-2 text-[12.5px] text-[#8fb9b6]">
+                  <li className="px-1 py-2 text-[12.5px] text-ink-400">
                     <p>No pins match those filters.</p>
                     <button
                       type="button"

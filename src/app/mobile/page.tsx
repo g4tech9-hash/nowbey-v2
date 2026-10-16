@@ -28,7 +28,7 @@ export default async function MobilePage() {
       <div className="glass flex flex-wrap items-center gap-4 rounded-2xl p-4">
         <div className="min-w-[200px] flex-1">
           <p className="display text-[15px] font-bold text-sand-100">NowBey mobile source code</p>
-          <p className="mt-0.5 text-[12.5px] text-[#a9cdc9]">An Expo project you can run today and publish to the app stores later.</p>
+          <p className="mt-0.5 text-[12.5px] text-ink-300">An Expo project you can run today and publish to the app stores later.</p>
         </div>
         <a
           href="/downloads/nowbey-expo.zip"
@@ -47,7 +47,7 @@ export default async function MobilePage() {
             </span>
             <div className="min-w-0">
               <p className="text-[13.5px] font-bold text-sand-100">{title}</p>
-              <p className="mt-0.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">{text}</p>
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-300">{text}</p>
               {i === 2 || i === 3 ? (
                 <pre className="nb-scroll mt-2 overflow-x-auto rounded-lg bg-abyss-950/80 p-2.5 text-[12px] text-tide-300">
                   {i === 2 ? `EXPO_PUBLIC_API_BASE=${site}` : `EXPO_PUBLIC_API_BASE=${site} npx expo start`}
@@ -58,7 +58,7 @@ export default async function MobilePage() {
         ))}
       </ol>
 
-      <div className="rounded-2xl border hairline p-4 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+      <div className="rounded-2xl border hairline p-4 text-[12.5px] leading-relaxed text-ink-300">
         <p className="font-bold text-sand-100">Good to know</p>
         <ul className="mt-1.5 list-disc space-y-1 pl-5">
           <li>The interactive map runs on iPhone and Android. In a desktop browser the app shows the pin list instead.</li>

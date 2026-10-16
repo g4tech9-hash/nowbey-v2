@@ -53,7 +53,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
           type="button"
           onClick={() => send("photo", { note: "I saw it too." })}
           disabled={busy !== null}
-          className="rounded-full bg-white/8 px-2.5 py-1 font-bold text-[#cfeee9] hover:bg-white/16 disabled:opacity-50"
+          className="rounded-full bg-white/8 px-2.5 py-1 font-bold text-ink-200 hover:bg-white/16 disabled:opacity-50"
         >
           Saw it too
         </button>
@@ -62,7 +62,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
             type="button"
             onClick={() => send("clear")}
             disabled={busy !== null}
-            className="rounded-full bg-white/8 px-2.5 py-1 font-bold text-[#cfeee9] hover:bg-white/16 disabled:opacity-50"
+            className="rounded-full bg-white/8 px-2.5 py-1 font-bold text-ink-200 hover:bg-white/16 disabled:opacity-50"
           >
             Cleared up
           </button>
@@ -72,13 +72,13 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
             type="button"
             onClick={() => send("escalate")}
             disabled={busy !== null}
-            className="rounded-full bg-conch-500/15 px-2.5 py-1 font-bold text-conch-400 hover:bg-conch-500/28 disabled:opacity-50"
+            className="rounded-full bg-danger-500/15 px-2.5 py-1 font-bold text-danger-500 hover:bg-conch-500/28 disabled:opacity-50"
           >
             Getting worse
           </button>
         ) : null}
       </div>
-      {note ? <p className="text-[11.5px] text-sun-400">{note}</p> : null}
+      {note ? <p className="text-[11.5px] text-sun-600">{note}</p> : null}
     </div>
   );
 }

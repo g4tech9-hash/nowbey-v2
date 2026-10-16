@@ -8,7 +8,7 @@ export function BadgeMark({ kind }: { kind: Badge | null | undefined }) {
     <span
       title={desk ? "NowBey staff account" : "Verified reporter — someone at NowBey checked this account"}
       className={`inline-flex items-center gap-1 rounded-full px-1.5 py-[1px] text-[10px] font-extrabold uppercase tracking-wide ${
-        desk ? "bg-tide-500/20 text-tide-300" : "bg-conch-500/18 text-conch-400"
+        desk ? "bg-tide-500/20 text-tide-300" : "bg-danger-500/15 text-danger-500"
       }`}
     >
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

@@ -131,7 +131,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                 <span className="display mt-2 block text-[14px] font-extrabold" style={{ color: on ? KINDS[k].color : "#fff0d9" }}>
                   {KINDS[k].label}
                 </span>
-                <span className="mt-0.5 block text-[11.5px] leading-snug text-[#8fb9b6]">{KINDS[k].blurb}</span>
+                <span className="mt-0.5 block text-[11.5px] leading-snug text-ink-400">{KINDS[k].blurb}</span>
               </button>
             );
           })}
@@ -168,7 +168,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                     aria-pressed={rating >= n}
                     aria-label={`${n} star${n > 1 ? "s" : ""}`}
                     onClick={() => setRating(rating === n ? 0 : n)}
-                    className={`text-[30px] leading-none transition ${rating >= n ? "text-sun-400" : "text-white/20 hover:text-white/40"}`}
+                    className={`text-[30px] leading-none transition ${rating >= n ? "text-sun-600" : "text-white/20 hover:text-white/40"}`}
                   >
                     ★
                   </button>
@@ -186,7 +186,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                     type="button"
                     aria-pressed={price === n}
                     onClick={() => setPrice(price === n ? 0 : n)}
-                    className={`min-h-[40px] min-w-[44px] rounded-lg px-2 text-[13px] font-extrabold ${price === n ? "bg-tide-500 text-abyss-950" : "bg-white/8 text-[#cfeee9] hover:bg-white/14"}`}
+                    className={`min-h-[40px] min-w-[44px] rounded-lg px-2 text-[13px] font-extrabold ${price === n ? "bg-tide-500 text-abyss-950" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
                   >
                     {"$".repeat(n)}
                   </button>
@@ -212,7 +212,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
             placeholder={def.bodyHint}
             className={`${INPUT} mt-1 resize-y leading-relaxed`}
           />
-          <span className="mt-1 block text-right text-[11px] text-[#6e97a0]">
+          <span className="mt-1 block text-right text-[11px] text-ink-400">
             {body.length}/{LIMITS.body}
           </span>
         </label>
@@ -247,7 +247,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
           ) : null}
         </div>
         <input ref={fileRef} type="file" accept="image/*" multiple className="sr-only" tabIndex={-1} onChange={(e) => void addFiles(e.target.files)} aria-label="Choose photos" />
-        <p className="mt-1.5 text-[11.5px] leading-snug text-[#8fb9b6]">
+        <p className="mt-1.5 text-[11.5px] leading-snug text-ink-400">
           Photos are shrunk on your device, and hidden details such as the location your phone saved inside them are removed.
         </p>
       </section>
@@ -289,7 +289,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
       </section>
 
       {error ? (
-        <p role="alert" className="rounded-lg bg-conch-500/15 px-3 py-2 text-[13px] text-conch-400">
+        <p role="alert" className="rounded-lg bg-danger-500/15 px-3 py-2 text-[13px] text-danger-500">
           {error}
         </p>
       ) : null}
@@ -298,7 +298,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
         <button type="submit" disabled={busy || prep} className="rounded-xl bg-tide-500 px-6 py-3 text-[14px] font-extrabold text-abyss-950 hover:bg-tide-400 disabled:opacity-50">
           {busy ? "Sharing…" : "Share with the islands"}
         </button>
-        <p className="text-[11.5px] text-[#8fb9b6]">Your handle appears with your post. Be kind and honest.</p>
+        <p className="text-[11.5px] text-ink-400">Your handle appears with your post. Be kind and honest.</p>
       </div>
     </form>
   );

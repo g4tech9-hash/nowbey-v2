@@ -126,7 +126,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         {!viewer.email ? (
           <section className="nb-surface rounded-xl2 border-sun-500/35 bg-sun-500/10 p-3.5 text-base text-ink-200">
             Your account has no email address, so we could not help you back in if you forgot your password.{" "}
-            <Link href="/you/settings" className="font-bold text-sun-400 underline">
+            <Link href="/you/settings" className="font-bold text-sun-600 underline">
               Add one
             </Link>
             .

@@ -60,7 +60,7 @@ export function AdSlot({
       <div className={`mt-1 flex gap-3 ${variant === "rail" ? "flex-col" : "items-start justify-between"}`}>
         <div>
           <p className="display text-[14.5px] font-bold text-sand-100">{ad.brand}</p>
-          <p className="mt-0.5 text-[12.5px] leading-snug text-[#a9cdc9]">{ad.line}</p>
+          <p className="mt-0.5 text-[12.5px] leading-snug text-ink-300">{ad.line}</p>
         </div>
         <Link
           href="/support"
@@ -69,7 +69,7 @@ export function AdSlot({
           {ad.cta}
         </Link>
       </div>
-      <p className="mt-1.5 text-[10.5px] text-[#4f7a83]">House slot · sold by hand, not an ad network. Plans from ${money(LOWEST_MONTHLY)} a month remove these.</p>
+      <p className="mt-1.5 text-[10.5px] text-ink-400">House slot · sold by hand, not an ad network. Plans from ${money(LOWEST_MONTHLY)} a month remove these.</p>
     </div>
   );
 }

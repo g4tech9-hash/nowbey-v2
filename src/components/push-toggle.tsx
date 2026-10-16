@@ -134,11 +134,11 @@ export function PushToggle({ config, vapidKey, parishes }: Props) {
   if (state === "checking" || state === "unsupported") return null;
 
   return (
-    <div className="glass rounded-2xl p-4">
+    <div className="nb-surface rounded-xl2 p-4">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="min-w-0 flex-1">
           <p className="display text-[15px] font-bold text-sand-100">Push alerts on this device</p>
-          <p className="mt-0.5 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+          <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-300">
             {state === "needs-install"
               ? "On an iPhone, notifications reach the site only after it is added to the Home Screen: tap Share, then “Add to Home Screen”, and open NowBey from that new icon. Email alerts keep working in the meantime."
               : state === "on"
@@ -147,7 +147,7 @@ export function PushToggle({ config, vapidKey, parishes }: Props) {
                 ? "Notifications are blocked for this site in your browser settings. Unblock them there, then come back."
                 : `An instant notification for ${COVERAGE} that lands in ${parishes.join(", ")}. Chrome, Edge and Firefox on a computer or Android phone can show these; on an iPhone the site has to be added to the Home Screen first.`}
           </p>
-          {note ? <p className="mt-1 text-[12px] text-conch-400">{note}</p> : null}
+          {note ? <p className="mt-1 text-[12px] text-danger-500">{note}</p> : null}
         </div>
         {state === "on" ? (
           <button

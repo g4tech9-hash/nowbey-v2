@@ -86,7 +86,7 @@ export function ReportAssist({
     <div className="rounded-2xl border border-[#a78bfa]/30 bg-[#a78bfa]/8 p-3.5">
       <div className="flex flex-wrap items-center gap-2">
         <p className="display text-[13.5px] font-bold text-sand-100">✨ Check my report</p>
-        <span className="text-[11px] text-[#8fb9b6]">optional — 5 seconds</span>
+        <span className="text-[11px] text-ink-400">optional — 5 seconds</span>
         <button
           type="button"
           onClick={check}
@@ -96,28 +96,28 @@ export function ReportAssist({
           {busy ? "Checking…" : data ? "Check again" : "Check it"}
         </button>
       </div>
-      <p className="mt-1 text-[11.5px] leading-relaxed text-[#a9cdc9]">
+      <p className="mt-1 text-[11.5px] leading-relaxed text-ink-300">
         Looks for the best category, a clearer headline, the place in your words, and whether neighbours already reported this — you
         accept or ignore each idea.
       </p>
 
-      {failed ? <p className="mt-2 text-[12px] font-semibold text-sun-400">The check could not run just now. Publishing works without it.</p> : null}
+      {failed ? <p className="mt-2 text-[12px] font-semibold text-sun-600">The check could not run just now. Publishing works without it.</p> : null}
 
       {data && !data.ai && !data.duplicates.length && !data.place ? (
-        <p className="mt-2 text-[12px] text-[#a9cdc9]">Nothing to suggest — no similar reports nearby. (AI wording help is not switched on for this site yet.)</p>
+        <p className="mt-2 text-[12px] text-ink-300">Nothing to suggest — no similar reports nearby. (AI wording help is not switched on for this site yet.)</p>
       ) : null}
 
       {data ? (
         <div className="mt-2 space-y-2">
           {data.duplicates.map((d) => (
-            <div key={d.id} className={`rounded-xl px-3 py-2 text-[12.5px] ${d.strength === "exact" ? "bg-conch-500/15" : "bg-white/5"}`}>
+            <div key={d.id} className={`rounded-xl px-3 py-2 text-[12.5px] ${d.strength === "exact" ? "bg-danger-500/15" : "bg-white/5"}`}>
               <p className="font-bold text-sand-100">
                 {d.strength === "exact" ? "This exact spot is already on the map:" : "Sounds like one already on the map:"}{" "}
                 <Link href={`/incident/${d.id}`} className="text-tide-300 underline" target="_blank">
                   {d.title}
                 </Link>
               </p>
-              <p className="mt-0.5 text-[#a9cdc9]">
+              <p className="mt-0.5 text-ink-300">
                 {CATEGORIES[d.category as CategoryKey]?.label ?? d.category} · confirmed ×{d.confirmations}
                 {d.distanceM !== null ? ` · ~${d.distanceM} m from your pin` : ""}. Same thing? Open it and tap “confirm” instead of filing a second
                 pin — one strong pin alerts neighbours better than two weak ones.
@@ -126,7 +126,7 @@ export function ReportAssist({
           ))}
 
           {categoryDiff ? (
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-[#a9cdc9]">
+            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-300">
               This reads as <strong className="text-sand-100">{CATEGORIES[categoryDiff].label}</strong> ({s?.confidence} confidence)
               <button type="button" className={applyBtn} onClick={() => onCategory(categoryDiff)}>
                 Use {CATEGORIES[categoryDiff].label}
@@ -134,7 +134,7 @@ export function ReportAssist({
             </p>
           ) : null}
           {severityDiff ? (
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-[#a9cdc9]">
+            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-300">
               Severity looks more like <strong className="text-sand-100">{SEVERITY_LABELS[severityDiff - 1]} ({severityDiff}/4)</strong>
               <button type="button" className={applyBtn} onClick={() => onSeverity(severityDiff)}>
                 Set {severityDiff}/4
@@ -142,7 +142,7 @@ export function ReportAssist({
             </p>
           ) : null}
           {headlineDiff ? (
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-[#a9cdc9]">
+            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-300">
               Clearer headline: <strong className="text-sand-100">“{headlineDiff}”</strong>
               <button type="button" className={applyBtn} onClick={() => onHeadline(headlineDiff)}>
                 Use it
@@ -150,7 +150,7 @@ export function ReportAssist({
             </p>
           ) : null}
           {placeDiff ? (
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-[#a9cdc9]">
+            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-300">
               Your words name <strong className="text-sand-100">{placeDiff.street}, {placeDiff.parish}</strong> — not where the pin is.
               <button
                 type="button"
@@ -162,14 +162,14 @@ export function ReportAssist({
             </p>
           ) : null}
           {s?.missingInfo.length ? (
-            <div className="text-[12.5px] text-[#a9cdc9]">
+            <div className="text-[12.5px] text-ink-300">
               <p className="font-bold text-sand-100">Neighbours would ask:</p>
               <ul className="mt-0.5 list-disc space-y-0.5 pl-5">
                 {s.missingInfo.map((q) => (
                   <li key={q}>{q}</li>
                 ))}
               </ul>
-              <p className="mt-0.5 text-[11px] text-[#6e97a0]">Add what you know to “What neighbours should know” — or publish as is.</p>
+              <p className="mt-0.5 text-[11px] text-ink-400">Add what you know to “What neighbours should know” — or publish as is.</p>
             </div>
           ) : null}
           {data.ai && !categoryDiff && !severityDiff && !headlineDiff && !s?.missingInfo.length && !data.duplicates.length ? (

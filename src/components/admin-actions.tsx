@@ -37,11 +37,11 @@ export function ReviewButtons({ id }: { id: string }) {
         <button type="button" disabled={busy !== null} onClick={() => go("approve")} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
           {busy === "approve" ? "…" : "Approve"}
         </button>
-        <button type="button" disabled={busy !== null} onClick={() => go("reject")} className={`${BTN} border hairline text-conch-400 hover:bg-white/8`}>
+        <button type="button" disabled={busy !== null} onClick={() => go("reject")} className={`${BTN} border hairline text-danger-500 hover:bg-white/8`}>
           {busy === "reject" ? "…" : "Reject"}
         </button>
       </div>
-      {err ? <p className="text-[11.5px] text-conch-400">{err}</p> : null}
+      {err ? <p className="text-[11.5px] text-danger-500">{err}</p> : null}
     </div>
   );
 }
@@ -69,11 +69,11 @@ export function RemoveStoryButton({ id }: { id: string }) {
             setBusy(false);
           }
         }}
-        className={`${BTN} border hairline text-conch-400 hover:bg-white/8`}
+        className={`${BTN} border hairline text-danger-500 hover:bg-white/8`}
       >
         {busy ? "…" : "Remove"}
       </button>
-      {err ? <p className="text-[11.5px] text-conch-400">{err}</p> : null}
+      {err ? <p className="text-[11.5px] text-danger-500">{err}</p> : null}
     </div>
   );
 }
@@ -117,7 +117,7 @@ export function ReportActions({ id, status, canDelete }: { id: string; status: s
             type="button"
             disabled={busy !== null}
             onClick={() => go("archive", "Hide this report from the public? You can restore it later.")}
-            className={`${BTN} border hairline text-conch-400 hover:bg-white/8`}
+            className={`${BTN} border hairline text-danger-500 hover:bg-white/8`}
           >
             {busy === "archive" ? "…" : "Hide"}
           </button>
@@ -131,7 +131,7 @@ export function ReportActions({ id, status, canDelete }: { id: string; status: s
                 type="button"
                 disabled={busy !== null}
                 onClick={() => go("delete", "Delete this report for good? This cannot be undone.")}
-                className={`${BTN} border border-conch-500/40 text-conch-400 hover:bg-conch-500/10`}
+                className={`${BTN} border border-conch-500/40 text-danger-500 hover:bg-conch-500/10`}
               >
                 {busy === "delete" ? "…" : "Delete for good"}
               </button>
@@ -139,7 +139,7 @@ export function ReportActions({ id, status, canDelete }: { id: string; status: s
           </>
         )}
       </div>
-      {err ? <p className="text-[11.5px] text-conch-400">{err}</p> : null}
+      {err ? <p className="text-[11.5px] text-danger-500">{err}</p> : null}
     </div>
   );
 }
@@ -169,13 +169,13 @@ export function EnquiryStatus({ id, status }: { id: number; status: string }) {
                 setBusy(null);
               }
             }}
-            className={`${BTN} ${s === status ? "bg-tide-500 text-abyss-950" : "bg-white/8 text-[#cfeee9] hover:bg-white/14"}`}
+            className={`${BTN} ${s === status ? "bg-tide-500 text-abyss-950" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
           >
             {s === "new" ? "New" : s === "contacted" ? "Contacted" : "Closed"}
           </button>
         ))}
       </div>
-      {err ? <p className="mt-1 text-[11.5px] text-conch-400">{err}</p> : null}
+      {err ? <p className="mt-1 text-[11.5px] text-danger-500">{err}</p> : null}
     </div>
   );
 }
@@ -206,7 +206,7 @@ export function SendAlertButton({ id }: { id: string }) {
       <button type="button" disabled={busy} onClick={go} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
         {busy ? "Sending…" : "Send alert"}
       </button>
-      {err ? <p className="text-[11px] text-conch-400">{err}</p> : null}
+      {err ? <p className="text-[11px] text-danger-500">{err}</p> : null}
     </div>
   );
 }

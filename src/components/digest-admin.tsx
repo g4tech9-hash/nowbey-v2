@@ -108,22 +108,22 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-tide-400/30 bg-tide-500/8 px-4 py-3 text-[12.5px] leading-relaxed text-[#cfeee9]">
+      <div className="rounded-xl border border-tide-400/30 bg-tide-500/8 px-4 py-3 text-[12.5px] leading-relaxed text-ink-200">
         <p className="display text-[14px] font-bold text-sand-100">Community Digest · $25/mo partner product</p>
         <p className="mt-1">
           Pick the island (and optionally narrow categories), draft the week, read it, send it to the partner&apos;s list.
           Gemini writes the subject, intro and one-liners when its key is set — you approve every word before anything sends.
         </p>
-        <p className="mt-1 text-[11.5px] text-[#8fb9b6]">
-          AI writer: {aiOn ? <span className="font-bold text-tide-300">on</span> : <span className="font-bold text-conch-400">off (template mode)</span>}
-          {" · "}Email: {mailOn ? <span className="font-bold text-tide-300">set up</span> : <span className="font-bold text-conch-400">not set up — sending will fail</span>}
+        <p className="mt-1 text-[11.5px] text-ink-400">
+          AI writer: {aiOn ? <span className="font-bold text-tide-300">on</span> : <span className="font-bold text-danger-500">off (template mode)</span>}
+          {" · "}Email: {mailOn ? <span className="font-bold text-tide-300">set up</span> : <span className="font-bold text-danger-500">not set up — sending will fail</span>}
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]">
         <div className="space-y-4">
-          <div className="glass rounded-2xl p-4">
-            <label className="block text-[12px] font-bold text-[#8fb9b6]" htmlFor="dg-parish">Island</label>
+          <div className="nb-surface rounded-xl2 p-4">
+            <label className="block text-[12px] font-bold text-ink-400" htmlFor="dg-parish">Island</label>
             <select
               id="dg-parish"
               value={parish}
@@ -135,14 +135,14 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
               ))}
             </select>
 
-            <p className="mt-3 text-[12px] font-bold text-[#8fb9b6]">Categories <span className="font-normal">(leave all off for everything)</span></p>
+            <p className="mt-3 text-[12px] font-bold text-ink-400">Categories <span className="font-normal">(leave all off for everything)</span></p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {categories.map((c) => (
                 <button
                   key={c.key}
                   type="button"
                   onClick={() => toggleCategory(c.key)}
-                  className={`rounded-full px-2.5 py-1 text-[11.5px] font-bold ${picked.includes(c.key) ? "bg-tide-500/25 text-tide-300 ring-1 ring-tide-400/50" : "bg-white/6 text-[#a9cdc9] hover:bg-white/12"}`}
+                  className={`rounded-full px-2.5 py-1 text-[11.5px] font-bold ${picked.includes(c.key) ? "bg-tide-500/25 text-tide-300 ring-1 ring-tide-400/50" : "bg-white/6 text-ink-300 hover:bg-white/12"}`}
                 >
                   {c.label}
                 </button>
@@ -159,13 +159,13 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
             </button>
 
             {msg ? (
-              <p className={`mt-2 rounded-lg px-2.5 py-1.5 text-[12px] ${msg.ok ? "bg-tide-500/10 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>{msg.text}</p>
+              <p className={`mt-2 rounded-lg px-2.5 py-1.5 text-[12px] ${msg.ok ? "bg-tide-500/10 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>{msg.text}</p>
             ) : null}
           </div>
 
-          <div className="glass rounded-2xl p-4">
+          <div className="nb-surface rounded-xl2 p-4">
             <p className="display text-[14px] font-bold text-sand-100">Send to</p>
-            <label className="mt-2 block text-[12px] font-bold text-[#8fb9b6]" htmlFor="dg-partner">Digest partner</label>
+            <label className="mt-2 block text-[12px] font-bold text-ink-400" htmlFor="dg-partner">Digest partner</label>
             <select
               id="dg-partner"
               value={partnerId}
@@ -179,9 +179,9 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
                 </option>
               ))}
             </select>
-            {partner ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">→ {partner.email}</p> : null}
+            {partner ? <p className="mt-1 text-[11.5px] text-ink-400">→ {partner.email}</p> : null}
 
-            <label className="mt-2 block text-[12px] font-bold text-[#8fb9b6]" htmlFor="dg-emails">Extra addresses (one per line or comma-separated)</label>
+            <label className="mt-2 block text-[12px] font-bold text-ink-400" htmlFor="dg-emails">Extra addresses (one per line or comma-separated)</label>
             <textarea
               id="dg-emails"
               value={extraEmails}
@@ -203,7 +203,7 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
         </div>
 
         <div className="space-y-4">
-          <div className="glass rounded-2xl p-4">
+          <div className="nb-surface rounded-xl2 p-4">
             <p className="display text-[14px] font-bold text-sand-100">Recent drafts</p>
             {drafts.length ? (
               <ul className="mt-2 space-y-1.5">
@@ -217,24 +217,24 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                         <span className="font-bold text-sand-100">{d.subject}</span>
                       </span>
-                      <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-[#8fb9b6]">
+                      <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-ink-400">
                         <span>{d.parish}</span>
                         <span>· {d.itemCount} items</span>
                         <span className={d.generatedBy === "ai" ? "font-bold text-tide-300" : ""}>{d.generatedBy === "ai" ? "Gemini" : "template"}</span>
-                        <span className={d.status === "sent" ? "font-bold text-tide-300" : "text-sun-400"}>{d.status === "sent" ? "sent" : "draft"}</span>
+                        <span className={d.status === "sent" ? "font-bold text-tide-300" : "text-sun-600"}>{d.status === "sent" ? "sent" : "draft"}</span>
                       </span>
                     </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-[12.5px] text-[#6e97a0]">No drafts yet — make the first one.</p>
+              <p className="mt-2 text-[12.5px] text-ink-400">No drafts yet — make the first one.</p>
             )}
           </div>
 
           {open ? (
-            <div className="glass rounded-2xl p-4">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[#8fb9b6]">Preview — exactly what lands in the inbox</p>
+            <div className="nb-surface rounded-xl2 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-ink-400">Preview — exactly what lands in the inbox</p>
               <div
                 className="mt-2 overflow-hidden rounded-xl border hairline bg-[#03121b] [&_a]:pointer-events-none"
                 // Every variable inside was escaped by the generator; links are ours from the database.

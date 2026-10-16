@@ -89,8 +89,8 @@ export function AdminUserActions(p: Props) {
             Save role
           </button>
         </div>
-        {p.isSelf ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">You cannot change your own role.</p> : null}
-        {p.envAdmin ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">This member is an admin through ADMIN_HANDLES in the server settings.</p> : null}
+        {p.isSelf ? <p className="mt-1 text-[11.5px] text-ink-400">You cannot change your own role.</p> : null}
+        {p.envAdmin ? <p className="mt-1 text-[11.5px] text-ink-400">This member is an admin through ADMIN_HANDLES in the server settings.</p> : null}
       </div>
 
       <div>
@@ -111,7 +111,7 @@ export function AdminUserActions(p: Props) {
             Save plan
           </button>
         </div>
-        <p className="mt-1 text-[11.5px] text-[#8fb9b6]">
+        <p className="mt-1 text-[11.5px] text-ink-400">
           {p.payingViaStripe
             ? "This member pays through Stripe, so their plan is managed there."
             : "For community partners and staff. It involves no payment and stays until you remove it."}
@@ -141,7 +141,7 @@ export function AdminUserActions(p: Props) {
             </button>
           </div>
         )}
-        {!p.suspended && (p.isSelf || p.targetIsAdmin) ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">Admins cannot be suspended. Remove their admin role first.</p> : null}
+        {!p.suspended && (p.isSelf || p.targetIsAdmin) ? <p className="mt-1 text-[11.5px] text-ink-400">Admins cannot be suspended. Remove their admin role first.</p> : null}
       </div>
 
       <div>
@@ -161,7 +161,7 @@ export function AdminUserActions(p: Props) {
         </div>
         {link ? (
           <div className="mt-2 rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
-            <p className="text-[11.5px] text-[#8fb9b6]">One hour, one use. Shown only now, and not kept in the activity log.</p>
+            <p className="text-[11.5px] text-ink-400">One hour, one use. Shown only now, and not kept in the activity log.</p>
             <div className="mt-1.5 flex gap-2">
               <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} className={`${INPUT} min-w-0 flex-1 font-mono text-[11.5px]`} aria-label="Password reset link" />
               <button type="button" onClick={() => void navigator.clipboard?.writeText(link)} className={BTN}>
@@ -185,7 +185,7 @@ export function AdminUserActions(p: Props) {
             {live.map((b) => (
               <li key={b.id} className="rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
                 <p className="text-[12.5px] text-sand-100">“{b.reason}”</p>
-                <p className="mt-0.5 text-[11.5px] text-[#8fb9b6]">
+                <p className="mt-0.5 text-[11.5px] text-ink-400">
                   granted by @{b.grantedBy} {shortDate(b.grantedAt)}
                   {b.expiresAt ? ` · runs until ${shortDate(b.expiresAt)}` : ""}
                 </p>
@@ -203,7 +203,7 @@ export function AdminUserActions(p: Props) {
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-[11.5px] text-[#8fb9b6]">No live badge. {revoked.length ? `${revoked.length} revoked earlier — see the activity log below.` : ""}</p>
+          <p className="mt-1 text-[11.5px] text-ink-400">No live badge. {revoked.length ? `${revoked.length} revoked earlier — see the activity log below.` : ""}</p>
         )}
         <div className={`${row} mt-2`}>
           <input
@@ -239,7 +239,7 @@ export function AdminUserActions(p: Props) {
             Grant
           </button>
         </div>
-        <p className="mt-1 text-[11.5px] text-[#8fb9b6]">
+        <p className="mt-1 text-[11.5px] text-ink-400">
           Only grant this after checking who the account is. It appears beside their handle on every report, post and comment they wrote.
         </p>
       </div>
@@ -271,12 +271,12 @@ export function AdminUserActions(p: Props) {
           >
             Save note
           </button>
-          <span className="text-[11.5px] text-[#8fb9b6]">Notes are never shown to the member and cannot be edited afterwards.</span>
+          <span className="text-[11.5px] text-ink-400">Notes are never shown to the member and cannot be edited afterwards.</span>
         </div>
       </div>
 
       {msg ? (
-        <p role={msg.ok ? "status" : "alert"} className={`rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>
+        <p role={msg.ok ? "status" : "alert"} className={`rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
           {msg.text}
         </p>
       ) : null}

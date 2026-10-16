@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: PREFS_BOOT }} />
         {settings.splash ? <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} /> : null}
       </head>
-      <body className="min-h-screen bg-abyss-950 text-[#e8f6f4] antialiased">
+      <body className="min-h-screen bg-abyss-950 text-ink-100 antialiased">
         <ErrorReporter />
         {settings.theme === "island" ? <SceneBackdrop /> : null}
         {settings.splash ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}

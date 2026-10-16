@@ -64,10 +64,10 @@ export function PasswordField({
               <span key={i} className={`h-1 flex-1 rounded-full ${i <= s.score ? SEGMENT[s.score] : "bg-white/10"}`} />
             ))}
           </div>
-          <p className={`mt-1 text-[11.5px] ${s.problem ? "text-conch-400" : "text-[#8fb9b6]"}`}>{s.problem ?? s.label}</p>
+          <p className={`mt-1 text-[11.5px] ${s.problem ? "text-danger-500" : "text-ink-400"}`}>{s.problem ?? s.label}</p>
         </div>
       ) : hint ? (
-        <p className="mt-1 text-[11.5px] text-[#8fb9b6]">{hint}</p>
+        <p className="mt-1 text-[11.5px] text-ink-400">{hint}</p>
       ) : null}
     </div>
   );

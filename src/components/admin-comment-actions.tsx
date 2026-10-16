@@ -31,7 +31,7 @@ export function CommentModActions({ id, status, flagged }: { id: number; status:
     <div className="flex flex-col items-start gap-1">
       <div className="flex flex-wrap gap-1.5">
         {status === "published" ? (
-          <button type="button" disabled={busy !== null} onClick={() => go("hide", "Hide this comment from the public? You can restore it later.")} className={`${BTN} border hairline text-conch-400 hover:bg-white/8`}>
+          <button type="button" disabled={busy !== null} onClick={() => go("hide", "Hide this comment from the public? You can restore it later.")} className={`${BTN} border hairline text-danger-500 hover:bg-white/8`}>
             {busy === "hide" ? "…" : "Hide"}
           </button>
         ) : status === "hidden" ? (
@@ -48,12 +48,12 @@ export function CommentModActions({ id, status, flagged }: { id: number; status:
           type="button"
           disabled={busy !== null}
           onClick={() => go("delete", "Delete this comment? If people replied to it, it stays as a blank so their replies still make sense.")}
-          className={`${BTN} border border-conch-500/40 text-conch-400 hover:bg-conch-500/10`}
+          className={`${BTN} border border-conch-500/40 text-danger-500 hover:bg-conch-500/10`}
         >
           {busy === "delete" ? "…" : "Delete"}
         </button>
       </div>
-      {err ? <p className="text-[11.5px] text-conch-400">{err}</p> : null}
+      {err ? <p className="text-[11.5px] text-danger-500">{err}</p> : null}
     </div>
   );
 }

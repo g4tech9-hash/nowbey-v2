@@ -14,9 +14,9 @@ const when = (d: Date) => d.toLocaleDateString("en-US", { day: "numeric", month:
 
 function Section({ title, blurb, children }: { title: string; blurb?: string; children: React.ReactNode }) {
   return (
-    <section className="glass rounded-2xl p-4">
+    <section className="nb-surface rounded-xl2 p-4">
       <p className="display text-[15px] font-extrabold text-sand-100">{title}</p>
-      {blurb ? <p className="mt-0.5 text-[12.5px] leading-relaxed text-[#8fb9b6]">{blurb}</p> : null}
+      {blurb ? <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-400">{blurb}</p> : null}
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -77,19 +77,19 @@ export default async function MyProfilePage() {
       <Section title="What your profile says today" blurb="A quick read of the same facts the profile page uses.">
         <dl className="grid grid-cols-2 gap-3 text-[13px] sm:grid-cols-4">
           <div>
-            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Visibility</dt>
+            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Visibility</dt>
             <dd className="mt-0.5 font-bold text-sand-100">{settings.visibility === "private" ? "Private" : "Open"}</dd>
           </div>
           <div>
-            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Bio</dt>
+            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Bio</dt>
             <dd className="mt-0.5 text-sand-100">{settings.bio ? `${settings.bio.length} characters` : "Not set"}</dd>
           </div>
           <div>
-            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Alert islands</dt>
+            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Alert islands</dt>
             <dd className="mt-0.5 text-sand-100">{islands ? (settings.showAlertSummary ? `${islands} shown` : `${islands} kept private`) : "None set up"}</dd>
           </div>
           <div>
-            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Verified</dt>
+            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Verified</dt>
             <dd className="mt-0.5 text-sand-100">{verifiedByPerson ? "Yes, by a person" : "Not yet"}</dd>
           </div>
         </dl>
@@ -105,15 +105,15 @@ export default async function MyProfilePage() {
               <li key={`${b.badge}-${i}`} className="rounded-xl border hairline p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <BadgeMark kind={b.badge === "desk" ? "desk" : "verified"} />
-                  <span className="text-[12.5px] text-[#8fb9b6]">granted {when(b.grantedAt)} by @{b.grantedBy}</span>
+                  <span className="text-[12.5px] text-ink-400">granted {when(b.grantedAt)} by @{b.grantedBy}</span>
                 </div>
-                <p className="mt-1.5 text-[12.5px] text-[#cfeee9]">{b.reason}</p>
-                {b.expiresAt ? <p className="mt-1 text-[11.5px] text-sun-400">Runs until {when(b.expiresAt)}.</p> : null}
+                <p className="mt-1.5 text-[12.5px] text-ink-200">{b.reason}</p>
+                {b.expiresAt ? <p className="mt-1 text-[11.5px] text-sun-600">Runs until {when(b.expiresAt)}.</p> : null}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-[12.5px] text-[#8fb9b6]">
+          <p className="text-[12.5px] text-ink-400">
             No badges yet. They are given out by hand — usually after a member has filed several reports that held up.
           </p>
         )}
@@ -137,18 +137,18 @@ export default async function MyProfilePage() {
                     <p className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-sand-100">
                       <span className="truncate">{r.title}</span>
                       {r.anonymous ? (
-                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-[#a9cdc9]">anonymous</span>
+                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-ink-300">anonymous</span>
                       ) : null}
                       {r.hidden ? (
-                        <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-sun-400">hidden</span>
+                        <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-sun-600">hidden</span>
                       ) : null}
                     </p>
-                    <p className="mt-0.5 text-[11.5px] text-[#8fb9b6]">
+                    <p className="mt-0.5 text-[11.5px] text-ink-400">
                       {meta.label}
                       {r.parish ? ` · ${r.parish}` : ""} · {timeAgo(r.createdAt)} · {r.confirmations} confirmation{r.confirmations === 1 ? "" : "s"}
                     </p>
                     {r.anonymous ? (
-                      <p className="mt-1 text-[11.5px] text-[#6e97a0]">Anonymous reports are never listed on a profile, so there is nothing to hide.</p>
+                      <p className="mt-1 text-[11.5px] text-ink-400">Anonymous reports are never listed on a profile, so there is nothing to hide.</p>
                     ) : null}
                   </div>
                   {r.anonymous ? null : <HideReportButton incidentId={r.id} hidden={r.hidden} title={r.title} />}
@@ -157,7 +157,7 @@ export default async function MyProfilePage() {
             })}
           </ul>
         ) : (
-          <p className="text-[12.5px] text-[#8fb9b6]">
+          <p className="text-[12.5px] text-ink-400">
             Nothing yet.{" "}
             <Link href="/report" className="font-bold text-tide-300 underline">
               File a report

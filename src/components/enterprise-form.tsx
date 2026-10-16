@@ -32,7 +32,7 @@ export function EnterpriseForm() {
           ✓
         </span>
         <p className="display mt-3 text-[17px] font-extrabold text-sand-100">Thanks, we have your details</p>
-        <p className="mx-auto mt-1.5 max-w-[34ch] text-[13px] leading-relaxed text-[#a9cdc9]">
+        <p className="mx-auto mt-1.5 max-w-[34ch] text-[13px] leading-relaxed text-ink-300">
           Someone from NowBey will reply to {email} to talk about what your team needs.
         </p>
       </div>
@@ -138,7 +138,7 @@ export function EnterpriseForm() {
         </label>
       </div>
 
-      {error ? <p className="rounded-lg bg-conch-500/15 px-3 py-2 text-[12.5px] text-conch-400">{error}</p> : null}
+      {error ? <p className="rounded-lg bg-danger-500/15 px-3 py-2 text-[12.5px] text-danger-500">{error}</p> : null}
 
       <button
         type="submit"
@@ -147,7 +147,7 @@ export function EnterpriseForm() {
       >
         {busy ? "Sending…" : "Talk to us"}
       </button>
-      <p className="text-[11px] leading-snug text-[#6e97a0]">
+      <p className="text-[11px] leading-snug text-ink-400">
         We only use these details to reply about Enterprise. We will not add you to a mailing list.
       </p>
     </form>

@@ -38,10 +38,10 @@ export default function ForgotPassword() {
       {sent ? (
         <div className="glass mt-4 rounded-2xl p-4">
           <p className="display text-[15px] font-bold text-sand-100">Check your email</p>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-[#a9cdc9]">
+          <p className="mt-1.5 text-[13px] leading-relaxed text-ink-300">
             If an account uses <strong className="text-sand-100">{email}</strong>, we have sent a link to choose a new password. It works for one hour.
           </p>
-          <p className="mt-2 text-[12px] leading-relaxed text-[#8fb9b6]">
+          <p className="mt-2 text-[12px] leading-relaxed text-ink-400">
             Nothing after a few minutes? Check your spam folder. If you never added an email to your account, ask a NowBey admin to help you back in.
           </p>
           <Link href="/login?mode=signin" className="mt-3 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">
@@ -50,13 +50,13 @@ export default function ForgotPassword() {
         </div>
       ) : (
         <form onSubmit={submit} className="glass mt-4 rounded-2xl p-4" noValidate>
-          <p className="text-[13px] leading-relaxed text-[#a9cdc9]">Enter the email you signed up with and we will send you a link to choose a new password.</p>
+          <p className="text-[13px] leading-relaxed text-ink-300">Enter the email you signed up with and we will send you a link to choose a new password.</p>
           <label className="mt-3 block">
             <span className={LABEL}>Email</span>
             <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" placeholder="you@example.com" className={`${INPUT} mt-1`} />
           </label>
           {error ? (
-            <p role="alert" className="mt-3 rounded-lg bg-conch-500/15 px-2.5 py-2 text-[12.5px] text-conch-400">
+            <p role="alert" className="mt-3 rounded-lg bg-danger-500/15 px-2.5 py-2 text-[12.5px] text-danger-500">
               {error}
             </p>
           ) : null}

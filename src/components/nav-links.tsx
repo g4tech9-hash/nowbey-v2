@@ -201,7 +201,7 @@ export function SessionChip({ handle }: { handle: string | null }) {
   ) : (
     <Link
       href="/login"
-      className="flex min-h-[40px] items-center rounded-full border hairline px-3 py-1.5 text-[12.5px] font-bold text-[#bfe4e0] hover:bg-white/5 sm:min-h-0"
+      className="flex min-h-[40px] items-center rounded-full border hairline px-3 py-1.5 text-[12.5px] font-bold text-ink-200 hover:bg-white/5 sm:min-h-0"
     >
       Sign in
     </Link>

@@ -41,7 +41,7 @@ export function IngestButton() {
       >
         {busy ? "Checking…" : "Refresh stories"}
       </button>
-      {report ? <p className="text-[12px] text-[#a9cdc9]">{report}</p> : null}
+      {report ? <p className="text-[12px] text-ink-300">{report}</p> : null}
     </div>
   );
 }
@@ -79,7 +79,7 @@ export function ManageBillingButton({ demo }: { demo: boolean }) {
       >
         {busy ? "One moment…" : demo ? "End demo plan" : "Manage billing"}
       </button>
-      {err ? <p className="mt-1 text-[11.5px] text-conch-400">{err}</p> : null}
+      {err ? <p className="mt-1 text-[11.5px] text-danger-500">{err}</p> : null}
     </div>
   );
 }
@@ -95,7 +95,7 @@ export function SignOut() {
         await fetch("/api/session", { method: "DELETE" });
         window.location.assign(new URL("/", window.location.origin).href);
       }}
-      className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-[#a9cdc9] hover:bg-white/5"
+      className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-ink-300 hover:bg-white/5"
     >
       {busy ? "Signing out…" : "Sign out"}
     </button>

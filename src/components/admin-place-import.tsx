@@ -31,7 +31,7 @@ export function PlaceImportButton() {
       <button onClick={run} disabled={busy} className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-bold text-abyss-950 disabled:opacity-50">
         {busy ? "Importing…" : "Import venues from OpenStreetMap"}
       </button>
-      {note ? <span className="text-[12px] text-[#a9cdc9]">{note}</span> : null}
+      {note ? <span className="text-[12px] text-ink-300">{note}</span> : null}
     </div>
   );
 }

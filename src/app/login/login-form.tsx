@@ -158,11 +158,11 @@ export function LoginForm() {
         <h1 className="display mt-1.5 text-[clamp(1.7rem,4.4vw,2.4rem)] font-extrabold leading-[1.05] text-sand-100">
           {mode === "signup" ? "Join your neighbours on NowBey" : "Welcome back"}
         </h1>
-        <p className="mt-2 max-w-[52ch] text-[13.5px] leading-relaxed text-[#a9cdc9]">
+        <p className="mt-2 max-w-[52ch] text-[13.5px] leading-relaxed text-ink-300">
           You can read the map, confirm reports and file a pin without an account. An account puts your handle on the reports
           you file, keeps your alert settings, and brings your plan with you to any device.
         </p>
-        <ul className="mt-3 space-y-1.5 text-[12.5px] text-[#8fb9b6]">
+        <ul className="mt-3 space-y-1.5 text-[12.5px] text-ink-400">
           <li className="flex gap-2">
             <span className="text-tide-400">→</span> Your email is only used for account help and the alerts you ask for.
           </li>
@@ -197,7 +197,7 @@ export function LoginForm() {
               </svg>
               {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
             </button>
-            <p className="mt-1.5 text-[11.5px] leading-relaxed text-[#6e97a0]">
+            <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-400">
               One button for both. Google tells us your name and email address — we never see your Google password, and we do
               not post anything.
             </p>
@@ -220,7 +220,7 @@ export function LoginForm() {
                 setMode(v);
                 setError(null);
               }}
-              className={`flex-1 rounded-lg py-1.5 text-[12.5px] font-extrabold ${mode === v ? "bg-sand-100 text-abyss-950" : "bg-white/6 text-[#a9cdc9]"}`}
+              className={`flex-1 rounded-lg py-1.5 text-[12.5px] font-extrabold ${mode === v ? "bg-sand-100 text-abyss-950" : "bg-white/6 text-ink-300"}`}
             >
               {v === "signup" ? "Create account" : "Sign in"}
             </button>
@@ -228,13 +228,13 @@ export function LoginForm() {
         </div>
 
         {googleMessage ? (
-          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${googleMessage.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>
+          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${googleMessage.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
             {googleMessage.text}
           </p>
         ) : null}
 
         {banner ? (
-          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${banner.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>{banner.text}</p>
+          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${banner.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>{banner.text}</p>
         ) : null}
 
         {mode === "signin" ? (
@@ -264,7 +264,7 @@ export function LoginForm() {
             <label className="block">
               <span className={LABEL}>Handle</span>
               <div className="mt-1 flex items-center rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 focus-within:border-tide-400">
-                <span className="text-[13px] text-[#6e97a0]">@</span>
+                <span className="text-[13px] text-ink-400">@</span>
                 <input
                   value={handle}
                   onChange={(e) => setHandle(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").toLowerCase())}
@@ -276,7 +276,7 @@ export function LoginForm() {
               </div>
               <p
                 className={`mt-1 min-h-[16px] text-[11.5px] ${
-                  handleState.kind === "ok" ? "text-tide-300" : handleState.kind === "bad" ? "text-conch-400" : "text-[#8fb9b6]"
+                  handleState.kind === "ok" ? "text-tide-300" : handleState.kind === "bad" ? "text-danger-500" : "text-ink-400"
                 }`}
                 aria-live="polite"
               >
@@ -324,13 +324,13 @@ export function LoginForm() {
             </div>
             <div className="mt-2.5">
               <PasswordField label="Confirm password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
-              {confirm && password !== confirm ? <p className="mt-1 text-[11.5px] text-conch-400">These do not match yet.</p> : null}
+              {confirm && password !== confirm ? <p className="mt-1 text-[11.5px] text-danger-500">These do not match yet.</p> : null}
             </div>
           </>
         )}
 
         {error ? (
-          <p role="alert" className="mt-3 rounded-lg bg-conch-500/15 px-2.5 py-2 text-[12.5px] text-conch-400">
+          <p role="alert" className="mt-3 rounded-lg bg-danger-500/15 px-2.5 py-2 text-[12.5px] text-danger-500">
             {error}
           </p>
         ) : null}
@@ -338,7 +338,7 @@ export function LoginForm() {
         <button type="submit" disabled={busy} className="mt-3 w-full rounded-xl bg-tide-500 py-2.5 text-[13.5px] font-extrabold text-abyss-950 disabled:opacity-50">
           {busy ? "Working…" : mode === "signup" ? "Create my account" : "Sign in"}
         </button>
-        <p className="mt-2 text-[11px] text-[#6e97a0]">
+        <p className="mt-2 text-[11px] text-ink-400">
           Just looking?{" "}
           <Link href="/map" className="font-bold text-tide-300 hover:underline">
             Open the map

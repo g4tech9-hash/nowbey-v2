@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 export function CrashDismissButton({ id }: { id: number }) {
   const [done, setDone] = useState(false);
   const [pending, start] = useTransition();
-  if (done) return <span className="text-[11px] text-[#6e97a0]">dismissed</span>;
+  if (done) return <span className="text-[11px] text-ink-400">dismissed</span>;
   return (
     <button
       type="button"
@@ -21,7 +21,7 @@ export function CrashDismissButton({ id }: { id: number }) {
           setDone(true);
         })
       }
-      className="rounded-full border hairline px-2.5 py-1 text-[11px] font-bold text-[#8fb9b6] hover:bg-white/8 disabled:opacity-50"
+      className="rounded-full border hairline px-2.5 py-1 text-[11px] font-bold text-ink-400 hover:bg-white/8 disabled:opacity-50"
     >
       {pending ? "…" : "Dismiss"}
     </button>
