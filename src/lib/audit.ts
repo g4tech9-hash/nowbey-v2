@@ -1,7 +1,18 @@
 import { db } from "@/db";
 import { adminAudit } from "@/db/schema";
 
-export type AuditTarget = "user" | "report" | "story" | "enquiry" | "post" | "comment" | "setting" | "place" | "digest" | "error";
+export type AuditTarget =
+  | "user"
+  | "report"
+  | "story"
+  | "enquiry"
+  | "post"
+  | "comment"
+  | "setting"
+  | "place"
+  | "digest"
+  | "partner"
+  | "error";
 
 /** Writes one line to the activity log. A logging problem never blocks the action itself. */
 export async function audit(
