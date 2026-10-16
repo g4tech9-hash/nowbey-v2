@@ -1,28 +1,33 @@
 # Test Results
 
-Preflight (Phase 0) — 2026-10-16.
+Autonomous run — 2026-10-16 (branch arena/8cfa01df-nowbey-v2).
 
 ## Environment / Tooling
-- Node.js: v22.22.3 (engines requires >=20.19.4) — OK.
-- npm: 10.9.8.
-- Git: 2.39.5.
-- GitHub CLI: 2.23.0 (logged in as g4tech9-hash).
-- Vercel CLI: NOT installed in sandbox.
-- EAS CLI / Expo CLI: NOT installed in sandbox.
-- Playwright: NOT installed in sandbox.
-- psql / pg_ctl: NOT installed in sandbox.
-- node_modules: NOT present (root or expo/) — install required before running checks.
+- Node.js v22.22.3, npm 10.9.8, git 2.39.5, gh 2.23.0 (auth OK).
+- Vercel/EAS/Expo/Playwright/psql CLIs: NOT available. node_modules installed with `--ignore-scripts` (network limits native builds).
+- No local Postgres/SMTP catcher => DB-backed suites not run.
 
-## Baseline
-Not yet run. Dependencies not installed. Phase 0 scope only.
+## Static checks
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS.
+- `npm test` (hermetic unit): PASS — 48/48.
+- `npm run build`: FAIL in sandbox — Google Fonts (fonts.googleapis.com) unreachable; Turbopack cannot fetch Manrope/Sora. CI (with network) is the authority; code unchanged. Recorded as environmental blocker.
+- Expo `npm run typecheck`: PASS.
+- `npx expo-doctor`: 19/21; 2 failures are network (Expo API schema + package metadata).
 
-## Pending (later phases)
-- npm install (root) and expo npm install.
-- npm run typecheck, npm run lint, npm test, npm run build.
-- npm run test:local, npm run test:ui (require Postgres + SMTP catcher).
-- Expo typecheck, expo-doctor, bundle checks.
-- E2E / security / performance / mobile audit.
+## UI tests
+- `npm run test:ui`: 6/7 PASS. Fixed stale test selector (`<ul className="space-y-1.5">` -> prefix) for added `aria-busy`. Remaining failure: mobile audit (see below).
 
-## Notes
-- Working tree was clean at preflight; empty checkpoint commit fd3b3f0 created.
-- No secrets found tracked (.env.example only). .env not present locally.
+## Mobile audit
+- `node scripts/mobile-audit.mjs`: BLOCKED in sandbox — `/wire` returns 500 without DATABASE_URL, so collected CSS is empty/missing anchors. Requires a working server + DB. Not a code failure.
+
+## Not run (blocked)
+- `npm run test:local` (needs Postgres 55432 + SMTP catcher).
+- `npm run fuzz` (needs running server + DB).
+- E2E/browser, security scan, performance, Android device test.
+- Vercel deploy, EAS APK build (no CLIs/auth).
+
+## Fixes applied
+- tests/ui.test.mjs: updated pin-list selector to match `aria-busy` attribute.
+- .env.example: appended optional AI/feed/push/trust-proxy vars.
+- AUDIT.md: appended current audit section.

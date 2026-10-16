@@ -1,27 +1,27 @@
 # Launch Checklist
 
-Preflight (Phase 0) — 2026-10-16. Feature/test matrix (initial).
+Autonomous run — 2026-10-16.
 
 | Feature / Journey | Components | Required Test | Result | Evidence / Reason |
 | --- | --- | --- | --- | --- |
-| Landing page & navigation | src/app/page.tsx | UI smoke | NOT RUN | deps not installed |
-| Hazard report create | src/app/report, API routes | endpoints/auth | NOT RUN | needs Postgres |
-| Map & pin list | src/app/map, leaflet | UI + mobile audit | NOT RUN | |
-| News/wire feed | src/app/wire | build/typecheck | NOT RUN | |
-| Auth (email+password, Google) | src/app/login, api/auth | auth tests | NOT RUN | |
-| Email alerts | alerts routes | mail tests | NOT RUN | |
-| Admin pages | src/app/admin | admin tests | NOT RUN | |
-| Profile/settings | src/app/you | profile tests | NOT RUN | |
-| Health endpoint | src/app/api/health | endpoints | NOT RUN | |
-| Expo Android app | expo/ | typecheck, bundle | NOT RUN | no node_modules |
-| Deploy (Vercel) | .github/workflows/deploy.yml | gate | NOT RUN | no CLI |
-| APK build (EAS) | expo/eas.json | eas build | NOT RUN | no CLI |
+| Typecheck (web) | tsc | npm run typecheck | PASS | exit 0 |
+| Lint (web) | eslint | npm run lint | PASS | exit 0 |
+| Unit tests (web) | node --test | npm test | PASS | 48/48 |
+| Production build (web) | next build | npm run build | BLOCKED | Google Fonts unreachable in sandbox; CI authority |
+| Expo typecheck | tsc | npm run typecheck | PASS | exit 0 |
+| Expo doctor | expo-doctor | npx expo-doctor | PARTIAL | 19/21; 2 network failures |
+| UI phone tests | tests/ui.test.mjs | npm run test:ui | PARTIAL | 6/7; mobile audit blocked by missing DB |
+| Mobile audit | scripts/mobile-audit.mjs | npm run audit:mobile | BLOCKED | /wire 500 without DB |
+| Local API/auth/mail/admin | tests/* | npm run test:local | NOT RUN | needs Postgres + SMTP catcher |
+| Fuzz | tests/fuzz.mjs | npm run fuzz | NOT RUN | needs server + DB |
+| Vercel deploy | deploy.yml | vercel --prod | BLOCKED | no Vercel CLI/auth in sandbox |
+| EAS APK build | expo/eas.json | eas build | BLOCKED | no EAS CLI/auth in sandbox |
 
 ## Launch Gates
-- Website: NOT READY (unverified).
-- Android: NOT READY (unverified).
+- Website: NOT READY (build unverified in sandbox; DB-backed tests not run).
+- Android: NOT READY (no device/emulator test; no APK built this session).
 
-## Blockers (initial)
-- No node_modules installed (install required).
-- No Vercel/EAS/Playwright/psql CLIs in sandbox.
-- No .env present (use .env.example).
+## Blockers
+- No local Postgres/SMTP catcher for integration tests.
+- Sandbox network blocks Google Fonts (build) and Expo API (doctor).
+- No Vercel/EAS credentials/CLIs for deployment.

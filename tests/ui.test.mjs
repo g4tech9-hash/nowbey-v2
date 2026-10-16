@@ -43,7 +43,7 @@ test("the phone map is short and the pin list sits under it", async () => {
   // list start above the fold.
   const source = read("src/app/map/page.tsx");
   const mapAt = source.indexOf("<MapPanel");
-  const listAt = source.indexOf('<ul className="space-y-1.5">');
+  const listAt = source.indexOf('<ul className="space-y-1.5"');
   assert.ok(mapAt > -1, "the phone layout must render the map");
   assert.ok(listAt > mapAt, "the pin list must be built after the map, so it sits under it");
   assert.match(source, /the pin list under it \(the phone default, so the list is above the fold\)/, "the phone default must stay the split layout");
