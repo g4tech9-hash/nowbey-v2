@@ -341,11 +341,21 @@ canvas {
 }
 
 /* ---------- App furniture ---------- */
+/* 2026 Tideglass control material: deeper blur, tide-tinted edge, inset
+   highlight, ambient shadow. Used by nav, map controls, overlays, chips. */
 .glass {
-  background: linear-gradient(180deg, rgba(16, 57, 76, 0.55), rgba(6, 28, 40, 0.72));
+  background: linear-gradient(180deg, rgba(16, 57, 76, 0.5), rgba(6, 28, 40, 0.7));
   border: 1px solid rgba(120, 220, 214, 0.16);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: var(--shadow-l2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.glass-strong {
+  background: linear-gradient(180deg, rgba(16, 57, 76, 0.66), rgba(6, 28, 40, 0.84));
+  border: 1px solid rgba(120, 220, 214, 0.2);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+  box-shadow: var(--shadow-l3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 /* honour iOS / Android bottom safe area for the nav and the home indicator */

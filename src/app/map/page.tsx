@@ -179,6 +179,18 @@ export default function MapWorkspace() {
   // The pin the user tapped last (in the list or on the map), shown as a one-line card above the list.
   const current = rows.find((r) => r.id === selected) ?? null;
 
+  // Island pulse: which categories are loudest right now (top 4, plus the open total).
+  const pulse = useMemo(() => {
+    const counts = new Map<CategoryKey, number>();
+    for (const r of rows) {
+      if (r.status === "archived") continue;
+      counts.set(r.category, (counts.get(r.category) ?? 0) + 1);
+    }
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4);
+    const max = top.length ? top[0][1] : 1;
+    return { top, max, open: rows.filter((r) => r.status !== "archived").length };
+  }, [rows]);
+
   const openDetails = () => setStep("details");
 
   async function submit() {
@@ -339,6 +351,49 @@ export default function MapWorkspace() {
           )}
         </div>
 
+        {/* Tideglass bento: island pulse (2/3) + open/confirmed tiles (1/3). */}
+        <div className="grid flex-none grid-cols-3 gap-2 px-3 pt-2 lg:px-0">
+          <section className="nb-surface col-span-2 p-3">
+            <div className="mb-2 flex items-center gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-400">Island pulse</p>
+              <span className="nb-live-dot ml-auto" aria-hidden />
+            </div>
+            {pulse.top.length ? (
+              <ul className="space-y-1.5">
+                {pulse.top.map(([k, n]) => (
+                  <li key={k} className="flex items-center gap-2">
+                    <span className="flex w-[86px] shrink-0 items-center gap-1.5 text-[11px] font-bold text-ink-200">
+                      <span className="h-2 w-2 rounded-full" style={{ background: CATEGORIES[k]?.color }} />
+                      <span className="truncate">{CATEGORIES[k]?.label ?? k}</span>
+                    </span>
+                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/8">
+                      <span
+                        className="block h-full rounded-full transition-[width] duration-500 ease-standard"
+                        style={{ width: `${(n / pulse.max) * 100}%`, background: CATEGORIES[k]?.color, boxShadow: `0 0 10px ${CATEGORIES[k]?.color}88` }}
+                      />
+                    </span>
+                    <span className="num w-5 text-right font-mono text-[11px] text-ink-300">{n}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="py-2 text-[11.5px] text-ink-400">The island is quiet — no open pins.</p>
+            )}
+          </section>
+          <div className="flex flex-col gap-2">
+            <div className="nb-surface flex flex-1 flex-col justify-center p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Open pins</p>
+              <p className="num display mt-1 text-2xl font-extrabold text-tide-300">{pulse.open}</p>
+            </div>
+            <div className="nb-surface flex flex-1 flex-col justify-center p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmed</p>
+              <p className="num display mt-1 text-2xl font-extrabold text-ink-100">
+                {rows.reduce((sum, r) => sum + (r.confirmations ?? 0), 0).toLocaleString("en-US")}
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Row B — category filters, always visible (they are the whole point of the list). */}
         <div className="flex-none px-3 pt-2 lg:px-0">
           <div className="flex items-center gap-1.5">
@@ -424,7 +479,7 @@ export default function MapWorkspace() {
 
         {/* The pin just tapped: one clear line and the way into its report. */}
         {current ? (
-          <div className="mx-3 mt-2 flex flex-none items-center gap-2 rounded-xl border hairline bg-white/[.05] px-2.5 py-2 lg:mx-0">
+          <div className="nb-glass mx-3 mt-2 flex flex-none items-center gap-2 rounded-xl px-2.5 py-2 lg:mx-0">
             <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: CATEGORIES[current.category]?.color }} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[12.5px] font-bold text-sand-100">{current.title}</span>
@@ -583,38 +638,59 @@ export default function MapWorkspace() {
                     ))}
                   </>
                 ) : visible.length ? (
-                  visible.slice(0, listLimit).map((r) => (
-                    <li key={r.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelected(r.id);
-                          setFocusNonce((n) => n + 1);
-                        }}
-                        aria-current={selected === r.id ? "true" : undefined}
-                        className={`min-h-[52px] w-full rounded-xl px-2 py-2 text-left transition ${
-                          selected === r.id ? "bg-tide-500/18 ring-1 ring-tide-400/40" : "hover:bg-white/5"
-                        }`}
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: CATEGORIES[r.category]?.color }} />
-                          <span className="truncate text-[12.5px] font-semibold text-sand-100">{r.title}</span>
-                          {r.status === "resolved" ? (
-                            <span className="flex-none rounded-full bg-tide-500/15 px-1.5 py-0.5 text-[10px] font-bold text-tide-300">Resolved</span>
-                          ) : r.severity >= 3 ? (
-                            <span className="flex-none rounded-full bg-conch-500/15 px-1.5 py-0.5 text-[10px] font-bold text-conch-400">
-                              {r.severity >= 4 ? "Dangerous" : "Blocking"}
+                  visible.slice(0, listLimit).map((r) => {
+                    const cat = CATEGORIES[r.category];
+                    const sev = Math.min(Math.max(r.severity ?? 1, 1), 5);
+                    return (
+                      <li key={r.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelected(r.id);
+                            setFocusNonce((n) => n + 1);
+                          }}
+                          aria-current={selected === r.id ? "true" : undefined}
+                          className={`group min-h-[56px] w-full rounded-xl border p-2.5 text-left transition duration-200 ease-standard ${
+                            selected === r.id
+                              ? "border-tide-400/50 bg-tide-500/12 shadow-[0_0_0_1px_var(--color-tide-400)]"
+                              : "border-transparent hover:border-white/10 hover:bg-white/[.04]"
+                          }`}
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <span
+                              className="h-2 w-2 shrink-0 rounded-full"
+                              style={{ background: cat?.color, boxShadow: `0 0 8px ${cat?.color}80` }}
+                            />
+                            <span className="truncate text-[12.5px] font-bold tracking-tight text-sand-100">{r.title}</span>
+                            {r.status === "resolved" ? (
+                              <span className="flex-none rounded-full bg-ok-500/15 px-1.5 py-0.5 text-[10px] font-bold text-ok-600">
+                                Resolved
+                              </span>
+                            ) : r.severity >= 3 ? (
+                              <span className="flex-none rounded-full bg-danger-500/15 px-1.5 py-0.5 text-[10px] font-bold text-danger-500">
+                                {r.severity >= 4 ? "Dangerous" : "Blocking"}
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="mt-1 flex items-center gap-2">
+                            <span className="num font-mono text-[11px] text-ink-400">
+                              {r.street ?? "unmapped"} · {timeAgo(r.createdAt)} · {r.confirmations} confirmed
                             </span>
-                          ) : null}
-                        </span>
-                        <span className="mt-0.5 block truncate text-[11px] text-[#8fb9b6]">
-                          <span style={{ color: CATEGORIES[r.category]?.color }}>{CATEGORIES[r.category]?.label}</span>
-                          {" · "}
-                          {r.street ?? "unmapped"} · {timeAgo(r.createdAt)} · {r.confirmations} confirmed
-                        </span>
-                      </button>
-                    </li>
-                  ))
+                            <span className="ml-auto flex flex-none items-center gap-1" aria-label={`Severity ${sev} of 5`}>
+                              {[1, 2, 3, 4, 5].map((i) => (
+                                <span
+                                  key={i}
+                                  className="nb-sev"
+                                  data-on={i <= sev}
+                                  style={{ ["--sev-color" as string]: `var(--color-sev-${sev})` }}
+                                />
+                              ))}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })
                 ) : error ? null : (
                   <li className="px-1 py-2 text-[12.5px] text-[#8fb9b6]">
                     <p>No pins match those filters.</p>
@@ -645,17 +721,17 @@ export default function MapWorkspace() {
               ) : null}
 
               {done ? (
-                <div className="mt-2.5 rounded-xl border border-tide-400/40 bg-tide-500/10 p-3 text-[12.5px]">
-                  <p className="font-bold text-tide-300">On the map.</p>
-                  <p className="mt-1 text-[#cfeee9]">“{done.title}” is live at your pin. Neighbours can confirm or clear it.</p>
-                  <Link href={`/incident/${done.id}`} className="mt-2 inline-block font-bold text-tide-300 underline">
+                <div className="mt-2.5 rounded-xl border border-ok-500/40 bg-ok-500/10 p-3 text-[12.5px]">
+                  <p className="font-bold text-ok-600">On the map.</p>
+                  <p className="mt-1 text-ink-200">“{done.title}” is live at your pin. Neighbours can confirm or clear it.</p>
+                  <Link href={`/incident/${done.id}`} className="mt-2 inline-block font-bold text-ok-600 underline">
                     Open the report
                   </Link>
                 </div>
               ) : null}
 
               {error ? (
-                <div role="alert" className="mt-2.5 rounded-xl bg-conch-500/15 px-3 py-2.5 text-[12px] text-conch-400">
+                <div role="alert" className="mt-2.5 rounded-xl bg-danger-500/12 px-3 py-2.5 text-[12px] text-danger-500">
                   <p>Could not load the map feed. {error}</p>
                   <button
                     type="button"
@@ -663,7 +739,7 @@ export default function MapWorkspace() {
                       setLoading(true);
                       void load();
                     }}
-                    className="mt-1.5 min-h-[40px] rounded-full bg-conch-500/20 px-3 py-1.5 text-[12px] font-extrabold text-conch-400 hover:bg-conch-500/30"
+                    className="mt-1.5 min-h-[40px] rounded-full bg-danger-500/20 px-3 py-1.5 text-[12px] font-extrabold text-danger-500 hover:bg-danger-500/30"
                   >
                     Try again
                   </button>
@@ -694,13 +770,17 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition active:scale-95"
+      className="min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition duration-200 ease-standard active:scale-95"
       style={{
-        background: active ? `${color ?? "#2ee6d0"}2e` : "rgba(255,255,255,.06)",
-        color: active ? color ?? "#2ee6d0" : "#a9cdc9",
+        background: active ? `${color ?? "var(--color-tide-400)"}26` : "rgba(255,255,255,.05)",
+        border: `1px solid ${active ? `${color ?? "var(--color-tide-400)"}66` : "rgba(255,255,255,.08)"}`,
+        color: active ? color ?? "#8ff0e4" : "#a9cdc9",
       }}
     >
-      {label}
+      <span className="inline-flex items-center gap-1.5">
+        {color ? <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} /> : null}
+        {label}
+      </span>
     </button>
   );
 }
