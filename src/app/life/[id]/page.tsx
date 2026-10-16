@@ -18,7 +18,6 @@ import { formatCoord, timeAgo } from "@/lib/geo";
 import { KINDS, listPosts, photoUrl, priceLabel, type KindKey } from "@/lib/life";
 import { UUID_RE } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
-import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
@@ -55,9 +54,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <article className="min-w-0">
-        <Link href="/life" className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan transition duration-200 ease-standard hover:underline">
-          <Icon name="arrow-left" size={13} />
-          Island Life
+        <Link href="/life" className="text-[12px] font-bold text-tide-300 hover:underline">
+          ← Island Life
         </Link>
 
         {hidden ? (

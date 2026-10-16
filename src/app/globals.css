@@ -1,14 +1,134 @@
 @import "tailwindcss";
-@import "../index.css";
 
-/* =====================================================================
-   APP-SPECIFIC LAYERS
-   Every colour, font, radius, shadow and easing lives in src/index.css
-   (the Option B design system). This file holds only what is specific to
-   this app: the Leaflet map skin, custom pins, app furniture (safe areas,
-   z-index scale, scroll behaviour), the splash screen, the island/light
-   theme variants and the phone-workspace rules.
-   ===================================================================== */
+@theme {
+  /* ---- Typography (2026 "Tideglass") ------------------------------------- */
+  --font-display: var(--font-sora), "Segoe UI", ui-sans-serif, sans-serif;
+  --font-sans: var(--font-manrope), "Segoe UI", ui-sans-serif, sans-serif;
+  /* Technical numerics: timestamps, coordinates, counts, pin codes. */
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Fluid type scale — no breakpoint jumps. */
+  --text-2xs: clamp(0.625rem, 0.6rem + 0.15vw, 0.6875rem);
+  --text-xs: clamp(0.6875rem, 0.66rem + 0.2vw, 0.75rem);
+  --text-sm: clamp(0.8125rem, 0.78rem + 0.25vw, 0.875rem);
+  --text-base: clamp(0.9375rem, 0.9rem + 0.3vw, 1rem);
+  --text-lg: clamp(1.0625rem, 1rem + 0.4vw, 1.1875rem);
+  --text-xl: clamp(1.25rem, 1.15rem + 0.6vw, 1.5rem);
+  --text-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --text-3xl: clamp(1.9rem, 1.5rem + 1.8vw, 2.75rem);
+
+  /* ---- Surfaces: "abyss" (blue-shifted deep grays, calibrated contrast) --- */
+  --color-abyss-975: #03080f;
+  --color-abyss-950: #050d16;
+  --color-abyss-900: #081522;
+  --color-abyss-850: #0b1d2e;
+  --color-abyss-800: #0e2637;
+  --color-abyss-700: #143349;
+  --color-abyss-600: #1b4560;
+
+  /* ---- Primary: "tide" (luminous signal teal) ----------------------------- */
+  --color-tide-650: #00988a;
+  --color-tide-600: #00a896;
+  --color-tide-500: #00c9b7;
+  --color-tide-400: #2ee6d0;
+  --color-tide-300: #74f3e3;
+  --color-tide-200: #a8f7ec;
+
+  /* ---- Secondary & caution ------------------------------------------------ */
+  --color-conch-600: #e4534a;
+  --color-conch-500: #ff7a6b;
+  --color-conch-400: #ff9d8f;
+  --color-sun-600: #e0a800;
+  --color-sun-500: #ffc531;
+  --color-sun-400: #ffd766;
+  --color-sand-100: #f6ead8;
+  --color-sand-50: #fbf6ee;
+  --color-rum-500: #b4713f;
+
+  /* ---- Semantic (600 tier = the text tier; light mode re-points it deep) -- */
+  --color-ok-500: #3ecf9a;
+  --color-ok-400: #6fe3b6;
+  --color-ok-600: #6fe3b6;
+  --color-warn-500: #ffc531;
+  --color-warn-600: #ffd766;
+  --color-danger-500: #f43f5e;
+  --color-danger-400: #fb7185;
+  --color-danger-600: #fb7185;
+  --color-info-500: #7dd3fc;
+  --color-info-600: #bae6fd;
+
+  /* ---- Severity ramp (calm → critical) ------------------------------------ */
+  --color-sev-1: #3ecf9a;
+  --color-sev-2: #ffd766;
+  --color-sev-3: #ffa94d;
+  --color-sev-4: #ff7a6b;
+  --color-sev-5: #f43f5e;
+
+  /* ---- Category colors (product taxonomy — preserved from the live app) --- */
+  --color-cat-flood: #38bdf8;
+  --color-cat-storm: #fbbf24;
+  --color-cat-power: #facc15;
+  --color-cat-water: #22d3ee;
+  --color-cat-crime: #fb7185;
+  --color-cat-road: #f97316;
+  --color-cat-marine: #2dd4bf;
+  --color-cat-fire: #ef4444;
+  --color-cat-health: #a78bfa;
+  --color-cat-trash: #84cc16;
+  --color-cat-event: #f472b6;
+  --color-cat-notice: #94a3b8;
+  --color-cat-accident: #ef4444;
+
+  /* Category TEXT/DOT tier — identical to fills on dark; light mode re-points
+     each to a ≥3:1-on-white variant. */
+  --color-cat-flood-t: #38bdf8;
+  --color-cat-storm-t: #fbbf24;
+  --color-cat-power-t: #facc15;
+  --color-cat-water-t: #22d3ee;
+  --color-cat-crime-t: #fb7185;
+  --color-cat-road-t: #f97316;
+  --color-cat-marine-t: #2dd4bf;
+  --color-cat-fire-t: #ef4444;
+  --color-cat-health-t: #a78bfa;
+  --color-cat-trash-t: #84cc16;
+  --color-cat-event-t: #f472b6;
+  --color-cat-notice-t: #94a3b8;
+  --color-cat-accident-t: #ef4444;
+
+  /* ---- Text --------------------------------------------------------------- */
+  --color-ink-100: #eaf6f4;
+  --color-ink-200: #b9d4d2;
+  --color-ink-300: #8fb9b6;
+  --color-ink-400: #6e97a0;
+
+  /* ---- Radii -------------------------------------------------------------- */
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl2: 28px;
+  --radius-2xl2: 36px;
+
+  /* ---- Elevation (calibrated for deep backgrounds) ------------------------- */
+  --shadow-l1: 0 1px 2px rgba(2, 8, 16, 0.4);
+  --shadow-l2: 0 8px 24px -8px rgba(2, 8, 16, 0.55);
+  --shadow-l3: 0 18px 48px -12px rgba(2, 8, 16, 0.65);
+  --shadow-l4: 0 32px 80px -16px rgba(2, 8, 16, 0.75);
+  --shadow-glow-tide: 0 0 0 1px rgba(0, 201, 183, 0.35), 0 8px 32px -8px rgba(0, 201, 183, 0.45);
+  --shadow-glow-danger: 0 0 0 1px rgba(244, 63, 94, 0.4), 0 8px 32px -8px rgba(244, 63, 94, 0.4);
+
+  /* ---- Motion ------------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-entrance: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-pulse-dot: nb-pulse 2.4s var(--ease-standard) infinite;
+  --animate-pulse-ring: nb-pulse-ring 2s var(--ease-standard) infinite;
+  --animate-aurora: nb-aurora 26s ease-in-out infinite alternate;
+  --animate-rise: nb-rise 0.32s var(--ease-spring) both;
+  --animate-sheen: nb-sheen 0.6s var(--ease-standard);
+}
 
 @layer base {
   html,
@@ -17,9 +137,9 @@
     max-width: 100%;
     overflow-x: hidden; /* fallback for browsers without overflow: clip */
     overflow-x: clip;
-    background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 114, 255, 0.16), transparent 60%),
-      radial-gradient(900px 500px at 5% 0%, rgba(34, 201, 255, 0.09), transparent 55%), var(--color-page);
-    color: var(--color-ink);
+    background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 201, 183, 0.14), transparent 60%),
+      radial-gradient(900px 500px at 5% 0%, rgba(255, 122, 107, 0.09), transparent 55%), var(--color-abyss-950);
+    color: var(--color-ink-100);
     font-family: var(--font-sans);
     min-height: 100%;
   }
@@ -33,12 +153,12 @@
   }
 
   ::selection {
-    background: var(--color-brand);
-    color: #ffffff;
+    background: var(--color-tide-500);
+    color: var(--color-abyss-950);
   }
 
   *:focus-visible {
-    outline: 2px solid var(--color-cyan);
+    outline: 2px solid var(--color-tide-400);
     outline-offset: 2px;
   }
 
@@ -60,9 +180,7 @@ footer {
   max-width: 100%;
   min-width: 0;
 }
-.grain {
-  overflow-x: clip;
-}
+.grain { overflow-x: clip; }
 main :is(.grid, .flex) > *,
 footer :is(.grid, .flex) > * {
   min-width: 0;
@@ -79,55 +197,52 @@ canvas {
 
 /* ---------- Leaflet skin ---------- */
 .leaflet-container {
-  background: #021026;
+  background: #062434;
   font-family: var(--font-sans);
   z-index: 0;
 }
 .leaflet-control-attribution {
-  background: rgba(0, 4, 15, 0.72) !important;
-  color: var(--color-ink-dim) !important;
+  background: rgba(3, 18, 27, 0.72) !important;
+  color: #9fc4c9 !important;
   font-size: 10px !important;
   backdrop-filter: blur(6px);
   border-radius: 8px 0 0 0;
   padding: 2px 7px !important;
 }
 .leaflet-control-attribution a {
-  color: var(--color-cyan) !important;
+  color: var(--color-tide-300) !important;
 }
 .leaflet-bar,
 .leaflet-control-zoom {
   border: none !important;
-  box-shadow: var(--shadow-l2) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
 }
 .leaflet-bar a,
 .leaflet-control-zoom a {
-  background: rgba(2, 21, 80, 0.92) !important;
-  color: var(--color-ink) !important;
-  border-color: var(--color-hairline) !important;
+  background: rgba(6, 28, 40, 0.92) !important;
+  color: #d6f5f1 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
   width: 32px !important;
   height: 32px !important;
   line-height: 32px !important;
   font-size: 17px !important;
 }
 .leaflet-bar a:hover {
-  background: var(--color-panel-3) !important;
-  color: var(--color-cyan) !important;
+  background: var(--color-abyss-700) !important;
 }
 .leaflet-control-scale-line {
-  background: rgba(0, 4, 15, 0.6) !important;
-  color: var(--color-ink-200) !important;
-  border-color: var(--color-hairline-strong) !important;
-  font-family: var(--font-mono);
+  background: rgba(3, 18, 27, 0.6) !important;
+  color: #cfeee9 !important;
+  border-color: rgba(207, 238, 233, 0.65) !important;
   font-size: 10px !important;
   padding: 1px 5px !important;
 }
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: rgba(2, 21, 80, 0.96) !important;
-  color: var(--color-ink) !important;
-  border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-md) !important;
-  box-shadow: var(--shadow-l3) !important;
+  background: rgba(6, 28, 40, 0.96) !important;
+  color: #eafaf7 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5) !important;
 }
 .leaflet-popup-content {
   margin: 12px 14px !important;
@@ -135,7 +250,7 @@ canvas {
   line-height: 1.45;
 }
 .leaflet-popup-close-button {
-  color: var(--color-ink-dim) !important;
+  color: #8fb9b6 !important;
 }
 
 /* Custom pins */
@@ -147,7 +262,7 @@ canvas {
   place-items: center;
   border-radius: 999px;
   border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 8px 20px rgba(0, 4, 15, 0.55);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
   transition: transform 0.15s ease;
 }
 .nb-pin:hover {
@@ -156,7 +271,7 @@ canvas {
 .nb-pin span {
   font-size: 13px;
   line-height: 1;
-  color: #00040f;
+  color: #03121b;
   font-weight: 800;
 }
 /* A cluster of pins that share a screen cell at this zoom. One badge with a
@@ -167,9 +282,9 @@ canvas {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(0, 4, 15, 0.88);
-  border: 2px solid rgba(34, 201, 255, 0.85);
-  box-shadow: 0 8px 20px rgba(0, 4, 15, 0.55);
+  background: rgba(3, 18, 27, 0.88);
+  border: 2px solid rgba(46, 230, 208, 0.85);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
   transition: transform 0.15s ease;
 }
 .nb-cluster:hover {
@@ -178,7 +293,7 @@ canvas {
 .nb-cluster span {
   font-size: 13px;
   line-height: 1;
-  color: var(--color-cyan);
+  color: #74f3e3;
   font-weight: 800;
 }
 .nb-pin-live::after {
@@ -188,7 +303,7 @@ canvas {
   border-radius: 999px;
   border: 2px solid currentColor;
   opacity: 0.55;
-  animation: nb-ping 2.2s var(--ease-standard) infinite;
+  animation: nb-pulse 2.2s ease-out infinite;
 }
 @keyframes nb-pulse {
   0% {
@@ -210,7 +325,7 @@ canvas {
   z-index: 420;
 }
 .nb-crosshair svg {
-  filter: drop-shadow(0 2px 6px rgba(0, 4, 15, 0.7));
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
 }
 .nb-drop {
   animation: nb-drop 0.28s cubic-bezier(0.2, 1.4, 0.4, 1);
@@ -222,10 +337,26 @@ canvas {
   }
 }
 .leaflet-interactive.nb-halo {
-  filter: drop-shadow(0 0 8px rgba(34, 201, 255, 0.9));
+  filter: drop-shadow(0 0 8px rgba(46, 230, 208, 0.9));
 }
 
 /* ---------- App furniture ---------- */
+/* 2026 Tideglass control material: deeper blur, tide-tinted edge, inset
+   highlight, ambient shadow. Used by nav, map controls, overlays, chips. */
+.glass {
+  background: linear-gradient(180deg, rgba(16, 57, 76, 0.5), rgba(6, 28, 40, 0.7));
+  border: 1px solid rgba(120, 220, 214, 0.16);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: var(--shadow-l2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.glass-strong {
+  background: linear-gradient(180deg, rgba(16, 57, 76, 0.66), rgba(6, 28, 40, 0.84));
+  border: 1px solid rgba(120, 220, 214, 0.2);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+  box-shadow: var(--shadow-l3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
 
 /* honour iOS / Android bottom safe area for the nav and the home indicator */
 :root {
@@ -330,19 +461,25 @@ input[type="range"] {
   height: 36px;
 }
 .hairline {
-  border-color: var(--color-hairline);
+  border-color: rgba(120, 220, 214, 0.14);
 }
 .marquee-track {
-  display: inline-flex;
-  min-width: max-content;
-  animation: var(--animate-marquee);
+  animation: nb-marquee 34s linear infinite;
+}
+@keyframes nb-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 .nb-scroll::-webkit-scrollbar {
   width: 9px;
   height: 9px;
 }
 .nb-scroll::-webkit-scrollbar-thumb {
-  background: var(--color-hairline-strong);
+  background: rgba(120, 220, 214, 0.22);
   border-radius: 999px;
 }
 .grain::before {
@@ -351,7 +488,7 @@ input[type="range"] {
   inset: 0;
   pointer-events: none;
   opacity: 0.05;
-  background-image: radial-gradient(rgba(91, 180, 255, 0.5) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px);
   background-size: 3px 3px;
   z-index: 1;
 }
@@ -362,32 +499,33 @@ input[type="range"] {
   }
 }
 
+
 /* =====================================================================
    ISLAND LOOK
    Everything in this block only applies when <html data-theme="island">.
-   It is the Option B palette pushed toward cyan — the "island" variant of
-   the same system, not a second design language.
+   The Classic look never matches these selectors, so it is exactly the
+   original design. To retire the Island look, delete from here down.
    ===================================================================== */
 html[data-theme="island"] {
-  --color-abyss-950: #00040f;
-  --color-abyss-900: #021a2e;
-  --color-abyss-800: #062a44;
-  --color-abyss-700: #0a3a5c;
-  --color-tide-500: #22c9ff;
-  --color-tide-400: #5bb4ff;
-  --color-tide-300: #a8e6ff;
-  --color-conch-500: #ff6b6b;
-  --color-sun-500: #ffb020;
-  --color-sun-400: #ffc94d;
-  --color-sand-100: #f0f4f7;
+  --color-abyss-950: #04141d;
+  --color-abyss-900: #07202c;
+  --color-abyss-800: #0b2d3d;
+  --color-abyss-700: #12475c;
+  --color-tide-500: #14d1c0;
+  --color-tide-400: #43ecd8;
+  --color-tide-300: #86f6e8;
+  --color-conch-500: #ff826f;
+  --color-sun-500: #ffbf3c;
+  --color-sun-400: #ffd770;
+  --color-sand-100: #fff0d9;
 }
 html[data-theme="island"],
 html[data-theme="island"] body {
-  background: #00040f;
+  background: #03121b;
 }
 html[data-theme="island"] .glass {
-  background: linear-gradient(180deg, rgba(2, 21, 80, 0.55), rgba(0, 4, 15, 0.8));
-  border-color: rgba(34, 201, 255, 0.2);
+  background: linear-gradient(180deg, rgba(14, 52, 70, 0.5), rgba(5, 26, 38, 0.76));
+  border-color: rgba(134, 246, 232, 0.18);
   backdrop-filter: blur(14px) saturate(1.25);
   -webkit-backdrop-filter: blur(14px) saturate(1.25);
 }
@@ -402,7 +540,7 @@ html[data-theme="island"] .nb-tagline {
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: var(--color-page);
+  background: #03121b;
 }
 .nb-backdrop-img {
   object-fit: cover;
@@ -411,8 +549,8 @@ html[data-theme="island"] .nb-tagline {
 .nb-backdrop-veil {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 4, 15, 0.5) 0%, rgba(0, 4, 15, 0.76) 38%, rgba(0, 4, 15, 0.93) 100%),
-    radial-gradient(1000px 520px at 85% -10%, rgba(34, 201, 255, 0.1), transparent 60%);
+  background: linear-gradient(180deg, rgba(3, 18, 27, 0.5) 0%, rgba(3, 18, 27, 0.76) 38%, rgba(3, 18, 27, 0.93) 100%),
+    radial-gradient(1000px 520px at 85% -10%, rgba(255, 191, 60, 0.1), transparent 60%);
 }
 
 /* A photo inside a card or banner. The parent needs "isolate" so the photo can sit behind the text. */
@@ -427,7 +565,7 @@ html[data-theme="island"] .nb-tagline {
 .nb-pagescene-veil {
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, rgba(0, 4, 15, 0.92) 0%, rgba(0, 4, 15, 0.66) 52%, rgba(0, 4, 15, 0.3) 100%);
+  background: linear-gradient(100deg, rgba(3, 18, 27, 0.92) 0%, rgba(3, 18, 27, 0.66) 52%, rgba(3, 18, 27, 0.3) 100%);
 }
 
 /* The opening splash screen. It also hides itself with plain CSS, so it can never get stuck. */
@@ -442,7 +580,7 @@ html[data-splash-seen] #nb-splash {
   place-items: center;
   overflow: hidden;
   cursor: pointer;
-  background: var(--color-page);
+  background: #03121b;
   animation: nb-splash-out 0.8s ease 2.9s both;
 }
 .nb-splash.is-leaving {
@@ -459,8 +597,8 @@ html[data-splash-seen] #nb-splash {
 .nb-splash-veil {
   position: absolute;
   inset: 0;
-  background: radial-gradient(900px 600px at 50% 40%, rgba(0, 4, 15, 0.12), rgba(0, 4, 15, 0.8) 78%),
-    linear-gradient(180deg, rgba(0, 4, 15, 0.3), rgba(0, 4, 15, 0.9));
+  background: radial-gradient(900px 600px at 50% 40%, rgba(3, 18, 27, 0.12), rgba(3, 18, 27, 0.8) 78%),
+    linear-gradient(180deg, rgba(3, 18, 27, 0.3), rgba(3, 18, 27, 0.9));
 }
 .nb-splash-body {
   position: relative;
@@ -473,7 +611,7 @@ html[data-splash-seen] #nb-splash {
 .nb-splash-mark {
   width: 96px;
   height: 96px;
-  filter: drop-shadow(0 12px 32px rgba(0, 114, 255, 0.45));
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.5));
   animation: nb-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.15s both;
 }
 .nb-splash-pin {
@@ -487,12 +625,12 @@ html[data-splash-seen] #nb-splash {
   font-size: clamp(2.6rem, 9vw, 4.2rem);
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--color-ink);
-  text-shadow: 0 6px 30px rgba(0, 4, 15, 0.45);
+  color: #fff0d9;
+  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.45);
   animation: nb-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.55s both;
 }
 .nb-splash-word b {
-  color: var(--color-cyan);
+  color: #43ecd8;
 }
 .nb-splash-tag {
   margin-top: 6px;
@@ -500,7 +638,7 @@ html[data-splash-seen] #nb-splash {
   font-weight: 700;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--color-amber-soft);
+  color: #ffd98a;
   animation: nb-rise 0.9s ease 0.95s both;
 }
 .nb-splash-line {
@@ -508,7 +646,7 @@ html[data-splash-seen] #nb-splash {
   margin-top: 18px;
   font-size: 0.95rem;
   line-height: 1.45;
-  color: rgba(240, 244, 247, 0.86);
+  color: rgba(255, 240, 217, 0.86);
   animation: nb-rise 0.9s ease 1.35s both;
 }
 .nb-splash-hint {
@@ -520,7 +658,7 @@ html[data-splash-seen] #nb-splash {
   font-size: 0.7rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(141, 146, 153, 0.75);
+  color: rgba(255, 240, 217, 0.55);
   animation: nb-fade-in 0.8s ease 1.9s both;
 }
 .nb-splash-waves {
@@ -589,33 +727,15 @@ html[data-splash-seen] #nb-splash {
     transform: translateX(-50%);
   }
 }
-
 /* Device-local accessibility preferences. */
-html[data-simple="true"] {
-  font-size: 18px;
-}
-html[data-simple="true"] body {
-  line-height: 1.62;
-}
-html[data-simple="true"] :is(button, a, input, select, textarea) {
-  min-height: 44px;
-}
-html[data-simple="true"] :is(.text-\[10px\], .text-\[10\.5px\], .text-\[11px\], .text-\[11\.5px\], .text-\[12px\], .text-\[12\.5px\]) {
-  font-size: 0.82rem !important;
-}
-html[data-simple="true"] .nb-decorative {
-  display: none !important;
-}
-html[data-low-data="true"] :is(.nb-backdrop-img, .nb-pagescene-photo, .nb-decorative) {
-  display: none !important;
-}
-html[data-low-data="true"] .nb-data-heavy {
-  min-height: 180px !important;
-  max-height: 240px !important;
-}
-html[data-low-data="true"] * {
-  scroll-behavior: auto !important;
-}
+html[data-simple="true"] { font-size: 18px; }
+html[data-simple="true"] body { line-height: 1.62; }
+html[data-simple="true"] :is(button, a, input, select, textarea) { min-height: 44px; }
+html[data-simple="true"] :is(.text-\[10px\], .text-\[10\.5px\], .text-\[11px\], .text-\[11\.5px\], .text-\[12px\], .text-\[12\.5px\]) { font-size: 0.82rem !important; }
+html[data-simple="true"] .nb-decorative { display: none !important; }
+html[data-low-data="true"] :is(.nb-backdrop-img, .nb-pagescene-photo, .nb-decorative) { display: none !important; }
+html[data-low-data="true"] .nb-data-heavy { min-height: 180px !important; max-height: 240px !important; }
+html[data-low-data="true"] * { scroll-behavior: auto !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .nb-splash {
@@ -639,106 +759,59 @@ html[data-low-data="true"] * {
 }
 
 /* =====================================================================
-   LIGHT MODE — Option B
-   The dark palette is the design; this is the same system on light
-   surfaces, every tier re-calibrated to stay WCAG AA+ on white
-   (ink-100 15.9:1 · ink-200 9.4:1 · ink-300 6.9:1 · ink-400 5.9:1 ·
-   brand text tier 6.4:1). The visitor toggle sets
+   LIGHT MODE — 2026 "Tideglass" remediation
+   Same tokens, light values, WCAG AAA on white and raised surfaces
+   (ink-100 16.5:1 · ink-200 11.2:1 · ink-300 7.5:1 · ink-400 7.6:1 ·
+   tide text tier 7.2:1). The visitor toggle sets
    <html data-mode="light"> (see ModeToggle + MODE_BOOT in layout.tsx);
    the admin default comes from site_settings.mode / NOWBEY_MODE.
    ===================================================================== */
 html[data-mode="light"] {
-  /* Surfaces */
-  --color-page: #eef2f7;
-  --color-panel: #ffffff;
-  --color-panel-2: #f4f7fb;
-  --color-panel-3: #ffffff;
-  --color-card: #ffffff;
-  --color-abyss-975: #eef2f7;
-  --color-abyss-950: #f7f9fc;
+  --color-abyss-975: #edf2f5;
+  --color-abyss-950: #f7fafb;
   --color-abyss-900: #ffffff;
-  --color-abyss-850: #ffffff;
-  --color-abyss-800: #f4f7fb;
-  --color-abyss-700: #e6ecf3;
-  --color-abyss-600: #b9c6d4;
+  --color-abyss-850: #fbfdfe;
+  --color-abyss-800: #e9f0f3;
+  --color-abyss-700: #dce7ec;
+  --color-abyss-600: #7b96a1;
 
-  /* Text */
-  --color-ink: #0a1424;
-  --color-ink-dim: #46525f;
-  --color-ink-200: #2a3644;
-  --color-ink-400: #5b6673;
-  --color-ink-100: #0a1424;
-  --color-ink-300: #46525f;
+  --color-ink-100: #0a1a24;
+  --color-ink-200: #2a3e45;
+  --color-ink-300: #38505a;
+  --color-ink-400: #3a4e57;
 
-  /* Brand */
-  --color-brand: #0059c7;
-  --color-brand-light: #0072ff;
-  --color-brand-dark: #004a9e;
-  --color-brand-deep: #003d8a;
-  --color-cyan: #0e7490;
-  --color-cyan-dark: #155e75;
-  --color-tide-650: #004a9e;
-  --color-tide-600: #0059c7;
-  --color-tide-500: #0059c7;
-  --color-tide-400: #0072ff;
-  --color-tide-300: #0e7490;
-  --color-tide-200: #1e40af;
+  --color-tide-650: #00635a;
+  --color-tide-600: #00756a;
+  --color-tide-500: #00897b;
+  --color-tide-400: #00897b;
+  --color-tide-300: #00635a;
+  --color-tide-200: #00443d;
 
-  /* Signals */
-  --color-alert: #c81414;
-  --color-alert-dark: #a10e33;
-  --color-alert-soft: #ff6b6b;
-  --color-safe: #0f9d3a;
-  --color-safe-dark: #0a7d2e;
-  --color-safe-soft: #a8ffb4;
-  --color-amber: #a86a00;
-  --color-amber-dark: #8a5600;
-  --color-amber-deep: #6e4400;
-  --color-amber-soft: #ffc94d;
-
-  /* Accents */
-  --color-conch-600: #c81414;
-  --color-conch-500: #d64550;
-  --color-conch-400: #b31313;
-  --color-sun-600: #a86a00;
-  --color-sun-500: #c97f00;
-  --color-sun-400: #8a5600;
-  --color-sand-100: #0a1424;
-  --color-sand-50: #2a3644;
-  --color-rum-500: #5a3a86;
-
-  /* Semantic tiers */
-  --color-ok-500: #0f9d3a;
-  --color-ok-600: #0a7d2e;
-  --color-warn-500: #a86a00;
-  --color-warn-600: #8a5600;
-  --color-danger-500: #c81414;
+  --color-ok-500: #0b8a64;
+  --color-ok-600: #065c43;
+  --color-warn-500: #a87c00;
+  --color-warn-600: #6e4e00;
+  --color-danger-500: #be123c;
   --color-danger-600: #a10e33;
-  --color-danger-400: #d64550;
-  --color-ok-400: #0f9d3a;
   --color-info-500: #0e7490;
   --color-info-600: #155e75;
 
-  /* Severity ramp */
-  --color-sev-1: #0f9d3a;
-  --color-sev-2: #a86a00;
+  --color-sev-1: #0b8a64;
+  --color-sev-2: #a87c00;
   --color-sev-3: #c2410c;
   --color-sev-4: #d64550;
   --color-sev-5: #a10e33;
 
-  /* Hairlines + elevation */
-  --color-hairline: rgba(0, 60, 138, 0.16);
-  --color-hairline-strong: rgba(0, 60, 138, 0.28);
-  --shadow-l1: 0 1px 2px rgba(10, 20, 36, 0.08);
-  --shadow-l2: 0 8px 24px -8px rgba(10, 20, 36, 0.14);
-  --shadow-l3: 0 18px 48px -12px rgba(10, 20, 36, 0.18);
-  --shadow-l4: 0 32px 80px -16px rgba(10, 20, 36, 0.22);
-  --shadow-glow-brand: 0 0 0 1px rgba(0, 89, 199, 0.35), 0 8px 32px -6px rgba(0, 89, 199, 0.28);
-  --shadow-glow-alert: 0 0 0 1px rgba(200, 20, 20, 0.3), 0 8px 32px -6px rgba(200, 20, 20, 0.22);
-  --shadow-glow-safe: 0 0 0 1px rgba(15, 157, 58, 0.3), 0 8px 32px -6px rgba(15, 157, 58, 0.22);
-  --shadow-glow-cyan: 0 0 0 1px rgba(14, 116, 144, 0.3), 0 8px 32px -6px rgba(14, 116, 144, 0.22);
+  --color-conch-600: #c2413c;
+  --color-conch-500: #d64550;
+  --color-conch-400: #b23332;
+  --color-sun-600: #6e4e00;
+  --color-sun-500: #a87c00;
+  --color-sun-400: #8a6100;
+  --color-sand-100: #0a1a24;
+  --color-sand-50: #2a3e45;
+  --color-rum-500: #8a5a2b;
 
-  /* Category text tiers — deep variants that hold up on white. */
   --color-cat-flood-t: #0369a1;
   --color-cat-storm-t: #a16207;
   --color-cat-power-t: #a16207;
@@ -752,48 +825,39 @@ html[data-mode="light"] {
   --color-cat-event-t: #be185d;
   --color-cat-notice-t: #5b6b7a;
   --color-cat-accident-t: #b91c1c;
+
+  --shadow-l1: 0 1px 2px rgba(16, 42, 58, 0.08);
+  --shadow-l2: 0 8px 24px -8px rgba(16, 42, 58, 0.14);
+  --shadow-l3: 0 18px 48px -12px rgba(16, 42, 58, 0.18);
+  --shadow-l4: 0 32px 80px -16px rgba(16, 42, 58, 0.22);
+  --shadow-glow-tide: 0 0 0 1px rgba(0, 99, 90, 0.35), 0 8px 32px -8px rgba(0, 99, 90, 0.22);
+  --shadow-glow-danger: 0 0 0 1px rgba(169, 14, 51, 0.35), 0 8px 32px -8px rgba(169, 14, 51, 0.22);
 }
 html[data-mode="light"],
 html[data-mode="light"] body {
-  background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 114, 255, 0.07), transparent 60%),
-    radial-gradient(900px 500px at 5% 0%, rgba(34, 201, 255, 0.05), transparent 55%), var(--color-page);
-  color: var(--color-ink);
+  background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 137, 123, 0.05), transparent 60%),
+    radial-gradient(900px 500px at 5% 0%, rgba(214, 69, 80, 0.035), transparent 55%), var(--color-abyss-950);
+  color: var(--color-ink-100);
 }
 html[data-mode="light"] body {
-  color: var(--color-ink);
+  color: var(--color-ink-100);
 }
 html[data-mode="light"] ::selection {
-  background: var(--color-brand);
+  background: var(--color-tide-650);
   color: #ffffff;
 }
-html[data-mode="light"] .glass,
-html[data-mode="light"] .nb-glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(244, 247, 251, 0.88));
-  border-color: var(--color-hairline);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-}
-html[data-mode="light"] .glass-strong,
-html[data-mode="light"] .nb-glass-strong {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 247, 251, 0.96));
-  border-color: var(--color-hairline-strong);
-}
-html[data-mode="light"] .nb-surface {
-  background: var(--color-card);
-  border-color: var(--color-hairline);
-  box-shadow: var(--shadow-l1);
+html[data-mode="light"] .glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(233, 240, 243, 0.85));
+  border-color: rgba(16, 42, 58, 0.1);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
 }
 html[data-mode="light"] .hairline {
-  border-color: var(--color-hairline);
+  border-color: rgba(16, 42, 58, 0.12);
 }
 html[data-mode="light"] .grain::before {
   opacity: 0.035;
-  background-image: radial-gradient(rgba(10, 20, 36, 0.35) 1px, transparent 1px);
-}
-html[data-mode="light"] .nb-veil::before {
-  background-image:
-    linear-gradient(to right, rgba(0, 60, 138, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 60, 138, 0.06) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(16, 42, 58, 0.35) 1px, transparent 1px);
 }
 /* Hardcoded dark-ink utilities need explicit light counterparts. */
 html[data-mode="light"] .text-sand-100 {
@@ -811,37 +875,37 @@ html[data-mode="light"] :is(.text-\[\#a9cdc9\], .text-\[\#8fb9b6\], .text-\[\#6e
   color: var(--color-ink-300) !important;
 }
 html[data-mode="light"] :focus-visible {
-  outline-color: var(--color-brand);
+  outline-color: var(--color-tide-650);
 }
 /* Leaflet controls were styled for night. */
 html[data-mode="light"] .leaflet-container {
-  background: #dfe7ef;
+  background: #e9f0f3;
 }
 html[data-mode="light"] .leaflet-control-attribution {
-  background: rgba(255, 255, 255, 0.88) !important;
-  color: #46525f !important;
+  background: rgba(253, 249, 240, 0.88) !important;
+  color: #5a737b !important;
 }
 html[data-mode="light"] .leaflet-bar a,
 html[data-mode="light"] .leaflet-control-zoom a {
-  background: rgba(255, 255, 255, 0.95) !important;
-  color: #0a1424 !important;
-  border-color: var(--color-hairline) !important;
+  background: rgba(253, 249, 240, 0.95) !important;
+  color: #143038 !important;
+  border-color: rgba(20, 48, 56, 0.12) !important;
 }
 html[data-mode="light"] .leaflet-popup-content-wrapper,
 html[data-mode="light"] .leaflet-popup-tip {
-  background: rgba(255, 255, 255, 0.98) !important;
-  color: #0a1424 !important;
+  background: rgba(253, 249, 240, 0.98) !important;
+  color: #143038 !important;
 }
 html[data-mode="light"] .leaflet-popup-close-button {
-  color: #46525f !important;
+  color: #5a737b !important;
 }
 /* Photo veils stay readable in light mode without going full night. */
 html[data-mode="light"] .nb-backdrop-veil {
-  background: linear-gradient(180deg, rgba(238, 242, 247, 0.55) 0%, rgba(238, 242, 247, 0.78) 38%, rgba(238, 242, 247, 0.94) 100%),
-    radial-gradient(1000px 520px at 85% -10%, rgba(0, 114, 255, 0.12), transparent 60%);
+  background: linear-gradient(180deg, rgba(244, 237, 224, 0.55) 0%, rgba(244, 237, 224, 0.78) 38%, rgba(244, 237, 224, 0.94) 100%),
+    radial-gradient(1000px 520px at 85% -10%, rgba(0, 137, 123, 0.12), transparent 60%);
 }
 html[data-mode="light"] .nb-pagescene-veil {
-  background: linear-gradient(100deg, rgba(238, 242, 247, 0.94) 0%, rgba(238, 242, 247, 0.72) 52%, rgba(238, 242, 247, 0.35) 100%);
+  background: linear-gradient(100deg, rgba(244, 237, 224, 0.94) 0%, rgba(244, 237, 224, 0.72) 52%, rgba(244, 237, 224, 0.35) 100%);
 }
 
 /* ---------- Phone map workspace (/map) ----------
@@ -893,31 +957,94 @@ html[data-mode="light"] .nb-pagescene-veil {
 }
 
 /* =====================================================================
-   OPTION B AURORA — brand/cyan mesh behind the shell.
-   Subtle on purpose: it sits under the grid veil, never over data.
+   2026 "TIDEGLASS" MATERIALS — control layer only
+   Liquid Glass is a CONTROL-LAYER material (nav, overlays, sheets,
+   floating chips). Data surfaces stay solid for legibility.
    ===================================================================== */
+@layer components {
+  .nb-glass {
+    background: color-mix(in srgb, var(--color-abyss-800) 62%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-tide-300) 14%, transparent);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    box-shadow: var(--shadow-l2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .nb-glass-strong {
+    background: color-mix(in srgb, var(--color-abyss-900) 82%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-tide-300) 16%, transparent);
+    backdrop-filter: blur(32px) saturate(1.6);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6);
+    box-shadow: var(--shadow-l3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  /* Solid data surface — never glass. */
+  .nb-surface {
+    background: var(--color-abyss-900);
+    border: 1px solid color-mix(in srgb, var(--color-ink-400) 18%, transparent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-l1);
+  }
+
+  /* Live indicator dot. */
+  .nb-live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--color-ok-500);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok-500) 60%, transparent);
+    animation: var(--animate-pulse-dot);
+  }
+
+  /* Severity meter segment. */
+  .nb-sev {
+    display: inline-block;
+    width: 14px;
+    height: 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-ink-400) 30%, transparent);
+  }
+  .nb-sev[data-on="true"] {
+    background: var(--sev-color, var(--color-sev-3));
+    box-shadow: 0 0 8px var(--sev-color, var(--color-sev-3));
+  }
+
+  .nb-focus:focus-visible {
+    outline: 2px solid var(--color-tide-400);
+    outline-offset: 2px;
+  }
+}
+
+/* Mesh-gradient aurora field behind the shell. */
 .nb-aurora::before {
   content: "";
   position: absolute;
   inset: -20%;
   z-index: -1;
   background:
-    radial-gradient(42rem 28rem at 82% -8%, rgba(0, 114, 255, 0.18), transparent 62%),
-    radial-gradient(34rem 24rem at 6% 4%, rgba(34, 201, 255, 0.12), transparent 58%),
-    radial-gradient(50rem 30rem at 50% 110%, rgba(91, 180, 255, 0.08), transparent 60%);
+    radial-gradient(42rem 28rem at 82% -8%, color-mix(in srgb, var(--color-tide-500) 16%, transparent), transparent 62%),
+    radial-gradient(34rem 24rem at 6% 4%, color-mix(in srgb, var(--color-conch-500) 11%, transparent), transparent 58%),
+    radial-gradient(50rem 30rem at 50% 110%, color-mix(in srgb, var(--color-cat-health) 8%, transparent), transparent 60%);
   animation: var(--animate-aurora);
   pointer-events: none;
 }
+
+@keyframes nb-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok-500) 55%, transparent); }
+  70% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-ok-500) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-ok-500) 0%, transparent); }
+}
+@keyframes nb-pulse-ring {
+  0% { transform: scale(0.7); opacity: 0.7; }
+  80% { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
 @keyframes nb-aurora {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-  }
-  50% {
-    transform: translate3d(2%, -1.5%, 0) rotate(4deg);
-  }
-  100% {
-    transform: translate3d(-1.5%, 1%, 0) rotate(-3deg);
-  }
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(2%, -1.5%, 0) rotate(4deg); }
+  100% { transform: translate3d(-1.5%, 1%, 0) rotate(-3deg); }
+}
+@keyframes nb-rise {
+  from { transform: translateY(14px) scale(0.985); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

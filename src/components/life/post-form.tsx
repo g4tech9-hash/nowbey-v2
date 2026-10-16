@@ -7,7 +7,6 @@ import { INPUT, LABEL } from "@/components/password-field";
 import { PARISHES } from "@/lib/geo";
 import { compressImage } from "@/lib/image-client";
 import { KINDS, KIND_KEYS, LIMITS, type KindKey } from "@/lib/life-kinds";
-import { Icon } from "../Icon";
 
 type Photo = { key: string; blob: Blob; url: string };
 
@@ -129,7 +128,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                 style={{ borderColor: on ? KINDS[k].color : "rgba(120,220,214,.16)", background: on ? `${KINDS[k].color}1f` : "rgba(255,255,255,.03)" }}
               >
                 <span className="block h-1.5 w-7 rounded-full" style={{ background: KINDS[k].color }} />
-                <span className="display mt-2 block text-[14px] font-extrabold" style={{ color: on ? KINDS[k].color : "var(--color-ink)" }}>
+                <span className="display mt-2 block text-[14px] font-extrabold" style={{ color: on ? KINDS[k].color : "#fff0d9" }}>
                   {KINDS[k].label}
                 </span>
                 <span className="mt-0.5 block text-[11.5px] leading-snug text-ink-400">{KINDS[k].blurb}</span>
@@ -168,11 +167,11 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                     type="button"
                     aria-pressed={rating >= n}
                     aria-label={`${n} star${n > 1 ? "s" : ""}`}
-                onClick={() => setRating(rating === n ? 0 : n)}
-                className={`transition duration-200 ease-standard ${rating >= n ? "text-amber" : "text-white/20 hover:text-white/40"}`}
-              >
-                <Icon name="star" size={26} />
-              </button>
+                    onClick={() => setRating(rating === n ? 0 : n)}
+                    className={`text-[30px] leading-none transition ${rating >= n ? "text-sun-600" : "text-white/20 hover:text-white/40"}`}
+                  >
+                    ★
+                  </button>
                 ))}
               </div>
             </div>
@@ -187,7 +186,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                     type="button"
                     aria-pressed={price === n}
                     onClick={() => setPrice(price === n ? 0 : n)}
-                    className={`min-h-[40px] min-w-[44px] rounded-lg px-2 text-sm font-extrabold ${price === n ? "nb-glow bg-brand text-white" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
+                    className={`min-h-[40px] min-w-[44px] rounded-lg px-2 text-[13px] font-extrabold ${price === n ? "bg-tide-500 text-abyss-950" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
                   >
                     {"$".repeat(n)}
                   </button>
@@ -230,9 +229,9 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                 type="button"
                 onClick={() => removePhoto(p.key)}
                 aria-label="Remove this photo"
-                className="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-page/85 text-sand-100 transition duration-200 ease-standard hover:bg-alert hover:text-white"
+                className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-abyss-950/85 text-[13px] font-bold text-sand-100 hover:bg-conch-500 hover:text-abyss-950"
               >
-                <Icon name="close" size={13} strokeWidth={2.4} />
+                ×
               </button>
             </div>
           ))}
@@ -241,10 +240,9 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
               type="button"
               disabled={prep}
               onClick={() => fileRef.current?.click()}
-              className="grid h-24 w-24 place-items-center rounded-xl border border-dashed border-cyan/40 bg-white/[.03] text-center text-xs font-bold text-cyan transition duration-200 ease-standard hover:bg-white/8 disabled:opacity-50"
+              className="grid h-24 w-24 place-items-center rounded-xl border border-dashed border-tide-400/40 bg-white/[.03] text-center text-[11.5px] font-bold text-tide-300 hover:bg-white/8 disabled:opacity-50"
             >
-              <Icon name="plus" size={18} className="mb-0.5" />
-              {prep ? "Preparing…" : "Add a photo"}
+              {prep ? "Preparing…" : "+ Add a photo"}
             </button>
           ) : null}
         </div>
@@ -297,11 +295,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="submit"
-          disabled={busy || prep}
-          className="nb-glow rounded-xl bg-brand px-6 py-3 text-base font-extrabold text-white transition duration-200 ease-standard hover:bg-brand-light disabled:opacity-50"
-        >
+        <button type="submit" disabled={busy || prep} className="rounded-xl bg-tide-500 px-6 py-3 text-[14px] font-extrabold text-abyss-950 hover:bg-tide-400 disabled:opacity-50">
           {busy ? "Sharing…" : "Share with the islands"}
         </button>
         <p className="text-[11.5px] text-ink-400">Your handle appears with your post. Be kind and honest.</p>

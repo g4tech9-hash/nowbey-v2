@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { CATEGORIES, type CategoryKey } from "@/lib/geo";
 import type { PickResult } from "@/components/map/map-panel";
-import { Icon } from "./Icon";
 
 export type AssistData = {
   ai: boolean;
@@ -84,18 +83,15 @@ export function ReportAssist({
   const applyBtn = "rounded-full bg-tide-500 px-2.5 py-1 text-[11px] font-extrabold text-abyss-950";
 
   return (
-    <div className="nb-surface rounded-xl2 p-3.5">
+    <div className="rounded-2xl border border-[#a78bfa]/30 bg-[#a78bfa]/8 p-3.5">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="display flex items-center gap-2 text-sm font-bold text-sand-100">
-          <Icon name="sparkle" size={15} className="text-cyan" />
-          Check my report
-        </p>
-        <span className="text-xs text-ink-400">optional — 5 seconds</span>
+        <p className="display text-[13.5px] font-bold text-sand-100">✨ Check my report</p>
+        <span className="text-[11px] text-ink-400">optional — 5 seconds</span>
         <button
           type="button"
           onClick={check}
           disabled={busy || title.trim().length < 5}
-          className="nb-glow ml-auto rounded-full bg-brand px-3.5 py-1.5 text-xs font-extrabold text-white transition duration-200 ease-standard hover:bg-brand-light disabled:opacity-45"
+          className="ml-auto rounded-full bg-[#a78bfa] px-3.5 py-1.5 text-[12px] font-extrabold text-abyss-950 disabled:opacity-45"
         >
           {busy ? "Checking…" : data ? "Check again" : "Check it"}
         </button>
@@ -177,10 +173,7 @@ export function ReportAssist({
             </div>
           ) : null}
           {data.ai && !categoryDiff && !severityDiff && !headlineDiff && !s?.missingInfo.length && !data.duplicates.length ? (
-            <p className="flex items-center gap-2 text-sm font-semibold text-safe">
-              <Icon name="check-circle" size={14} />
-              This reads clearly as-is. Good to publish.
-            </p>
+            <p className="text-[12.5px] font-semibold text-tide-300">✓ This reads clearly as-is. Good to publish.</p>
           ) : null}
         </div>
       ) : null}

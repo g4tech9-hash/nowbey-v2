@@ -33,4 +33,8 @@ async function importPlaces() {
   console.log(`Successfully imported ${count} places!`);
 }
 
-void importPlaces();
+import("drizzle-orm").then(() => import("dotenv").then(() => {
+  import("./src/db/index").then(m => {
+    // Since we are in a script, we might need a custom runner or just use ts-node
+  });
+}));

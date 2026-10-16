@@ -3,7 +3,7 @@
  * re-exports of everything in `src/lib/secret.ts` so callers keep importing from one place.
  */
 import { cookies, headers } from "next/headers";
-import { SESSION_MAX_AGE, readToken } from "@/lib/secret";
+import { SESSION_MAX_AGE, readToken, serverSecret } from "@/lib/secret";
 
 export {
   SESSION_MAX_AGE,

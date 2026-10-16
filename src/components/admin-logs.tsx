@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "./Icon";
 
 export type LogAnalysisView = {
   status: string;
@@ -36,9 +35,9 @@ export type LogGroupView = {
 };
 
 const SEVERITY_STYLE: Record<string, string> = {
-  critical: "bg-alert/25 text-alert",
-  high: "bg-amber/20 text-amber",
-  medium: "bg-brand/18 text-cyan",
+  critical: "bg-conch-500/25 text-danger-500",
+  high: "bg-sun-500/20 text-sun-600",
+  medium: "bg-tide-500/18 text-tide-300",
   low: "bg-white/10 text-ink-200",
 };
 
@@ -92,55 +91,53 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
   return (
     <article className="nb-surface rounded-xl2 p-4">
       <div className="flex flex-wrap items-start gap-2">
-        <span className={`nb-meta shrink-0 rounded-full px-2 py-0.5 text-2xs font-extrabold uppercase ${group.kind === "server" ? "bg-alert/20 text-alert" : group.kind === "app" ? "bg-[var(--color-violet)]/18 text-[var(--color-violet-light)]" : "bg-brand/18 text-cyan"}`}>
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${group.kind === "server" ? "bg-danger-500/20 text-danger-500" : group.kind === "app" ? "bg-[#a78bfa]/18 text-[#c4b5fd]" : "bg-tide-500/18 text-tide-300"}`}>
           {group.kind} · {group.platform}
         </span>
         {a && a.status !== "unavailable" ? (
-          <span className={`nb-meta shrink-0 rounded-full px-2 py-0.5 text-2xs font-extrabold uppercase ${SEVERITY_STYLE[a.severity] ?? SEVERITY_STYLE.low}`}>{a.severity}</span>
+          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${SEVERITY_STYLE[a.severity] ?? SEVERITY_STYLE.low}`}>{a.severity}</span>
         ) : null}
-        <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-sand-100">{group.message}</p>
-        <span className="nb-meta shrink-0 text-2xs font-bold text-ink-dim">×{group.count}</span>
+        <p className="min-w-0 flex-1 text-[13.5px] font-semibold leading-snug text-sand-100">{group.message}</p>
+        <span className="shrink-0 text-[12px] font-bold text-ink-400">×{group.count}</span>
       </div>
 
-      <p className="nb-meta mt-1.5 text-2xs text-ink-dim">
+      <p className="mt-1.5 text-[11.5px] text-ink-400">
         {group.url ?? "—"} · first {new Date(group.firstSeenAt).toLocaleString()} · last {new Date(group.lastSeenAt).toLocaleString()}
         {group.handle ? ` · @${group.handle}` : ""} {group.appVersion ? `· v${group.appVersion}` : ""}
       </p>
 
       {a ? (
         <div className="mt-3 rounded-xl bg-white/4 p-3">
-          <p className="nb-meta text-2xs font-extrabold uppercase text-cyan">
+          <p className="text-[11px] font-extrabold uppercase tracking-wide text-tide-300">
             AI diagnosis · {STATUS_LABEL[a.status] ?? a.status}
             {a.status !== "unavailable" ? ` · confidence ${a.confidence}` : ""}
           </p>
-          <p className="mt-1 text-sm font-semibold text-sand-100">{a.summary}</p>
-          {a.likelyCause ? <p className="mt-1.5 text-sm leading-relaxed text-ink-200"><strong className="text-sand-100">Likely cause:</strong> {a.likelyCause}</p> : null}
-          {a.suggestedFix ? <p className="mt-1.5 text-sm leading-relaxed text-ink-200"><strong className="text-sand-100">Suggested fix:</strong> {a.suggestedFix}</p> : null}
-          {a.affectedArea ? <p className="nb-meta mt-1 text-2xs text-ink-dim">Area: {a.affectedArea}</p> : null}
+          <p className="mt-1 text-[13px] font-semibold text-sand-100">{a.summary}</p>
+          {a.likelyCause ? <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-300"><strong className="text-sand-100">Likely cause:</strong> {a.likelyCause}</p> : null}
+          {a.suggestedFix ? <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-300"><strong className="text-sand-100">Suggested fix:</strong> {a.suggestedFix}</p> : null}
+          {a.affectedArea ? <p className="mt-1 text-[11.5px] text-ink-400">Area: {a.affectedArea}</p> : null}
           {a.githubIssueUrl ? (
-            <p className="mt-1.5 text-sm">
-              <a href={a.githubIssueUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 font-bold text-cyan underline">
-                <Icon name="external-link" size={13} />
+            <p className="mt-1.5 text-[12.5px]">
+              <a href={a.githubIssueUrl} target="_blank" rel="noreferrer" className="font-bold text-tide-300 underline">
                 GitHub issue #{a.githubIssueNumber}
               </a>
-              <span className="text-ink-dim"> — tell Arena “implement issue #{a.githubIssueNumber}” (or hand it to a developer). Nothing ships without the usual PR + deploy gate.</span>
+              <span className="text-ink-400"> — tell Arena “implement issue #{a.githubIssueNumber}” (or hand it to a developer). Nothing ships without the usual PR + deploy gate.</span>
             </p>
           ) : null}
         </div>
       ) : (
-        <p className="mt-3 text-sm text-ink-dim">Not analyzed yet — automatic analysis runs on the cron and after new reports{aiOn ? "" : " (needs GEMINI_API_KEY)"}.</p>
+        <p className="mt-3 text-[12.5px] text-ink-400">Not analyzed yet — automatic analysis runs on the cron and after new reports{aiOn ? "" : " (needs GEMINI_API_KEY)"}.</p>
       )}
 
-      {note ? <p className="mt-2 rounded-lg bg-brand/12 px-3 py-2 text-sm font-semibold text-cyan">{note}</p> : null}
+      {note ? <p className="mt-2 rounded-lg bg-tide-500/12 px-3 py-2 text-[12.5px] font-semibold text-tide-200">{note}</p> : null}
 
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
           disabled={pending}
           onClick={() => run("analyze")}
-          className="nb-glow inline-flex items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-xs font-extrabold text-white transition duration-200 ease-standard hover:bg-brand-light disabled:opacity-50"
+          className="rounded-full bg-tide-500 px-3.5 py-1.5 text-[12px] font-extrabold text-abyss-950 disabled:opacity-50"
         >
-          <Icon name="sparkle" size={13} />
           {pending ? "Working…" : a ? "Re-analyze with AI" : "Analyze with AI"}
         </button>
         {a && (a.status === "pending_review" || a.status === "approved") ? (
@@ -155,25 +152,20 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
                   : "Approve this proposal? GitHub is not connected yet, so it will be saved as Approved and wait — no issue will be created until GITHUB_TOKEN + GITHUB_REPO are set.",
               )
             }
-            className="inline-flex items-center gap-1.5 rounded-full bg-amber px-3.5 py-1.5 text-xs font-extrabold text-page transition duration-200 ease-standard hover:bg-amber-soft disabled:opacity-50"
+            className="rounded-full bg-sun-500 px-3.5 py-1.5 text-[12px] font-extrabold text-abyss-950 disabled:opacity-50"
           >
-            Approve
-            <Icon name="arrow-right" size={13} />
-            create GitHub issue
+            Approve → create GitHub issue
           </button>
         ) : null}
         {a && a.status === "pending_review" ? (
-          <button type="button" disabled={pending} onClick={() => run("dismiss-analysis", "Dismiss this AI proposal? The crash group itself stays.") } className="inline-flex items-center gap-1.5 rounded-full border hairline px-3 py-1.5 text-xs font-bold text-ink-dim transition duration-200 ease-standard hover:bg-white/8 disabled:opacity-50">
-            <Icon name="close" size={12} />
+          <button type="button" disabled={pending} onClick={() => run("dismiss-analysis", "Dismiss this AI proposal? The crash group itself stays.") } className="rounded-full border hairline px-3 py-1.5 text-[12px] font-bold text-ink-400 hover:bg-white/8 disabled:opacity-50">
             Dismiss proposal
           </button>
         ) : null}
-        <button type="button" onClick={() => setOpen((v) => !v)} className="inline-flex items-center gap-1.5 rounded-full border hairline px-3 py-1.5 text-xs font-bold text-ink-dim transition duration-200 ease-standard hover:bg-white/8">
-          <Icon name={open ? "chevron-up" : "chevron-down"} size={12} />
+        <button type="button" onClick={() => setOpen((v) => !v)} className="rounded-full border hairline px-3 py-1.5 text-[12px] font-bold text-ink-400 hover:bg-white/8">
           {open ? "Hide evidence" : "Show stack + breadcrumbs"}
         </button>
-        <button type="button" disabled={pending} onClick={() => run("delete", "Dismiss this crash group? It comes back if the bug happens again.")} className="inline-flex items-center gap-1.5 rounded-full border hairline px-3 py-1.5 text-xs font-bold text-ink-dim transition duration-200 ease-standard hover:bg-white/8 hover:text-alert disabled:opacity-50">
-          <Icon name="trash" size={12} />
+        <button type="button" disabled={pending} onClick={() => run("delete", "Dismiss this crash group? It comes back if the bug happens again.")} className="rounded-full border hairline px-3 py-1.5 text-[12px] font-bold text-ink-400 hover:bg-white/8 disabled:opacity-50">
           Dismiss group
         </button>
       </div>
@@ -182,8 +174,8 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
         <div className="mt-3 space-y-3">
           {group.breadcrumbs.length ? (
             <div>
-              <p className="nb-meta text-2xs font-extrabold uppercase text-ink-dim">Breadcrumbs before the crash</p>
-              <ol className="mt-1 space-y-0.5 text-xs text-ink-200">
+              <p className="text-[11px] font-extrabold uppercase tracking-wide text-ink-400">Breadcrumbs before the crash</p>
+              <ol className="mt-1 space-y-0.5 text-[12px] text-ink-300">
                 {group.breadcrumbs.map((b, i) => (
                   <li key={i} className="font-mono">[{b.type}] {b.detail}</li>
                 ))}
@@ -191,10 +183,10 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
             </div>
           ) : null}
           <div>
-            <p className="nb-meta text-2xs font-extrabold uppercase text-ink-dim">Stack</p>
-            <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-page p-3 font-mono text-xs leading-relaxed text-ink-200">{group.stack ?? "(none recorded)"}</pre>
+            <p className="text-[11px] font-extrabold uppercase tracking-wide text-ink-400">Stack</p>
+            <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-abyss-950/70 p-3 font-mono text-[11px] leading-relaxed text-ink-300">{group.stack ?? "(none recorded)"}</pre>
           </div>
-          {group.userAgent ? <p className="nb-meta break-all font-mono text-2xs text-ink-dim">{group.userAgent}</p> : null}
+          {group.userAgent ? <p className="break-all font-mono text-[11px] text-ink-400">{group.userAgent}</p> : null}
         </div>
       ) : null}
     </article>
@@ -219,13 +211,12 @@ export function AnalyzeAllButton({ aiOn }: { aiOn: boolean }) {
             router.refresh();
           })
         }
-        className="nb-glow inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-extrabold text-white transition duration-200 ease-standard hover:bg-brand-light disabled:opacity-50"
+        className="rounded-full bg-tide-500 px-4 py-2 text-[12.5px] font-extrabold text-abyss-950 disabled:opacity-50"
       >
-        <Icon name="sparkle" size={14} />
         {pending ? "Analyzing…" : "Analyze queued groups now"}
       </button>
-      {!aiOn ? <span className="text-xs text-amber">GEMINI_API_KEY not set — diagnoses will wait as “unavailable”.</span> : null}
-      {note ? <span className="text-sm font-semibold text-cyan">{note}</span> : null}
+      {!aiOn ? <span className="text-[11.5px] text-sun-600">GEMINI_API_KEY not set — diagnoses will wait as “unavailable”.</span> : null}
+      {note ? <span className="text-[12px] font-semibold text-tide-200">{note}</span> : null}
     </span>
   );
 }

@@ -30,7 +30,7 @@ const LINKS = [
 ] as const;
 
 function Glyph({ name, active }: { name: string; active: boolean }) {
-  const stroke = active ? "var(--color-panel)" : "var(--color-cyan)";
+  const stroke = active ? "#03121b" : "#bfe4e0";
   const common = { fill: "none", stroke, strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
   switch (name) {
     case "feed":

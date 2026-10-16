@@ -7,7 +7,7 @@ import { PhotoError, processPhoto, type ProcessedPhoto } from "@/lib/images";
 import { screenPhotos } from "@/lib/moderation";
 import { listPosts, publicPost } from "@/lib/life";
 import { cleanHours, parseHours } from "@/lib/places";
-import { exhausted, record, tooMany } from "@/lib/ratelimit";
+import { exhausted, hit, record, tooMany } from "@/lib/ratelimit";
 import { UUID_RE, readJson, text } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 

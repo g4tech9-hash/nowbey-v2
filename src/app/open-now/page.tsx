@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { serviceStatuses } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { timeAgo } from "@/lib/geo";
-import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Open now after a disruption" };
@@ -42,22 +41,8 @@ export default async function OpenNowPage() {
                 </div>
                 <p className="mt-1 text-[12.5px] text-ink-300">{row.address ? `${row.address} · ` : ""}{row.parish}</p>
                 {row.note ? <p className="mt-2 text-[13px] leading-relaxed text-ink-200">{row.note}</p> : null}
-                <p className="nb-meta mt-2 inline-flex items-center gap-1 text-2xs text-ink-dim">
-                  Updated {timeAgo(row.updatedAt)}
-                  {row.verified ? (
-                    <>
-                      · <Icon name="check-circle" size={11} className="text-safe" /> checked by NowBey
-                    </>
-                  ) : (
-                    " · community information"
-                  )}
-                </p>
-                {row.sourceUrl ? (
-                  <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-cyan transition duration-200 ease-standard hover:underline">
-                    Open source
-                    <Icon name="external-link" size={12} />
-                  </a>
-                ) : null}
+                <p className="mt-2 text-[11px] text-ink-400">Updated {timeAgo(row.updatedAt)}{row.verified ? " · ✓ checked by NowBey" : " · community information"}</p>
+                {row.sourceUrl ? <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[11.5px] font-bold text-tide-300 underline">Open source</a> : null}
               </li>
             );
           })}

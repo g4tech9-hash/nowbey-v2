@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { REACTIONS, REACTION_KEYS, topReactions, type Engagement, type ReactionKind, type TargetType } from "@/lib/engage-kinds";
-import { Icon } from "../Icon";
-import { ReactionGlyph } from "./reaction-icons";
 
 type Props = {
   type: TargetType;
@@ -69,11 +67,13 @@ export function ReactionBar({ type, id, initial, signedIn, variant = "full" }: P
             aria-pressed={on}
             aria-label={`${REACTIONS[k].label}${n ? `, ${n}` : ""}`}
             title={REACTIONS[k].label}
-            className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-sm font-bold transition duration-200 ease-standard ${
-              on ? "nb-glow bg-brand text-white" : "bg-white/8 text-ink-200 hover:bg-white/14"
+            className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-[13px] font-bold transition ${
+              on ? "bg-tide-500/25 text-tide-300 ring-1 ring-tide-400/60" : "bg-white/8 text-ink-200 hover:bg-white/14"
             }`}
           >
-            <ReactionGlyph kind={k} />
+            <span className="text-[16px] leading-none" aria-hidden="true">
+              {REACTIONS[k].emoji}
+            </span>
             {n > 0 ? <span>{n}</span> : null}
           </button>
         );
@@ -82,7 +82,7 @@ export function ReactionBar({ type, id, initial, signedIn, variant = "full" }: P
   );
 
   const errorLine = error ? (
-    <p role="alert" className="mt-1.5 text-xs text-alert">
+    <p role="alert" className="mt-1.5 text-[12px] text-danger-500">
       {error}
     </p>
   ) : null;
@@ -104,27 +104,21 @@ export function ReactionBar({ type, id, initial, signedIn, variant = "full" }: P
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 text-sm font-bold transition duration-200 ease-standard ${
-            eng.mine ? "nb-glow bg-brand text-white" : "bg-white/8 text-ink-200 hover:bg-white/14"
+          className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 text-[12.5px] font-bold transition ${
+            eng.mine ? "bg-tide-500/25 text-tide-300" : "bg-white/8 text-ink-200 hover:bg-white/14"
           }`}
         >
           {eng.mine ? (
             <>
-              <ReactionGlyph kind={eng.mine} size={14} /> {REACTIONS[eng.mine].label}
+              <span aria-hidden="true">{REACTIONS[eng.mine].emoji}</span> {REACTIONS[eng.mine].label}
             </>
           ) : (
-            <>
-              <Icon name="thumb-up" size={14} /> React
-            </>
+            "React"
           )}
         </button>
         {eng.total > 0 ? (
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink-200" aria-label={`${eng.total} ${eng.total === 1 ? "reaction" : "reactions"}`}>
-            <span className="flex items-center gap-0.5" aria-hidden="true">
-              {top.map((k) => (
-                <ReactionGlyph key={k} kind={k} size={13} />
-              ))}
-            </span>
+          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink-300" aria-label={`${eng.total} ${eng.total === 1 ? "reaction" : "reactions"}`}>
+            <span aria-hidden="true">{top.map((k) => REACTIONS[k].emoji).join("")}</span>
             {eng.total}
           </span>
         ) : null}

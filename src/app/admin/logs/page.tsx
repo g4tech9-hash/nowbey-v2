@@ -6,7 +6,6 @@ import { errorAiConfigured, githubConfigured, githubRepo } from "@/lib/error-ai"
 import { getViewer } from "@/lib/viewer";
 import { AnalyzeAllButton, LogGroupCard, type LogGroupView } from "@/components/admin-logs";
 import { StatCard } from "@/components/admin-ui";
-import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Logs & AI fixes" };
@@ -98,30 +97,21 @@ export default async function AdminLogsPage() {
     <div className="space-y-5">
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">How this works</p>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] leading-relaxed text-[var(--color-ink-200)]">
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-[13px] leading-relaxed text-[#a9cdc9]">
           <li><strong className="text-sand-100">Logs collect themselves.</strong> Web crashes, server errors and Expo app failures arrive with breadcrumbs (pages visited, failed API calls), platform and version — no user has to send anything.</li>
           <li><strong className="text-sand-100">AI diagnoses, it does not fix.</strong> Gemini reads each new group and writes the diagnosis below. It never edits code, opens PRs or deploys.</li>
           <li><strong className="text-sand-100">You decide.</strong> Approve a proposal and it becomes one GitHub issue with the evidence and a checklist. Then say “implement issue #N” in Arena (or hand it to a developer) — the fix still goes through a branch, PR and the deploy gate.</li>
         </ol>
         <ul className="mt-3 space-y-1.5 text-[12.5px]">
-          <li className="flex items-start gap-2 text-sm text-ink-200">
-            <Icon name={aiOn ? "check-circle" : "alert"} size={14} className={aiOn ? "mt-0.5 shrink-0 text-safe" : "mt-0.5 shrink-0 text-amber"} />
-            <span>{aiOn ? "AI diagnosis (Gemini) is on — new groups are analyzed by the cron (/api/cron/error-analysis) and after new reports." : "AI diagnosis is off: add GEMINI_API_KEY (aistudio.google.com, free tier). Logs still collect; diagnoses wait as “unavailable”."}</span>
+          <li className={aiOn ? "text-[#8fb9b6]" : "text-sun-400"}>
+            {aiOn ? "✓ AI diagnosis (Gemini) is on — new groups are analyzed by the cron (/api/cron/error-analysis) and after new reports." : "! AI diagnosis is off: add GEMINI_API_KEY (aistudio.google.com, free tier). Logs still collect; diagnoses wait as “unavailable”."}
           </li>
-          <li className="flex items-start gap-2 text-sm text-ink-200">
-            <Icon name={ghOn ? "check-circle" : "alert"} size={14} className={ghOn ? "mt-0.5 shrink-0 text-safe" : "mt-0.5 shrink-0 text-amber"} />
-            <span>
-              {ghOn
-                ? `GitHub handoff is on — approvals create issues in ${githubRepo()}. The token needs Issues read/write on that repo only.`
-                : "GitHub handoff is off: add GITHUB_TOKEN (fine-grained token, Issues read/write) and GITHUB_REPO=owner/repo. Approvals are saved and wait — they are never faked as issues."}
-            </span>
+          <li className={ghOn ? "text-[#8fb9b6]" : "text-sun-400"}>
+            {ghOn
+              ? `✓ GitHub handoff is on — approvals create issues in ${githubRepo()}. The token needs Issues read/write on that repo only.`
+              : "! GitHub handoff is off: add GITHUB_TOKEN (fine-grained token, Issues read/write) and GITHUB_REPO=owner/repo. Approvals are saved and wait — they are never faked as issues."}
           </li>
-          {!migrated ? (
-            <li className="flex items-start gap-2 text-sm text-amber">
-              <Icon name="alert" size={14} className="mt-0.5 shrink-0" />
-              <span>The log tables are not in this database yet: run add-client-errors.sql, then add-error-ai.sql.</span>
-            </li>
-          ) : null}
+          {!migrated ? <li className="text-sun-400">! The log tables are not in this database yet: run add-client-errors.sql, then add-error-ai.sql.</li> : null}
         </ul>
         <div className="mt-3">
           <AnalyzeAllButton aiOn={aiOn} />
@@ -141,7 +131,7 @@ export default async function AdminLogsPage() {
           ))}
         </section>
       ) : (
-        <p className="glass rounded-2xl p-4 text-[13px] text-[var(--color-ink-200)]">{migrated ? "Nothing on record — quiet is good. New crashes from the site or the app will appear here." : "Run the two SQL files named above, then this page fills itself in."}</p>
+        <p className="glass rounded-2xl p-4 text-[13px] text-[#8fb9b6]">{migrated ? "Nothing on record — quiet is good. New crashes from the site or the app will appear here." : "Run the two SQL files named above, then this page fills itself in."}</p>
       )}
     </div>
   );

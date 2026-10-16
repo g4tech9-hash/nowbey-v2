@@ -26,7 +26,7 @@ export default async function PartnersPage() {
         {partners.length ? (
           <div className="overflow-hidden rounded-xl border hairline">
             <table className="w-full text-left text-[13px]">
-              <thead className="bg-white/5 text-[var(--color-ink-dim)] font-bold uppercase tracking-wide">
+              <thead className="bg-white/5 text-[#6e97a0] font-bold uppercase tracking-wide">
                 <tr>
                   <th className="px-4 py-2">Organisation</th>
                   <th className="px-4 py-2">Parish</th>
@@ -38,7 +38,7 @@ export default async function PartnersPage() {
                 {partners.map(p => (
                   <tr key={p.id} className="hover:bg-white/5 transition">
                     <td className="px-4 py-3 font-semibold text-sand-100">{p.organisation}</td>
-                    <td className="px-4 py-3 text-[var(--color-ink-200)]">{p.parish}</td>
+                    <td className="px-4 py-3 text-[#a9cdc9]">{p.parish}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${p.paymentStatus === 'paid' ? 'bg-tide-500/20 text-tide-300' : 'bg-conch-500/20 text-conch-400'}`}>
                         {p.paymentStatus}
@@ -53,7 +53,7 @@ export default async function PartnersPage() {
             </table>
           </div>
         ) : (
-          <p className="text-center py-10 text-[var(--color-ink-200)]">No partners registered yet.</p>
+          <p className="text-center py-10 text-[#a9cdc9]">No partners registered yet.</p>
         )}
       </div>
     </div>

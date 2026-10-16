@@ -248,7 +248,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
                 onClick={() => toggleCat(k)}
                 aria-pressed={on}
                 className="min-h-[34px] rounded-lg px-2 py-1 text-[11.5px] font-bold"
-                style={{ background: on ? `${CATEGORIES[k].color}2e` : "rgba(255,255,255,.05)", color: on ? CATEGORIES[k].color : "var(--color-ink-200)" }}
+                style={{ background: on ? `${CATEGORIES[k].color}2e` : "rgba(255,255,255,.05)", color: on ? CATEGORIES[k].color : "#8fb9b6" }}
               >
                 {CATEGORIES[k].label}
               </button>

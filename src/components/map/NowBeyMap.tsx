@@ -22,7 +22,6 @@ import {
   precisionLabel,
 } from "@/lib/geo";
 import { clusterPins } from "@/lib/cluster";
-import { Icon } from "../Icon";
 
 export type MapPin = {
   id: string;
@@ -75,7 +74,7 @@ type Props = {
 const PIN_PX = 30;
 
 function pinHtml(pin: MapPin, selected: boolean) {
-  const c = pin.color ?? CATEGORIES[pin.category]?.color ?? "var(--color-ink-dim)";
+  const c = pin.color ?? CATEGORIES[pin.category]?.color ?? "#94a3b8";
   // Two-letter codes, unique per category. A single letter was ambiguous on the
   // live map (S = Storm or Safety, F = Flooding or Fire, N = anything), so the
   // circles in Nassau read as alphabet soup with no legend able to save them.
@@ -83,7 +82,7 @@ function pinHtml(pin: MapPin, selected: boolean) {
   const code = raw.length <= 2 ? raw.toUpperCase() : raw.split(/\s+/).map((w) => w.charAt(0)).slice(0, 2).join("").toUpperCase();
   const size = code.length > 1 ? 9.5 : 13;
   return `<div class="nb-pin ${pin.live ? "nb-pin-live" : ""}" style="background:${c};color:${c};${
-    selected ? "outline:3px solid var(--color-cyan);outline-offset:2px;" : ""
+    selected ? "outline:3px solid rgba(46,230,208,.85);outline-offset:2px;" : ""
   }"><span style="font-size:${size}px">${code}</span></div>`;
 }
 
@@ -112,9 +111,9 @@ function makePickIcon(zoomed: boolean) {
     iconSize: [46, 58],
     iconAnchor: [23, 54],
     html: `<svg width="46" height="58" viewBox="0 0 46 58" xmlns="http://www.w3.org/2000/svg">
-      <path d="M23 56C23 56 42 34.7 42 21.5C42 10.3 33.5 2 23 2S4 10.3 4 21.5C4 34.7 23 56 23 56Z" fill="var(--color-panel)" stroke="var(--color-cyan)" stroke-width="3"/>
-      <circle cx="23" cy="21" r="8.5" fill="${zoomed ? "var(--color-cyan)" : "var(--color-amber)"}"/>
-      <circle cx="23" cy="21" r="3" fill="var(--color-panel)"/>
+      <path d="M23 56C23 56 42 34.7 42 21.5C42 10.3 33.5 2 23 2S4 10.3 4 21.5C4 34.7 23 56 23 56Z" fill="#0b2a38" stroke="#2ee6d0" stroke-width="3"/>
+      <circle cx="23" cy="21" r="8.5" fill="${zoomed ? "#2ee6d0" : "#ffc531"}"/>
+      <circle cx="23" cy="21" r="3" fill="#03121b"/>
     </svg>`,
   });
 }
@@ -495,7 +494,7 @@ export default function NowBeyMap({
                   <Popup>
                     <div className="space-y-1">
                       <p className="font-semibold leading-snug">{group.pins.length} reports near here</p>
-                      <p className="text-[12px] text-[var(--color-ink-dim)]">Tap the badge to zoom in and separate them.</p>
+                      <p className="text-[12px] text-[#9fc4c9]">Tap the badge to zoom in and separate them.</p>
                     </div>
                   </Popup>
                 </Marker>
@@ -516,8 +515,8 @@ export default function NowBeyMap({
                       {pin.label ?? CATEGORIES[pin.category]?.label ?? pin.category}
                     </p>
                     <p className="font-semibold leading-snug">{pin.title}</p>
-                    {pin.meta ? <p className="text-[12px] text-[var(--color-ink-dim)]">{pin.meta}</p> : null}
-                    <p className="text-[11px] text-[var(--color-ink-dim)]">
+                    {pin.meta ? <p className="text-[12px] text-[#9fc4c9]">{pin.meta}</p> : null}
+                    <p className="text-[11px] text-[#7fa7a9]">
                       {formatCoord(pin.lat, "lat")} · {formatCoord(pin.lng, "lng")}
                     </p>
                     {pin.href ? (
@@ -556,9 +555,9 @@ export default function NowBeyMap({
       {aim ? (
         <div className="nb-crosshair">
           <svg width="86" height="86" viewBox="0 0 86 86" aria-hidden>
-            <circle cx="43" cy="43" r="20" fill="none" stroke="var(--color-cyan)" strokeWidth="1.6" strokeDasharray="4 5" />
-            <path d="M43 4v20M43 62v20M4 43h20M62 43h20" stroke="var(--color-cyan)" strokeWidth="1.6" />
-            <circle cx="43" cy="43" r="2.4" fill="var(--color-amber)" />
+            <circle cx="43" cy="43" r="20" fill="none" stroke="#2ee6d0" strokeWidth="1.6" strokeDasharray="4 5" />
+            <path d="M43 4v20M43 62v20M4 43h20M62 43h20" stroke="#2ee6d0" strokeWidth="1.6" />
+            <circle cx="43" cy="43" r="2.4" fill="#ffc531" />
           </svg>
         </div>
       ) : null}
@@ -568,8 +567,11 @@ export default function NowBeyMap({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-[500] flex flex-col gap-1.5 p-2 sm:flex-row sm:flex-wrap sm:items-start sm:gap-2 sm:p-2.5">
         {mode === "pick" || compact ? null : (
           <div className="pointer-events-auto relative w-full sm:w-[min(320px,38vw)]">
-            <div className="glass flex min-h-[42px] items-center gap-2 rounded-xl px-3 py-2 shadow-l3">
-              <Icon name="search" size={15} className="text-cyan" strokeWidth={2.4} />
+            <div className="glass flex min-h-[42px] items-center gap-2 rounded-xl px-3 py-2 shadow-[0_14px_34px_rgba(0,0,0,.45)]">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#74f3e3" strokeWidth="2.4" aria-hidden>
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" strokeLinecap="round" />
+              </svg>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -581,17 +583,17 @@ export default function NowBeyMap({
                 }}
                 placeholder="Search street, dock, landmark…"
                 aria-label="Search for a street or landmark"
-                className="w-full bg-transparent text-sm text-sand-100 outline-none placeholder:text-ink-dim"
+                className="w-full bg-transparent text-[13px] text-sand-100 outline-none placeholder:text-ink-400"
               />
-              {searching ? <span className="nb-meta text-xs text-cyan">…</span> : null}
+              {searching ? <span className="text-[11px] text-tide-300">…</span> : null}
             </div>
             {results.length ? (
-              <ul className="glass nb-scroll absolute mt-1.5 max-h-64 w-full overflow-auto rounded-xl py-1 text-left shadow-l4">
+              <ul className="glass nb-scroll absolute mt-1.5 max-h-64 w-full overflow-auto rounded-xl py-1 text-left shadow-[0_20px_44px_rgba(0,0,0,.55)]">
                 {results.map((r) => (
                   <li key={`${r.lat},${r.lng},${r.label}`}>
                     <button
                       type="button"
-                      className="block w-full px-3 py-2 text-left transition duration-200 ease-standard hover:bg-brand/15"
+                      className="block w-full px-3 py-2 text-left hover:bg-tide-500/15"
                       onClick={() => {
                         placePin(r.lat, r.lng, { fly: true, zoomTo: 18 });
                         setQuery("");
@@ -656,10 +658,10 @@ export default function NowBeyMap({
             className="glass grid h-11 w-11 cursor-grab touch-none place-items-center rounded-full active:cursor-grabbing"
           >
             <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden>
-              <circle cx="12" cy="4.6" r="2.6" fill="var(--color-amber)" />
+              <circle cx="12" cy="4.6" r="2.6" fill="#ffc531" />
               <path
                 d="M12 8c-2.6 0-3.6 1.3-3.6 3.1V14H7v6h2.5v-5h5v5H17v-6h-1.4v-2.9C15.6 9.3 14.6 8 12 8Z"
-                fill="var(--color-amber)"
+                fill="#ffc531"
               />
             </svg>
           </button>
@@ -672,7 +674,7 @@ export default function NowBeyMap({
           </button>
         </div>
 
-        <div className="nb-meta glass hidden rounded-xl px-2.5 py-1.5 text-2xs font-semibold text-ink-dim sm:block">
+        <div className="glass hidden rounded-xl px-2.5 py-1.5 text-[10.5px] font-semibold text-[#9fc4c9] sm:block">
           zoom {zoomNow} · {precisionLabel(zoomNow, centerPt[0])} on screen · {mPerPx.toFixed(2)} m/px
         </div>
       </div>
@@ -692,8 +694,8 @@ export default function NowBeyMap({
                 placePin(c.lat, c.lng, { zoomTo: z });
               }
             }}
-            className={`glass min-h-[40px] rounded-full px-3 py-2 text-xs font-bold transition duration-200 ease-standard ${
-              aim ? "nb-glow bg-amber text-page" : "text-sand-100"
+            className={`glass min-h-[40px] rounded-full px-3 py-2 text-[12px] font-bold ${
+              aim ? "bg-sun-500 text-abyss-950" : "text-sand-100"
             }`}
           >
             {aim ? "Aim locked" : "Aim at centre"}
@@ -803,9 +805,9 @@ export default function NowBeyMap({
               type="button"
               onClick={() => setFallbackNote(null)}
               aria-label="Dismiss"
-              className="nb-focus grid min-h-[32px] min-w-[32px] place-items-center rounded-md text-ink-400 transition duration-200 ease-standard hover:bg-white/10"
+              className="min-h-[32px] min-w-[32px] rounded-md text-[13px] font-bold text-ink-400 hover:bg-white/10"
             >
-              <Icon name="close" size={13} strokeWidth={2.4} />
+              ✕
             </button>
           </p>
         </div>
@@ -818,11 +820,11 @@ export default function NowBeyMap({
         >
           <div className={`grid h-10 w-10 place-items-center rounded-full ${pegman.over ? "bg-tide-500" : "bg-sun-500"}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
-              <circle cx="12" cy="4.6" r="2.6" fill="var(--color-page)" />
-              <path d="M12 8c-2.6 0-3.6 1.3-3.6 3.1V14H7v6h2.5v-5h5v5H17v-6h-1.4v-2.9C15.6 9.3 14.6 8 12 8Z" fill="var(--color-page)" />
+              <circle cx="12" cy="4.6" r="2.6" fill="#03121b" />
+              <path d="M12 8c-2.6 0-3.6 1.3-3.6 3.1V14H7v6h2.5v-5h5v5H17v-6h-1.4v-2.9C15.6 9.3 14.6 8 12 8Z" fill="#03121b" />
             </svg>
           </div>
-          {pegman.over ? <p className="nb-meta mt-1 rounded bg-page/85 px-2 py-0.5 text-2xs font-bold">Drop for street level</p> : null}
+          {pegman.over ? <p className="mt-1 rounded bg-abyss-950/85 px-2 py-0.5 text-[10px] font-bold">Drop for street level</p> : null}
         </div>
       ) : null}
 
@@ -884,7 +886,7 @@ export default function NowBeyMap({
                   >
                     Open street level in Google Maps
                   </a>
-                  <p className="text-[11px] text-[var(--color-ink-dim)]">
+                  <p className="text-[11px] text-[#7fa7a9]">
                     This opens Google Maps in a new tab.
                   </p>
                 </div>

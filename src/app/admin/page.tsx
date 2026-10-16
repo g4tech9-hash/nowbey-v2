@@ -13,7 +13,6 @@ import { moderationOn } from "@/lib/moderation";
 import { pushConfigured } from "@/lib/push";
 import { CrashDismissButton } from "@/components/admin-errors";
 import { MiniBars, StatCard } from "@/components/admin-ui";
-import { Icon } from "@/components/Icon";
 import { PlaceImportButton } from "@/components/admin-place-import";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +42,7 @@ export default async function AdminOverview() {
           <StatCard label="Links waiting" value={wire.pending} sub="from readers" tone={wire.pending ? "warn" : undefined} />
           <StatCard label="Hidden reports" value={rep.hidden} sub="removed from public view" />
         </section>
-        <p className="text-[13px] text-[var(--color-ink-200)]">
+        <p className="text-[13px] text-[#a9cdc9]">
           As an editor you can resolve, hide or restore reports and decide which reader links go on the wire. Open{" "}
           <Link href="/admin/reports" className="font-bold text-tide-300 underline">
             Reports
@@ -142,11 +141,10 @@ export default async function AdminOverview() {
 
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">Crashes</p>
-        <p className="mt-1 text-[13px] text-[var(--color-ink-200)]">
+        <p className="mt-1 text-[13px] text-[#a9cdc9]">
           Browser, server and app errors, grouped — one row per bug. If a beta tester says “the map died”, the answer is here. Needs add-client-errors.sql run first.{" "}
-          <Link href="/admin/logs" className="inline-flex items-center gap-1.5 font-bold text-cyan underline">
-            Open Logs &amp; AI fixes
-            <Icon name="arrow-right" size={13} />
+          <Link href="/admin/logs" className="font-bold text-tide-300 underline">
+            Open Logs &amp; AI fixes →
           </Link>{" "}
           for breadcrumbs, AI diagnoses and approving a fix.
         </p>
@@ -156,22 +154,22 @@ export default async function AdminOverview() {
               <li key={e.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg bg-white/4 px-3 py-2 text-[12px]">
                 <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${e.kind === "server" ? "bg-conch-500/20 text-conch-400" : e.kind === "boundary" ? "bg-sun-500/20 text-sun-400" : "bg-tide-500/18 text-tide-300"}`}>{e.kind}</span>
                 <span className="min-w-0 flex-1 truncate font-semibold text-sand-100" title={e.message}>{e.message}</span>
-                <span className="shrink-0 font-mono text-[11px] text-[var(--color-ink-dim)]">{e.url ?? "—"}</span>
-                <span className="shrink-0 text-[var(--color-ink-200)]">×{e.count}</span>
-                {e.handle ? <span className="shrink-0 text-[var(--color-ink-200)]">@{e.handle}</span> : null}
-                <span className="shrink-0 text-[11px] text-[var(--color-ink-dim)]">{timeAgo(e.lastSeenAt)}</span>
+                <span className="shrink-0 font-mono text-[11px] text-[#6e97a0]">{e.url ?? "—"}</span>
+                <span className="shrink-0 text-[#8fb9b6]">×{e.count}</span>
+                {e.handle ? <span className="shrink-0 text-[#8fb9b6]">@{e.handle}</span> : null}
+                <span className="shrink-0 text-[11px] text-[#6e97a0]">{timeAgo(e.lastSeenAt)}</span>
                 <span className="shrink-0"><CrashDismissButton id={e.id} /></span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-[12.5px] text-[var(--color-ink-dim)]">Nothing on record — quiet is good.</p>
+          <p className="mt-2 text-[12.5px] text-[#6e97a0]">Nothing on record — quiet is good.</p>
         )}
       </section>
 
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">Island Life places</p>
-        <p className="mt-1 text-[13px] text-[var(--color-ink-200)]">Fills the place directory with bars, restaurants, cafes and beaches from OpenStreetMap. Run it once, and again whenever you want new venues.</p>
+        <p className="mt-1 text-[13px] text-[#a9cdc9]">Fills the place directory with bars, restaurants, cafes and beaches from OpenStreetMap. Run it once, and again whenever you want new venues.</p>
         <div className="mt-3">
           <PlaceImportButton />
         </div>
@@ -181,13 +179,13 @@ export default async function AdminOverview() {
         <p className="display text-[15px] font-bold text-sand-100">Setup checklist</p>
         <ul className="mt-2 space-y-2">
           {checks.map(([label, ok, help]) => (
-            <li key={label} className="flex items-start gap-2.5 text-sm">
-              <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full ${ok ? "nb-glow bg-brand text-white" : "bg-amber/25 text-amber"}`}>
-                <Icon name={ok ? "check" : "alert"} size={13} strokeWidth={2.6} />
+            <li key={label} className="flex items-start gap-2.5 text-[13px]">
+              <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-black ${ok ? "bg-tide-500 text-abyss-950" : "bg-sun-500/25 text-sun-400"}`}>
+                {ok ? "✓" : "!"}
               </span>
               <span>
                 <span className="font-bold text-sand-100">{label}</span>
-                <span className="block text-[12px] text-[var(--color-ink-200)]">{ok ? "Set up." : help}</span>
+                <span className="block text-[12px] text-[#8fb9b6]">{ok ? "Set up." : help}</span>
               </span>
             </li>
           ))}

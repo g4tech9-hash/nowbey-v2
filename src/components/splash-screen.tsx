@@ -49,10 +49,10 @@ export function SplashScreen({ tagline, promise }: { tagline: string; promise: s
 
       <div className="nb-splash-waves">
         <svg viewBox="0 0 2400 120" preserveAspectRatio="none">
-          <path d="M0 60q150-50 300 0t300 0 300 0 300 0 300 0 300 0 300 0 300 0V120H0z" fill="var(--color-cyan)" opacity=".22" />
+          <path d="M0 60q150-50 300 0t300 0 300 0 300 0 300 0 300 0 300 0 300 0V120H0z" fill="rgba(46,230,208,.22)" />
         </svg>
         <svg viewBox="0 0 2400 120" preserveAspectRatio="none">
-          <path d="M0 70q150 40 300 0t300 0 300 0 300 0 300 0 300 0 300 0 300 0V120H0z" fill="var(--color-amber)" opacity=".16" />
+          <path d="M0 70q150 40 300 0t300 0 300 0 300 0 300 0 300 0 300 0 300 0V120H0z" fill="rgba(255,196,102,.16)" />
         </svg>
       </div>
 
@@ -60,13 +60,13 @@ export function SplashScreen({ tagline, promise }: { tagline: string; promise: s
         <svg className="nb-splash-mark" viewBox="0 0 40 40">
           <defs>
             <linearGradient id="nbsplash" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="var(--color-cyan)" />
-              <stop offset="55%" stopColor="var(--color-brand)" />
-              <stop offset="100%" stopColor="var(--color-alert)" />
+              <stop offset="0%" stopColor="#2ee6d0" />
+              <stop offset="55%" stopColor="#00c9b7" />
+              <stop offset="100%" stopColor="#ff7a6b" />
             </linearGradient>
           </defs>
-          <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="var(--color-panel)" opacity=".72" stroke="url(#nbsplash)" strokeWidth="2" />
-          <path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="var(--color-cyan)" strokeWidth="2" fill="none" strokeLinecap="round" />
+          <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="rgba(6,36,52,.72)" stroke="url(#nbsplash)" strokeWidth="2" />
+          <path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#2ee6d0" strokeWidth="2" fill="none" strokeLinecap="round" />
           <path
             className="nb-splash-pin"
             d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z"
@@ -74,7 +74,7 @@ export function SplashScreen({ tagline, promise }: { tagline: string; promise: s
             stroke="url(#nbsplash)"
             strokeWidth="2.2"
           />
-          <circle cx="20" cy="15.2" r="2.4" fill="var(--color-amber)" />
+          <circle cx="20" cy="15.2" r="2.4" fill="#ffc531" />
         </svg>
         <p className="nb-splash-word">
           Now<b>Bey</b>

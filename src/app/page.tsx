@@ -93,7 +93,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           <div className="mt-3.5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
             <Link
               href="/report"
-              className="order-1 rounded-full bg-tide-500 px-4 py-2 text-center text-[13px] font-extrabold text-abyss-950 nb-glow hover:bg-tide-400 sm:order-none"
+              className="order-1 rounded-full bg-tide-500 px-4 py-2 text-center text-[13px] font-extrabold text-abyss-950 shadow-[0_12px_28px_rgba(0,201,183,.3)] hover:bg-tide-400 sm:order-none"
             >
               Drop a pin
             </Link>
@@ -166,7 +166,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                 style={{
                   borderColor: category === key ? CATEGORIES[key].color : "rgba(120,220,214,.18)",
                   background: category === key ? `${CATEGORIES[key].color}26` : "transparent",
-                  color: category === key ? CATEGORIES[key].color : "var(--color-ink-200)",
+                  color: category === key ? CATEGORIES[key].color : "#a9cdc9",
                 }}
               >
                 {CATEGORIES[key].label}
@@ -278,7 +278,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
           <div className="rounded-2xl border border-conch-500/35 bg-conch-500/10 p-3.5">
             <p className="display text-[14.5px] font-bold text-sand-100">Get pinged for your parish</p>
-            <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-alert)]">
+            <p className="mt-1 text-[12.5px] leading-relaxed text-[#dcc9c6]">
               Choose the islands and categories you care about — floods and power for a Family Island home, safety and roads
               for Nassau.
             </p>

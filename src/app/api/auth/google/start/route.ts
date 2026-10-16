@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { signPayload } from "@/lib/auth";
 import { publicBase } from "@/lib/billing";
 import { OAUTH_COOKIE, googleAuthUrl, googleConfigured, googleRedirectUri, makePkce } from "@/lib/google";
-import { clientIp, hit } from "@/lib/ratelimit";
+import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { safeNext } from "@/lib/redirect";
 
 export const dynamic = "force-dynamic";

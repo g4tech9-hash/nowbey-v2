@@ -12,7 +12,6 @@ import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
 import { UUID_RE } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
-import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
@@ -46,9 +45,8 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <article className="min-w-0">
-        <Link href="/wire" className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan transition duration-200 ease-standard hover:underline">
-          <Icon name="arrow-left" size={13} />
-          News wire
+        <Link href="/wire" className="text-[12px] font-bold text-tide-300 hover:underline">
+          ← News wire
         </Link>
 
         {!open ? <p className="mt-2 rounded-xl bg-sun-500/12 px-3.5 py-2.5 text-[12.5px] text-sun-600">This link is waiting for review, so only staff can see it.</p> : null}
@@ -75,10 +73,9 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
           href={story.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="nb-glow mt-4 inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-extrabold text-white transition duration-200 ease-standard hover:bg-brand-light"
+          className="mt-4 inline-block rounded-full bg-sand-100 px-4 py-2 text-[13px] font-extrabold text-abyss-950 hover:bg-white"
         >
-          Read the full story at {host}
-          <Icon name="external-link" size={14} />
+          Read the full story at {host} ↗
         </a>
 
         {story.lat !== null && story.lng !== null ? (
