@@ -65,6 +65,19 @@ GOOGLE_OAUTH_BASE=http://127.0.0.1:4466   # test hook: leave unset in production
 What that suite *cannot* prove is Google's side of the bargain: the consent screen, the real client id
 and the redirect-URI registration. `TODO_HUMAN.md` §0c has those steps.
 
+## Admin accounts
+
+Admin rights come from two places: the `role='admin'` column (immediate) and the `ADMIN_HANDLES`
+environment setting (starts working once that account's email is confirmed). To promote an existing
+account from a checkout that has `DATABASE_URL` set:
+
+```bash
+npm run admin:grant -- mario242        # defaults to the handles in src/db/setup_admins.sql
+```
+
+It only changes the role and suspension columns — never passwords, emails or sessions. See
+`TODO_HUMAN.md` §0b for the full claim-the-owner-handles walk-through.
+
 ## Deploying
 
 `.github/workflows/deploy.yml` deploys to Vercel on a push to `master`, but only after the `gate` job

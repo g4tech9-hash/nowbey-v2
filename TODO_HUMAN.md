@@ -76,8 +76,9 @@ its admin rights need a confirmed email. So:
    you use it) **with an address in `ADMIN_EMAILS`** and a strong password. Tap the confirmation link in
    the email — admin rights start only after that.
 3. Check Vercel → Settings → Environment Variables: with `ADMIN_HANDLES=mario242` set, `/admin` now opens.
-   If it is not set, either add it (Production) and redeploy, or run `src/db/setup_admins.sql` in the
-   Neon SQL editor to set `role='admin'`.
+   If it is not set, either add it (Production) and redeploy, run `src/db/setup_admins.sql` in the
+   Neon SQL editor, or run `npm run admin:grant -- mario242` from a checkout with `DATABASE_URL` set —
+   all three set `role='admin'`.
 
 `setup_admins.sql` never touches passwords, and the product has no endpoint that reads or writes one.
 The two supported ways back into an existing account are the member's own reset email
