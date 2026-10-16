@@ -1,7 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSubscriptions, users, type Incident } from "@/db/schema";
-import { CATEGORIES, haversineMeters, type CategoryKey } from "@/lib/geo";
+import { ALERT_MAX_RECIPIENTS, milesToMeters } from "@/lib/command";
+import { CATEGORIES, haversineMeters, nearestParish, type CategoryKey } from "@/lib/geo";
 import { emailButton, emailLayout, escapeHtml, sendMail } from "@/lib/mail";
 import { sendPushForUsers } from "@/lib/push";
 
@@ -176,6 +177,82 @@ export async function dispatchNewsAlert(story: NewsForAlert, base: string): Prom
         body: (story.summary || story.title).slice(0, 180),
         data: { path: `/wire/${story.id}` },
       });
+    }
+  } catch {
+    /* push is best-effort */
+  }
+  return stats;
+}
+
+/**
+ * A hand-sent admin blast to everyone inside a circle. Reaches two groups:
+ *  - profiles with a saved centre inside the circle (the precise geofence), and
+ *  - island-wide profiles (no centre) subscribed to the island the circle sits on.
+ * Category prefs do not apply — a person explicitly chose this audience — but the cooldown,
+ * the recipient cap and the unsubscribe link do. Push mirrors email for members with a device.
+ */
+export async function dispatchCustomAlerts(
+  input: { title: string; body: string; lat: number; lng: number; radiusMiles: number },
+  base: string,
+): Promise<DispatchStats & { capped: boolean }> {
+  const stats: DispatchStats & { capped: boolean } = { matched: 0, sent: 0, skipped: 0, failed: 0, capped: false };
+  const radiusM = milesToMeters(input.radiusMiles);
+  const parish = nearestParish(input.lat, input.lng);
+
+  const rows = await db
+    .select({ sub: alertSubscriptions })
+    .from(alertSubscriptions)
+    .where(and(eq(alertSubscriptions.verified, true), eq(alertSubscriptions.active, true), eq(alertSubscriptions.channel, "email")));
+
+  const link = `${base}/map`;
+  const now = Date.now();
+  const pushUsers = new Set<string>();
+
+  for (const { sub } of rows) {
+    const hasCentre =
+      typeof sub.lat === "number" && typeof sub.lng === "number" && Number.isFinite(sub.lat) && Number.isFinite(sub.lng);
+    if (hasCentre) {
+      if (haversineMeters([sub.lat as number, sub.lng as number], [input.lat, input.lng]) > radiusM) continue;
+    } else {
+      const islands = sub.parishes.split(",").map((s) => s.trim());
+      if (!islands.includes(parish)) continue;
+    }
+    stats.matched += 1;
+    if (sub.userId) pushUsers.add(sub.userId);
+    if (sub.lastSentAt && now - sub.lastSentAt.getTime() < COOLDOWN_MS) {
+      stats.skipped += 1;
+      continue;
+    }
+    if (stats.sent >= ALERT_MAX_RECIPIENTS) {
+      stats.capped = true;
+      stats.skipped += 1;
+      continue;
+    }
+
+    const stop = `${base}/alerts?stop=${sub.token ?? ""}`;
+    const html = `
+      <p style="margin:0 0 6px;font-size:13px;color:#ff6b5e;font-weight:800;text-transform:uppercase;letter-spacing:.06em">Alert from NowBey · ${escapeHtml(parish)}</p>
+      <p style="margin:0 0 6px;font-size:16px;font-weight:700;color:#f6ead8">${escapeHtml(input.title)}</p>
+      <p style="margin:10px 0 0;font-size:14px;line-height:1.5;color:#cfeee9">${escapeHtml(input.body)}</p>
+      ${emailButton(link, "See it on the map")}`;
+    const footer = `You get this because you asked for alerts about ${escapeHtml(sub.parishes.split(",").join(", "))}. <a href="${escapeHtml(stop)}" style="color:#74f3e3">Stop these alerts</a>.`;
+
+    const result = await sendMail({
+      to: sub.target,
+      subject: `Alert · ${input.title}`.slice(0, 120),
+      html: emailLayout("Alert near you", html, footer),
+      text: `Alert: ${input.title}\n${input.body}\n${link}\n\nStop these alerts: ${stop}`,
+      kind: "custom-alert",
+    });
+    if (result.status === "sent") {
+      stats.sent += 1;
+      await db.update(alertSubscriptions).set({ lastSentAt: new Date() }).where(eq(alertSubscriptions.id, sub.id));
+    } else if (result.status === "failed") stats.failed += 1;
+    else stats.skipped += 1;
+  }
+  try {
+    if (pushUsers.size) {
+      await sendPushForUsers([...pushUsers], { title: input.title.slice(0, 120), body: input.body.slice(0, 180), data: { path: "/map" } });
     }
   } catch {
     /* push is best-effort */

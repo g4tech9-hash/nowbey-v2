@@ -42,3 +42,23 @@ export async function badgesFor(handles: (string | null | undefined)[]): Promise
 
   return out;
 }
+
+/**
+ * Does this member hold a live (unrevoked, unexpired) grant of the named badge right now?
+ * Used to gate going live ("broadcaster"). Read live so a revoked grant stops working at once.
+ */
+export async function hasLiveBadge(userId: string, badge: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: badgeGrants.id })
+    .from(badgeGrants)
+    .where(
+      and(
+        eq(badgeGrants.userId, userId),
+        eq(badgeGrants.badge, badge),
+        isNull(badgeGrants.revokedAt),
+        or(isNull(badgeGrants.expiresAt), gt(badgeGrants.expiresAt, new Date())),
+      ),
+    )
+    .limit(1);
+  return Boolean(row);
+}

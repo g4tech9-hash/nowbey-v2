@@ -3,6 +3,7 @@ import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { incidents, incidentUpdates } from "@/db/schema";
 import { badgesFor } from "@/lib/badges";
+import { isHiddenStatus } from "@/lib/command";
 import { publicIncident } from "@/lib/public";
 import { getViewer } from "@/lib/viewer";
 
@@ -13,7 +14,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const { id } = await ctx.params;
   if (!UUID_RE.test(id)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const [incident] = await db.select().from(incidents).where(eq(incidents.id, id)).limit(1);
-  if (!incident || (incident.status === "archived" && !(await getViewer()).isEditor)) {
+  if (!incident || (isHiddenStatus(incident.status) && !(await getViewer()).isEditor)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   const updates = await db

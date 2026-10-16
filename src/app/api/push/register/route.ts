@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { deviceTokens, pushTokens } from "@/db/schema";
 import { isExpoPushToken } from "@/lib/collect";
+import { bannedTokenHashes } from "@/lib/push";
+import { tokenFingerprint } from "@/lib/command";
 import { CATEGORY_KEYS, PARISHES } from "@/lib/geo";
 import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { pushConfigured } from "@/lib/push";
@@ -24,6 +26,11 @@ export async function POST(req: Request) {
 
   const body = await readJson(req);
   const token = typeof body.token === "string" ? body.token.trim() : "";
+
+  // A banned device stays banned: registration is refused before anything is stored.
+  if (token && (await bannedTokenHashes()).has(tokenFingerprint(token))) {
+    return NextResponse.json({ error: "This device has been blocked. Contact support if that is a mistake." }, { status: 403 });
+  }
 
   // --- Mobile app (Expo Push Service): one row per member per device, upsert so re-registering is harmless. ---
   if (isExpoPushToken(token)) {
