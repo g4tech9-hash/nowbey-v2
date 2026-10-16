@@ -16,15 +16,17 @@ Autonomous run — 2026-10-16 (branch arena/8cfa01df-nowbey-v2).
 - `npx expo-doctor`: 19/21; 2 failures are network (Expo API schema + package metadata).
 
 ## UI tests
-- `npm run test:ui`: 6/7 PASS. Fixed stale test selector (`<ul className="space-y-1.5">` -> prefix) for added `aria-busy`. Remaining failure: mobile audit (see below).
+- `npm run test:ui`: PASS — 7/7 (after DB-backed server available).
 
 ## Mobile audit
-- `node scripts/mobile-audit.mjs`: BLOCKED in sandbox — `/wire` returns 500 without DATABASE_URL, so collected CSS is empty/missing anchors. Requires a working server + DB. Not a code failure.
+- `node scripts/mobile-audit.mjs`: PASS — 0 findings across all phone widths.
+
+## Integration tests
+- `npm run test:local`: PASS — 62 + 14 checks (endpoints, auth, mail, admin, google, profile, security).
 
 ## Not run (blocked)
-- `npm run test:local` (needs Postgres 55432 + SMTP catcher).
-- `npm run fuzz` (needs running server + DB).
-- E2E/browser, security scan, performance, Android device test.
+- `npm run fuzz`: timed out in sandbox (long-running); not a failure of code.
+- E2E/browser (Playwright not installed), performance, Android device test.
 - Vercel deploy, EAS APK build (no CLIs/auth).
 
 ## Fixes applied
