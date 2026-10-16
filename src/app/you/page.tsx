@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { and, desc, eq, ne, or } from "drizzle-orm";
+import { and, desc, eq, ne, notInArray, or } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSubscriptions, incidents } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
@@ -10,6 +10,7 @@ import { PageHead } from "@/components/app-shell";
 import { BadgeMark } from "@/components/verified-badge";
 import { liveBadges } from "@/lib/profile";
 import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
+import { HIDDEN_STATUSES } from "@/lib/command";
 import { TIERS } from "@/lib/tiers";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
       .from(incidents)
       .where(
         and(
-          ne(incidents.status, "archived"),
+          notInArray(incidents.status, HIDDEN_STATUSES),
           or(eq(incidents.userId, viewer.userId), and(eq(incidents.authorHandle, viewer.handle), eq(incidents.anonymous, false))),
         ),
       )

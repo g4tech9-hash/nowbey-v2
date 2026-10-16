@@ -11,9 +11,10 @@ export type AuditTarget =
   | "setting"
   | "place"
   | "digest"
-  | "partner"
-  | "error";
-
+  | "error"
+  | "alert"
+  | "stream"
+  | "partner";
 /** Writes one line to the activity log. A logging problem never blocks the action itself. */
 export async function audit(
   actor: string,

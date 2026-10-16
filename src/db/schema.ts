@@ -754,3 +754,54 @@ export const rateLimits = pgTable(
   },
   (table) => [index("rate_limits_expires_idx").on(table.expiresAt)],
 );
+
+/**
+ * Live video broadcasts from verified broadcasters (Incident Command → Content Moderation).
+ * The app itself does not relay video: the broadcaster's client publishes to the streaming
+ * provider and stores the playback URL here. Staff see every live row in /admin/streams and
+ * can kill one instantly, which flips the status so every client drops it. Ended rows are kept
+ * for the audit trail. Created by add-live-streams.sql.
+ */
+export const liveStreams = pgTable(
+  "live_streams",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    authorHandle: text("author_handle").notNull(),
+    title: text("title").notNull(),
+    /** Optional incident this broadcast is covering. Null means a standalone broadcast. */
+    incidentId: uuid("incident_id").references(() => incidents.id, { onDelete: "set null" }),
+    /** Where clients play it (HLS/DASH URL from the streaming provider). */
+    playbackUrl: text("playback_url"),
+    /** live | ended (broadcaster stopped) | killed (staff stopped) */
+    status: text("status").notNull().default("live"),
+    /** Why staff killed it, shown to the broadcaster. */
+    killReason: text("kill_reason"),
+    killedBy: text("killed_by"),
+    startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+  },
+  (table) => [index("live_streams_status_idx").on(table.status), index("live_streams_user_idx").on(table.userId)],
+);
+
+/**
+ * Devices an admin has banned. Stores only the one-way fingerprint (src/lib/command.ts
+ * tokenFingerprint), never the raw push token, so the list is useless to anyone who steals it.
+ * Registration refuses banned tokens and every send path skips them. Created by add-banned-devices.sql.
+ */
+export const bannedDevices = pgTable(
+  "banned_devices",
+  {
+    id: serial("id").primaryKey(),
+    tokenHash: text("token_hash").notNull().unique(),
+    /** expo | fcm, when known. */
+    platform: text("platform"),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+    reason: text("reason"),
+    bannedBy: text("banned_by").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("banned_devices_user_idx").on(table.userId)],
+);

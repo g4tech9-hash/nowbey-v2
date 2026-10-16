@@ -1,8 +1,9 @@
 import { NextResponse, after } from "next/server";
-import { and, desc, eq, gte, lte, ne, or, ilike, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, ne, notInArray, or, ilike, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { incidents } from "@/db/schema";
 import { badgesFor } from "@/lib/badges";
+import { HIDDEN_STATUSES } from "@/lib/command";
 import { getViewer } from "@/lib/viewer";
 import { publicBase } from "@/lib/billing";
 import { dispatchIncidentAlerts } from "@/lib/alerts";
@@ -33,9 +34,9 @@ export async function GET(req: Request) {
   const limit = clampInt(searchParams.get("limit"), 60, 1, 200);
 
   const filters = [];
-  // Hidden ("archived") reports are for staff only. "all" means every report that is still visible.
+  // Hidden ("archived") and unfounded reports are for staff only. "all" means every report that is still visible.
   if (status === "archived" && !(await getViewer()).isEditor) return NextResponse.json({ incidents: [], counts: [] });
-  if (status === "all") filters.push(ne(incidents.status, "archived"));
+  if (status === "all") filters.push(notInArray(incidents.status, HIDDEN_STATUSES));
   else filters.push(eq(incidents.status, status));
   if (category && CATEGORIES.has(category)) filters.push(eq(incidents.category, category));
   if (parish) filters.push(eq(incidents.parish, parish));

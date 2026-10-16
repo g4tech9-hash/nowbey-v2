@@ -138,7 +138,7 @@ export default function MapWorkspace() {
   const visible = useMemo(
     () =>
       rows.filter(
-        (r) => (filter === "all" || r.category === filter) && (island === "all" || r.parish === island) && r.status !== "archived",
+        (r) => (filter === "all" || r.category === filter) && (island === "all" || r.parish === island) && r.status !== "archived" && r.status !== "unfounded",
       ),
     [rows, filter, island],
   );
@@ -398,7 +398,7 @@ export default function MapWorkspace() {
         <div className="flex-none px-3 pt-2 lg:px-0">
           <div className="flex items-center gap-1.5">
             <div className="nb-no-scrollbar flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 lg:flex-wrap lg:overflow-visible lg:pb-0">
-              <FilterChip active={filter === "all"} onClick={() => { setFilter("all"); setListLimit(40); }} label={`All · ${rows.filter((r) => r.status !== "archived").length}`} />
+              <FilterChip active={filter === "all"} onClick={() => { setFilter("all"); setListLimit(40); }} label={`All · ${rows.filter((r) => r.status !== "archived" && r.status !== "unfounded").length}`} />
               {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
                 <FilterChip
                   key={k}

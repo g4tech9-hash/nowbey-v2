@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, desc, eq, gte, ilike, ne, or } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, ne, notInArray, or } from "drizzle-orm";
 import { db } from "@/db";
 import { incidents, newsItems } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
@@ -7,6 +7,7 @@ import { IncidentCard } from "@/components/incident-card";
 import { AdSlot } from "@/components/ad-slot";
 import { MapPanel, type MapPin } from "@/components/map/map-panel";
 import { CATEGORIES, GAZETTEER, PARISHES, knownParish, nowMs, timeAgo, type CategoryKey } from "@/lib/geo";
+import { HIDDEN_STATUSES } from "@/lib/command";
 import { clampInt, likeEscape, param } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 import { badgesFor } from "@/lib/badges";
@@ -35,7 +36,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const hours = clampInt(first(sp.hours), 0, 0, 24 * 365);
 
   const filters = [];
-  if (status === "all") filters.push(ne(incidents.status, "archived"));
+  if (status === "all") filters.push(notInArray(incidents.status, HIDDEN_STATUSES));
   else filters.push(eq(incidents.status, status));
   if (category && Object.prototype.hasOwnProperty.call(CATEGORIES, category)) filters.push(eq(incidents.category, category));
   if (parish) filters.push(eq(incidents.parish, parish));
@@ -49,7 +50,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
   const [rows, recent, wire, viewer] = await Promise.all([
     db.select().from(incidents).where(where).orderBy(desc(incidents.createdAt)).limit(24),
-    db.select().from(incidents).where(ne(incidents.status, "archived")).orderBy(desc(incidents.createdAt)).limit(40),
+    db.select().from(incidents).where(notInArray(incidents.status, HIDDEN_STATUSES)).orderBy(desc(incidents.createdAt)).limit(40),
     db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(6),
     getViewer(),
   ]);

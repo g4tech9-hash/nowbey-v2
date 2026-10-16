@@ -10,12 +10,12 @@ export function CommentModActions({ id, status, flagged }: { id: number; status:
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  async function go(action: string, confirmText?: string) {
+  async function go(action: string, confirmText?: string, extra?: Record<string, unknown>) {
     if (confirmText && !window.confirm(confirmText)) return;
     setBusy(action);
     setErr(null);
     try {
-      const res = await fetch("/api/admin/comments", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action }) });
+      const res = await fetch("/api/admin/comments", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action, ...extra }) });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Could not do that.");
       router.refresh();
@@ -40,9 +40,14 @@ export function CommentModActions({ id, status, flagged }: { id: number; status:
           </button>
         ) : null}
         {flagged ? (
-          <button type="button" disabled={busy !== null} onClick={() => go("clearFlags")} className={soft}>
-            {busy === "clearFlags" ? "…" : "Dismiss reports"}
-          </button>
+          <>
+            <button type="button" disabled={busy !== null} onClick={() => go("approve")} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
+              {busy === "approve" ? "…" : "Approve"}
+            </button>
+            <button type="button" disabled={busy !== null} onClick={() => go("clearFlags")} className={soft}>
+              {busy === "clearFlags" ? "…" : "Dismiss reports"}
+            </button>
+          </>
         ) : null}
         <button
           type="button"
@@ -51,6 +56,18 @@ export function CommentModActions({ id, status, flagged }: { id: number; status:
           className={`${BTN} border border-conch-500/40 text-danger-500 hover:bg-conch-500/10`}
         >
           {busy === "delete" ? "…" : "Delete"}
+        </button>
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => {
+            const reason = window.prompt("Why is this comment being removed? This warning goes on the author's staff record.", "broke the community rules");
+            if (reason === null) return;
+            go("deleteWarn", undefined, { reason });
+          }}
+          className={`${BTN} bg-conch-500 font-extrabold text-abyss-950`}
+        >
+          {busy === "deleteWarn" ? "…" : "Delete & warn user"}
         </button>
       </div>
       {err ? <p className="text-[11.5px] text-danger-500">{err}</p> : null}

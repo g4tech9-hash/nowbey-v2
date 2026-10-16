@@ -2,6 +2,7 @@ import { and, asc, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { comments, incidents, newsItems, posts, reactions } from "@/db/schema";
 import { badgesFor, type Badge } from "@/lib/badges";
+import { isHiddenStatus } from "@/lib/command";
 import { isReactionKind, type Engagement, type TargetType } from "@/lib/engage-kinds";
 import type { Viewer } from "@/lib/viewer";
 
@@ -34,7 +35,7 @@ export async function targetInfo(type: TargetType, id: string): Promise<TargetIn
   }
   if (type === "incident") {
     const [r] = await db.select({ title: incidents.title, status: incidents.status, owner: incidents.userId }).from(incidents).where(eq(incidents.id, id)).limit(1);
-    return r ? { title: r.title, ownerId: r.owner, open: r.status !== "archived" } : null;
+    return r ? { title: r.title, ownerId: r.owner, open: !isHiddenStatus(r.status) } : null;
   }
   const [r] = await db.select({ title: newsItems.title, review: newsItems.review }).from(newsItems).where(eq(newsItems.id, id)).limit(1);
   return r ? { title: r.title, ownerId: null, open: r.review === "approved" } : null;

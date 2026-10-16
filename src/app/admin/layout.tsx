@@ -35,6 +35,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     { href: "/admin", label: "Overview" },
     ...(viewer.isAdmin ? [{ href: "/admin/users", label: "Members" }] : []),
     { href: "/admin/reports", label: "Reports" },
+    { href: "/admin/streams", label: "Streams" },
+    ...(viewer.isAdmin ? [{ href: "/admin/alerts", label: "Alerts" }] : []),
     { href: "/admin/wire", label: "Wire", badge: pending.n },
     { href: "/admin/community", label: "Community", badge: flagged.n },
     { href: "/admin/comments", label: "Comments", badge: flaggedComments.n },

@@ -28,6 +28,9 @@ type Props = {
   emailVerified: boolean;
   /** Every badge ever granted to this member, newest first, revoked ones included. */
   badges: BadgeGrant[];
+  /** Registered push devices. Token previews only — bans go by row id so the token stays server-side. */
+  devices: { kind: "app" | "web"; id: string; label: string; at: Date | string }[];
+  bans: { id: number; platform: string | null; reason: string | null; at: Date | string }[];
 };
 
 const shortDate = (d: Date | string) => new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
@@ -46,8 +49,10 @@ export function AdminUserActions(p: Props) {
   const [expiryDays, setExpiryDays] = useState("");
   const [note, setNote] = useState("");
 
-  const live = p.badges.filter((b) => !b.revokedAt);
+  const liveVerified = p.badges.filter((b) => b.badge === "verified" && !b.revokedAt);
+  const liveBroadcaster = p.badges.find((b) => b.badge === "broadcaster" && !b.revokedAt) ?? null;
   const revoked = p.badges.filter((b) => b.revokedAt);
+  const [broadcasterReason, setBroadcasterReason] = useState("");
 
   /** Returns whether the action went through, so a caller can clear a form only when it did. */
   async function run(action: string, extra: Record<string, unknown> = {}, done = "Done."): Promise<boolean> {
@@ -89,8 +94,8 @@ export function AdminUserActions(p: Props) {
             Save role
           </button>
         </div>
-        {p.isSelf ? <p className="mt-1 text-[11.5px] text-ink-400">You cannot change your own role.</p> : null}
-        {p.envAdmin ? <p className="mt-1 text-[11.5px] text-ink-400">This member is an admin through ADMIN_HANDLES in the server settings.</p> : null}
+        {p.isSelf ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">You cannot change your own role.</p> : null}
+        {p.envAdmin ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">This member is an admin through ADMIN_HANDLES in the server settings.</p> : null}
       </div>
 
       <div>
@@ -111,7 +116,7 @@ export function AdminUserActions(p: Props) {
             Save plan
           </button>
         </div>
-        <p className="mt-1 text-[11.5px] text-ink-400">
+        <p className="mt-1 text-[11.5px] text-[#8fb9b6]">
           {p.payingViaStripe
             ? "This member pays through Stripe, so their plan is managed there."
             : "For community partners and staff. It involves no payment and stays until you remove it."}
@@ -141,7 +146,7 @@ export function AdminUserActions(p: Props) {
             </button>
           </div>
         )}
-        {!p.suspended && (p.isSelf || p.targetIsAdmin) ? <p className="mt-1 text-[11.5px] text-ink-400">Admins cannot be suspended. Remove their admin role first.</p> : null}
+        {!p.suspended && (p.isSelf || p.targetIsAdmin) ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">Admins cannot be suspended. Remove their admin role first.</p> : null}
       </div>
 
       <div>
@@ -161,7 +166,7 @@ export function AdminUserActions(p: Props) {
         </div>
         {link ? (
           <div className="mt-2 rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
-            <p className="text-[11.5px] text-ink-400">One hour, one use. Shown only now, and not kept in the activity log.</p>
+            <p className="text-[11.5px] text-[#8fb9b6]">One hour, one use. Shown only now, and not kept in the activity log.</p>
             <div className="mt-1.5 flex gap-2">
               <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} className={`${INPUT} min-w-0 flex-1 font-mono text-[11.5px]`} aria-label="Password reset link" />
               <button type="button" onClick={() => void navigator.clipboard?.writeText(link)} className={BTN}>
@@ -180,12 +185,12 @@ export function AdminUserActions(p: Props) {
       */}
       <div>
         <p className={LABEL}>Verified badge</p>
-        {live.length ? (
+        {liveVerified.length ? (
           <ul className="mt-1 space-y-2">
-            {live.map((b) => (
+            {liveVerified.map((b) => (
               <li key={b.id} className="rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
                 <p className="text-[12.5px] text-sand-100">“{b.reason}”</p>
-                <p className="mt-0.5 text-[11.5px] text-ink-400">
+                <p className="mt-0.5 text-[11.5px] text-[#8fb9b6]">
                   granted by @{b.grantedBy} {shortDate(b.grantedAt)}
                   {b.expiresAt ? ` · runs until ${shortDate(b.expiresAt)}` : ""}
                 </p>
@@ -203,7 +208,7 @@ export function AdminUserActions(p: Props) {
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-[11.5px] text-ink-400">No live badge. {revoked.length ? `${revoked.length} revoked earlier — see the activity log below.` : ""}</p>
+          <p className="mt-1 text-[11.5px] text-[#8fb9b6]">No live verified badge. {revoked.length ? `${revoked.length} revoked earlier — see the activity log below.` : ""}</p>
         )}
         <div className={`${row} mt-2`}>
           <input
@@ -231,7 +236,7 @@ export function AdminUserActions(p: Props) {
                   reason: badgeReason,
                   expiresAt: expiryDays ? new Date(Date.now() + Number(expiryDays) * 86400000).toISOString() : "",
                 },
-                live.length ? "New grant replaces the old one." : "Verified badge granted.",
+                liveVerified.length ? "New grant replaces the old one." : "Verified badge granted.",
               )
             }
             className={BTN}
@@ -239,9 +244,107 @@ export function AdminUserActions(p: Props) {
             Grant
           </button>
         </div>
-        <p className="mt-1 text-[11.5px] text-ink-400">
+        <p className="mt-1 text-[11.5px] text-[#8fb9b6]">
           Only grant this after checking who the account is. It appears beside their handle on every report, post and comment they wrote.
         </p>
+      </div>
+
+      {/*
+        Banning a device deletes its push token and fingerprints it onto the ban list, so it cannot
+        re-register and no send path will wake it. It does not touch the account: for people, suspend.
+      */}
+      <div>
+        <p className={LABEL}>Devices</p>
+        {p.devices.length ? (
+          <ul className="mt-1 space-y-2">
+            {p.devices.map((d) => (
+              <li key={`${d.kind}-${d.id}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/[.05] p-2.5">
+                <div>
+                  <p className="font-mono text-[12px] text-sand-100">{d.label}</p>
+                  <p className="text-[11.5px] text-[#8fb9b6]">last seen {shortDate(d.at)}</p>
+                </div>
+                <button
+                  type="button"
+                  disabled={busy !== null}
+                  onClick={() => {
+                    const reason = window.prompt(`Ban this ${d.kind === "app" ? "app" : "browser"} device? It will stop receiving pushes and cannot re-register.`, "push abuse");
+                    if (reason === null) return;
+                    void run("banDevice", { kind: d.kind, id: d.id, reason }, "Device banned.");
+                  }}
+                  className="rounded-lg bg-conch-500/90 px-3 py-2 text-[12.5px] font-extrabold text-abyss-950 hover:bg-conch-500 disabled:opacity-50"
+                >
+                  Ban device
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-1 text-[11.5px] text-[#8fb9b6]">No registered devices.</p>
+        )}
+        {p.bans.length ? (
+          <div className="mt-2">
+            <p className="text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Banned</p>
+            <ul className="mt-1 space-y-2">
+              {p.bans.map((b) => (
+                <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-conch-500/30 p-2.5">
+                  <div>
+                    <p className="text-[12px] text-sand-100">{b.platform ?? "device"} · {b.reason ?? "no reason given"}</p>
+                    <p className="text-[11.5px] text-[#8fb9b6]">banned {shortDate(b.at)}</p>
+                  </div>
+                  <button type="button" disabled={busy !== null} onClick={() => void run("unbanDevice", { id: b.id }, "Ban lifted.")} className={BTN}>
+                    Unban
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </div>
+
+      {/*
+        Verified broadcaster status: the member's phone may go live on the map (POST /api/streams).
+        A human grant like the verified badge — reason required, revocable, checked live at go-live time.
+      */}
+      <div>
+        <p className={LABEL}>Verified broadcaster status</p>
+        {liveBroadcaster ? (
+          <div className="mt-1 rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
+            <p className="text-[12.5px] text-sand-100">“{liveBroadcaster.reason}”</p>
+            <p className="mt-0.5 text-[11.5px] text-[#8fb9b6]">
+              granted by @{liveBroadcaster.grantedBy} {shortDate(liveBroadcaster.grantedAt)}
+              {liveBroadcaster.expiresAt ? ` · runs until ${shortDate(liveBroadcaster.expiresAt)}` : ""}
+            </p>
+            <button
+              type="button"
+              disabled={busy !== null}
+              onClick={() => {
+                if (window.confirm(`Take broadcaster status away from @${p.handle}? They can no longer go live.`)) void run("revokeBadge", { id: liveBroadcaster.id }, "Broadcaster status revoked.");
+              }}
+              className={`${BTN} mt-2`}
+            >
+              Revoke
+            </button>
+          </div>
+        ) : (
+          <div className={`${row} mt-1`}>
+            <input
+              value={broadcasterReason}
+              onChange={(e) => setBroadcasterReason(e.target.value)}
+              maxLength={200}
+              placeholder="Why is this member trusted to go live?"
+              className={`${INPUT} min-w-[220px] flex-1`}
+              aria-label="Reason for broadcaster status"
+            />
+            <button
+              type="button"
+              disabled={busy !== null || broadcasterReason.trim().length < 4}
+              onClick={() => void run("grantBadge", { badge: "broadcaster", reason: broadcasterReason, expiresAt: "" }, "Verified broadcaster status granted.")}
+              className={BTN}
+            >
+              Grant broadcaster status
+            </button>
+          </div>
+        )}
       </div>
 
       {/*
@@ -271,12 +374,12 @@ export function AdminUserActions(p: Props) {
           >
             Save note
           </button>
-          <span className="text-[11.5px] text-ink-400">Notes are never shown to the member and cannot be edited afterwards.</span>
+          <span className="text-[11.5px] text-[#8fb9b6]">Notes are never shown to the member and cannot be edited afterwards.</span>
         </div>
       </div>
 
       {msg ? (
-        <p role={msg.ok ? "status" : "alert"} className={`rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
+        <p role={msg.ok ? "status" : "alert"} className={`rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>
           {msg.text}
         </p>
       ) : null}

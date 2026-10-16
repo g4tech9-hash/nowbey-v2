@@ -58,6 +58,7 @@ export default async function ReportsAdmin({ searchParams }: { searchParams: Pro
             { value: "", label: "Open" },
             { value: "flagged", label: "Reported by readers" },
             { value: "resolved", label: "Resolved" },
+            { value: "unfounded", label: "Unfounded" },
             { value: "archived", label: "Hidden" },
             { value: "all", label: "Everything" },
           ]}
