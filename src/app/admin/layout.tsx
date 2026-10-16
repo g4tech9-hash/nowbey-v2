@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { eq, gt, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { comments, enterpriseInquiries, errorAnalyses, newsItems, posts } from "@/db/schema";
+import { comments, enterpriseInquiries, errorAnalyses, incidents, liveStreams, newsItems, posts } from "@/db/schema";
 import { AdminNav, type AdminTab } from "@/components/admin-nav";
 import { getViewer } from "@/lib/viewer";
 
@@ -31,14 +31,28 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       : Promise.resolve([{ n: 0 }]),
   ]);
 
+  // Badges for the two new command surfaces. Both wrapped in .catch so a
+  // missing table can never hide the admin area -- the same rule the log
+  // counters above already follow.
+  const [[liveCount], [activeCount]] = await Promise.all([
+    viewer.isAdmin
+      ? db.select({ n: sql<number>`count(*)::int` }).from(liveStreams).where(eq(liveStreams.status, "live")).catch(() => [{ n: 0 }])
+      : Promise.resolve([{ n: 0 }]),
+    viewer.isAdmin
+      ? db.select({ n: sql<number>`count(*)::int` }).from(incidents).where(eq(incidents.status, "active")).catch(() => [{ n: 0 }])
+      : Promise.resolve([{ n: 0 }]),
+  ]);
+
   const tabs: AdminTab[] = [
     { href: "/admin", label: "Overview" },
     ...(viewer.isAdmin ? [{ href: "/admin/users", label: "Members" }] : []),
+    { href: "/admin/incidents", label: "Incidents", badge: activeCount.n },
+    { href: "/admin/moderation", label: "Moderation", badge: liveCount.n },
     { href: "/admin/reports", label: "Reports" },
     { href: "/admin/wire", label: "Wire", badge: pending.n },
     { href: "/admin/community", label: "Community", badge: flagged.n },
     { href: "/admin/comments", label: "Comments", badge: flaggedComments.n },
-    ...(viewer.isAdmin ? [{ href: "/admin/statuses", label: "Open now" }, { href: "/admin/digest", label: "Digest" }, { href: "/admin/partners", label: "Partners" }, { href: "/admin/logs", label: "Logs", badge: logReview.n }, { href: "/admin/inbox", label: "Inbox", badge: fresh.n }, { href: "/admin/activity", label: "Activity" }, { href: "/admin/appearance", label: "Appearance" }] : []),
+    ...(viewer.isAdmin ? [{ href: "/admin/statuses", label: "Open now" }, { href: "/admin/digest", label: "Digest" }, { href: "/admin/partners", label: "Partners" }, { href: "/admin/logs", label: "Logs", badge: logReview.n }, { href: "/admin/inbox", label: "Inbox", badge: fresh.n }, { href: "/admin/activity", label: "Activity" }, { href: "/admin/appearance", label: "Appearance" }, { href: "/admin/geofence", label: "Geofence" }] : []),
   ];
 
   return (

@@ -581,6 +581,15 @@ export const pushTokens = pgTable(
     /** The FCM registration token. Unique: a browser that re-registers just refreshes its row. */
     token: text("token").notNull(),
     platform: text("platform").notNull().default("web"),
+    /**
+     * Where the device was when it subscribed, sent by the browser with its
+     * permission. This is what makes a geofenced broadcast possible: without a
+     * position the only honest filter is the island list below, and "within
+     * 2 miles of Bay Street" cannot be answered. Null is common and fine --
+     * those devices get island-wide alerts and are skipped by radius sends.
+     */
+    lat: doublePrecision("lat"),
+    lng: doublePrecision("lng"),
     /** Comma-separated islands this device wants to hear about. */
     parishes: text("parishes").notNull().default("New Providence"),
     /** Comma-separated categories. Empty means every category. */
@@ -753,4 +762,90 @@ export const rateLimits = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   },
   (table) => [index("rate_limits_expires_idx").on(table.expiresAt)],
+);
+
+
+/**
+ * ============================================================================
+ *  ADMIN COMMAND CENTRE TABLES
+ * ============================================================================
+ *  Live broadcasts and device bans back the four Incident Command /
+ *  Moderation / Geofence / User Management modules. See
+ *  src/db/add-admin-modules.sql for the matching DDL.
+ * ============================================================================
+ */
+
+/**
+ * A member broadcasting live video to the island.
+ *
+ * The media plane (who relays the video) is deliberately external — Agora,
+ * LiveKit, Cloudflare Stream, whatever you choose. This row is the authority
+ * the admin panel acts on: `status` is what the Kill Stream button writes, and
+ * the broadcaster's client polls this row (or a socket fed from it) to learn it
+ * must stop. `provider` + `roomId` are opaque strings your media server
+ * understands; nothing here interprets them, so swapping providers does not
+ * need a migration.
+ *
+ * status: live | ended (broadcaster stopped) | killed (staff cut it off)
+ */
+export const liveStreams = pgTable(
+  "live_streams",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references((): AnyPgColumn => users.id, { onDelete: "cascade" }),
+    authorHandle: text("author_handle").notNull(),
+    title: text("title").notNull(),
+    /** Free-text area name shown under the title, e.g. "Bay Street". */
+    locationLabel: text("location_label"),
+    lat: doublePrecision("lat"),
+    lng: doublePrecision("lng"),
+    parish: text("parish"),
+    /** "agora" | "livekit" | "cloudflare" | "" — whatever the client used. */
+    provider: text("provider").notNull().default(""),
+    /** Channel/room name on the provider. Never a secret. */
+    roomId: text("room_id"),
+    status: text("status").notNull().default("live"),
+    viewers: integer("viewers").notNull().default(0),
+    /** Peaked audience, kept after the stream ends so staff can see the reach. */
+    peakViewers: integer("peak_viewers").notNull().default(0),
+    /** Who cut it off, and when. Null unless status = "killed". */
+    killedBy: text("killed_by"),
+    killedAt: timestamp("killed_at", { withTimezone: true }),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("live_streams_status_idx").on(t.status), index("live_streams_created_idx").on(t.createdAt.desc())],
+);
+
+/**
+ * A device barred from the product.
+ *
+ * A ban on the *account* (`users.status = 'suspended'`) stops that person
+ * signing in; a ban on the *device* stops the hardware, which is the only lever
+ * that works when someone re-registers with a new email. `token` is the Expo
+ * push token the app already registers — stable per install, not per account,
+ * which is exactly what makes it a device identity.
+ *
+ * Revoked, never deleted, so the record of who banned what survives. An active
+ * ban is one with `revoked_at IS NULL` and (`expires_at IS NULL OR expires_at >
+ * now()`).
+ */
+export const deviceBans = pgTable(
+  "device_bans",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    token: text("token").notNull(),
+    /** Set when the ban is aimed at a known member; null for a device we could not tie to an account. */
+    userId: uuid("user_id").references((): AnyPgColumn => users.id, { onDelete: "set null" }),
+    authorHandle: text("author_handle"),
+    reason: text("reason").notNull(),
+    bannedBy: text("banned_by").notNull(),
+    bannedAt: timestamp("banned_at", { withTimezone: true }).defaultNow().notNull(),
+    /** Null means permanent. */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    revokedBy: text("revoked_by"),
+  },
+  (t) => [uniqueIndex("device_bans_token_active_idx").on(t.token, t.revokedAt), index("device_bans_user_idx").on(t.userId)],
 );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, desc, eq, ilike, isNotNull, isNull, ne, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNotNull, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getViewer } from "@/lib/viewer";
@@ -8,6 +8,7 @@ import { timeAgo } from "@/lib/geo";
 import { TIERS, isTierKey } from "@/lib/tiers";
 import { clampInt, likeEscape, param } from "@/lib/validate";
 import { FilterChips, Pager, Pill, SearchBox } from "@/components/admin-ui";
+import { UserActions } from "@/components/user-actions";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Members" };
@@ -58,12 +59,44 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
       joined: users.createdAt,
       lastLogin: users.lastLoginAt,
       reports: sql<number>`(select count(*)::int from incidents i where i.user_id = "users"."id")`,
+      // A live broadcaster badge, so the row can show and revoke it without a
+      // second query per member.
+      broadcaster: sql<string | null>`(
+        select b.reason from badge_grants b
+        where b.user_id = \"users\".\"id\" and b.badge = 'broadcaster' and b.revoked_at is null
+        limit 1
+      )`,
+
     })
     .from(users)
     .where(where)
     .orderBy(desc(users.createdAt))
     .limit(PAGE)
     .offset((Math.min(page, pages) - 1) * PAGE);
+
+  /**
+   * Device bans per member, as a map rather than a subquery.
+   *
+   * device_bans is a new table. As a subquery inside the SELECT above it would
+   * take the whole page down until add-admin-modules.sql has run, and a
+   * half-migrated database must still be able to show the member list. One
+   * guarded query that degrades to "no bans" is the honest failure mode.
+   */
+  const banCount = new Map<string, number>();
+  try {
+    const bans = await db
+      .select({ handle: users.handle, n: sql<number>`count(*)::int` })
+      .from(users)
+      .innerJoin(
+        sql`device_bans as d`,
+        sql`d.user_id = "users"."id" and d.revoked_at is null and (d.expires_at is null or d.expires_at > now())`,
+      )
+      .where(inArray(users.handle, rows.map((r) => r.handle)))
+      .groupBy(users.handle);
+    for (const b of bans) banCount.set(b.handle, b.n);
+  } catch (err) {
+    console.warn("[admin/users] device_bans unavailable, showing no bans:", (err as Error).message);
+  }
 
   const params = { q: q || undefined, role: role || undefined, status: status || undefined, plan: plan || undefined };
 
@@ -127,6 +160,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
               <th className="px-2">Joined</th>
               <th className="px-2">Last sign-in</th>
               <th className="px-3 text-right">Reports</th>
+              <th className="px-3 text-right">Manage</th>
             </tr>
           </thead>
           <tbody>
@@ -167,11 +201,23 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                 <td className="px-2 py-2 text-[#8fb9b6]">{timeAgo(r.joined)}</td>
                 <td className="px-2 py-2 text-[#8fb9b6]">{r.lastLogin ? timeAgo(r.lastLogin) : "never"}</td>
                 <td className="px-3 py-2 text-right font-bold text-sand-100">{r.reports}</td>
+                <td className="px-3 py-2 text-right">
+                  <UserActions
+                    row={{
+                      handle: r.handle,
+                      status: r.status,
+                      isAdmin: r.role === "admin",
+                      isSelf: r.handle === viewer.handle,
+                      broadcaster: { granted: Boolean(r.broadcaster), reason: r.broadcaster },
+                      deviceBans: { active: banCount.get(r.handle) ?? 0, total: banCount.get(r.handle) ?? 0 },
+                    }}
+                  />
+                </td>
               </tr>
             ))}
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-[#8fb9b6]">
+                <td colSpan={8} className="px-3 py-6 text-center text-[#8fb9b6]">
                   No members match that.
                 </td>
               </tr>

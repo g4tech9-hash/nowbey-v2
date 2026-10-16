@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { badgeGrants, memberNotes, users } from "@/db/schema";
+import { badgeGrants, deviceBans, deviceTokens, memberNotes, users } from "@/db/schema";
 import { issueToken } from "@/lib/account";
 import { audit } from "@/lib/audit";
 import { baseUrl } from "@/lib/billing";
@@ -13,8 +13,17 @@ import { dbInt, text, readJson } from "@/lib/validate";
 
 const ROLES = ["resident", "editor", "admin"];
 
-/** The one badge a person can hand out. "desk" comes from the role and is never granted here. */
-const GRANTABLE = ["verified"];
+/**
+ * The badges a person can hand out. "desk" comes from the role and is never
+ * granted here.
+ *
+ *  - verified      a human checked this account is who it says it is
+ *  - broadcaster   cleared to go live on the island feed. Deliberately separate
+ *                  from "verified": being a real person does not make someone
+ *                  fit to broadcast to the whole island, and a broadcaster ban
+ *                  should be revocable without unpicking their identity.
+ */
+const GRANTABLE = ["verified", "broadcaster"];
 
 const fail = (error: string, status = 409) => NextResponse.json({ error }, { status });
 
@@ -157,6 +166,121 @@ export async function PATCH(req: Request) {
       if (grant.revokedAt) return NextResponse.json({ ok: true });
       await db.update(badgeGrants).set({ revokedAt: new Date(), revokedBy: actorName }).where(eq(badgeGrants.id, id));
       await audit(actorName, "badge.revoke", "user", t.id, t.handle, `${grant.badge}: ${grant.reason}`);
+      return NextResponse.json({ ok: true });
+    }
+
+    /**
+     * Ban the device, not just the account.
+     *
+     * Suspending stops this person signing in; banning the device stops the
+     * hardware, which is the only lever that still works when someone
+     * re-registers with a fresh email. Every push token they have ever
+     * registered is banned, so a new account on the same handset walks into a
+     * closed door.
+     *
+     * The reason is required and stored: a device ban with no explanation is
+     * indistinguishable from a mistake, and the member has no way to appeal
+     * what they were never told.
+     */
+    case "banDevice": {
+      const reason = text(body.reason, 300);
+      if (reason.length < 4) return fail("Say why the device is being banned.", 400);
+
+      // A ban can be temporary. Without a date it is permanent, which is the
+      // safer default and must be a deliberate choice.
+      let expiresAt: Date | null = null;
+      if (typeof body.expiresAt === "string" && body.expiresAt.trim()) {
+        const when = new Date(body.expiresAt);
+        if (Number.isNaN(when.getTime())) return fail("That expiry date is not a date.", 400);
+        if (when.getTime() <= Date.now()) return fail("An expiry in the past would expire the ban immediately. Leave it empty for permanent.", 400);
+        expiresAt = when;
+      }
+
+      const tokens = await db
+        .selectDistinct({ token: deviceTokens.token })
+        .from(deviceTokens)
+        .where(eq(deviceTokens.userId, t.id));
+      if (!tokens.length) return fail("This member has no registered device to ban. Suspend the account instead.", 409);
+
+      // Revoke any live ban first: the unique index is on (token, revoked_at),
+      // so a second live ban for the same token would be rejected outright.
+      await db
+        .update(deviceBans)
+        .set({ revokedAt: new Date(), revokedBy: actorName })
+        .where(and(eq(deviceBans.userId, t.id), isNull(deviceBans.revokedAt)));
+
+      await db.insert(deviceBans).values(
+        tokens.map((r) => ({
+          token: r.token,
+          userId: t.id,
+          authorHandle: t.handle,
+          reason,
+          bannedBy: actorName,
+          expiresAt,
+        })),
+      );
+
+      // Sign them out too. A device ban the app only checks on API calls would
+      // leave an open session running until it next calls in.
+      await db.update(users).set({ sessionVersion: bump }).where(eq(users.id, t.id));
+
+      await audit(
+        actorName,
+        "device.ban",
+        "user",
+        t.id,
+        t.handle,
+        `${tokens.length} device(s): ${reason}${expiresAt ? ` until ${expiresAt.toISOString().slice(0, 10)}` : " (permanent)"}`,
+      );
+      return NextResponse.json({ ok: true, devices: tokens.length, expiresAt });
+    }
+
+    /** Lift a device ban. Revoked, never deleted, so the record survives. */
+    case "unbanDevice": {
+      const now = new Date();
+      const lifted = await db
+        .update(deviceBans)
+        .set({ revokedAt: now, revokedBy: actorName })
+        .where(and(eq(deviceBans.userId, t.id), isNull(deviceBans.revokedAt)))
+        .returning({ id: deviceBans.id });
+      await audit(actorName, "device.unban", "user", t.id, t.handle, `${lifted.length} ban(s) lifted`);
+      return NextResponse.json({ ok: true, lifted: lifted.length });
+    }
+
+    /**
+     * Grant or revoke the broadcaster badge. Same rules as the verified badge:
+     * a reason is required, a repeat grant replaces the live one rather than
+     * stacking, and revocation keeps the row for the record.
+     */
+    case "setBroadcaster": {
+      const on = body.on === true;
+      const reason = text(body.reason, 200);
+      if (on && reason.length < 4) return fail("Say what was checked before clearing them to broadcast.", 400);
+
+      if (on) {
+        let expiresAt: Date | null = null;
+        if (typeof body.expiresAt === "string" && body.expiresAt.trim()) {
+          const when = new Date(body.expiresAt);
+          if (Number.isNaN(when.getTime())) return fail("That expiry date is not a date.", 400);
+          if (when.getTime() <= Date.now()) return fail("An expiry in the past would delete the badge straight away.", 400);
+          expiresAt = when;
+        }
+        await db
+          .update(badgeGrants)
+          .set({ revokedAt: new Date(), revokedBy: actorName })
+          .where(and(eq(badgeGrants.userId, t.id), eq(badgeGrants.badge, "broadcaster"), isNull(badgeGrants.revokedAt)));
+        await db.insert(badgeGrants).values({ userId: t.id, badge: "broadcaster", reason, grantedBy: actorName, expiresAt });
+        await audit(actorName, "badge.grant", "user", t.id, t.handle, `broadcaster: ${reason}`);
+      } else {
+        const [live] = await db
+          .select()
+          .from(badgeGrants)
+          .where(and(eq(badgeGrants.userId, t.id), eq(badgeGrants.badge, "broadcaster"), isNull(badgeGrants.revokedAt)))
+          .limit(1);
+        if (!live) return NextResponse.json({ ok: true });
+        await db.update(badgeGrants).set({ revokedAt: new Date(), revokedBy: actorName }).where(eq(badgeGrants.id, live.id));
+        await audit(actorName, "badge.revoke", "user", t.id, t.handle, `broadcaster: ${live.reason}`);
+      }
       return NextResponse.json({ ok: true });
     }
 

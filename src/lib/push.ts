@@ -11,6 +11,7 @@ import { deviceTokens, pushTokens, type Incident, type NewsItem } from "@/db/sch
 import { oneLine } from "@/lib/ai";
 import { chunkArray, isDeadReceipt, isExpoPushToken, type PushReceipt } from "@/lib/collect";
 import { CATEGORIES, nearestParish, type CategoryKey } from "@/lib/geo";
+import { distanceKm, milesToKm, withinMiles } from "@/lib/geo-distance";
 
 export function pushConfigured(): boolean {
   return Boolean(
@@ -254,6 +255,126 @@ const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 const EXPO_RECEIPT_URL = "https://exp.host/--/api/v2/push/getReceipts";
 
 export type PushMessage = { title: string; body: string; data?: Record<string, string> };
+
+/**
+ * ============================================================================
+ *  GEOFENCED BROADCAST
+ * ============================================================================
+ *  The Incident Command / Geospatial module sends an admin-authored alert to
+ *  every device inside a radius, rather than to an island or a category.
+ *
+ *  dispatch() above matches by parish + category, which is right for a report
+ *  a member filed and wrong for "avoid Bay Street for the next hour". This
+ *  keeps the same cooldown, batching, dead-token pruning and FCM plumbing --
+ *  only the matching step changes, from category lists to a great-circle
+ *  distance test.
+ * ============================================================================
+ */
+
+export type GeofencePush = {
+  title: string;
+  body: string;
+  lat: number;
+  lng: number;
+  /** Radius in miles, as the admin types it on the form. */
+  radiusMiles: number;
+  /** Where the notification should take the reader. */
+  link?: string;
+};
+
+// Re-exported so callers can get the maths and the sender from one place.
+export { distanceKm, milesToKm, withinMiles } from "@/lib/geo-distance";
+
+export type GeofenceStats = {
+  /** Devices inside the circle, before the cooldown filter. */
+  matched: number;
+  sent: number;
+  /** Inside the circle but still inside the 3-minute cooldown. */
+  skipped: number;
+  failed: number;
+  pruned: number;
+  /** The radius actually used, in miles, after clamping. */
+  radiusMiles: number;
+};
+
+/** Kept generous but finite: a typo of 99999 must not page the whole island. */
+const MAX_RADIUS_MILES = 100;
+
+/**
+ * Sends an admin-authored alert to every device within `radiusMiles` of the
+ * centre point.
+ *
+ * Distance is computed in JS rather than SQL: the active-token table is small
+ * (one row per installed browser), so a haversine loop over it is cheaper and
+ * far more portable than a PostGIS dependency. The 3-minute cooldown from
+ * dispatch() is honoured so a broadcast cannot be used to hammer a device.
+ */
+export async function dispatchGeofencePush(g: GeofencePush): Promise<GeofenceStats> {
+  const radiusMiles = Math.min(Math.max(1, Math.round(g.radiusMiles)), MAX_RADIUS_MILES);
+  const radiusKm = milesToKm(radiusMiles);
+  const stats: GeofenceStats = { matched: 0, sent: 0, skipped: 0, failed: 0, pruned: 0, radiusMiles };
+  if (!pushConfigured()) return stats;
+
+  const sa = serviceAccount();
+  if (!sa) return stats;
+  const rows = await db.select().from(pushTokens).where(eq(pushTokens.active, true));
+  if (!rows.length) return stats;
+
+  const oauth = await accessToken();
+  if (!oauth) return stats;
+
+  const now = Date.now();
+  const targets: typeof rows = [];
+  for (const row of rows) {
+    // A device with no known position cannot be placed inside the circle. It is
+    // neither sent to nor counted as matched -- guessing would wake strangers.
+    if (typeof row.lat !== "number" || typeof row.lng !== "number") continue;
+    if (distanceKm(g.lat, g.lng, row.lat, row.lng) > radiusKm) continue;
+    stats.matched += 1;
+    if (row.lastPushAt && now - row.lastPushAt.getTime() < COOLDOWN_MS) {
+      stats.skipped += 1;
+      continue;
+    }
+    targets.push(row);
+  }
+
+  const link = g.link ?? "/";
+  const payload: PushPayload = {
+    title: g.title.slice(0, 100),
+    body: g.body.slice(0, 220),
+    url: link,
+    kind: "geofence",
+    icon: "/icon.svg",
+  };
+
+  for (let i = 0; i < targets.length; i += 20) {
+    const batch = targets.slice(i, i + 20);
+    const results = await Promise.allSettled(batch.map((row) => sendOne(oauth, sa.projectId, row.token, payload)));
+    const dead: string[] = [];
+    const sentIds: number[] = [];
+    results.forEach((r, j) => {
+      const row = batch[j];
+      if (r.status !== "fulfilled") {
+        stats.failed += 1;
+        return;
+      }
+      if (r.value === "ok") {
+        stats.sent += 1;
+        sentIds.push(row.id);
+      } else if (r.value === "gone") {
+        dead.push(row.token);
+        stats.pruned += 1;
+      } else stats.failed += 1;
+    });
+    if (sentIds.length) {
+      await db.update(pushTokens).set({ lastPushAt: new Date() }).where(sql`${pushTokens.id} = any(${sentIds}::int[])`);
+    }
+    for (const token of dead) await db.delete(pushTokens).where(eq(pushTokens.token, token));
+  }
+  return stats;
+}
+
+
 
 function expoHeaders(): Record<string, string> {
   const h: Record<string, string> = { "Content-Type": "application/json", Accept: "application/json" };
