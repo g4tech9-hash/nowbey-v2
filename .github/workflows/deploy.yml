@@ -74,6 +74,18 @@ jobs:
 
       # Needs repo secrets: VERCEL_TOKEN (vercel.com/account/tokens), plus VERCEL_ORG_ID and
       # VERCEL_PROJECT_ID from .vercel/project.json locally or the project's Settings → General.
+      #
+      # This step failed on five consecutive runs on 2026-10-16 and every one of them reported only
+      # "Process completed with exit code 1". The raw logs are served from a blob host that is not
+      # always reachable, so the step now has to diagnose itself. It reports the three secrets as a
+      # length and a SHA-256 fingerprint (never a value — a fingerprint is enough to spot one that is
+      # empty, stale, or from the wrong team), proves the token against the API with `whoami` before
+      # spending a deploy on it, and prints the exact CLI version it resolved.
+      #   whoami fails, deploy never runs  → VERCEL_TOKEN was rejected; rotate it.
+      #   whoami passes, deploy fails      → VERCEL_ORG_ID / VERCEL_PROJECT_ID no longer match.
+      # The old `: "${VAR:?}"` guards answered neither: they only ever named the first empty secret
+      # and said nothing about a secret that was present but wrong, which is the case that cost us
+      # five runs. Timing backs that up — a missing secret dies in ~1s, these died at ~16s.
       - name: Deploy NowBey web to Vercel (production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -81,19 +93,79 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           set -euo pipefail
-          : "${VERCEL_TOKEN:?Add the VERCEL_TOKEN secret (repo Settings > Secrets and variables > Actions)}"
-          : "${VERCEL_ORG_ID:?Add the VERCEL_ORG_ID secret}"
-          : "${VERCEL_PROJECT_ID:?Add the VERCEL_PROJECT_ID secret}"
-          npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN" 2>&1 | tee vercel-out.txt
-          grep -Eo 'https://[a-zA-Z0-9./-]+\.vercel\.app' vercel-out.txt | head -1 >> "$GITHUB_STEP_SUMMARY" || true
 
-  # Read-only check of the live site: creates nothing, signs nobody in. After a web deploy it waits until
-  # /api/health reports this commit, then checks the security headers, CORS, the origin wall, that the
-  # app's sign-in path is still open, and that plans cannot be bought for free. Run it alone with
+          # Prints how a secret looks without printing it. An empty value fingerprints as e3b0c442,
+          # which is unmistakable and is the one thing a reader always needs to rule out first.
+          report() {
+            printf '%-18s length=%-4s sha256:%s\n' "$1" "${#2}" "$(printf '%s' "$2" | sha256sum | cut -c1-8)"
+          }
+          echo "== secrets handed to this step (values are never printed) =="
+          report VERCEL_TOKEN      "${VERCEL_TOKEN:-}"
+          report VERCEL_ORG_ID     "${VERCEL_ORG_ID:-}"
+          report VERCEL_PROJECT_ID "${VERCEL_PROJECT_ID:-}"
+
+          # Name every empty secret at once, so one run reports the whole problem instead of one run
+          # per missing value.
+          missing=""
+          [ -n "${VERCEL_TOKEN:-}" ]      || missing="$missing VERCEL_TOKEN"
+          [ -n "${VERCEL_ORG_ID:-}" ]     || missing="$missing VERCEL_ORG_ID"
+          [ -n "${VERCEL_PROJECT_ID:-}" ] || missing="$missing VERCEL_PROJECT_ID"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing or empty secret(s):$missing — add them under repo Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+          # Resolve the CLI once, then reuse that exact version. `vercel@latest` is unpinned, so
+          # without this a publish part-way through a run could make the calls below disagree about
+          # which CLI they used — and the version in the log is the first thing to compare against
+          # npm when a deploy starts failing with no code change.
+          cli_pkg=vercel@latest
+          cli_version=$(npx --yes vercel@latest --version 2>/dev/null | tail -1 || true)
+          case $cli_version in
+            [0-9]*.[0-9]*) cli_pkg="vercel@$cli_version" ;;
+          esac
+          echo "== vercel CLI: $cli_pkg =="
+
+          # Authenticate without deploying. This is the check that separates a rejected token from a
+          # token that is fine but pointed at project ids that are not.
+          if ! npx --yes "$cli_pkg" whoami --token="$VERCEL_TOKEN"; then
+            echo "::error::Vercel rejected VERCEL_TOKEN (sha256:$(printf '%s' "$VERCEL_TOKEN" | sha256sum | cut -c1-8)). Rotate it at vercel.com/account/tokens, then update the repository secret."
+            exit 1
+          fi
+
+          # PIPESTATUS[0] is the CLI's own exit code; tee alone would mask it, and the CLI's message
+          # is the whole reason this step is instrumented.
+          set +e
+          npx --yes "$cli_pkg" deploy --prod --yes --token="$VERCEL_TOKEN" 2>&1 | tee vercel-out.txt
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::Vercel accepted the token but the deploy failed (exit $rc). VERCEL_ORG_ID / VERCEL_PROJECT_ID most likely no longer match the project — check them against the project's Settings → General (expected team now-bey, project nowbey-v2)."
+            exit "$rc"
+          fi
+
+          url=$(grep -Eo 'https://[a-zA-Z0-9./-]+\.vercel\.app' vercel-out.txt | head -1 || true)
+          if [ -n "$url" ]; then
+            echo "Deployed: $url" >> "$GITHUB_STEP_SUMMARY"
+            echo "Deployed: $url"
+          fi
+
+  # Read-only check of the live site: creates nothing, signs nobody in. It waits until /api/health
+  # reports this commit, then checks the security headers, CORS, the origin wall, that the app's
+  # sign-in path is still open, and that plans cannot be bought for free. Run it alone with
   # target "smoke" (Actions > Deploy > Run workflow, or repository_dispatch {"target":"smoke"}).
+  #
+  # It runs whenever the gate passes, *including* when deploy-web failed. It used to require
+  # deploy-web to succeed, so across the five failed deploys of 2026-10-16 this job was skipped every
+  # time and the pipeline had no way to say what production was actually serving. Checking the live
+  # site is exactly what is most worth doing when the deploy step is broken: Vercel's GitHub App
+  # integration also deploys this repo, and only this job — running on a GitHub runner, which can
+  # reach the site — can settle whether production is at this commit.
+  #   SHA matches   → the App integration deploys production; deploy-web is redundant.
+  #   SHA times out → deploy-web is load-bearing and has to be fixed.
   smoke-web:
     needs: [gate, deploy-web]
-    if: ${{ !cancelled() && needs.gate.result == 'success' && (needs.deploy-web.result == 'success' || inputs.target == 'smoke' || github.event.client_payload.target == 'smoke') }}
+    if: ${{ !cancelled() && needs.gate.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -103,10 +175,34 @@ jobs:
         with:
           node-version: 22
 
+      # State which of the two readings above this run is testing, so a red smoke-web after a failed
+      # deploy is an answer instead of noise.
+      - name: Record what this run can prove
+        env:
+          DEPLOY_RESULT: ${{ needs.deploy-web.result }}
+          EXPECT: ${{ (github.event_name == 'push' || inputs.target == 'web' || inputs.target == 'all' || github.event.client_payload.target == 'web' || github.event.client_payload.target == 'all') && github.sha || '' }}
+        run: |
+          {
+            echo "### smoke-web"
+            echo "- deploy-web: \`$DEPLOY_RESULT\`"
+            if [ -n "$EXPECT" ]; then
+              echo "- expecting production to report \`${EXPECT:0:12}\`"
+              if [ "$DEPLOY_RESULT" != "success" ]; then
+                echo "- deploy-web did not deploy, so this run tests whether Vercel's GitHub App integration deploys production on its own. A match means it does and deploy-web is redundant; a timeout means deploy-web is load-bearing."
+              fi
+            else
+              echo "- no expected commit: standalone smoke run, checking whatever production serves now"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Check the live site
         env:
           SMOKE_BASE: https://nowbey-v2.vercel.app
-          EXPECT_SHA: ${{ needs.deploy-web.result == 'success' && github.sha || '' }}
+          # Expect this commit exactly when deploy-web was *supposed* to run — the same condition that
+          # job uses. Keying it off deploy-web's result is what made a failed deploy also cancel the
+          # check of the live site. A standalone "smoke" run leaves it empty: nothing was deployed, so
+          # there is no new release to wait for and smoke-prod.mjs checks the site immediately.
+          EXPECT_SHA: ${{ (github.event_name == 'push' || inputs.target == 'web' || inputs.target == 'all' || github.event.client_payload.target == 'web' || github.event.client_payload.target == 'all') && github.sha || '' }}
         run: node scripts/smoke-prod.mjs
 
   build-mobile:
