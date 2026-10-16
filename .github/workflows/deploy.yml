@@ -96,13 +96,23 @@ jobs:
       # was all a reader ever got. Every secret is reported as a length and a SHA-256 fingerprint
       # (never a value), and Vercel's own words are quoted in the annotation.
       #
-      # One trap worth naming, because it cost a whole day: this repository also has "Preview" and
-      # "Production" *environment* secret scopes. This job declares no `environment:`, so it can
-      # only ever read the **repository** scope. A token saved under Production is invisible here,
-      # the run keeps using the old value byte for byte, and the fingerprint never changes. That is
-      # exactly what happened on 2026-10-16: the fingerprint was sha256:bf4b8c6d on every run from
-      # 18:41Z to 22:20Z, across a re-created token — proof that the repository secret itself was
-      # never touched, whatever was done elsewhere.
+      # Two traps worth naming, because between them they cost a whole day.
+      #
+      # One is the secret's scope. This repository has "Preview" and "Production" *environment*
+      # secret scopes, and this job declares no `environment:`, so it can only ever read the
+      # **repository** scope. A token saved under Production is invisible here, the run keeps using
+      # the old value byte for byte, and the fingerprint never changes. On 2026-10-16 the
+      # fingerprint was sha256:bf4b8c6d on every run from 18:41Z to 22:20Z, across a re-created
+      # token — proof that the repository secret itself was never touched, whatever was done
+      # elsewhere.
+      #
+      # The other is the token's own scope, and it is the one that is still broken. The value in the
+      # secret is a real 60-character Vercel token, and Vercel does not reject it: it authenticates
+      # it and then answers 404 "User not found". The CLI runs GET /v2/user as a preflight on every
+      # command, and a token scoped to a team or to a single project is denied on user-level
+      # resources, so the preflight 404s and the command aborts before deploying anything. A token
+      # scoped to a team — which is what "select the account/team that owns the project" produces —
+      # cannot be used by the CLI at all. The token has to be **Full Account**.
       - name: Deploy NowBey web to Vercel (production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -193,24 +203,34 @@ jobs:
             token_ok=yes
             printf '%s\n' "$whoami_out" | head -5
           else
-            # The CLI answers "The token provided via `--token` argument is not valid." for a bad
-            # token, and something about the network for a runner that cannot reach
-            # api.vercel.com. Those are different problems with different fixes, so tell them
-            # apart instead of calling both "the token was rejected".
+            # The CLI answers "The token provided via `--token` argument is not valid." for a token
+            # it cannot authenticate, "Error: User not found." for a token it *can* authenticate but
+            # cannot use, and something about the network for a runner that cannot reach
+            # api.vercel.com. Three different problems with three different fixes, so tell them
+            # apart instead of calling all of them "the token was rejected".
+            #
+            # "User not found" is the interesting one: the CLI runs GET /v2/user as a preflight on
+            # every command to resolve the account identity, and a token scoped to a team or to a
+            # single project is denied there (user-level resources are out of scope for it), so the
+            # preflight 404s and the command aborts before it deploys anything. Such a token needs
+            # Full Account scope, not a team or project scope.
             #
             # Quote the lines that actually say what went wrong: the CLI prints a version banner
             # and a telemetry notice first, so the first lines of its output are noise.
-            detail="$(printf '%s\n' "$whoami_out" | grep -iE "error|not valid|unauthorized|forbidden|denied|expired|invalid" | head -3)"
+            detail="$(printf '%s\n' "$whoami_out" | grep -iE "error|not valid|unauthorized|forbidden|denied|expired|invalid|not found" | head -3)"
             if [ -z "$detail" ]; then
               detail="$(printf '%s\n' "$whoami_out" | grep -v '^[[:space:]]*$' | tail -2)"
             fi
             flat="$(printf '%s' "$detail" | tr '\n' ' ' | cut -c1-300)"
-            if printf '%s' "$whoami_out" | grep -qiE "not valid|NOT_AUTHORIZED|unauthorized|forbidden|401|403"; then
-              blocked="Vercel rejected VERCEL_TOKEN (sha256:$(fp "$token"), length ${#token}, lines ${raw_lines}, raw_whitespace ${raw_ws}): $flat"
+            shape="length ${#token}, lines ${raw_lines}, raw_whitespace ${raw_ws}, sha256 $(fp "$token")"
+            if printf '%s' "$whoami_out" | grep -qiE "user not found|404"; then
+              blocked="Vercel authenticated VERCEL_TOKEN but could not resolve an account for it (404 'User not found') — the CLI's preflight GET /v2/user is denied for a token scoped to a team or to a single project. Token: $shape. $flat"
+            elif printf '%s' "$whoami_out" | grep -qiE "not valid|NOT_AUTHORIZED|unauthorized|forbidden|401|403"; then
+              blocked="Vercel rejected VERCEL_TOKEN — it did not authenticate. Token: $shape. $flat"
             elif printf '%s' "$whoami_out" | grep -qiE "ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|getaddrinfo|socket hang up|network|TLS"; then
               blocked="the runner could not reach api.vercel.com: $flat"
             else
-              blocked="vercel whoami failed: $flat"
+              blocked="vercel whoami failed. Token: $shape. $flat"
             fi
           fi
 
@@ -244,7 +264,7 @@ jobs:
           fi
 
           # The verdict. Production has to serve this commit; who deployed it is not the point.
-          FIX_HINT="save VERCEL_TOKEN under repo Settings > Secrets and variables > Actions > Repository — this job declares no environment, so the Production/Preview environment secrets are invisible to it. The value it reads now fingerprints as sha256:$(fp "$token") (length ${#token}); after you save a new one, that fingerprint changes."
+          FIX_HINT="create the token at vercel.com/account/tokens with scope Full Account — a token scoped to a team or to a single project is denied on the user-level endpoint the CLI checks, and Vercel answers 404 'User not found' — and save it under repo Settings > Secrets and variables > Actions > Repository, since this job declares no environment and the Production/Preview environment secrets are invisible to it. The value it reads now fingerprints as sha256:$(fp "$token") (length ${#token}); after you save a new one, that fingerprint changes."
           if [ -n "$EXPECT_SHA" ]; then
             if wait_for_release 300; then
               if [ "$deployed" = yes ]; then
