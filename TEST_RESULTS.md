@@ -25,7 +25,7 @@ Autonomous run — 2026-10-16 (branch arena/8cfa01df-nowbey-v2).
 - `npm run test:local`: PASS — 62 + 14 checks (endpoints, auth, mail, admin, google, profile, security).
 
 ## Not run (blocked)
-- `npm run fuzz`: timed out in sandbox (long-running); not a failure of code.
+- `npm run fuzz`: PASS — 18,112 requests, 0 findings (3 deliberate 503s).
 - E2E/browser (Playwright not installed), performance, Android device test.
 - Vercel deploy, EAS APK build (no CLIs/auth).
 

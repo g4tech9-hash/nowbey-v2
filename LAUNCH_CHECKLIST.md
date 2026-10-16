@@ -13,7 +13,7 @@ Autonomous run — 2026-10-16.
 | UI phone tests | tests/ui.test.mjs | npm run test:ui | PASS | 7/7 |
 | Mobile audit | scripts/mobile-audit.mjs | npm run audit:mobile | PASS | 0 findings |
 | Local API/auth/mail/admin | tests/* | npm run test:local | PASS | 62 + 14 checks |
-| Fuzz | tests/fuzz.mjs | npm run fuzz | NOT RUN | needs server + DB |
+| Fuzz | tests/fuzz.mjs | npm run fuzz | PASS | 18,112 requests, 0 findings |
 | Vercel deploy | deploy.yml | vercel --prod | BLOCKED | no Vercel CLI/auth in sandbox |
 | EAS APK build | expo/eas.json | eas build | BLOCKED | no EAS CLI/auth in sandbox |
 
