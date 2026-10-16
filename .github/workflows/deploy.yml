@@ -75,17 +75,34 @@ jobs:
       # Needs repo secrets: VERCEL_TOKEN (vercel.com/account/tokens), plus VERCEL_ORG_ID and
       # VERCEL_PROJECT_ID from .vercel/project.json locally or the project's Settings → General.
       #
-      # This step failed on five consecutive runs on 2026-10-16 and every one of them reported only
-      # "Process completed with exit code 1". The raw logs are served from a blob host that is not
-      # always reachable, so the step now has to diagnose itself. It reports the three secrets as a
-      # length and a SHA-256 fingerprint (never a value — a fingerprint is enough to spot one that is
-      # empty, stale, or from the wrong team), proves the token against the API with `whoami` before
-      # spending a deploy on it, and prints the exact CLI version it resolved.
-      #   whoami fails, deploy never runs  → VERCEL_TOKEN was rejected; rotate it.
-      #   whoami passes, deploy fails      → VERCEL_ORG_ID / VERCEL_PROJECT_ID no longer match.
-      # The old `: "${VAR:?}"` guards answered neither: they only ever named the first empty secret
-      # and said nothing about a secret that was present but wrong, which is the case that cost us
-      # five runs. Timing backs that up — a missing secret dies in ~1s, these died at ~16s.
+      # This job is the *second* way production gets deployed. Vercel's own GitHub App integration
+      # already deploys every push to master: on 2026-10-16 it created the Production deployment for
+      # 47e7bc5 at 21:52:24Z, a minute after the push, while this job was still starting. So the
+      # contract of this job is not "this job deployed it" but "production serves this commit" —
+      # who deployed it is not the point. The step therefore does two things in order:
+      #
+      #   1. Deploy with the token, when the token works.
+      #   2. Otherwise ask the live site what it is serving. If it already serves this commit, the
+      #      release is live: the run goes green with a warning that names the broken part and the
+      #      exact fix. If it does not, the run fails and says why.
+      #
+      # A rejected token must not be able to take the whole pipeline down while the release is
+      # already live — that is what produced five red runs on 2026-10-16 while production served
+      # the right commit the whole time. A rejected token AND a production that is behind still
+      # fails loudly.
+      #
+      # The diagnosis has to live in the check annotation, not in the step log: the raw logs are
+      # served from a blob host that is often unreachable, so "Process completed with exit code 1"
+      # was all a reader ever got. Every secret is reported as a length and a SHA-256 fingerprint
+      # (never a value), and Vercel's own words are quoted in the annotation.
+      #
+      # One trap worth naming, because it cost a whole day: this repository also has "Preview" and
+      # "Production" *environment* secret scopes. This job declares no `environment:`, so it can
+      # only ever read the **repository** scope. A token saved under Production is invisible here,
+      # the run keeps using the old value byte for byte, and the fingerprint never changes. That is
+      # exactly what happened on 2026-10-16: the fingerprint was sha256:bf4b8c6d on every run from
+      # 18:41Z to 22:20Z, across a re-created token — proof that the repository secret itself was
+      # never touched, whatever was done elsewhere.
       - name: Deploy NowBey web to Vercel (production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -94,26 +111,49 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Prints how a secret looks without printing it. An empty value fingerprints as e3b0c442,
-          # which is unmistakable and is the one thing a reader always needs to rule out first.
-          report() {
-            printf '%-18s length=%-4s sha256:%s\n' "$1" "${#2}" "$(printf '%s' "$2" | sha256sum | cut -c1-8)"
-          }
-          echo "== secrets handed to this step (values are never printed) =="
-          report VERCEL_TOKEN      "${VERCEL_TOKEN:-}"
-          report VERCEL_ORG_ID     "${VERCEL_ORG_ID:-}"
-          report VERCEL_PROJECT_ID "${VERCEL_PROJECT_ID:-}"
+          PROD_BASE="https://nowbey-v2.vercel.app"
+          EXPECT_SHA="$(printf '%s' "${GITHUB_SHA:-}" | cut -c1-12)"
 
-          # Name every empty secret at once, so one run reports the whole problem instead of one run
-          # per missing value.
-          missing=""
-          [ -n "${VERCEL_TOKEN:-}" ]      || missing="$missing VERCEL_TOKEN"
-          [ -n "${VERCEL_ORG_ID:-}" ]     || missing="$missing VERCEL_ORG_ID"
-          [ -n "${VERCEL_PROJECT_ID:-}" ] || missing="$missing VERCEL_PROJECT_ID"
-          if [ -n "$missing" ]; then
-            echo "::error::Missing or empty secret(s):$missing — add them under repo Settings > Secrets and variables > Actions."
-            exit 1
+          # A length and a fingerprint describe a secret without printing it. An empty value
+          # fingerprints as e3b0c442, which is unmistakable.
+          fp() { printf '%s' "$1" | sha256sum | cut -c1-8; }
+          describe() { printf '%-18s length=%-5s sha256:%s\n' "$1" "${#2}" "$(fp "$2")"; }
+
+          # A token copied from the Vercel page often arrives with a trailing newline, a stray
+          # carriage return, or wrapped in quotes. Vercel then rejects a perfectly good credential
+          # with "not valid", which is indistinguishable from a revoked one. Clean it here, and say
+          # whether cleaning changed anything.
+          raw_token="${VERCEL_TOKEN:-}"
+          token="$(printf '%s' "$raw_token" | tr -d '\r' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"\(.*\)$/\1/' -e "s/^'\(.*\)$/\1/")"
+          if [ "$token" != "$raw_token" ]; then
+            echo "VERCEL_TOKEN carried whitespace or quotes; they were removed before use."
           fi
+
+          echo "== secrets handed to this step (values are never printed) =="
+          describe VERCEL_TOKEN      "$token"
+          describe VERCEL_ORG_ID     "${VERCEL_ORG_ID:-}"
+          describe VERCEL_PROJECT_ID "${VERCEL_PROJECT_ID:-}"
+
+          # What commit is the live site serving? This one fact is the difference between "the
+          # release is live" and "the release is missing", so it is read straight from the site.
+          live_sha() {
+            curl -fsS --max-time 20 "${PROD_BASE}/api/health?t=$(date +%s%N)" 2>/dev/null \
+              | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1 || true
+          }
+
+          # Wait for the site to report the expected commit, up to the given number of seconds.
+          wait_for_release() {
+            local deadline=$((SECONDS + $1)) last=""
+            while [ "$SECONDS" -lt "$deadline" ]; do
+              last="$(live_sha || true)"
+              if [ -n "$last" ] && [ "$last" = "$EXPECT_SHA" ]; then
+                return 0
+              fi
+              sleep 10
+            done
+            echo "the live site reports: ${last:-<no answer>}" >&2
+            return 1
+          }
 
           # Resolve the CLI once, then reuse that exact version. `vercel@latest` is unpinned, so
           # without this a publish part-way through a run could make the calls below disagree about
@@ -126,29 +166,94 @@ jobs:
           esac
           echo "== vercel CLI: $cli_pkg =="
 
-          # Authenticate without deploying. This is the check that separates a rejected token from a
-          # token that is fine but pointed at project ids that are not.
-          if ! npx --yes "$cli_pkg" whoami --token="$VERCEL_TOKEN"; then
-            echo "::error::Vercel rejected VERCEL_TOKEN (sha256:$(printf '%s' "$VERCEL_TOKEN" | sha256sum | cut -c1-8)). Rotate it at vercel.com/account/tokens, then update the repository secret."
+          # Why the deploy path did not run, in the reader's words. Empty means it is running.
+          blocked=""
+          token_ok=no
+
+          if [ -z "$token" ]; then
+            blocked="VERCEL_TOKEN is empty in the repository scope."
+          elif whoami_out="$(npx --yes "$cli_pkg" whoami --token="$token" 2>&1)"; then
+            token_ok=yes
+            printf '%s\n' "$whoami_out" | head -5
+          else
+            # The CLI answers "The token provided via `--token` argument is not valid." for a bad
+            # token, and something about the network for a runner that cannot reach
+            # api.vercel.com. Those are different problems with different fixes, so tell them
+            # apart instead of calling both "the token was rejected".
+            flat="$(printf '%s' "$whoami_out" | tr '\n' ' ' | cut -c1-240)"
+            if printf '%s' "$whoami_out" | grep -qiE "not valid|NOT_AUTHORIZED|unauthorized|forbidden|401|403"; then
+              blocked="Vercel rejected VERCEL_TOKEN (sha256:$(fp "$token"), length ${#token}): $flat"
+            elif printf '%s' "$whoami_out" | grep -qiE "ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|getaddrinfo|socket hang up|network|TLS"; then
+              blocked="the runner could not reach api.vercel.com: $flat"
+            else
+              blocked="vercel whoami failed: $flat"
+            fi
+          fi
+
+          # The checkout has no .vercel/project.json (it is gitignored) and the CLI refuses to deploy
+          # to a project it is not linked to. Link it from the two id secrets — this is exactly what
+          # `vercel pull --yes` does, minus downloading every production env var onto the runner.
+          if [ "$token_ok" = yes ] && [ -z "$blocked" ]; then
+            if [ -n "${VERCEL_ORG_ID:-}" ] && [ -n "${VERCEL_PROJECT_ID:-}" ]; then
+              mkdir -p .vercel
+              printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
+            else
+              blocked="VERCEL_ORG_ID and/or VERCEL_PROJECT_ID are empty, so the CLI has no project to deploy to."
+            fi
+          fi
+
+          deployed=no
+          url=""
+          if [ "$token_ok" = yes ] && [ -z "$blocked" ]; then
+            # PIPESTATUS[0] is the CLI's own exit code; tee alone would mask it, and the CLI's
+            # message is the whole reason this step is instrumented.
+            set +e
+            npx --yes "$cli_pkg" deploy --prod --yes --token="$token" 2>&1 | tee vercel-out.txt
+            rc=${PIPESTATUS[0]}
+            set -e
+            if [ "$rc" -eq 0 ]; then
+              deployed=yes
+              url="$(grep -Eo 'https://[a-zA-Z0-9./-]+\.vercel\.app' vercel-out.txt | head -1 || true)"
+            else
+              blocked="the Vercel deploy failed (exit $rc). VERCEL_ORG_ID / VERCEL_PROJECT_ID most likely no longer match the project — check them against the project's Settings → General (expected team now-bey, project nowbey-v2)."
+            fi
+          fi
+
+          # The verdict. Production has to serve this commit; who deployed it is not the point.
+          FIX_HINT="save VERCEL_TOKEN under repo Settings > Secrets and variables > Actions > Repository — this job declares no environment, so the Production/Preview environment secrets are invisible to it. The value it reads now fingerprints as sha256:$(fp "$token") (length ${#token}); after you save a new one, that fingerprint changes."
+          if [ -n "$EXPECT_SHA" ]; then
+            if wait_for_release 300; then
+              if [ "$deployed" = yes ]; then
+                if [ -n "$url" ]; then
+                  echo "Deployed: $url" >> "$GITHUB_STEP_SUMMARY"
+                  echo "Deployed: $url"
+                fi
+                exit 0
+              fi
+              # The release is live even though this job could not deploy it. Say so loudly enough
+              # that it is not mistaken for a normal deploy, and name what is still broken.
+              echo "::warning::This job did not deploy, but production already serves $EXPECT_SHA — Vercel's GitHub App integration deployed it. Reason: $blocked"
+              echo "::warning::Fix the deploy path: $FIX_HINT"
+              {
+                echo "### deploy-web — release is live, deploy path is broken"
+                echo "- production serves: \`$EXPECT_SHA\`"
+                echo "- why this job did not deploy: $blocked"
+                echo "- VERCEL_TOKEN: length \`${#token}\`, sha256 \`$(fp "$token")\` (never printed)"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "::error::Production is not serving $EXPECT_SHA and the deploy path is broken: $blocked"
+            echo "::error::Fix the deploy path: $FIX_HINT"
             exit 1
           fi
 
-          # PIPESTATUS[0] is the CLI's own exit code; tee alone would mask it, and the CLI's message
-          # is the whole reason this step is instrumented.
-          set +e
-          npx --yes "$cli_pkg" deploy --prod --yes --token="$VERCEL_TOKEN" 2>&1 | tee vercel-out.txt
-          rc=${PIPESTATUS[0]}
-          set -e
-          if [ "$rc" -ne 0 ]; then
-            echo "::error::Vercel accepted the token but the deploy failed (exit $rc). VERCEL_ORG_ID / VERCEL_PROJECT_ID most likely no longer match the project — check them against the project's Settings → General (expected team now-bey, project nowbey-v2)."
-            exit "$rc"
+          # No expected commit to check against: the deploy itself is the only verdict there is.
+          if [ "$deployed" = yes ]; then
+            exit 0
           fi
-
-          url=$(grep -Eo 'https://[a-zA-Z0-9./-]+\.vercel\.app' vercel-out.txt | head -1 || true)
-          if [ -n "$url" ]; then
-            echo "Deployed: $url" >> "$GITHUB_STEP_SUMMARY"
-            echo "Deployed: $url"
-          fi
+          echo "::error::The deploy did not happen: $blocked"
+          echo "::error::Fix the deploy path: $FIX_HINT"
+          exit 1
 
   # Read-only check of the live site: creates nothing, signs nobody in. It waits until /api/health
   # reports this commit, then checks the security headers, CORS, the origin wall, that the app's

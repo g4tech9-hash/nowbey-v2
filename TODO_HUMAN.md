@@ -38,9 +38,14 @@ Full write-up: `audit/2026-10-15_security/REPORT.md`. Do steps 1–3 the same da
 1. **Rotate the leaked Vercel credential.** `.env.vercel` (a `VERCEL_OIDC_TOKEN`) is in this *public*
    repository's history at commit `9e4eb47`; deleting the file does not remove it. In Vercel → Account
    Settings → Tokens, delete every token you do not recognise, create a new one, and paste it into GitHub →
-   repo Settings → Secrets and variables → Actions → `VERCEL_TOKEN`. Then Vercel → the project →
-   Settings → Security → check "Deployment Protection" and the team's audit log for deploys you did not
-   make. Never commit `.env*` files (they are in `.gitignore`).
+   repo Settings → Secrets and variables → Actions → `VERCEL_TOKEN`. **Use the Repository tab**, not the
+   Production or Preview environment tab: the `deploy-web` job declares no `environment:`, so it can only
+   read the repository scope, and a token saved under Production is invisible to it (this is why the
+   failure kept looking identical on 2026-10-16 — the value it read never changed). Then Vercel → the
+   project → Settings → Security → check "Deployment Protection" and the team's audit log for deploys you
+   did not make. Never commit `.env*` files (they are in `.gitignore`).
+   Note: Vercel's own GitHub App integration already deploys every push to master, so production is not
+   waiting on this token; it only affects the separate GitHub Actions deploy job.
 2. **Run the SQL once.** Neon → SQL editor → paste all of `src/db/add-security-fixes.sql` → Run. It
    creates the shared `rate_limits` table and deletes the invented gas prices the old cron inserted. It is
    safe to run twice. Until it runs the site works, with the older per-server limits. To confirm, open
