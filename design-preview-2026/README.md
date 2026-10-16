@@ -22,6 +22,10 @@ additive and disposable.
 | `Map_2026_Mobile_Preview.tsx` | High-fidelity preview of the synced **Expo Map tab**: thumb-zone bottom nav, raised center action, bottom sheet with bento tiles, spring press feedback, pulsing severity rings. Core-RN only, so it reviews anywhere. |
 | `Wire_2026_Web_Preview.tsx` | The redesigned **News Wire**: category-accent story cards, AI-brief treatment, pinned/unpinned honesty states, engagement row, wire-map + sources sidebar. |
 | `Wire_2026_Mobile_Preview.tsx` | Synced Expo Wire tab: pull-to-refresh feed, source filter rail, thumb-zone nav with Wire active. |
+| `Alerts_2026_Web_Preview.tsx` / `Alerts_2026_Mobile_Preview.tsx` | The Alerts inbox: profile form with category picking, verified / awaiting-confirmation states, the always-sent storm promise, and the honest “push not switched on” card. |
+| `Report_2026_Web_Preview.tsx` / `Report_2026_Mobile_Preview.tsx` | The two-step “Pin a spot” flow deep-dive: crosshair pick mode, validation, saving, success and honest failure — with a state-jump dock on web. |
+| `States_2026_Preview.tsx` | The honest-state gallery: skeletons, empty, error and offline treatments for Map / Wire / Alerts. |
+| `Landing_2026_Web_Preview.tsx` | The public landing page: live hero map with island pulse, category rail, bento capability grid, how-it-works, CTA. Responsive 3→2→1. |
 
 ## How to view
 
