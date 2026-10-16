@@ -230,7 +230,11 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
           <Link href="/admin" className="nb-surface block rounded-xl2 border-tide-400/30 bg-tide-500/10 px-3.5 py-3 text-[12.5px] font-bold text-tide-300 hover:bg-tide-500/16">
             Open {viewer.isAdmin ? "the admin area" : "the moderation area"} →
           </Link>
-        ) : null}
+        ) : (
+          <Link href="/admin-access" className="nb-surface block rounded-xl2 px-3.5 py-3 text-[12.5px] font-bold text-ink-300 hover:bg-white/8">
+            Why can I not open the admin area?
+          </Link>
+        )}
 
         <div className="nb-surface flex items-center justify-between gap-2 rounded-xl2 px-3 py-2.5">
           <p className="num text-xs text-ink-400">Signed in as @{viewer.handle}</p>
