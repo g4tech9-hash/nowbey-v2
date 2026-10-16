@@ -62,7 +62,7 @@ export function AppearanceForm(props: Props) {
                   style={
                     key === "island"
                       ? { backgroundImage: "linear-gradient(180deg, rgba(3,18,27,.2), rgba(3,18,27,.75)), url(/scenes/aerial.jpg)", backgroundSize: "cover", backgroundPosition: "center" }
-                      : { background: "radial-gradient(500px 200px at 85% -10%, rgba(0,201,183,.25), transparent 60%), radial-gradient(400px 200px at 5% 0%, rgba(255,122,107,.16), transparent 55%), #03121b" }
+                      : { background: "radial-gradient(500px 200px at 85% -10%, color-mix(in srgb, var(--color-brand) 25%, transparent), transparent 60%), radial-gradient(400px 200px at 5% 0%, color-mix(in srgb, var(--color-alert) 16%, transparent), transparent 55%), var(--color-panel)" }
                   }
                   aria-hidden="true"
                 />
@@ -97,7 +97,7 @@ export function AppearanceForm(props: Props) {
                 <input type="radio" name="mode" value={key} checked={on} disabled={props.modeLocked} onChange={() => setMode(key)} className="sr-only" />
                 <div
                   className="h-16 w-full"
-                  style={key === "light" ? { background: "linear-gradient(180deg, #fdf9f0, #efe6d2)" } : { background: "radial-gradient(500px 200px at 85% -10%, rgba(0,201,183,.25), transparent 60%), #03121b" }}
+                  style={key === "light" ? { background: "linear-gradient(180deg, var(--color-ink), var(--color-ink))" } : { background: "radial-gradient(500px 200px at 85% -10%, color-mix(in srgb, var(--color-brand) 25%, transparent), transparent 60%), var(--color-panel)" }}
                   aria-hidden="true"
                 />
                 <div className="p-3">
@@ -127,7 +127,7 @@ export function AppearanceForm(props: Props) {
             checked={splash}
             disabled={props.splashLocked}
             onChange={(e) => setSplash(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-[#14d1c0]"
+            className="mt-0.5 h-4 w-4 accent-[var(--color-cyan)]"
           />
           <span>
             <span className="font-bold">Show the opening splash screen</span>

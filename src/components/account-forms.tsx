@@ -257,7 +257,7 @@ export function DeleteAccount({ hasPaidPlan }: { hasPaidPlan: boolean }) {
       className="rounded-xl border border-conch-500/30 bg-conch-500/8 p-3"
     >
       <p className="text-[13px] font-bold text-danger-500">This cannot be undone.</p>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-[#e8c8c4]">
+      <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--color-alert)]">
         Your account, alert settings and sign-in are removed. Reports you filed stay on the map so neighbours who confirmed them are not left confused, but
         your name comes off them. Your Island Life posts and photos, and every comment and reaction you have left, are deleted.
         {hasPaidPlan ? " Cancel your paid plan from Manage billing first." : ""}

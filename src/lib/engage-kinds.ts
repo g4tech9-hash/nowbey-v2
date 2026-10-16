@@ -2,11 +2,11 @@
 
 /** The reactions people can leave. One per person per item, and they can change it. */
 export const REACTIONS = {
-  like: { emoji: "👍", label: "Like" },
-  love: { emoji: "❤️", label: "Love" },
-  thanks: { emoji: "🙏", label: "Thanks" },
-  wow: { emoji: "😮", label: "Wow" },
-  sad: { emoji: "😢", label: "Sad" },
+  like: { emoji: "👍", icon: "thumb-up", label: "Like" },
+  love: { emoji: "❤️", icon: "heart", label: "Love" },
+  thanks: { emoji: "🙏", icon: "pray", label: "Thanks" },
+  wow: { emoji: "😮", icon: "wow", label: "Wow" },
+  sad: { emoji: "😢", icon: "sad", label: "Sad" },
 } as const;
 
 export type ReactionKind = keyof typeof REACTIONS;

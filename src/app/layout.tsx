@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Manrope, Sora } from "next/font/google";
-import { AppShell, LiveTicker } from "@/components/app-shell";
+import { Inter, Space_Grotesk, Space_Mono } from "next/font/google";
+import { AppShell } from "@/components/app-shell";
 import { ErrorReporter } from "@/components/error-reporter";
 import { SceneBackdrop } from "@/components/scene-backdrop";
 import { SplashScreen } from "@/components/splash-screen";
@@ -10,8 +10,11 @@ import { getSiteSettings } from "@/lib/settings";
 import { getViewer } from "@/lib/viewer";
 import "./globals.css";
 
-const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
+/* Option B type system: Space Grotesk (display), Inter (body), Space Mono (data).
+   The CSS variables feed the @theme font tokens in src/index.css. */
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", display: "swap" });
+const body = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-space-mono", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -24,8 +27,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4ede0" },
-    { media: "(prefers-color-scheme: dark)", color: "#03121b" },
+    { media: "(prefers-color-scheme: light)", color: "var(--color-ink)" },
+    { media: "(prefers-color-scheme: dark)", color: "var(--color-page)" },
   ],
   colorScheme: "dark light",
 };
@@ -47,13 +50,19 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const [viewer, settings] = await Promise.all([getViewer(), getSiteSettings()]);
 
   return (
-    <html lang="en" className={`${sora.variable} ${manrope.variable}`} data-theme={settings.theme} data-mode={settings.mode} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${display.variable} ${body.variable} ${mono.variable}`}
+      data-theme={settings.theme}
+      data-mode={settings.mode}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: MODE_BOOT.replace("__SITE_MODE__", settings.mode) }} />
         <script dangerouslySetInnerHTML={{ __html: PREFS_BOOT }} />
         {settings.splash ? <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} /> : null}
       </head>
-      <body className="min-h-screen bg-abyss-950 text-ink-100 antialiased">
+      <body className="min-h-screen bg-page text-ink antialiased">
         <ErrorReporter />
         {settings.theme === "island" ? <SceneBackdrop /> : null}
         {settings.splash ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}

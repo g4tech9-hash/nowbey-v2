@@ -37,7 +37,7 @@ export function ModeToggle({ defaultMode }: { defaultMode: ModeKey }) {
     try {
       document
         .querySelector('meta[name="theme-color"]')
-        ?.setAttribute("content", next === "light" ? "#f4ede0" : "#03121b");
+        ?.setAttribute("content", next === "light" ? "var(--color-ink)" : "var(--color-panel)");
     } catch {
       /* never break the page for a meta tag */
     }

@@ -10,6 +10,7 @@ import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
 import { TIERS, isTierKey } from "@/lib/tiers";
 import { AdminUserActions } from "@/components/admin-user-actions";
 import { Pill } from "@/components/admin-ui";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Member" };
@@ -19,7 +20,7 @@ const date = (d: Date | null) => (d ? d.toLocaleString("en-US", { day: "numeric"
 function Fact({ k, children }: { k: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">{k}</dt>
+      <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[var(--color-ink-dim)]">{k}</dt>
       <dd className="mt-0.5 text-[13px] text-sand-100">{children}</dd>
     </div>
   );
@@ -50,8 +51,9 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
 
   return (
     <div className="space-y-4">
-      <Link href="/admin/users" className="text-[12px] font-bold text-tide-300 hover:underline">
-        ← All members
+      <Link href="/admin/users" className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan transition duration-200 ease-standard hover:underline">
+        <Icon name="arrow-left" size={13} />
+        All members
       </Link>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -88,7 +90,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
                   <span className="font-bold" style={{ color: tier.tone }}>
                     {tier.name}
                   </span>
-                  <span className="block text-[11.5px] text-[#8fb9b6]">
+                  <span className="block text-[11.5px] text-[var(--color-ink-200)]">
                     {u.planStatus === "comp" ? "complimentary" : `${u.planStatus ?? "active"}${u.planInterval ? `, ${u.planInterval}ly` : ""}`}
                   </span>
                 </>
@@ -136,7 +138,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
                   <Link href={`/incident/${r.id}`} className="min-w-0 flex-1 truncate text-[13px] font-semibold text-sand-100 hover:text-tide-300">
                     {r.title}
                   </Link>
-                  <span className="shrink-0 text-[11.5px] text-[#8fb9b6]">
+                  <span className="shrink-0 text-[11.5px] text-[var(--color-ink-200)]">
                     {r.status} · {timeAgo(r.createdAt)}
                   </span>
                 </li>
@@ -144,28 +146,28 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
             })}
           </ul>
         ) : (
-          <p className="mt-2 text-[12.5px] text-[#6e97a0]">No reports filed under this account.</p>
+          <p className="mt-2 text-[12.5px] text-[var(--color-ink-dim)]">No reports filed under this account.</p>
         )}
       </section>
 
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">Staff notes</p>
-        <p className="mt-0.5 text-[12.5px] text-[#8fb9b6]">
+        <p className="mt-0.5 text-[12.5px] text-[var(--color-ink-200)]">
           Sentences a person wrote about this member. Append-only, admin-only, and never shown to them — add a note in the Manage panel above.
         </p>
         {notes.length ? (
           <ul className="mt-3 space-y-2">
             {notes.map((n) => (
               <li key={n.id} className="rounded-xl border hairline p-3">
-                <p className="text-[12.5px] leading-relaxed text-[#cfeee9]">{n.body}</p>
-                <p className="mt-1 text-[11px] text-[#6e97a0]">
+                <p className="text-[12.5px] leading-relaxed text-[var(--color-ink-200)]">{n.body}</p>
+                <p className="mt-1 text-[11px] text-[var(--color-ink-dim)]">
                   @{n.authorHandle} · {timeAgo(n.createdAt)}
                 </p>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-[12.5px] text-[#6e97a0]">No notes yet.</p>
+          <p className="mt-2 text-[12.5px] text-[var(--color-ink-dim)]">No notes yet.</p>
         )}
       </section>
 
@@ -175,14 +177,14 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
           <ul className="mt-2 divide-y divide-white/5 text-[12.5px]">
             {history.map((h) => (
               <li key={h.id} className="py-2">
-                <span className="font-mono text-[11.5px] text-tide-300">{h.action}</span> <span className="text-[#cfeee9]">by @{h.actorHandle}</span>
-                {h.detail ? <span className="text-[#8fb9b6]"> · {h.detail}</span> : null}
-                <span className="block text-[11px] text-[#6e97a0]">{timeAgo(h.createdAt)}</span>
+                <span className="font-mono text-[11.5px] text-tide-300">{h.action}</span> <span className="text-[var(--color-ink-200)]">by @{h.actorHandle}</span>
+                {h.detail ? <span className="text-[var(--color-ink-200)]"> · {h.detail}</span> : null}
+                <span className="block text-[11px] text-[var(--color-ink-dim)]">{timeAgo(h.createdAt)}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-[12.5px] text-[#6e97a0]">Nothing yet.</p>
+          <p className="mt-2 text-[12.5px] text-[var(--color-ink-dim)]">Nothing yet.</p>
         )}
       </section>
     </div>

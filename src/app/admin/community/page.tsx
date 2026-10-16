@@ -57,7 +57,7 @@ export default async function CommunityAdmin({ searchParams }: { searchParams: P
           ]}
         />
       </div>
-      <p className="text-[12px] text-[#8fb9b6]">
+      <p className="text-[12px] text-[var(--color-ink-200)]">
         {n} {n === 1 ? "post" : "posts"}. Most reported first. Hiding a post removes it, its photos and its comments from public view, and you can restore it.
       </p>
 
@@ -77,12 +77,12 @@ export default async function CommunityAdmin({ searchParams }: { searchParams: P
                       {p.flagCount} {p.flagCount === 1 ? "report" : "reports"}
                     </Pill>
                   ) : null}
-                  <span className="text-[11.5px] text-[#6e97a0]">{timeAgo(p.createdAt)}</span>
+                  <span className="text-[11.5px] text-[var(--color-ink-dim)]">{timeAgo(p.createdAt)}</span>
                 </div>
                 <Link href={`/life/${p.id}`} className="mt-1 block text-[14.5px] font-bold text-sand-100 hover:text-tide-300">
                   {p.title}
                 </Link>
-                <p className="mt-0.5 text-[12px] text-[#8fb9b6]">
+                <p className="mt-0.5 text-[12px] text-[var(--color-ink-200)]">
                   by{" "}
                   <Link href={`/admin/users/${p.authorHandle}`} className="font-semibold text-tide-300 hover:underline">
                     @{p.authorHandle}
@@ -101,7 +101,7 @@ export default async function CommunityAdmin({ searchParams }: { searchParams: P
           );
         })}
         {rows.length === 0 ? (
-          <li className="glass rounded-2xl p-5 text-center text-[13px] text-[#8fb9b6]">{view === "flagged" ? "Nothing has been reported. All quiet." : "Nothing here."}</li>
+          <li className="glass rounded-2xl p-5 text-center text-[13px] text-[var(--color-ink-200)]">{view === "flagged" ? "Nothing has been reported. All quiet." : "Nothing here."}</li>
         ) : null}
       </ul>
       <Pager page={Math.min(page, pages)} pages={pages} path="/admin/community" params={params} />

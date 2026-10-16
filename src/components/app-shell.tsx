@@ -12,20 +12,20 @@ export function NowBeyMark({ size = 30 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden className="shrink-0">
       <defs>
         <linearGradient id="nbmark" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#2ee6d0" />
-          <stop offset="55%" stopColor="#00c9b7" />
-          <stop offset="100%" stopColor="#ff7a6b" />
+          <stop offset="0%" stopColor="var(--color-cyan)" />
+          <stop offset="55%" stopColor="var(--color-brand)" />
+          <stop offset="100%" stopColor="var(--color-alert)" />
         </linearGradient>
       </defs>
-      <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="#062434" stroke="url(#nbmark)" strokeWidth="2" />
-      <path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#2ee6d0" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="var(--color-panel)" stroke="url(#nbmark)" strokeWidth="2" />
+      <path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="var(--color-cyan)" strokeWidth="2" fill="none" strokeLinecap="round" />
       <path
         d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z"
         fill="none"
         stroke="url(#nbmark)"
         strokeWidth="2.2"
       />
-      <circle cx="20" cy="15.2" r="2.4" fill="#ffc531" />
+      <circle cx="20" cy="15.2" r="2.4" fill="var(--color-amber)" />
     </svg>
   );
 }
@@ -69,7 +69,7 @@ export function AppShell({
           <div className="ml-auto flex items-center gap-2 md:ml-3">
             <Link
               href="/report"
-              className="hidden rounded-full bg-tide-500 px-3.5 py-2 text-[12.5px] font-extrabold text-abyss-950 shadow-[0_10px_26px_rgba(0,201,183,.28)] transition duration-200 ease-standard hover:bg-tide-400 hover:shadow-glow-tide active:scale-95 sm:inline-block"
+              className="hidden rounded-full bg-tide-500 px-3.5 py-2 text-[12.5px] font-extrabold text-abyss-950 nb-glow transition duration-200 ease-standard hover:bg-brand-light active:scale-95 sm:inline-block"
             >
               Report a spot
             </Link>

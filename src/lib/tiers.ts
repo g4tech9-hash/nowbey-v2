@@ -7,6 +7,8 @@ export type Perk = {
 export type TierKey = "conch" | "rock" | "admiral";
 export type Interval = "month" | "year";
 
+/** Tier accent colours are Option B tokens (see src/index.css) so pricing cards, badges and the
+ *  account page all share one palette. They are plain strings because they land in inline styles. */
 export type Tier = {
   key: TierKey;
   name: string;
@@ -25,7 +27,7 @@ export const ENTITLED_STATUSES = ["active", "sandbox", "past_due", "canceling", 
 
 export const FREE_PLAN = {
   name: "Free",
-  tone: "#a9cdc9",
+  tone: "var(--color-ink-200)",
   blurb: "Everything you need to read the map, report a problem and confirm what neighbours see. Paid for by ads.",
   perks: [
     { text: "Live map with aerial imagery and street names" },
@@ -44,7 +46,7 @@ export const TIERS: Record<TierKey, Tier> = {
     monthly: 10.8,
     yearly: 108,
     blurb: "The same NowBey with the ads switched off.",
-    tone: "#2ee6d0",
+    tone: "var(--color-cyan)",
     perks: [
       { text: "Everything in Free" },
       { text: "No ads, anywhere" },
@@ -59,7 +61,7 @@ export const TIERS: Record<TierKey, Tier> = {
     monthly: 18,
     yearly: 180,
     blurb: "For households that ride out the storm season and want to hear first.",
-    tone: "#ffc531",
+    tone: "var(--color-amber)",
     perks: [
       { text: "Everything in Conch" },
       { text: "Text-message alerts", soon: true },
@@ -72,7 +74,7 @@ export const TIERS: Record<TierKey, Tier> = {
     monthly: 24,
     yearly: 240,
     blurb: "For community pages, harbour clubs and people who report often.",
-    tone: "#ff7a6b",
+    tone: "var(--color-alert)",
     perks: [
       { text: "Everything in Rock Sound" },
       { text: "Verified-reporter badge on your reports" },
@@ -87,7 +89,7 @@ export const ENTERPRISE = {
   price: "Custom",
   blurb:
     "For utilities, resorts, harbours, newsrooms, schools and government offices that need NowBey for a whole team.",
-  tone: "#a78bfa",
+  tone: "var(--color-violet)",
   perks: [
     { text: "Team seats with shared alert profiles", soon: true },
     { text: "Data feed of reports for your own systems", soon: true },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/Icon";
 
 const SIZES = [
   { value: "1-10", label: "1 to 10 people" },
@@ -28,8 +29,8 @@ export function EnterpriseForm() {
   if (sent) {
     return (
       <div className="py-4 text-center">
-        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-tide-500 text-[20px] font-black text-abyss-950">
-          ✓
+        <span className="nb-glow mx-auto grid h-12 w-12 place-items-center rounded-full bg-brand text-white">
+          <Icon name="check" size={22} strokeWidth={2.6} />
         </span>
         <p className="display mt-3 text-[17px] font-extrabold text-sand-100">Thanks, we have your details</p>
         <p className="mx-auto mt-1.5 max-w-[34ch] text-[13px] leading-relaxed text-ink-300">

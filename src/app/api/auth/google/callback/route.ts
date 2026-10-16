@@ -93,7 +93,6 @@ async function completeSignIn(opts: {
   // 1. Already linked by Google subject id: this is a plain sign-in.
   let [user] = await db.select().from(users).where(eq(users.googleSub, profile.sub)).limit(1);
   let created = false;
-  let linked = false;
 
   // 2. Or the address already has an account: link it (Google has verified the address for us).
   if (!user) {
@@ -118,7 +117,6 @@ async function completeSignIn(opts: {
         .where(eq(users.id, byEmail.id))
         .returning();
       user = updated;
-      linked = true;
       const mail = user.email ? await sendGoogleLinkedEmail({ id: user.id, handle: user.handle, email: user.email }, base) : "skipped";
       if (mail === "failed") console.error("[google] linked-notice email failed");
     }

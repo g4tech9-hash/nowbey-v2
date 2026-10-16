@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { MapPanel, type MapPin, type PickResult } from "@/components/map/map-panel";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import { CATEGORIES, PARISHES, timeAgo, type CategoryKey } from "@/lib/geo";
+import { Icon } from "@/components/Icon";
 
 type Row = {
   id: string;
@@ -484,7 +485,7 @@ export default function MapWorkspace() {
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[12.5px] font-bold text-sand-100">{current.title}</span>
               <span className="block truncate text-[11px] text-ink-400">
-                {current.street ?? "unmapped"} · {timeAgo(current.createdAt)} · {current.confirmations} ✓
+                {current.street ?? "unmapped"} · {timeAgo(current.createdAt)} · {current.confirmations} <Icon name="check" size={11} className="inline align-[-1px] text-safe" strokeWidth={2.6} />
               </span>
             </span>
             <Link href={`/incident/${current.id}`} className="min-h-[40px] flex-none rounded-full bg-tide-500/20 px-3 py-2 text-[11.5px] font-extrabold text-tide-300">
@@ -523,7 +524,8 @@ export default function MapWorkspace() {
                     onClick={openDetails}
                     className="mt-2.5 min-h-[44px] w-full rounded-xl bg-tide-500 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-40"
                   >
-                    Next: add details →
+                    Next: add details
+                    <Icon name="arrow-right" size={14} />
                   </button>
                 </>
               ) : (
@@ -560,7 +562,7 @@ export default function MapWorkspace() {
                           className="min-h-[36px] rounded-lg px-2 py-1 text-[11.5px] font-bold"
                           style={{
                             background: form.category === k ? `${CATEGORIES[k].color}2e` : "rgba(255,255,255,.06)",
-                            color: form.category === k ? CATEGORIES[k].color : "#a9cdc9",
+                            color: form.category === k ? CATEGORIES[k].color : "var(--color-ink-200)",
                           }}
                         >
                           {CATEGORIES[k].label}
@@ -600,7 +602,7 @@ export default function MapWorkspace() {
                       type="checkbox"
                       checked={form.anonymous}
                       onChange={(e) => setForm({ ...form, anonymous: e.target.checked })}
-                      className="h-4 w-4 accent-[#00c9b7]"
+                      className="h-4 w-4 accent-[var(--color-brand)]"
                     />
                     {handle ? `Post as “someone” instead of @${handle}` : "Post as “someone” (you are not signed in)"}
                   </label>
@@ -610,7 +612,10 @@ export default function MapWorkspace() {
                       onClick={() => setStep("spot")}
                       className="min-h-[44px] rounded-xl border hairline px-3 py-2 text-[12.5px] font-bold hover:bg-white/5"
                     >
-                      ← Fix the pin
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon name="arrow-left" size={13} />
+                        Fix the pin
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -774,7 +779,7 @@ function FilterChip({
       style={{
         background: active ? `${color ?? "var(--color-tide-400)"}26` : "rgba(255,255,255,.05)",
         border: `1px solid ${active ? `${color ?? "var(--color-tide-400)"}66` : "rgba(255,255,255,.08)"}`,
-        color: active ? color ?? "#8ff0e4" : "#a9cdc9",
+        color: active ? color ?? "var(--color-cyan)" : "var(--color-ink-200)",
       }}
     >
       <span className="inline-flex items-center gap-1.5">

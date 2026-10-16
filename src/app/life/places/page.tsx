@@ -6,6 +6,7 @@ import { PARISHES } from "@/lib/geo";
 import { KINDS, KIND_KEYS, isKind, listPlaces } from "@/lib/life";
 import { clampInt } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Places · Island Life" };
@@ -101,20 +102,20 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                       </>
                     ) : null}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-ink-400">
+                  <div className="nb-meta mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-2xs font-medium text-ink-dim">
                     {p.hours ? (
-                      <span className="flex items-center gap-1">
-                        <span className="opacity-50">🕒</span> {p.hours}
+                      <span className="inline-flex items-center gap-1">
+                        <Icon name="clock" size={12} className="shrink-0 opacity-60" /> {p.hours}
                       </span>
                     ) : null}
                     {p.phone ? (
-                      <span className="flex items-center gap-1">
-                        <span className="opacity-50">📞</span> {p.phone}
+                      <span className="inline-flex items-center gap-1">
+                        <Icon name="phone" size={12} className="shrink-0 opacity-60" /> {p.phone}
                       </span>
                     ) : null}
                     {p.website ? (
-                      <a href={p.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-tide-300 hover:underline">
-                        <span className="opacity-50">🌐</span> Website
+                      <a href={p.website} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-cyan transition duration-200 ease-standard hover:underline">
+                        <Icon name="globe" size={12} className="shrink-0 opacity-60" /> Website
                       </a>
                     ) : null}
                   </div>
@@ -131,7 +132,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           </div>
         )}
         <Pager page={currentPage} pages={pages} path="/life/places" params={params} />
-        <p className="text-center text-[11px] text-[#7fa6a2]">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
+        <p className="text-center text-[11px] text-[var(--color-ink-dim)]">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
       </div>
     </div>
   );

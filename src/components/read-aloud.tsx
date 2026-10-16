@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Icon } from "./Icon";
 
 export function ReadAloud({ text }: { text: string }) {
   const [supported, setSupported] = useState(false);
@@ -34,8 +35,14 @@ export function ReadAloud({ text }: { text: string }) {
   }
 
   return (
-    <button type="button" onClick={toggle} aria-pressed={speaking} className="min-h-[42px] rounded-full border hairline bg-white/5 px-3.5 py-2 text-[12.5px] font-bold text-tide-300 hover:bg-white/10">
-      {speaking ? "■ Stop reading" : "🔊 Read this update"}
+    <button
+      type="button"
+      onClick={toggle}
+      aria-pressed={speaking}
+      className="nb-surface flex min-h-[42px] items-center gap-2 rounded-full px-3.5 py-2 text-sm font-bold text-cyan transition duration-200 ease-standard hover:border-cyan/40 hover:bg-white/5"
+    >
+      <Icon name="volume" size={15} />
+      {speaking ? "Stop reading" : "Read this update"}
     </button>
   );
 }

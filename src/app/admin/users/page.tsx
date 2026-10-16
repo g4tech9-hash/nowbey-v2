@@ -111,14 +111,14 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
         />
       </div>
 
-      <p className="text-[12px] text-[#8fb9b6]">
+      <p className="text-[12px] text-[var(--color-ink-200)]">
         {n} {n === 1 ? "member" : "members"}
         {q || role || plan || status ? " match" : ""}. Newest first.
       </p>
 
       <div className="glass nb-scroll overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[820px] text-left text-[12.5px]">
-          <thead className="text-[10.5px] uppercase tracking-wide text-[#6e97a0]">
+          <thead className="text-[10.5px] uppercase tracking-wide text-[var(--color-ink-dim)]">
             <tr>
               <th className="px-3 py-2">Member</th>
               <th className="px-2">Email</th>
@@ -136,17 +136,17 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                   <Link href={`/admin/users/${r.handle}`} className="font-bold text-sand-100 hover:text-tide-300">
                     @{r.handle}
                   </Link>
-                  <span className="block text-[11.5px] text-[#8fb9b6]">{r.displayName}</span>
+                  <span className="block text-[11.5px] text-[var(--color-ink-200)]">{r.displayName}</span>
                   {r.status === "suspended" ? <Pill tone="conch">Suspended</Pill> : null}
                 </td>
                 <td className="px-2 py-2">
                   {r.email ? (
                     <>
-                      <span className="block max-w-[190px] truncate font-mono text-[11.5px] text-[#cfeee9]">{r.email}</span>
+                      <span className="block max-w-[190px] truncate font-mono text-[11.5px] text-[var(--color-ink-200)]">{r.email}</span>
                       {r.verified ? <Pill tone="tide">Confirmed</Pill> : <Pill tone="sun">Unconfirmed</Pill>}
                     </>
                   ) : (
-                    <span className="text-[#6e97a0]">none</span>
+                    <span className="text-[var(--color-ink-dim)]">none</span>
                   )}
                 </td>
                 <td className="px-2 py-2">
@@ -158,20 +158,20 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                       <span className="font-bold" style={{ color: TIERS[r.tier].tone }}>
                         {TIERS[r.tier].name}
                       </span>
-                      <span className="block text-[11px] text-[#8fb9b6]">{r.planStatus === "comp" ? "complimentary" : (r.planStatus ?? "active")}</span>
+                      <span className="block text-[11px] text-[var(--color-ink-200)]">{r.planStatus === "comp" ? "complimentary" : (r.planStatus ?? "active")}</span>
                     </>
                   ) : (
-                    <span className="text-[#6e97a0]">Free</span>
+                    <span className="text-[var(--color-ink-dim)]">Free</span>
                   )}
                 </td>
-                <td className="px-2 py-2 text-[#8fb9b6]">{timeAgo(r.joined)}</td>
-                <td className="px-2 py-2 text-[#8fb9b6]">{r.lastLogin ? timeAgo(r.lastLogin) : "never"}</td>
+                <td className="px-2 py-2 text-[var(--color-ink-200)]">{timeAgo(r.joined)}</td>
+                <td className="px-2 py-2 text-[var(--color-ink-200)]">{r.lastLogin ? timeAgo(r.lastLogin) : "never"}</td>
                 <td className="px-3 py-2 text-right font-bold text-sand-100">{r.reports}</td>
               </tr>
             ))}
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-[#8fb9b6]">
+                <td colSpan={7} className="px-3 py-6 text-center text-[var(--color-ink-200)]">
                   No members match that.
                 </td>
               </tr>
@@ -181,7 +181,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
       </div>
       <Pager page={Math.min(page, pages)} pages={pages} path="/admin/users" params={params} />
 
-      <p className="text-[11.5px] leading-relaxed text-[#6e97a0]">
+      <p className="text-[11.5px] leading-relaxed text-[var(--color-ink-dim)]">
         Making the first admin: put your handle in <code className="rounded bg-white/10 px-1">ADMIN_HANDLES</code> in the server settings. From then on you can promote others here.
       </p>
     </div>

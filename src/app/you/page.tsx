@@ -11,6 +11,7 @@ import { BadgeMark } from "@/components/verified-badge";
 import { liveBadges } from "@/lib/profile";
 import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
 import { TIERS } from "@/lib/tiers";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Your account" };
@@ -164,7 +165,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
                         {r.title}
                       </Link>
                       <span className="num block text-xs text-ink-400">
-                        {r.street ?? "unmapped"} · {r.parish ?? "Bahamas"} · {timeAgo(r.createdAt)} · {r.status} · {r.confirmations} ✓
+                        {r.street ?? "unmapped"} · {r.parish ?? "Bahamas"} · {timeAgo(r.createdAt)} · {r.status} · {r.confirmations} <Icon name="check" size={11} className="inline align-[-1px] text-safe" strokeWidth={2.6} />
                       </span>
                     </span>
                   </li>
@@ -221,14 +222,19 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
           ) : (
             <p className="mt-1.5 text-sm text-ink-400">No alert profile yet.</p>
           )}
-          <Link href="/alerts" className="mt-2 inline-block text-[12px] font-bold text-tide-300 hover:underline">
-            Set up alerts →
+          <Link href="/alerts" className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-cyan transition duration-200 ease-standard hover:underline">
+            Set up alerts
+            <Icon name="arrow-right" size={13} />
           </Link>
         </div>
 
         {viewer.isEditor ? (
-          <Link href="/admin" className="nb-surface block rounded-xl2 border-tide-400/30 bg-tide-500/10 px-3.5 py-3 text-[12.5px] font-bold text-tide-300 hover:bg-tide-500/16">
-            Open {viewer.isAdmin ? "the admin area" : "the moderation area"} →
+          <Link
+            href="/admin"
+            className="nb-surface flex items-center justify-between gap-2 rounded-xl2 border-cyan/30 bg-brand/10 px-3.5 py-3 text-sm font-bold text-cyan transition duration-200 ease-standard hover:bg-brand/16"
+          >
+            Open {viewer.isAdmin ? "the admin area" : "the moderation area"}
+            <Icon name="arrow-right" size={14} />
           </Link>
         ) : null}
 

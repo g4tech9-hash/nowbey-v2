@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FREE_PLAN, TIERS, money, yearlySaving, type Interval, type Perk, type TierKey } from "@/lib/tiers";
+import { Icon } from "./Icon";
 
 export function PerkList({ perks, tone }: { perks: Perk[]; tone: string }) {
   return (
-    <ul className="mt-3 flex-1 space-y-1.5 text-[12.5px] text-ink-200">
+    <ul className="mt-3 flex-1 space-y-1.5 text-sm text-ink-200">
       {perks.map((p) => (
         <li key={p.text} className="flex gap-2 leading-snug">
-          <span className="mt-[1px] font-bold" style={{ color: tone }} aria-hidden>
-            ✓
+          <span className="mt-[2px]" style={{ color: tone }} aria-hidden>
+            <Icon name="check" size={13} strokeWidth={2.4} />
           </span>
           <span>
             {p.text}
@@ -82,14 +83,14 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
 
   return (
     <div>
-      <div className="mb-4 inline-flex rounded-full border hairline bg-abyss-900/60 p-1 text-[12.5px] font-bold" role="group" aria-label="Billing period">
+      <div className="mb-4 inline-flex rounded-full border hairline bg-panel/60 p-1 text-sm font-bold" role="group" aria-label="Billing period">
         {(["month", "year"] as const).map((v) => (
           <button
             key={v}
             type="button"
             onClick={() => setBilling(v)}
             aria-pressed={billing === v}
-            className={`rounded-full px-3.5 py-1.5 transition ${billing === v ? "bg-tide-500 text-abyss-950" : "text-ink-200 hover:bg-white/8"}`}
+            className={`rounded-full px-3.5 py-1.5 transition duration-200 ease-standard ${billing === v ? "nb-glow bg-brand text-white" : "text-ink-200 hover:bg-white/8"}`}
           >
             {v === "month" ? "Monthly" : "Yearly"}
             {v === "year" ? <span className="ml-1.5 text-[10.5px] opacity-80">2 months free</span> : null}
@@ -98,7 +99,7 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="glass flex flex-col rounded-2xl p-4" style={onFree ? { boxShadow: `inset 0 0 0 1px ${FREE_PLAN.tone}` } : undefined}>
+        <div className="nb-surface flex flex-col rounded-xl2 p-4" style={onFree ? { boxShadow: `inset 0 0 0 1px ${FREE_PLAN.tone}` } : undefined}>
           <p className="display text-[15px] font-extrabold" style={{ color: FREE_PLAN.tone }}>
             {FREE_PLAN.name}
           </p>
@@ -122,7 +123,7 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
           return (
             <div
               key={t.key}
-              className="glass flex flex-col rounded-2xl p-4"
+              className="nb-surface flex flex-col rounded-xl2 p-4"
               style={current ? { boxShadow: `inset 0 0 0 1px ${t.tone}` } : undefined}
             >
               <p className="display text-[15px] font-extrabold" style={{ color: t.tone }}>
@@ -139,7 +140,7 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
               <PerkList perks={t.perks} tone={t.tone} />
 
               {current ? (
-                <div className="mt-3 rounded-lg bg-tide-500/18 px-2 py-1.5 text-center text-[11.5px] font-bold text-tide-300">
+                <div className="mt-3 rounded-lg bg-brand/18 px-2 py-1.5 text-center text-sm font-bold text-cyan">
                   Your current plan
                 </div>
               ) : managed ? (
@@ -161,7 +162,7 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
                   type="button"
                   disabled={busy !== null}
                   onClick={() => choose(t.key)}
-                  className="mt-3 w-full rounded-xl bg-sand-100 py-2.5 text-[13px] font-extrabold text-abyss-950 hover:bg-white disabled:opacity-50"
+                  className="nb-glow mt-3 w-full rounded-xl bg-brand py-2.5 text-sm font-extrabold text-white transition duration-200 ease-standard hover:bg-brand-light disabled:opacity-50"
                 >
                   {busy === t.key ? "One moment…" : signedIn ? `Get ${t.name}` : "Sign in to choose"}
                 </button>

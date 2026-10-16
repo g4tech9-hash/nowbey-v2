@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { incidentUpdates, incidents, newsItems, users } from "@/db/schema";
+import { incidentUpdates, incidents, newsItems } from "@/db/schema";
 import { MapPanel } from "@/components/map/map-panel";
 import { IncidentActions } from "@/components/incident-actions";
 import { AdSlot } from "@/components/ad-slot";
@@ -17,6 +17,7 @@ import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { ReadAloud } from "@/components/read-aloud";
 import { SourceTrust } from "@/components/source-trust";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 
@@ -62,8 +63,9 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
       <article>
-        <Link href="/map" className="text-[12px] font-bold text-tide-300 hover:underline">
-          ← Back
+        <Link href="/map" className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan transition duration-200 ease-standard hover:underline">
+          <Icon name="arrow-left" size={13} />
+          Back
         </Link>
 
         <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide">

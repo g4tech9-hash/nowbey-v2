@@ -7,6 +7,7 @@ import { MapPanel, type PickResult } from "@/components/map/map-panel";
 import { EmergencyNotice } from "@/components/emergency-notice";
 import { ReportAssist } from "@/components/report-assist";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
+import { Icon } from "@/components/Icon";
 
 const STEPS = ["What is it?", "Where is it?", "Tell neighbours"] as const;
 const prefillAllowed = process.env.NEXT_PUBLIC_PREFILL_AREA !== "0";
@@ -101,8 +102,8 @@ export default function ReportWizard() {
     return (
       <div className="mx-auto max-w-[640px] py-6">
         <div className="nb-surface rounded-xl2 p-6 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-tide-500 text-[22px] font-black text-abyss-950">
-            ✓
+          <span className="nb-glow mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand text-white">
+            <Icon name="check" size={26} strokeWidth={2.6} />
           </span>
           <h1 className="display mt-3 text-[24px] font-extrabold text-sand-100">It is on the map</h1>
           <p className="mx-auto mt-2 max-w-[48ch] text-[13.5px] leading-relaxed text-ink-300">
@@ -185,7 +186,7 @@ export default function ReportWizard() {
                   }}
                 >
                   <span className="block h-2 w-8 rounded-full" style={{ background: c.color }} />
-                  <span className="display mt-2 block text-[15px] font-extrabold" style={{ color: active ? c.color : "#f6ead8" }}>
+                  <span className="display mt-2 block text-[15px] font-extrabold" style={{ color: active ? c.color : "var(--color-ink)" }}>
                     {c.label}
                   </span>
                   <span className="mt-0.5 block text-[11.5px] leading-snug text-ink-400">{c.blurb}</span>
@@ -214,7 +215,8 @@ export default function ReportWizard() {
               onClick={() => setStep(1)}
               className="ml-auto rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950"
             >
-              Next: put it on the map →
+              Next: put it on the map
+              <Icon name="arrow-right" size={14} />
             </button>
           </div>
         </div>
@@ -274,7 +276,7 @@ export default function ReportWizard() {
                     const a = e.target.checked && pick ? areaFor(pick) : null;
                     if (a) setArea(a);
                   }}
-                  className="mt-0.5 h-3.5 w-3.5 accent-[#00c9b7]"
+                  className="mt-0.5 h-3.5 w-3.5 accent-[var(--color-brand)]"
                 />
                 <span>
                   Prefill from the pin
@@ -299,7 +301,8 @@ export default function ReportWizard() {
               onClick={() => setStep(2)}
               className="w-full rounded-xl bg-tide-500 py-2.5 text-[13px] font-extrabold text-abyss-950 disabled:opacity-40"
             >
-              Next: write it up →
+              Next: write it up
+              <Icon name="arrow-right" size={14} />
             </button>
           </div>
         </div>
@@ -344,7 +347,7 @@ export default function ReportWizard() {
               </span>
             </label>
             <label className="flex items-center gap-2 text-[12.5px] text-ink-300">
-              <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="h-3.5 w-3.5 accent-[#00c9b7]" />
+              <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="h-3.5 w-3.5 accent-[var(--color-brand)]" />
               {handle !== "neighbour" ? `Post anonymously instead of as @${handle}` : "Post anonymously"}
             </label>
             <ReportAssist
@@ -367,7 +370,10 @@ export default function ReportWizard() {
                 onClick={() => setStep(1)}
                 className="rounded-xl border hairline px-3.5 py-2.5 text-[12.5px] font-bold hover:bg-white/5"
               >
-                ← Move the pin
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon name="arrow-left" size={13} />
+                  Move the pin
+                </span>
               </button>
               <button
                 type="button"

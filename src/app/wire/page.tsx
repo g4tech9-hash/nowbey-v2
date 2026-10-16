@@ -15,6 +15,7 @@ import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { sanitizeArticleContent } from "@/lib/sanitize";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "News wire" };
@@ -107,7 +108,12 @@ export default async function WirePage() {
                     ) : (
                       <span className="rounded-full bg-white/8 px-2 py-0.5 text-ink-400">No place named in the text — unpinned</span>
                     )}
-                    <a href={n.url} target="_blank" rel="noreferrer" className="font-bold text-tide-300 hover:underline">
+                    <a
+                      href={n.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 font-bold text-cyan transition duration-200 ease-standard hover:underline"
+                    >
                       Read at {(() => {
                         try {
                           return new URL(n.url).host.replace(/^www\./, "");
@@ -115,7 +121,7 @@ export default async function WirePage() {
                           return "source";
                         }
                       })()}
-                      {" ↗"}
+                      <Icon name="arrow-up-right" size={13} />
                     </a>
                   </div>
                   <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t hairline pt-2.5">

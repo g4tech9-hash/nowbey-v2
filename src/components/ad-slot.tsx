@@ -6,25 +6,25 @@ const HOUSE_ADS = [
     brand: "Island Fresh 242",
     line: "Conch, snapper and kingfish delivered across Nassau before dinner.",
     cta: "Order the catch",
-    tone: "#2ee6d0",
+    tone: "var(--color-cyan)",
   },
   {
     brand: "Harbour Marine",
     line: "Storm-ready shutters and generator service for Freeport homes.",
     cta: "Book a check",
-    tone: "#ffc531",
+    tone: "var(--color-amber)",
   },
   {
     brand: "Sole Food Beach Club",
     line: "Friday fish fry at Montagu — ribs, conch fritters, junkanoo later.",
     cta: "See the line-up",
-    tone: "#ff7a6b",
+    tone: "var(--color-alert)",
   },
   {
     brand: "Reef & Read Bookshop",
     line: "Bahamian imprint shelf: 20% off local history through Sunday.",
     cta: "Browse the shelf",
-    tone: "#a78bfa",
+    tone: "var(--color-violet)",
   },
 ] as const;
 

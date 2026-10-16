@@ -7,6 +7,7 @@ import { PARISHES } from "@/lib/geo";
 import { checkPassword } from "@/lib/password";
 import { safeNext } from "@/lib/redirect";
 import { INPUT, LABEL, PasswordField } from "@/components/password-field";
+import { Icon } from "@/components/Icon";
 
 type HandleState = { kind: "idle" } | { kind: "checking" } | { kind: "ok" } | { kind: "bad"; reason: string };
 
@@ -162,15 +163,15 @@ export function LoginForm() {
           You can read the map, confirm reports and file a pin without an account. An account puts your handle on the reports
           you file, keeps your alert settings, and brings your plan with you to any device.
         </p>
-        <ul className="mt-3 space-y-1.5 text-[12.5px] text-ink-400">
+        <ul className="mt-3 space-y-1.5 text-sm text-ink-dim">
           <li className="flex gap-2">
-            <span className="text-tide-400">→</span> Your email is only used for account help and the alerts you ask for.
+            <Icon name="check" size={14} className="mt-0.5 shrink-0 text-cyan" strokeWidth={2.4} /> Your email is only used for account help and the alerts you ask for.
           </li>
           <li className="flex gap-2">
-            <span className="text-tide-400">→</span> Forget your password? We email you a link to choose a new one.
+            <Icon name="check" size={14} className="mt-0.5 shrink-0 text-cyan" strokeWidth={2.4} /> Forget your password? We email you a link to choose a new one.
           </li>
           <li className="flex gap-2">
-            <span className="text-tide-400">→</span> Delete your account any time. Your reports stay up, without your name.
+            <Icon name="check" size={14} className="mt-0.5 shrink-0 text-cyan" strokeWidth={2.4} /> Delete your account any time. Your reports stay up, without your name.
           </li>
         </ul>
       </div>
@@ -190,10 +191,10 @@ export function LoginForm() {
               className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/6 text-[13.5px] font-extrabold text-sand-100 hover:bg-white/10"
             >
               <svg viewBox="0 0 18 18" aria-hidden="true" className="h-4 w-4">
-                <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
-                <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z" />
-                <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33Z" />
-                <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z" />
+                <path fill="var(--color-brand)" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
+                <path fill="var(--color-safe)" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z" />
+                <path fill="var(--color-amber)" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33Z" />
+                <path fill="var(--color-alert)" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z" />
               </svg>
               {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
             </button>
@@ -201,7 +202,7 @@ export function LoginForm() {
               One button for both. Google tells us your name and email address — we never see your Google password, and we do
               not post anything.
             </p>
-            <div className="my-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[#5d848f]">
+            <div className="my-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[var(--color-ink-dim)]">
               <span className="h-px flex-1 bg-white/10" />
               or
               <span className="h-px flex-1 bg-white/10" />
@@ -280,9 +281,12 @@ export function LoginForm() {
                 }`}
                 aria-live="polite"
               >
-                {handleState.kind === "ok"
-                  ? "✓ Available"
-                  : handleState.kind === "bad"
+                {handleState.kind === "ok" ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Icon name="check" size={12} strokeWidth={2.6} />
+                    Available
+                  </span>
+                ) : handleState.kind === "bad"
                     ? handleState.reason
                     : handleState.kind === "checking"
                       ? "Checking…"

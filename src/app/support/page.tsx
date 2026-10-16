@@ -6,6 +6,7 @@ import { AdSlot } from "@/components/ad-slot";
 import { EnterpriseForm } from "@/components/enterprise-form";
 import { getViewer } from "@/lib/viewer";
 import { demoPlansAllowed, stripeConfigured } from "@/lib/billing";
+import { Icon } from "@/components/Icon";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Plans and pricing" };
@@ -123,8 +124,9 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           <p className="mt-2 text-[12.5px] leading-relaxed text-ink-300">
             In the mobile app, plans are bought here on the website and follow your account to your phone.
           </p>
-          <Link href="/" className="mt-3 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">
-            Back to the feed →
+          <Link href="/" className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-cyan transition duration-200 ease-standard hover:underline">
+            Back to the feed
+            <Icon name="arrow-right" size={13} />
           </Link>
         </div>
       </section>
