@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AvatarEditor } from "@/components/profile-avatar";
 import { redirect } from "next/navigation";
 import { PageHead } from "@/components/app-shell";
 import { HideReportButton, ProfileForm } from "@/components/profile-forms";
@@ -57,7 +58,7 @@ export default async function MyProfilePage() {
       {badges.length ? (
         <p className="-mt-1 flex flex-wrap items-center gap-2">
           {badges.map((b, i) => (
-            <BadgeMark key={`${b.badge}-${i}`} kind={b.badge === "desk" ? "desk" : "verified"} />
+            <BadgeMark key={`${b.badge}-${i}`} kind={b.badge === "desk" || b.badge === "verified" || b.badge === "broadcaster" ? b.badge : null} />
           ))}
           {viewer.isEditor && !badges.some((b) => b.badge === "desk") ? <BadgeMark kind="desk" /> : null}
         </p>
@@ -66,6 +67,8 @@ export default async function MyProfilePage() {
           <BadgeMark kind="desk" />
         </p>
       ) : null}
+
+      <AvatarEditor handle={viewer.handle} />
 
       <Section
         title="Profile"
@@ -104,7 +107,7 @@ export default async function MyProfilePage() {
             {badges.map((b, i) => (
               <li key={`${b.badge}-${i}`} className="rounded-xl border hairline p-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <BadgeMark kind={b.badge === "desk" ? "desk" : "verified"} />
+                  <BadgeMark kind={b.badge === "desk" || b.badge === "verified" || b.badge === "broadcaster" ? b.badge : null} />
                   <span className="text-[12.5px] text-ink-400">granted {when(b.grantedAt)} by @{b.grantedBy}</span>
                 </div>
                 <p className="mt-1.5 text-[12.5px] text-ink-200">{b.reason}</p>

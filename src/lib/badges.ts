@@ -1,9 +1,10 @@
 import { and, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { db } from "@/db";
 import { badgeGrants, users } from "@/db/schema";
+import { envAdminActive } from "@/lib/handles";
 import { earnsDeskBadge } from "@/lib/profile";
 
-export type Badge = "verified" | "desk";
+export type Badge = "verified" | "desk" | "broadcaster";
 
 /**
  * Which of these handles earn a badge. Staff get "desk"; a member whose account a person checked gets
@@ -15,12 +16,12 @@ export async function badgesFor(handles: (string | null | undefined)[]): Promise
   const out = new Map<string, Badge>();
   if (!list.length) return out;
   const rows = await db
-    .select({ handle: users.handle, role: users.role, account: users.status })
+    .select({ handle: users.handle, role: users.role, account: users.status, emailVerifiedAt: users.emailVerifiedAt })
     .from(users)
     .where(inArray(users.handle, list));
   for (const r of rows) {
     if (r.account === "suspended") continue; // a suspended member loses their badge
-    if (earnsDeskBadge(r.role)) out.set(r.handle, "desk");
+    if (earnsDeskBadge(r.role) || envAdminActive(r)) out.set(r.handle, "desk");
   }
 
   // The verified badge is deliberately not tied to a plan — it is a human grant, still live. Revoked in

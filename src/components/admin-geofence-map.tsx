@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { Circle, CircleMarker, MapContainer, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { STREET_TILES } from "@/lib/geo";
 
 // Same value as MILES_TO_METERS in src/lib/command.ts. Kept local because that module pulls in
 // node:crypto, which client components cannot import.
@@ -43,7 +44,7 @@ export default function AdminGeofenceMap({
 }) {
   return (
     <MapContainer center={[lat, lng]} zoom={12} style={{ height: "100%", width: "100%" }} scrollWheelZoom={true}>
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" subdomains="abc" attribution="&copy; OpenStreetMap contributors &copy; CARTO" maxZoom={20} />
+      <TileLayer {...STREET_TILES} />
       <ClickToSet onPick={onPick} />
       <FlyTo lat={lat} lng={lng} />
       <Circle center={[lat, lng]} radius={Math.max(0.1, radiusMiles) * MILES_TO_METERS} pathOptions={{ color: "#ff6b5e", weight: 2, fillColor: "#ff6b5e", fillOpacity: 0.12 }} />

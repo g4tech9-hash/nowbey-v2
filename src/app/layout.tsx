@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { Manrope, Sora } from "next/font/google";
+import localFont from "next/font/local";
 import { AppShell, LiveTicker } from "@/components/app-shell";
 import { ErrorReporter } from "@/components/error-reporter";
 import { SceneBackdrop } from "@/components/scene-backdrop";
@@ -10,8 +10,8 @@ import { getSiteSettings } from "@/lib/settings";
 import { getViewer } from "@/lib/viewer";
 import "./globals.css";
 
-const sora = Sora({ subsets: ["latin"], variable: "--font-sora", display: "swap" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
+const sora = localFont({ src: "./fonts/sora-latin.woff2", weight: "100 800", variable: "--font-sora", display: "swap" });
+const manrope = localFont({ src: "./fonts/manrope-latin.woff2", weight: "200 800", variable: "--font-manrope", display: "swap" });
 
 export const metadata: Metadata = {
   title: {

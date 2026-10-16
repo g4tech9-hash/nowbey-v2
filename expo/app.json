@@ -2,7 +2,7 @@
   "expo": {
     "name": "NowBey",
     "slug": "nowbey",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "ios": {
@@ -16,7 +16,7 @@
     "android": {
       "package": "app.nowbey.mobile",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 3,
+      "versionCode": 4,
       "predictiveBackGestureEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",

@@ -42,6 +42,7 @@ export default async function StreamsAdmin() {
 
   return (
     <div className="space-y-4">
+      <Link href="/broadcast" className="inline-block rounded-full bg-tide-500 px-4 py-2 font-bold text-abyss-950">Open broadcast studio / viewer</Link>
       <p className="text-[12px] text-[#8fb9b6]">
         {live.length} {live.length === 1 ? "broadcast" : "broadcasts"} live now. Killing a broadcast cuts viewers off immediately and
         records who stopped it and why. Going live is limited to members with the broadcaster badge — grant it on a{" "}
@@ -59,7 +60,7 @@ export default async function StreamsAdmin() {
                   <video key={s.playbackUrl} src={s.playbackUrl} controls playsInline className="aspect-video w-full" />
                 ) : (
                   <div className="flex aspect-video w-full items-center justify-center text-[12px] text-[#6e97a0]">
-                    No preview URL — audio/data broadcast
+                    LiveKit broadcast — open the viewer to watch
                   </div>
                 )}
               </div>
@@ -76,6 +77,7 @@ export default async function StreamsAdmin() {
                   </>
                 ) : null}
               </p>
+              {s.playbackUrl === null ? <Link href="/broadcast" className="block text-sm font-bold text-tide-300 underline">Open live viewer</Link> : null}
               <KillStreamButton id={s.id} />
             </li>
           ))}

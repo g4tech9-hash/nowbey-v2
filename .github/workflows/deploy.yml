@@ -253,6 +253,10 @@ jobs:
           fi
           echo "google-services.json ($(wc -c < google-services.json) bytes) is present and .easignore keeps it eligible for the EAS upload."
 
+      - name: APK preflight (profile, Firebase, types and Android bundle)
+        working-directory: expo
+        run: npm run preflight:apk:full
+
       # Needs repo secret: EXPO_TOKEN (expo.dev > Account settings > Access tokens).
       #
       # The identity check runs first on purpose: a rejected or missing token and a project that never

@@ -14,8 +14,8 @@ import { color } from "./theme";
  * switch the tile addresses below to a provider you have an agreement with (MapTiler, Stadia, Mapbox...).
  */
 const IMAGERY = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-const LABELS = "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png";
-const STREETS = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+const LABELS = "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
+const STREETS = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 /** Phone-width latitude span in degrees -> web-map zoom level. */
 const zoomFor = (delta: number) => Math.max(3, Math.min(19, Math.round(Math.log2(540 / Math.max(delta, 0.0005)))));
@@ -49,10 +49,10 @@ html,body,#map{height:100%;margin:0;background:#0b2230}
     if(a){
       layers.push(L.tileLayer(${safe(IMAGERY)},{maxZoom:19,maxNativeZoom:18}).addTo(map));
       layers.push(L.tileLayer(${safe(LABELS)},{maxZoom:19,subdomains:'abcd'}).addTo(map));
-      credit.textContent='Imagery Esri, Maxar, Earthstar Geographics. Labels CARTO, OpenStreetMap contributors';
+      credit.textContent='Imagery Esri, Maxar, Earthstar Geographics. Labels Esri';
     } else {
       layers.push(L.tileLayer(${safe(STREETS)},{maxZoom:19,subdomains:'abcd'}).addTo(map));
-      credit.textContent='CARTO, OpenStreetMap contributors';
+      credit.textContent='OpenStreetMap contributors';
     }
     document.getElementById('mode').textContent=a?'Street map':'Aerial';
   }

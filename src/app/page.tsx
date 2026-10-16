@@ -163,11 +163,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               <Link
                 key={key}
                 href={{ pathname: "/", query: { category: key, ...(parish ? { parish } : {}), ...(status ? { status } : {}) } }}
-                className="shrink-0 rounded-full border px-2.5 py-1 text-[11.5px] font-bold transition hover:brightness-125"
+                aria-current={category === key ? "true" : undefined}
+                className="nb-category-chip shrink-0 rounded-full border px-2.5 py-1 text-[11.5px] font-bold transition hover:brightness-125"
                 style={{
                   borderColor: category === key ? CATEGORIES[key].color : "rgba(120,220,214,.18)",
                   background: category === key ? `${CATEGORIES[key].color}26` : "transparent",
-                  color: category === key ? CATEGORIES[key].color : "#a9cdc9",
+                  color: category === key ? CATEGORIES[key].color : "var(--color-ink-300)",
+                  ["--category-text" as string]: `var(--color-cat-${key}-t)`,
                 }}
               >
                 {CATEGORIES[key].label}
