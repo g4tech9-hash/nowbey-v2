@@ -74,10 +74,34 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
           </p>
         ) : null}
 
+        {/* Island Record: the numbers that say who you are on this island. */}
+        <section className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Your island record">
+          <div className="nb-surface p-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Reports</p>
+            <p className="num display mt-1 text-2xl font-extrabold text-tide-300">{mine.length}</p>
+          </div>
+          <div className="nb-surface p-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmed</p>
+            <p className="num display mt-1 text-2xl font-extrabold text-ok-500">
+              {mine.reduce((s, r) => s + r.confirmations, 0).toLocaleString("en-US")}
+            </p>
+          </div>
+          <div className="nb-surface p-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Home island</p>
+            <p className="display mt-1 truncate text-[15px] font-extrabold text-sand-100">{viewer.parish ?? "Not set"}</p>
+          </div>
+          <div className="nb-surface p-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Plan</p>
+            <p className="display mt-1 truncate text-[15px] font-extrabold" style={{ color: tier?.tone ?? "var(--color-ink-200)" }}>
+              {tier?.name ?? "Free"}
+            </p>
+          </div>
+        </section>
+
         {welcome ? (
-          <section className="rounded-2xl border border-tide-400/40 bg-tide-500/10 p-4">
-            <p className="display text-[16px] font-extrabold text-sand-100">Welcome to NowBey, @{viewer.handle}</p>
-            <ol className="mt-2 space-y-1.5 text-[13px] text-[#cfeee9]">
+          <section className="nb-surface rounded-xl2 border-tide-400/40 bg-tide-500/10 p-4">
+            <p className="display text-lg font-extrabold tracking-tight text-sand-100">Welcome to NowBey, @{viewer.handle}</p>
+            <ol className="mt-2 space-y-1.5 text-base text-ink-200">
               <li>
                 <span className="font-bold text-tide-300">1.</span> Confirm your email{viewer.emailVerified ? " (done)" : " using the link we just sent you"}.
               </li>
@@ -100,7 +124,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         ) : null}
 
         {!viewer.email ? (
-          <section className="rounded-2xl border border-sun-500/35 bg-sun-500/10 p-3.5 text-[13px] text-[#e6dcc0]">
+          <section className="nb-surface rounded-xl2 border-sun-500/35 bg-sun-500/10 p-3.5 text-base text-ink-200">
             Your account has no email address, so we could not help you back in if you forgot your password.{" "}
             <Link href="/you/settings" className="font-bold text-sun-400 underline">
               Add one
@@ -108,8 +132,8 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
             .
           </section>
         ) : !viewer.emailVerified ? (
-          <section className="rounded-2xl border border-sun-500/35 bg-sun-500/10 p-3.5">
-            <p className="text-[13px] text-[#e6dcc0]">
+          <section className="nb-surface rounded-xl2 border-sun-500/35 bg-sun-500/10 p-3.5">
+            <p className="text-base text-ink-200">
               Confirm <strong className="text-sand-100">{viewer.email}</strong> so we can help if you forget your password.
             </p>
             <div className="mt-2">
@@ -118,10 +142,10 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
           </section>
         ) : null}
 
-        <section className="glass rounded-2xl p-4">
+        <section className="nb-surface rounded-xl2 p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="display text-[15px] font-extrabold text-sand-100">Your reports</p>
-            <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11px] text-[#a9cdc9]">
+            <p className="display text-base font-extrabold tracking-tight text-sand-100">Your reports</p>
+            <span className="num rounded-full bg-white/8 px-2 py-0.5 text-[11px] text-ink-300">
               {mine.reduce((s, r) => s + r.confirmations, 0)} confirmations collected
             </span>
             <Link href="/report" className="ml-auto rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950">
@@ -133,13 +157,13 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
               {mine.map((r) => {
                 const c = CATEGORIES[r.category as CategoryKey] ?? CATEGORIES.notice;
                 return (
-                  <li key={r.id} className="flex items-start gap-2.5 rounded-xl bg-white/[.04] px-3 py-2">
-                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: c.color }} />
+                  <li key={r.id} className="flex items-start gap-2.5 rounded-xl border border-white/8 px-3 py-2 transition duration-200 ease-standard hover:border-tide-400/25">
+                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}80` }} />
                     <span className="min-w-0 flex-1">
-                      <Link href={`/incident/${r.id}`} className="block text-[13.5px] font-semibold text-sand-100 hover:text-tide-300">
+                      <Link href={`/incident/${r.id}`} className="block text-base font-semibold tracking-tight text-sand-100 hover:text-tide-300">
                         {r.title}
                       </Link>
-                      <span className="block text-[11.5px] text-[#6e97a0]">
+                      <span className="num block text-xs text-ink-400">
                         {r.street ?? "unmapped"} · {r.parish ?? "Bahamas"} · {timeAgo(r.createdAt)} · {r.status} · {r.confirmations} ✓
                       </span>
                     </span>
@@ -148,21 +172,21 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
               })}
             </ul>
           ) : (
-            <p className="mt-2 text-[12.5px] text-[#6e97a0]">Nothing filed yet. Reports you pin show up here with their confirmation counts.</p>
+            <p className="mt-2 text-sm text-ink-400">Nothing filed yet. Reports you pin show up here with their confirmation counts.</p>
           )}
         </section>
       </div>
 
       <aside className="space-y-4">
-        <div className="glass rounded-2xl p-3.5">
-          <p className="display text-[14.5px] font-bold text-sand-100">Your plan</p>
+        <div className="nb-surface rounded-xl2 p-3.5">
+          <p className="display text-base font-bold tracking-tight text-sand-100">Your plan</p>
           {tier ? (
             <>
-              <p className="mt-1 text-[14px] font-extrabold" style={{ color: tier.tone }}>
+              <p className="num mt-1 text-base font-extrabold" style={{ color: tier.tone }}>
                 {tier.name}
                 {viewer.status === "comp" ? "" : ` · ${viewer.interval === "year" ? "yearly" : "monthly"}`}
               </p>
-              <p className="mt-1 text-[12px] leading-snug text-[#a9cdc9]">{planLine(viewer.status, viewer.renewsAt)}</p>
+              <p className="mt-1 text-sm leading-snug text-ink-300">{planLine(viewer.status, viewer.renewsAt)}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {viewer.status !== "comp" ? <ManageBillingButton demo={viewer.status === "sandbox"} /> : null}
                 {viewer.tier === "admiral" ? (
@@ -176,7 +200,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
             </>
           ) : (
             <>
-              <p className="mt-1 text-[12.5px] text-[#a9cdc9]">Free plan. House ads are showing.</p>
+              <p className="mt-1 text-sm text-ink-300">Free plan. House ads are showing.</p>
               <Link href="/support" className="mt-2 inline-block rounded-full bg-sand-100 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950">
                 Choose a plan
               </Link>
@@ -184,18 +208,18 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
           )}
         </div>
 
-        <div className="glass rounded-2xl p-3.5">
-          <p className="display text-[14.5px] font-bold text-sand-100">Alert profiles</p>
+        <div className="nb-surface rounded-xl2 p-3.5">
+          <p className="display text-base font-bold tracking-tight text-sand-100">Alert profiles</p>
           {subs.length ? (
-            <ul className="mt-2 space-y-1.5 text-[12px] text-[#a9cdc9]">
+            <ul className="mt-2 space-y-1.5 text-sm text-ink-300">
               {subs.map((s) => (
                 <li key={s.id} className="rounded-lg bg-white/[.05] px-2 py-1.5">
-                  <span className="font-bold text-tide-300">{s.verified ? "On" : "Unconfirmed"}</span> · {s.parishes.split(",").join(", ")}
+                  <span className="font-bold text-ok-600">{s.verified ? "On" : "Unconfirmed"}</span> · {s.parishes.split(",").join(", ")}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-1.5 text-[12px] text-[#6e97a0]">No alert profile yet.</p>
+            <p className="mt-1.5 text-sm text-ink-400">No alert profile yet.</p>
           )}
           <Link href="/alerts" className="mt-2 inline-block text-[12px] font-bold text-tide-300 hover:underline">
             Set up alerts →
@@ -203,13 +227,13 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         </div>
 
         {viewer.isEditor ? (
-          <Link href="/admin" className="block rounded-2xl border border-tide-400/30 bg-tide-500/10 px-3.5 py-3 text-[12.5px] font-bold text-tide-300 hover:bg-tide-500/16">
+          <Link href="/admin" className="nb-surface block rounded-xl2 border-tide-400/30 bg-tide-500/10 px-3.5 py-3 text-[12.5px] font-bold text-tide-300 hover:bg-tide-500/16">
             Open {viewer.isAdmin ? "the admin area" : "the moderation area"} →
           </Link>
         ) : null}
 
-        <div className="flex items-center justify-between gap-2 rounded-2xl border hairline px-3 py-2.5">
-          <p className="text-[12px] text-[#8fb9b6]">Signed in as @{viewer.handle}</p>
+        <div className="nb-surface flex items-center justify-between gap-2 rounded-xl2 px-3 py-2.5">
+          <p className="num text-xs text-ink-400">Signed in as @{viewer.handle}</p>
           <SignOut />
         </div>
       </aside>
