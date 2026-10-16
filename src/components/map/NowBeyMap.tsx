@@ -21,6 +21,7 @@ import {
   metersPerPixel,
   precisionLabel,
 } from "@/lib/geo";
+import { clusterPins } from "@/lib/cluster";
 
 export type MapPin = {
   id: string;
@@ -74,10 +75,24 @@ const PIN_PX = 30;
 
 function pinHtml(pin: MapPin, selected: boolean) {
   const c = pin.color ?? CATEGORIES[pin.category]?.color ?? "#94a3b8";
-  const letter = (pin.label ?? CATEGORIES[pin.category]?.label ?? "N").charAt(0);
+  // Two-letter codes, unique per category. A single letter was ambiguous on the
+  // live map (S = Storm or Safety, F = Flooding or Fire, N = anything), so the
+  // circles in Nassau read as alphabet soup with no legend able to save them.
+  const raw = pin.label ?? CATEGORIES[pin.category]?.pin ?? "NT";
+  const code = raw.length <= 2 ? raw.toUpperCase() : raw.split(/\s+/).map((w) => w.charAt(0)).slice(0, 2).join("").toUpperCase();
+  const size = code.length > 1 ? 9.5 : 13;
   return `<div class="nb-pin ${pin.live ? "nb-pin-live" : ""}" style="background:${c};color:${c};${
     selected ? "outline:3px solid rgba(46,230,208,.85);outline-offset:2px;" : ""
-  }"><span>${letter}</span></div>`;
+  }"><span style="font-size:${size}px">${code}</span></div>`;
+}
+
+function makeClusterIcon(count: number) {
+  return L.divIcon({
+    className: "",
+    html: `<div class="nb-cluster"><span>${count}</span></div>`,
+    iconSize: [38, 38],
+    iconAnchor: [19, 19],
+  });
 }
 
 function makePinIcon(pin: MapPin, selected: boolean) {
@@ -465,7 +480,28 @@ export default function NowBeyMap({
         <ScaleControl position="bottomleft" metric imperial />
 
         {showPins
-          ? pins.map((pin) => (
+          ? clusterPins(pins, zoomNow, selected ? new Set([selected]) : null).map((group) =>
+              group.pins.length > 1 ? (
+                <Marker
+                  key={group.key}
+                  position={[group.lat, group.lng]}
+                  icon={makeClusterIcon(group.pins.length)}
+                  zIndexOffset={400}
+                  eventHandlers={{
+                    click: () => map?.flyTo([group.lat, group.lng], Math.min(18, zoomNow + 2), { duration: 0.6 }),
+                  }}
+                >
+                  <Popup>
+                    <div className="space-y-1">
+                      <p className="font-semibold leading-snug">{group.pins.length} reports near here</p>
+                      <p className="text-[12px] text-[#9fc4c9]">Tap the badge to zoom in and separate them.</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ) : (
+                (() => {
+                  const pin = group.pins[0];
+                  return (
               <Marker
                 key={pin.id}
                 position={[pin.lat, pin.lng]}
@@ -491,7 +527,10 @@ export default function NowBeyMap({
                   </div>
                 </Popup>
               </Marker>
-            ))
+                  );
+                })()
+              ),
+            )
           : null}
 
         {pick ? (
