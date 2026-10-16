@@ -330,6 +330,13 @@ const bytea = customType<{ data: Buffer; driverData: Buffer }>({
   },
 });
 
+/** Optional processed profile photo. Separate table keeps older databases compatible with sign-in. */
+export const memberAvatars = pgTable("member_avatars", {
+  userId: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  data: bytea("data").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 /** Small admin-controlled switches such as the site look. Read through src/lib/settings.ts. */
 export const siteSettings = pgTable("site_settings", {
   key: text("key").primaryKey(),

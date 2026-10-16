@@ -59,6 +59,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
           blurb={`Home island ${viewer.parish ?? "not set"} · ${mine.length} report${mine.length === 1 ? "" : "s"} filed`}
           actions={
             <>
+              <Link href="/broadcast" className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8">Live broadcasts</Link>
               <Link href="/you/profile" className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8">
                 Your profile
               </Link>

@@ -67,7 +67,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
 
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="display text-[clamp(1.4rem,3.6vw,1.9rem)] font-extrabold text-sand-100">@{u.handle}</h2>
-        <Pill tone={u.role === "admin" || envAdmin ? "violet" : u.role === "editor" ? "tide" : "slate"}>{envAdmin ? "admin" : u.role}</Pill>
+        <Pill tone={access.isAdmin ? "violet" : u.role === "editor" ? "tide" : "slate"}>{access.isAdmin ? "admin" : u.role}</Pill>
         {u.status === "suspended" ? <Pill tone="conch">Suspended</Pill> : null}
       </div>
       {u.status === "suspended" ? (
@@ -130,6 +130,9 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
               hasEmail={Boolean(u.email)}
               emailVerified={Boolean(u.emailVerifiedAt)}
               badges={badges}
+              // Dynamic server page: evaluate expiry once per request, not in the client render.
+              // eslint-disable-next-line react-hooks/purity
+              badgeCheckAt={Date.now()}
               devices={devices}
               bans={bans.map((b) => ({ id: b.id, platform: b.platform, reason: b.reason, at: b.createdAt }))}
             />

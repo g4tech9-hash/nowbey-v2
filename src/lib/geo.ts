@@ -14,6 +14,16 @@ export type LayerDef = {
   overlayAttribution?: string;
 };
 
+/** Shared street tiles: use the canonical OSM endpoint, with visible attribution.
+ * Browser requests retain the site's referrer; do not proxy, bulk-download or prefetch tiles.
+ * For sustained high traffic, move to a contracted tile provider per OSM's tile usage policy.
+ */
+export const STREET_TILES = {
+  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19,
+};
+
 /**
  * Keyless tile sources. `hybrid` is what makes the map feel like Google:
  * high-resolution aerial imagery with street names and place labels drawn on top.
@@ -45,20 +55,15 @@ export const LAYERS: Record<LayerKey, LayerDef> = {
     label: "Road map",
     short: "Road",
     hint: "OpenStreetMap streets and buildings",
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    subdomains: "abc",
-    attribution: "&copy; OpenStreetMap contributors",
-    maxZoom: 19,
+    ...STREET_TILES,
   },
   streets: {
     key: "streets",
-    label: "Dark streets",
-    short: "Dark",
-    hint: "Night mode, easier on the eyes",
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    subdomains: "abc",
-    attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-    maxZoom: 20,
+    // Keep the key for saved preferences, but retire the CARTO endpoint that returns key-required tiles.
+    label: "Streets",
+    short: "Streets",
+    hint: "OpenStreetMap streets and buildings",
+    ...STREET_TILES,
   },
 };
 

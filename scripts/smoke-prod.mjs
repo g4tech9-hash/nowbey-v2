@@ -73,6 +73,13 @@ async function main() {
     if (health.json?.status !== "ready") warn("health status is not ready", JSON.stringify(health.json?.checks));
   }
 
+  // Configuration only: this cannot prove the Google console redirect, secret validity, or DB migration.
+  const google = await get("/api/auth/google/status");
+  check(google.status === 200 && typeof google.json?.enabled === "boolean", "Google sign-in status endpoint", `HTTP ${google.status}`);
+  if (google.json?.enabled === true) pass("Google sign-in credentials configured", "complete a real sign-in to verify provider credentials and migration");
+  else if (google.json?.enabled === false)
+    warn("Google sign-in disabled", "set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Vercel Production; apply src/db/add-google-auth.sql (TODO_HUMAN section 0c)");
+
   const home = await get("/");
   check(home.status === 200, "home page renders", `HTTP ${home.status}`);
   check(home.h("x-frame-options") === "DENY", "X-Frame-Options: DENY", home.h("x-frame-options") ?? "missing");

@@ -28,6 +28,7 @@ type Props = {
   emailVerified: boolean;
   /** Every badge ever granted to this member, newest first, revoked ones included. */
   badges: BadgeGrant[];
+  badgeCheckAt: number;
   /** Registered push devices. Token previews only — bans go by row id so the token stays server-side. */
   devices: { kind: "app" | "web"; id: string; label: string; at: Date | string }[];
   bans: { id: number; platform: string | null; reason: string | null; at: Date | string }[];
@@ -49,8 +50,8 @@ export function AdminUserActions(p: Props) {
   const [expiryDays, setExpiryDays] = useState("");
   const [note, setNote] = useState("");
 
-  const liveVerified = p.badges.filter((b) => b.badge === "verified" && !b.revokedAt);
-  const liveBroadcaster = p.badges.find((b) => b.badge === "broadcaster" && !b.revokedAt) ?? null;
+  const liveVerified = p.badges.filter((b) => b.badge === "verified" && !b.revokedAt && (!b.expiresAt || new Date(b.expiresAt).getTime() > p.badgeCheckAt));
+  const liveBroadcaster = p.badges.find((b) => b.badge === "broadcaster" && !b.revokedAt && (!b.expiresAt || new Date(b.expiresAt).getTime() > p.badgeCheckAt)) ?? null;
   const revoked = p.badges.filter((b) => b.revokedAt);
   const [broadcasterReason, setBroadcasterReason] = useState("");
 
@@ -83,9 +84,13 @@ export function AdminUserActions(p: Props) {
   return (
     <div className="space-y-5">
       <div>
-        <p className={LABEL}>Role</p>
+        <p className={LABEL}>Effective role</p>
+        <p className="mt-1 text-[13px] font-bold text-sand-100">
+          {p.role === "admin" || (p.envAdmin && p.emailVerified) ? "Admin (manages everything)" : p.role === "editor" ? "Editor (moderates reports and the wire)" : "Resident"}
+        </p>
+        <p className={`${LABEL} mt-3`}>Stored database role</p>
         <div className={`${row} mt-1`}>
-          <select value={role} onChange={(e) => setRole(e.target.value)} disabled={p.isSelf || p.envAdmin} className={`${INPUT} w-auto`} aria-label="Role">
+          <select value={role} onChange={(e) => setRole(e.target.value)} disabled={p.isSelf || p.envAdmin} className={`${INPUT} w-auto`} aria-label="Stored database role">
             <option value="resident">Resident</option>
             <option value="editor">Editor (moderates reports and the wire)</option>
             <option value="admin">Admin (manages everything)</option>
@@ -95,7 +100,7 @@ export function AdminUserActions(p: Props) {
           </button>
         </div>
         {p.isSelf ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">You cannot change your own role.</p> : null}
-        {p.envAdmin ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">This member is an admin through ADMIN_HANDLES in the server settings.</p> : null}
+        {p.envAdmin ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">{p.emailVerified ? "Admin access is granted through ADMIN_HANDLES and a confirmed email. The stored database role does not override that access." : "This handle is listed in ADMIN_HANDLES, but its email must be confirmed before environment-based admin access becomes active."}</p> : null}
       </div>
 
       <div>

@@ -24,6 +24,8 @@ export const color = {
 
   // Ink — text tiers. 100 is primary, 400 is the quietest still-AAA tier.
   text: "#eaf6f4", // ink-100
+  muted: "#a9cdc9", // legacy alias: ink-300
+  subtle: "#6e97a0", // legacy alias: ink-400
   ink100: "#eaf6f4",
   ink200: "#cfe4e2",
   ink300: "#a9cdc9",

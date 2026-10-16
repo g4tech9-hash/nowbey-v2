@@ -1,3 +1,5 @@
+import { stopBroadcast } from "@/lib/broadcast";
+import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -15,6 +17,7 @@ import { UUID_RE, readJson, text } from "@/lib/validate";
  * to an external middleware, replace that one call.
  */
 export async function PATCH(req: Request) {
+  if (hasBadOrigin(req)) return badOrigin();
   const gate = await requireStaff("editor");
   if (gate.error) return gate.error;
   const actorName = gate.viewer.handle ?? "staff";
@@ -27,12 +30,18 @@ export async function PATCH(req: Request) {
 
   const [s] = await db.select().from(liveStreams).where(eq(liveStreams.id, id)).limit(1);
   if (!s) return NextResponse.json({ error: "That broadcast no longer exists." }, { status: 404 });
-  if (s.status !== "live") return NextResponse.json({ error: "That broadcast already ended." }, { status: 409 });
+  if (s.status !== "live") {
+    try { if (s.playbackUrl === null) await stopBroadcast(id); }
+    catch { return NextResponse.json({ error: "Provider disconnect failed. Stop the room in LiveKit." }, { status: 502 }); }
+    return NextResponse.json({ ok: true });
+  }
 
   await db
     .update(liveStreams)
     .set({ status: "killed", killReason: reason, killedBy: actorName, endedAt: new Date() })
     .where(eq(liveStreams.id, id));
   await audit(actorName, "stream.kill", "stream", id, `“${s.title}” by @${s.authorHandle}`, reason);
+  try { if (s.playbackUrl === null) await stopBroadcast(id); }
+  catch { return NextResponse.json({ error: "Listing removed, but provider disconnect failed. Stop the room in the LiveKit dashboard." }, { status: 502 }); }
   return NextResponse.json({ ok: true });
 }

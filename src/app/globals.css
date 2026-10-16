@@ -363,7 +363,7 @@ canvas {
   --nb-safe-bottom: env(safe-area-inset-bottom, 0px);
   --nb-safe-top: env(safe-area-inset-top, 0px);
   /* Chrome heights, excluding safe areas (added separately where needed).
-     --nb-header-h tracks the sticky header (py-2.5 + ~36px row + border).
+     --nb-header-h tracks the in-flow header (py-2.5 + ~36px row + border).
      --nb-nav-h tracks the fixed bottom nav (48px targets + paddings + border). */
   --nb-header-h: 58px;
   --nb-nav-h: 70px;
@@ -373,7 +373,7 @@ canvas {
    0     map tiles and Leaflet panes (contained inside .leaflet-container)
    500   map chrome: search, layer pills, pegman, pin deck, FAB
    600   street-view overlay inside the map card
-   650   sticky site header
+   650   site header and its dropdown stacking context
    660   header dropdowns
    700   fixed bottom nav — always reachable, nothing may cover it
    900   transient drag ghosts (pegman) and toasts                                   */
@@ -419,7 +419,7 @@ html {
     min-height: 340px;
   }
 }
-/* Desktop /map workspace: exactly the viewport minus the sticky header and
+/* Desktop /map workspace: exactly the viewport minus the in-flow header and
    <main>'s padding (sm:pt-4 + lg:pb-10), the same contract .nb-fill-view gives
    phones. Without a bounded height the pin rail grew to all ~160 pins, the
    page ran for screens, and the map (capped, unstuck) scrolled away — the
@@ -767,12 +767,12 @@ html[data-low-data="true"] * { scroll-behavior: auto !important; }
    the admin default comes from site_settings.mode / NOWBEY_MODE.
    ===================================================================== */
 html[data-mode="light"] {
-  --color-abyss-975: #edf2f5;
-  --color-abyss-950: #f7fafb;
+  --color-abyss-975: #ece8df;
+  --color-abyss-950: #f5f3ed;
   --color-abyss-900: #ffffff;
-  --color-abyss-850: #fbfdfe;
-  --color-abyss-800: #e9f0f3;
-  --color-abyss-700: #dce7ec;
+  --color-abyss-850: #faf9f5;
+  --color-abyss-800: #e9efeb;
+  --color-abyss-700: #d4dfd9;
   --color-abyss-600: #7b96a1;
 
   --color-ink-100: #0a1a24;
@@ -782,8 +782,8 @@ html[data-mode="light"] {
 
   --color-tide-650: #00635a;
   --color-tide-600: #00756a;
-  --color-tide-500: #00897b;
-  --color-tide-400: #00897b;
+  --color-tide-500: #007d70;
+  --color-tide-400: #007d70;
   --color-tide-300: #00635a;
   --color-tide-200: #00443d;
 
@@ -835,8 +835,7 @@ html[data-mode="light"] {
 }
 html[data-mode="light"],
 html[data-mode="light"] body {
-  background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 137, 123, 0.05), transparent 60%),
-    radial-gradient(900px 500px at 5% 0%, rgba(214, 69, 80, 0.035), transparent 55%), var(--color-abyss-950);
+  background: var(--color-abyss-950);
   color: var(--color-ink-100);
 }
 html[data-mode="light"] body {
@@ -847,7 +846,7 @@ html[data-mode="light"] ::selection {
   color: #ffffff;
 }
 html[data-mode="light"] .glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(233, 240, 243, 0.85));
+  background: rgba(255, 255, 255, 0.96);
   border-color: rgba(16, 42, 58, 0.1);
   backdrop-filter: blur(20px) saturate(1.5);
   -webkit-backdrop-filter: blur(20px) saturate(1.5);
@@ -856,8 +855,38 @@ html[data-mode="light"] .hairline {
   border-color: rgba(16, 42, 58, 0.12);
 }
 html[data-mode="light"] .grain::before {
-  opacity: 0.035;
+  opacity: 0;
   background-image: radial-gradient(rgba(16, 42, 58, 0.35) 1px, transparent 1px);
+}
+/* Daylight furniture must not inherit the dark translucent navy header. */
+html[data-mode="light"] .glass-strong {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: #d4dfd9;
+  box-shadow: 0 2px 12px rgba(20, 50, 45, 0.06);
+}
+html[data-mode="light"] .nb-surface {
+  background: #ffffff;
+  border-color: #d4dfd9;
+  box-shadow: 0 2px 6px rgba(20, 50, 45, 0.04);
+}
+/* Primary actions need white text, not the warm page-background token. */
+html[data-mode="light"] :is(.bg-tide-500, .bg-tide-400).text-abyss-950 {
+  color: #ffffff !important;
+}
+/* Inline night-only chip colours previously bypassed the theme palette. */
+html[data-mode="light"] .nb-category-chip {
+  color: var(--color-ink-300) !important;
+  border-color: #cbd9d2 !important;
+  background: #ffffff !important;
+}
+html[data-mode="light"] .nb-category-chip[aria-current="true"] {
+  color: var(--category-text, var(--color-tide-300)) !important;
+  border-color: currentColor !important;
+  background: #e5f1ec !important;
+}
+html[data-mode="light"] .nb-category-chip:hover {
+  background: #edf4ef !important;
+  filter: none;
 }
 /* Hardcoded dark-ink utilities need explicit light counterparts. */
 html[data-mode="light"] .text-sand-100 {
@@ -868,7 +897,7 @@ html[data-mode="light"] .text-tide-400 {
   color: var(--color-tide-300) !important;
 }
 html[data-mode="light"] .nb-tagline {
-  color: var(--color-sun-600) !important;
+  color: var(--color-ink-300) !important;
 }
 /* Muted body copy that was hardcoded for dark. */
 html[data-mode="light"] :is(.text-\[\#a9cdc9\], .text-\[\#8fb9b6\], .text-\[\#6e97a0\], .text-\[\#bfe4e0\], .text-\[\#cfeee9\], .text-\[\#d6f5f1\], .text-\[\#e8f6f4\], .text-\[\#4f7a83\]) {

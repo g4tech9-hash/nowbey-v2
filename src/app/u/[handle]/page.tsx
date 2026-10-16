@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProfileAvatar } from "@/components/profile-avatar";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -73,18 +74,19 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
   return (
     <div className="mx-auto max-w-[680px] space-y-4">
-      <PageHead
-        eyebrow={isPrivate ? "Private profile" : "Profile"}
-        title={member.displayName || `@${member.handle}`}
-        blurb={`@${member.handle}${member.parish ? ` · ${member.parish}` : ""} · on NowBey since ${joined(member.createdAt)}`}
-        actions={
-          isSelf ? (
-            <Link href="/you/profile" className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8">
-              Edit your profile
-            </Link>
-          ) : null
-        }
-      />
+      <section className="overflow-hidden rounded-2xl border hairline bg-abyss-900">
+        <div className="h-24 bg-gradient-to-r from-tide-500/30 via-cyan-500/15 to-abyss-950" aria-hidden />
+        <div className="px-5 pb-5">
+          <div className="-mt-10 flex flex-wrap items-end justify-between gap-3">
+            <ProfileAvatar handle={member.handle} />
+            {isSelf ? <Link href="/you/profile" className="rounded-full border hairline px-4 py-2 text-sm font-bold hover:bg-white/8">Edit profile</Link> : null}
+          </div>
+          <h1 className="display mt-3 text-2xl font-extrabold text-sand-100">{member.displayName || member.handle}</h1>
+          <p className="text-sm text-tide-300">@{member.handle}</p>
+          <p className="mt-2 text-sm text-ink-400">{member.parish ?? "The Bahamas"} · Joined {joined(member.createdAt)}</p>
+          {settings.bio ? <p className="mt-3 whitespace-pre-line text-base text-ink-200">{settings.bio}</p> : null}
+        </div>
+      </section>
 
       {isPrivate ? (
         <p className="nb-surface rounded-xl border-sun-500/30 bg-sun-500/12 px-3.5 py-2.5 text-sm text-sun-600">
@@ -96,12 +98,11 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         <div className="flex flex-wrap items-center gap-2">
           {onDesk ? <BadgeMark kind="desk" /> : null}
           {grants.map((g, i) => (
-            <BadgeMark key={`${g.badge}-${i}`} kind={g.badge === "desk" ? "desk" : "verified"} />
+            <BadgeMark key={`${g.badge}-${i}`} kind={g.badge === "desk" || g.badge === "verified" || g.badge === "broadcaster" ? g.badge : null} />
           ))}
         </div>
       ) : null}
 
-      {settings.bio ? <p className="text-base leading-relaxed text-ink-200">{settings.bio}</p> : null}
 
       <dl className="grid grid-cols-3 gap-2">
         <div className="nb-surface p-3">

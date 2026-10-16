@@ -351,6 +351,12 @@ export default function MapWorkspace() {
           )}
         </div>
 
+        {/* One scroll owner: controls must never squeeze the reports to zero height. */}
+        <div className="nb-pin-rail-scroll nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3 lg:pr-1.5" tabIndex={0} aria-label="Pin filters and reports">
+        <details className="px-3 lg:px-0">
+          <summary className="min-h-[36px] cursor-pointer py-2 text-[11.5px] font-bold text-ink-400 hover:text-tide-300">
+            Island activity · {pulse.open} open pins
+          </summary>
         {/* Tideglass bento: island pulse (2/3) + open/confirmed tiles (1/3). */}
         <div className="grid flex-none grid-cols-3 gap-2 px-3 pt-2 lg:px-0">
           <section className="nb-surface col-span-2 p-3">
@@ -394,10 +400,12 @@ export default function MapWorkspace() {
           </div>
         </div>
 
+        </details>
+
         {/* Row B — category filters, always visible (they are the whole point of the list). */}
         <div className="flex-none px-3 pt-2 lg:px-0">
           <div className="flex items-center gap-1.5">
-            <div className="nb-no-scrollbar flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 lg:flex-wrap lg:overflow-visible lg:pb-0">
+            <div className="nb-no-scrollbar flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5">
               <FilterChip active={filter === "all"} onClick={() => { setFilter("all"); setListLimit(40); }} label={`All · ${rows.filter((r) => r.status !== "archived" && r.status !== "unfounded").length}`} />
               {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
                 <FilterChip
@@ -493,7 +501,7 @@ export default function MapWorkspace() {
           </div>
         ) : null}
 
-        <div className="nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3 lg:px-0 lg:pb-3 lg:pr-1.5">
+        <div className="mt-2 px-3 lg:px-0">
           {pickMode ? (
             <div className="nb-surface rounded-xl2 p-3.5">
               {step === "spot" ? (
@@ -748,6 +756,7 @@ export default function MapWorkspace() {
             </div>
           )}
         </div>
+        </div>
       </aside>
     </div>
   );
@@ -770,7 +779,8 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition duration-200 ease-standard active:scale-95"
+      aria-current={active ? "true" : undefined}
+      className="nb-category-chip min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition duration-200 ease-standard active:scale-95"
       style={{
         background: active ? `${color ?? "var(--color-tide-400)"}26` : "rgba(255,255,255,.05)",
         border: `1px solid ${active ? `${color ?? "var(--color-tide-400)"}66` : "rgba(255,255,255,.08)"}`,

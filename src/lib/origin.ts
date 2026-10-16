@@ -71,7 +71,7 @@ export function classifyOrigin(req: Request): OriginVerdict {
 export const UNSAFE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
 /** Server-to-server callers that never come from a browser and authenticate themselves (signatures). */
-const ORIGIN_EXEMPT = new Set(["/api/billing/webhook"]);
+const ORIGIN_EXEMPT = new Set(["/api/billing/webhook", "/api/streams/webhook"]);
 
 export function originExempt(path: string): boolean {
   return ORIGIN_EXEMPT.has(path);
