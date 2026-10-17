@@ -1,22 +1,21 @@
 # Rules for the archive EAS Build uploads to its build workers.
 #
 # Why this file exists: EAS CLI archives the project by copying every file except those matched by
-# .gitignore — and `expo/.gitignore` ignores `google-services.json`, the Firebase Android config the
-# deploy workflow writes from the FIREBASE_GOOGLE_SERVICES_JSON secret. Ignored means "not uploaded",
-# so the worker received a project whose app.json points at a file that was never there, and the build
-# failed before it compiled anything. `.easignore` is EAS's own escape hatch: it is used *instead of*
-# every .gitignore file in the repository, so the file can be kept out of Git (it is a credential) while
-# still reaching the build. Source: https://expo.fyi/eas-build-archive
+# .gitignore — and expo/.gitignore ignores google-services.json, the Firebase Android config the
+# deploy workflow writes from the FIREBASE_GOOGLE_SERVICES_JSON secret. Ignored means "not
+# uploaded", so the worker received a project whose app.json pointed at a file that was never
+# there, and the build failed before it compiled anything. .easignore is EAS's own escape hatch:
+# it is used *instead of* every .gitignore file in the repository, so the file can be kept out
+# of Git (it is a credential) while still reaching the build. Source: https://expo.fyi/eas-build-archive
 #
 #   *** KEEP THIS FILE IN STEP WITH THE .gitignore FILES ***
-# Once .easignore exists, no .gitignore is consulted anywhere in the repository — not the root one,
-# not expo/.gitignore. Any rule added to either of those must be copied here too, or EAS will upload
-# that path. The only deliberate differences are google-services.json and GoogleService-Info.plist
-# at the bottom of this file.
+# Once .easignore exists, no .gitignore is consulted anywhere in the repository — not the root
+# one, not expo/.gitignore. Any rule added to either of those must be copied here too, or EAS
+# will upload that path. The only deliberate difference is google-services.json at the bottom.
 #
-# Notably: the local .env, .env.local, .env.vercel, .neon.txt and .data entries below are secrets that
-# live on developer machines. They are restated here for exactly that reason — a build run from a
-# laptop would otherwise upload them.
+# Notably: the local .env, .env.local, .env.vercel, .neon.txt and .data entries below are secrets
+# that live on developer machines. They are restated here for exactly that reason — a build run
+# from a laptop would otherwise upload them.
 
 # --- root .gitignore, restated ---
 node_modules
@@ -60,9 +59,6 @@ expo/.claude/preflight-logs/
 # --- deliberately NOT ignored ---
 # google-services.json is written by the "Install Firebase Android configuration" step in
 # .github/workflows/deploy.yml and must be inside the uploaded archive: app.json declares it as
-# android.googleServicesFile. iOS uses GoogleService-Info.plist for FCM on iOS (written from the
-# FIREBASE_GOOGLE_SERVICE_INFO_PLIST secret when an iOS build is requested). Both stay out of Git
-# (expo/.gitignore still ignores them for the working tree), and the archive itself is transferred
-# over TLS to Expo's private storage.
+# android.googleServicesFile. It stays out of Git (expo/.gitignore still ignores it for the
+# working tree), and the archive itself is transferred over TLS to Expo's private storage.
 !google-services.json
-!GoogleService-Info.plist
