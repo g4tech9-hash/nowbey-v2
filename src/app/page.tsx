@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { BRAND } from "@/lib/brand";
 import { getViewer } from "@/lib/viewer";
@@ -30,6 +31,9 @@ export const metadata: Metadata = {
   description:
     "A community map for The Bahamas. See neighbourhood reports, follow local news, and set email alerts for your island. Starting in New Providence.",
 };
+
+// The landing is decided per visitor: members never see it, so it must never be cached as a static page.
+export const dynamic = "force-dynamic";
 
 const SECTIONS = [
   {
@@ -88,6 +92,9 @@ const SECTIONS = [
 
 export default async function Landing() {
   const viewer = await getViewer();
+  // The landing page is only for visitors who are not signed in. A member who arrives here
+  // is sent straight to the community feed — the home page of the signed-in app.
+  if (viewer.signedIn) redirect("/feed");
 
   return (
     <div className={styles.landing}>
