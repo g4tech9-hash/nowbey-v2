@@ -4,7 +4,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildCsp, newNonce } from "../src/lib/csp.ts";
+import { buildCsp, isWorkerScriptPath, newNonce } from "../src/lib/csp.ts";
 
 test("nonces are random, long enough, and base64", () => {
   const a = newNonce();
@@ -30,4 +30,12 @@ test("objects, base URIs, forms and framing are locked down", () => {
   assert.ok(csp.includes("base-uri 'self'"));
   assert.ok(csp.includes("form-action 'self'"));
   assert.ok(csp.includes("frame-ancestors 'none'"));
+});
+
+test("the two service-worker scripts skip the page policy, and nothing else does", () => {
+  assert.equal(isWorkerScriptPath("/sw.js"), true);
+  assert.equal(isWorkerScriptPath("/firebase-messaging-sw.js"), true);
+  for (const p of ["/", "/map", "/sw.js/extra", "/api/sw.js", "/firebase-messaging-sw.js.map", "/manifest.webmanifest"]) {
+    assert.equal(isWorkerScriptPath(p), false, p);
+  }
 });

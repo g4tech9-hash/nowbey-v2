@@ -30,3 +30,15 @@ export function buildCsp(nonce: string): string {
     "frame-ancestors 'none'",
   ].join("; ");
 }
+
+/**
+ * Service-worker scripts are not documents. Their own response headers govern what they can import, and the
+ * Firebase worker imports its SDK from gstatic.com, which the page policy deliberately does not allow for scripts.
+ * So these two paths are served without the page policy.
+ */
+const WORKER_SCRIPT_PATHS = new Set(["/sw.js", "/firebase-messaging-sw.js"]);
+
+export function isWorkerScriptPath(path: string): boolean {
+  return WORKER_SCRIPT_PATHS.has(path);
+}
+

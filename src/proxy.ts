@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { CORS_HEADERS, UNSAFE_METHODS, classifyOrigin, originExempt } from "@/lib/origin";
-import { buildCsp, newNonce } from "@/lib/csp";
+import { buildCsp, isWorkerScriptPath, newNonce } from "@/lib/csp";
 
 /**
  * Turns a web address with broken % escapes ("/life/%", "/api/photos/%E0%A4%A") into a plain 400 before it reaches
@@ -36,6 +36,8 @@ export function proxy(req: NextRequest) {
  * what it would block, and the framework reads the nonce from the request header to tag its own scripts.
  */
 function page(req: NextRequest) {
+  // Service-worker scripts get no page policy: see isWorkerScriptPath in src/lib/csp.ts.
+  if (isWorkerScriptPath(new URL(req.url).pathname)) return NextResponse.next();
   const nonce = newNonce();
   const csp = buildCsp(nonce);
   // Start from the incoming headers: passing a new Headers object would drop cookies and everything else.
