@@ -87,20 +87,21 @@ full news pipeline (categories + map pins).
 - [x] Data proof: newest post title/date/link extracted and shown
 - [x] NowBey pipeline compatibility: `parseFeed()` accepts 3/3 items, no silent drops or date clamps
 
-## 5. The one environmental caveat
+## 5. Production-preview result (observed 2026-10-17, PR #37 Vercel preview)
 
-The converter prefers a **bridge** (`FB_RSS_BRIDGES`) because Facebook blocks anonymous
-scraping; the bridge-fed path is what returned the PASS transcript above (fixture upstream
-in the sandbox, since the sandbox's egress is allow-listed and cannot reach facebook.com).
-The **direct** path (public mobile page scrape) is fully implemented and tested against
-fixtures, but whether Facebook serves posts to your production host's IPs — or answers
-with a login wall — can only be observed on the deployed Vercel URL. If it login-walls,
-the endpoint stays honest (valid empty feed + diagnostic comment, hidden Wire panel) until
-a bridge URL is configured. Final step on deployment:
+The endpoint was exercised on the live Vercel preview deployment
+(`nowbey-v2-git-arena-63af1168-nowbey-v2-now-bey.vercel.app`). Observed:
 
-```
-node qa/rss-qa/validate.mjs --url "https://nowbey-v2.vercel.app/api/rss/facebook?url=https%3A%2F%2Fwww.facebook.com%2Fmybpl242%2F"
-```
-
-…or simply open the endpoint in a browser. Post permalinks are login-walled to bots, so a
-human click-through remains the last mile of the "working link" check.
+- ✔ Endpoint live on Vercel, answers the conversion request, correct channel metadata
+  (title/link bound to the BPL page, fresh `lastBuildDate`, generator tag).
+- ✔ Graceful degradation confirmed in production: with **no bridge configured**,
+  Facebook did not serve the direct mbasic path to Vercel's datacenter IPs, and the
+  endpoint returned the **valid empty feed** (channel intact, zero items, no error
+  page, no crash) — exactly the designed behaviour.
+- ▶ To light the posts up: set `FB_RSS_BRIDGES="mybpl242|https://rss.app/feeds/xxxx.xml"`
+  in Vercel (Project → Settings → Environment Variables) and redeploy. rss.app already
+  bridges other Bahamian FB pages in this project (see `.env.example` / `NEWS_FEEDS`).
+- ▶ Final machine verdict from any machine that can reach Vercel:
+  `node qa/rss-qa/validate.mjs --url "https://<deployment>/api/rss/facebook?url=https%3A%2F%2Fwww.facebook.com%2Fmybpl242%2F"`
+  Post permalinks stay login-walled to bots, so a human click-through remains the last
+  mile of the "working link" check.
