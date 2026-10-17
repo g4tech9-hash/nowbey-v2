@@ -1,6 +1,6 @@
 import { NextResponse, after } from "next/server";
 import { and, desc, eq, gte, lte, ne, notInArray, or, ilike, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
 import { incidents } from "@/db/schema";
 import { badgesFor } from "@/lib/badges";
 import { HIDDEN_STATUSES } from "@/lib/command";
@@ -15,7 +15,7 @@ import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo"
 import { isLikelyDuplicateIncident } from "@/lib/collect";
 import { clientIp, sharedHit, tooMany } from "@/lib/ratelimit";
 import { pinPrivacyMeters, storedPinFor } from "@/lib/location-privacy";
-import { badOrigin, hasBadOrigin } from "@/lib/http";
+import { badOrigin, dbNotConfigured, hasBadOrigin } from "@/lib/http";
 import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
 
 
@@ -23,6 +23,9 @@ import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
 const CATEGORIES = new Set<string>(CATEGORY_KEYS);
 
 export async function GET(req: Request) {
+  // No database → a readable 503 JSON. The map shows `error` verbatim; without this it got an
+  // HTML/empty 500 page and reported "JSON.parse: unexpected end of data" instead of a sentence.
+  if (!hasDatabase()) return dbNotConfigured();
   // Keep official (NHC etc.) pins fresh off the map's own traffic; guarded so it can never break the map.
   after(() => refreshOfficialIfStale());
   const { searchParams } = new URL(req.url);
@@ -71,6 +74,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   if (hasBadOrigin(req)) return badOrigin();
+  if (!hasDatabase()) return dbNotConfigured();
   // Shared across serverless instances (the in-memory limiter gave each instance its own count).
   const gate = await sharedHit(`report:${clientIp(req)}`, 15, 60 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "reports");

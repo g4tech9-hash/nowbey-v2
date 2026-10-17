@@ -4,6 +4,20 @@ export const jsonError = (error: string, status = 400) =>
   NextResponse.json({ error }, { status });
 
 /**
+ * The answer route handlers give when this deployment has no DATABASE_URL at all.
+ * Keeping it JSON matters: a thrown error made Next return an HTML/empty 500, and the map's
+ * `response.json()` surfaced as "JSON.parse: unexpected end of data" instead of a sentence.
+ * Clients render `error` verbatim, so keep it plain and human — 503 also tells health checks
+ * and retries that this is temporary, not a bug in the request.
+ */
+export function dbNotConfigured(): NextResponse {
+  return NextResponse.json(
+    { error: "NowBey is not fully set up yet — the database is not connected to this deployment. Please try again shortly." },
+    { status: 503, headers: { "Cache-Control": "no-store" } },
+  );
+}
+
+/**
  * Blocks cross-site form-POST CSRF on cookie-authed mutations.
  * Same-page fetch sends Origin matching host (or no Origin for native/curl);
  * a forged evil.com form sends Origin: https://evil.com.

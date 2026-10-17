@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { newsItems } from "@/db/schema";
 import { AdSlot } from "@/components/ad-slot";
 import { Discussion } from "@/components/engage/discussion";
@@ -17,6 +18,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  // No database configured → the page below renders the setup notice, so keep the title generic.
+  if (!hasDatabase()) return { title: "News wire" };
   if (!UUID_RE.test(id)) return { title: "Story not found" };
   const [row] = await db.select({ title: newsItems.title, review: newsItems.review }).from(newsItems).where(eq(newsItems.id, id)).limit(1);
   return { title: row && row.review === "approved" ? row.title : "News wire" };
@@ -24,6 +27,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function StoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="News wire"
+        title="This story opens once the database is connected"
+        blurb="The wire needs its database before any story can be read and discussed here. This deployment just needs its DATABASE_URL first."
+      />
+    );
+  }
   if (!UUID_RE.test(id)) notFound();
   const [story] = await db.select().from(newsItems).where(eq(newsItems.id, id)).limit(1);
   if (!story) notFound();

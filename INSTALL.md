@@ -21,6 +21,28 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 npm run dev
 ```
 
+### No database yet? `npm run dev` still works
+
+With **no `DATABASE_URL` set**, the dev server boots an embedded Postgres automatically
+([PGlite](https://pglite.dev), real PostgreSQL compiled to WASM — no Docker, no Neon account
+needed for a first look):
+
+- the full schema is applied from the generated migrations in `drizzle/`
+- a handful of clearly-marked demo pins and wire stories are seeded, so the map, feed and wire
+  have content immediately
+- data persists in `.data/pglite` — delete that folder to reset to the demo set
+
+Set `DATABASE_URL` (`.env`) and the embedded database is never used. Production behavior is
+untouched: a deployment without `DATABASE_URL` shows "setup not finished" pages and 503 JSON
+APIs rather than crashing, and never starts the embedded database.
+
+After changing `src/db/schema.ts`, regenerate the migrations so the dev database (and
+`drizzle-kit migrate` on a real one) stays in step:
+
+```bash
+npm run db:gen   # drizzle-kit generate → new SQL file in drizzle/
+```
+
 ## 2. Mobile Setup
 ```bash
 # Navigate to expo folder
@@ -54,4 +76,4 @@ Each variable is ticked for one or more of **Production / Preview / Development*
 - `AUTH_SECRET` — at least 32 characters. Required in production; without it sign-in fails and pages log the reason.
 - `CRON_SECRET`, `APP_URL`, plus any of the optional keys in `.env.example` for the features you use.
 
-Since the site renders every page on demand, a missing variable shows up as a runtime error, not a build failure: the build passes, `/api/health` answers `{"ok":false}`, and the server log names the variable that is missing. Add it, then redeploy (environment changes only apply to new deployments).
+Since the site renders every page on demand, a missing variable shows up at runtime, not as a build failure: the build passes and `/api/health` answers `{"ok":false}`. For `DATABASE_URL` specifically the site degrades gracefully — data-backed pages show a "setup not finished" panel with these exact steps, and API routes answer a readable 503 JSON — so a forgotten variable can no longer take a deployment down. Add it, then redeploy (environment changes only apply to new deployments).

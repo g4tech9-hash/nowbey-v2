@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { and, count, desc, eq, gte, ilike, inArray, ne, notInArray, or, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { incidentUpdates, incidents, newsItems } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { IncidentCard } from "@/components/incident-card";
@@ -99,6 +100,17 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const statusIn = first(sp.status);
   const status = statusIn === "all" || statusIn === "resolved" ? statusIn : "active";
   const hours = clampInt(first(sp.hours), 0, 0, 24 * 365);
+
+  // A deployment without DATABASE_URL gets the setup notice rather than an error boundary.
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="Community feed"
+        title="The feed goes live once the database is connected"
+        blurb="Neighbours' pins — floods, outages, road damage and safety hazards — will appear here and on the map. This deployment just needs its DATABASE_URL first."
+      />
+    );
+  }
 
   const query: HomeQuery = { status, category, parish, q, hours };
   // Search text is not cached: free text would make an unbounded number of cache entries.

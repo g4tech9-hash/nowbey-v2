@@ -6,6 +6,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "db:gen": "drizzle-kit generate",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
@@ -38,6 +39,7 @@
     "stripe": "^23.0.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.10",
     "@tailwindcss/postcss": "4.1.17",
     "@types/dompurify": "^3.0.5",
     "@types/node": "22.19.15",

@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Arena's live preview is served from a per-session subdomain of e2b.app.
   allowedDevOrigins: ["*.e2b.app"],
+  // The embedded dev Postgres (src/db/dev.ts) ships a WASM build of PostgreSQL. Bundling it
+  // would copy the .wasm away from the path the package looks for it at; as an external
+  // package it is required straight from node_modules at runtime, and only ever in development.
+  serverExternalPackages: ["@electric-sql/pglite"],
   // Type errors fail the build on purpose: `npm run typecheck` is clean,
   // so a red Vercel build means a real regression, not background noise.
   async headers() {

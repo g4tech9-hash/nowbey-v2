@@ -1,20 +1,21 @@
 import { NextResponse } from "next/server";
 import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gte, or, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
 import { alertSubscriptions } from "@/db/schema";
 import { CATEGORY_KEYS, PARISHES, inBahamas } from "@/lib/geo";
 import { getViewer } from "@/lib/viewer";
 import { publicBase } from "@/lib/billing";
 import { emailButton, emailLayout, sendMail } from "@/lib/mail";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
-import { badOrigin, hasBadOrigin } from "@/lib/http";
+import { badOrigin, dbNotConfigured, hasBadOrigin } from "@/lib/http";
 import { EMAIL_RE, clampInt, numOrNull, text, readJson, dbInt } from "@/lib/validate";
 
 
 
 export async function POST(req: Request) {
   if (hasBadOrigin(req)) return badOrigin();
+  if (!hasDatabase()) return dbNotConfigured();
   // Every request here sends an email to an address the visitor typed, so it must not be usable to spam someone.
   const gate = hit(`alert:${clientIp(req)}`, 6, 60 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "alert sign-ups");
@@ -137,6 +138,7 @@ export async function POST(req: Request) {
 /** Stop an alert profile: with the secret token from an email, or by id while signed in as its owner. */
 export async function DELETE(req: Request) {
   if (hasBadOrigin(req)) return badOrigin();
+  if (!hasDatabase()) return dbNotConfigured();
   const gate = hit(`alertdel:${clientIp(req)}`, 30, 10 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "requests");
   const body = await readJson(req);

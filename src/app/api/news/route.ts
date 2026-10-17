@@ -1,6 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { and, desc, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { dbNotConfigured } from "@/lib/http";
 import { newsItems } from "@/db/schema";
 import { CATEGORY_KEYS, knownParish } from "@/lib/geo";
 import { configuredFeeds, refreshIfStale, runIngest } from "@/lib/ingest";
@@ -25,6 +26,8 @@ async function refreshThenEnrich(enrichLimit = 6): Promise<void> {
 }
 
 export async function GET(req: Request) {
+  // Same contract as /api/incidents: a readable 503 JSON the map can show, never an HTML 500.
+  if (!hasDatabase()) return dbNotConfigured();
   after(() => refreshThenEnrich());
   const { searchParams } = new URL(req.url);
   const parish = knownParish(searchParams.get("parish"));
@@ -48,6 +51,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (!hasDatabase()) return dbNotConfigured();
   // Anyone can press Refresh, so cap how often one visitor can make the server call out to the outlets.
   const gate = hit(`ingest:${clientIp(req)}`, 6, 10 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "refreshes");

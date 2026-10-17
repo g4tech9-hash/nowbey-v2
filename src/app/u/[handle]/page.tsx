@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { users } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { BadgeMark } from "@/components/verified-badge";
@@ -28,6 +29,15 @@ const joined = (d: Date) => d.toLocaleDateString("en-US", { month: "long", year:
  */
 export default async function PublicProfilePage({ params }: { params: Promise<{ handle: string }> }) {
   const { handle } = await params;
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="Member profile"
+        title="Profiles open once the database is connected"
+        blurb="Member profiles live in the database, so this deployment needs its DATABASE_URL before this page can load."
+      />
+    );
+  }
   const [member] = await db.select().from(users).where(eq(users.handle, normalizeHandle(handle))).limit(1);
   if (!member || member.status === "suspended") notFound();
 

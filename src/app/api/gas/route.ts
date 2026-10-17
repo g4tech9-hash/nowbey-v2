@@ -1,22 +1,25 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq, gt } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
 import { gasReports } from "@/db/schema";
 import { PARISHES } from "@/lib/geo";
 import { MAX_CENTS, MIN_CENTS, gasBoard, isFuel, median } from "@/lib/gas";
 import { hit, tooMany } from "@/lib/ratelimit";
+import { dbNotConfigured } from "@/lib/http";
 import { text, readJson } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
 
 
 export async function GET(req: Request) {
+  if (!hasDatabase()) return dbNotConfigured();
   const parish = new URL(req.url).searchParams.get("parish");
   const known = parish && (PARISHES as readonly string[]).includes(parish) ? parish : null;
   return NextResponse.json(await gasBoard(known));
 }
 
 export async function POST(req: Request) {
+  if (!hasDatabase()) return dbNotConfigured();
   const viewer = await getViewer();
   if (!viewer.signedIn || !viewer.userId) return NextResponse.json({ error: "Sign in to report a gas price." }, { status: 401 });
   const gate = hit(`gas:${viewer.userId}`, 12, 24 * 60 * 60_000);
