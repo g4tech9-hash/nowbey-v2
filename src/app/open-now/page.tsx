@@ -36,12 +36,12 @@ export default async function OpenNowPage() {
             return (
               <li key={row.id} className="nb-surface rounded-xl2 p-4">
                 <div className="flex flex-wrap items-start gap-2">
-                  <div className="min-w-0 flex-1"><p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">{LABELS[row.kind] ?? row.kind}</p><h2 className="display text-[16px] font-extrabold text-sand-100">{row.name}</h2></div>
-                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-extrabold ${state.cls}`}>{state.label}</span>
+                  <div className="min-w-0 flex-1"><p className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">{LABELS[row.kind] ?? row.kind}</p><h2 className="display text-[16px] font-extrabold text-sand-100">{row.name}</h2></div>
+                  <span className={`rounded-full px-2.5 py-1 text-[11.5px] font-extrabold ${state.cls}`}>{state.label}</span>
                 </div>
                 <p className="mt-1 text-[12.5px] text-ink-300">{row.address ? `${row.address} · ` : ""}{row.parish}</p>
                 {row.note ? <p className="mt-2 text-[13px] leading-relaxed text-ink-200">{row.note}</p> : null}
-                <p className="mt-2 text-[11px] text-ink-400">Updated {timeAgo(row.updatedAt)}{row.verified ? " · ✓ checked by NowBey" : " · community information"}</p>
+                <p className="mt-2 text-[11.5px] text-ink-400">Updated {timeAgo(row.updatedAt)}{row.verified ? " · ✓ checked by NowBey" : " · community information"}</p>
                 {row.sourceUrl ? <a href={row.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-[11.5px] font-bold text-tide-300 underline">Open source</a> : null}
               </li>
             );

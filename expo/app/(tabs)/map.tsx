@@ -141,7 +141,7 @@ export default function MapTab() {
                   style={{
                     color: mode === m.key ? color.bg : color.muted,
                     backgroundColor: mode === m.key ? color.tide : "transparent",
-                    fontSize: 11,
+                    fontSize: 11.5,
                     fontWeight: "800",
                     paddingHorizontal: 10,
                     paddingVertical: 6,
@@ -184,7 +184,7 @@ export default function MapTab() {
               >
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                   <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: CATEGORIES[k].color }} />
-                  <Text style={[t.subtle, { flex: 1, fontSize: 10, fontWeight: "800", letterSpacing: 0.6 }]} numberOfLines={1}>
+                  <Text style={[t.subtle, { flex: 1, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.6 }]} numberOfLines={1}>
                     {CATEGORIES[k].label.toUpperCase()}
                   </Text>
                 </View>
@@ -217,6 +217,8 @@ export default function MapTab() {
             <Pressable
               key={r.id}
               onPress={() => select(r)}
+              accessibilityRole="button"
+              accessibilityLabel={`${r.title}, ${CATEGORIES[r.category as CategoryKey]?.label ?? r.category}, severity ${sev} of 5${r.street ? `, ${r.street}` : ""}`}
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -235,7 +237,7 @@ export default function MapTab() {
                   {r.title}
                 </Text>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 }}>
-                  <Text style={[t.subtle, { fontSize: 11, fontVariant: ["tabular-nums"] }]} numberOfLines={1}>
+                  <Text style={[t.subtle, { fontSize: 11.5, fontVariant: ["tabular-nums"] }]} numberOfLines={1}>
                     {r.street ?? "Unmapped"} · {timeAgo(r.createdAt)}
                   </Text>
                   <View style={{ flexDirection: "row", gap: 2 }} accessibilityLabel={`Severity ${Math.min(Math.max(r.severity ?? 1, 1), 5)} of 5`}>
@@ -262,7 +264,7 @@ export default function MapTab() {
 
         {mode === "list" ? (
           <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
-            <Btn label="+ Pin a spot" onPress={() => router.push("/report")} />
+            <Btn label="+ Report a hazard" onPress={() => router.push("/report")} />
           </View>
         ) : null}
       </View>
@@ -271,7 +273,7 @@ export default function MapTab() {
         <Pressable
           onPress={() => router.push("/report")}
           accessibilityRole="button"
-          accessibilityLabel="Pin a spot"
+          accessibilityLabel="Report a hazard"
           style={{
             position: "absolute",
             right: 16,
@@ -288,7 +290,7 @@ export default function MapTab() {
             elevation: 8,
           }}
         >
-          <Text style={{ color: color.bg, fontSize: 13, fontWeight: "800" }}>+ Pin a spot</Text>
+          <Text style={{ color: color.bg, fontSize: 13, fontWeight: "800" }}>+ Report a hazard</Text>
         </Pressable>
       ) : null}
     </View>

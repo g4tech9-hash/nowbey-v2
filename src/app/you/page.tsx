@@ -79,21 +79,21 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         {/* Island Record: the numbers that say who you are on this island. */}
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Your island record">
           <div className="nb-surface p-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Reports</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Reports</p>
             <p className="num display mt-1 text-2xl font-extrabold text-tide-300">{mine.length}</p>
           </div>
           <div className="nb-surface p-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmed</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmed</p>
             <p className="num display mt-1 text-2xl font-extrabold text-ok-500">
               {mine.reduce((s, r) => s + r.confirmations, 0).toLocaleString("en-US")}
             </p>
           </div>
           <div className="nb-surface p-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Home island</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Home island</p>
             <p className="display mt-1 truncate text-[15px] font-extrabold text-sand-100">{viewer.parish ?? "Not set"}</p>
           </div>
           <div className="nb-surface p-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Plan</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Plan</p>
             <p className="display mt-1 truncate text-[15px] font-extrabold" style={{ color: tier?.tone ?? "var(--color-ink-200)" }}>
               {tier?.name ?? "Free"}
             </p>
@@ -147,7 +147,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         <section className="nb-surface rounded-xl2 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <p className="display text-base font-extrabold tracking-tight text-sand-100">Your reports</p>
-            <span className="num rounded-full bg-white/8 px-2 py-0.5 text-[11px] text-ink-300">
+            <span className="num rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] text-ink-300">
               {mine.reduce((s, r) => s + r.confirmations, 0)} confirmations collected
             </span>
             <Link href="/report" className="ml-auto rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950">

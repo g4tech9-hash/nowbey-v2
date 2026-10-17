@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MODES, MODE_KEYS, THEMES, THEME_KEYS, type ModeKey, type ThemeKey } from "@/lib/themes";
+import { MODES, MODE_KEYS, SCENE_PHOTOS_PRESENT, THEMES, THEME_KEYS, type ModeKey, type ThemeKey } from "@/lib/themes";
 
 type Props = { theme: ThemeKey; mode: ModeKey; splashPref: boolean; themeLocked: boolean; modeLocked: boolean; splashLocked: boolean };
 
@@ -47,7 +47,7 @@ export function AppearanceForm(props: Props) {
   return (
     <div className="space-y-5">
       <fieldset>
-        <legend className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Look</legend>
+        <legend className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Look</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
           {THEME_KEYS.map((key) => {
             const on = theme === key;
@@ -60,7 +60,7 @@ export function AppearanceForm(props: Props) {
                 <div
                   className="h-28 w-full"
                   style={
-                    key === "island"
+                    key === "island" && SCENE_PHOTOS_PRESENT
                       ? { backgroundImage: "linear-gradient(180deg, rgba(3,18,27,.2), rgba(3,18,27,.75)), url(/scenes/aerial.jpg)", backgroundSize: "cover", backgroundPosition: "center" }
                       : { background: "radial-gradient(500px 200px at 85% -10%, rgba(0,201,183,.25), transparent 60%), radial-gradient(400px 200px at 5% 0%, rgba(255,122,107,.16), transparent 55%), #03121b" }
                   }
@@ -69,7 +69,7 @@ export function AppearanceForm(props: Props) {
                 <div className="p-3">
                   <p className="display flex items-center gap-2 text-[15px] font-extrabold text-sand-100">
                     {THEMES[key].label}
-                    {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
+                    {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
                   </p>
                   <p className="mt-0.5 text-[12.5px] leading-snug text-ink-300">{THEMES[key].blurb}</p>
                 </div>
@@ -85,7 +85,7 @@ export function AppearanceForm(props: Props) {
       </fieldset>
 
       <fieldset>
-        <legend className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Brightness (default for new visitors)</legend>
+        <legend className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Brightness (default for new visitors)</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
           {MODE_KEYS.map((key) => {
             const on = mode === key;
@@ -103,7 +103,7 @@ export function AppearanceForm(props: Props) {
                 <div className="p-3">
                   <p className="display flex items-center gap-2 text-[15px] font-extrabold text-sand-100">
                     {MODES[key].label}
-                    {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
+                    {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
                   </p>
                   <p className="mt-0.5 text-[12.5px] leading-snug text-ink-300">{MODES[key].blurb}</p>
                 </div>

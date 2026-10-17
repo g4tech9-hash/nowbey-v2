@@ -75,7 +75,7 @@ export default async function ReportsAdmin({ searchParams }: { searchParams: Pro
             <li key={r.id} className="glass flex flex-wrap items-start justify-between gap-3 rounded-2xl p-3.5" style={{ boxShadow: `inset 3px 0 0 ${c.color}` }}>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: c.color }}>
+                  <span className="text-[11.5px] font-extrabold uppercase tracking-wide" style={{ color: c.color }}>
                     {c.label}
                   </span>
                   <Pill tone={r.status === "active" ? "sun" : r.status === "archived" ? "conch" : "slate"}>{r.status === "archived" ? "hidden" : r.status}</Pill>

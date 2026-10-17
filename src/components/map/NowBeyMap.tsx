@@ -23,6 +23,18 @@ import {
 } from "@/lib/geo";
 import { clusterPins } from "@/lib/cluster";
 
+/**
+ * Leaflet draws markers as bare elements with no name, so a screen reader hears "button" with nothing to say.
+ * Name each marker once it is on the map (the element does not exist before that).
+ */
+function nameMarker(label: string) {
+  return {
+    add: (e: { target: { getElement?: () => HTMLElement | undefined } }) => {
+      e.target.getElement?.()?.setAttribute("aria-label", label);
+    },
+  };
+}
+
 export type MapPin = {
   id: string;
   lat: number;
@@ -50,6 +62,9 @@ export type PickResult = {
 };
 
 type Props = {
+  /** Changing this re-frames the view on `fitPoints` (the page passes its filter here). The first value keeps the default view. */
+  fitKey?: string;
+  fitPoints?: [number, number][];
   pins?: MapPin[];
   mode?: "browse" | "pick";
   value?: { lat: number; lng: number } | null;
@@ -158,6 +173,8 @@ function Bridge({
 }
 
 export default function NowBeyMap({
+  fitKey,
+  fitPoints,
   pins = [],
   mode = "browse",
   value,
@@ -420,6 +437,40 @@ export default function NowBeyMap({
 
   // Finding a pin is easier when the map starts on the member's own spot. Asked once, only when they are placing a
   // pin with nothing chosen yet, and only if they say yes to the browser's location prompt.
+  // Re-frame the view when the page's filter changes. The first run keeps the default view.
+  const lastFit = useRef<string | null>(null);
+  useEffect(() => {
+    if (!map || fitKey === undefined) return;
+    if (lastFit.current === null) {
+      lastFit.current = fitKey;
+      return;
+    }
+    if (lastFit.current === fitKey) return;
+    lastFit.current = fitKey;
+    if (!fitPoints || fitPoints.length === 0) return;
+    if (fitPoints.length === 1) map.setView(fitPoints[0], Math.max(map.getZoom(), 15));
+    else map.fitBounds(L.latLngBounds(fitPoints), { padding: [40, 40], maxZoom: 16 });
+  }, [map, fitKey, fitPoints]);
+
+  // "Locate me": one position read, shown on the map and never stored.
+  const [locating, setLocating] = useState<string | null>(null);
+  function locateMe() {
+    if (!map) return;
+    if (!("geolocation" in navigator)) {
+      setLocating("This device cannot share a location.");
+      return;
+    }
+    setLocating("Finding you…");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        map.flyTo([pos.coords.latitude, pos.coords.longitude], Math.max(map.getZoom(), 16), { duration: 0.8 });
+        setLocating(null);
+      },
+      () => setLocating("Could not get your location. Check the browser's location permission."),
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
+    );
+  }
+
   const locatedOnce = useRef(false);
   useEffect(() => {
     if (!map || mode !== "pick" || value || locatedOnce.current) return;
@@ -489,6 +540,7 @@ export default function NowBeyMap({
                   zIndexOffset={400}
                   eventHandlers={{
                     click: () => map?.flyTo([group.lat, group.lng], Math.min(18, zoomNow + 2), { duration: 0.6 }),
+                    ...nameMarker(`${group.pins.length} reports near here. Press to zoom in.`),
                   }}
                 >
                   <Popup>
@@ -507,16 +559,19 @@ export default function NowBeyMap({
                 position={[pin.lat, pin.lng]}
                 icon={iconFor(pin, selected === pin.id)}
                 zIndexOffset={selected === pin.id ? 800 : 0}
-                eventHandlers={{ click: () => setSelected(pin.id) }}
+                eventHandlers={{
+                  click: () => setSelected(pin.id),
+                  ...nameMarker(`${pin.label ?? CATEGORIES[pin.category]?.label ?? pin.category}: ${pin.title}`),
+                }}
               >
                 <Popup>
                   <div className="space-y-1">
-                    <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: pin.color ?? CATEGORIES[pin.category]?.color }}>
+                    <p className="text-[11.5px] font-bold uppercase tracking-wide" style={{ color: pin.color ?? CATEGORIES[pin.category]?.color }}>
                       {pin.label ?? CATEGORIES[pin.category]?.label ?? pin.category}
                     </p>
                     <p className="font-semibold leading-snug">{pin.title}</p>
                     {pin.meta ? <p className="text-[12px] text-[#9fc4c9]">{pin.meta}</p> : null}
-                    <p className="text-[11px] text-[#7fa7a9]">
+                    <p className="text-[11.5px] text-[#7fa7a9]">
                       {formatCoord(pin.lat, "lat")} · {formatCoord(pin.lng, "lng")}
                     </p>
                     {pin.href ? (
@@ -550,6 +605,21 @@ export default function NowBeyMap({
           />
         ) : null}
       </MapContainer>
+      {mode === "browse" ? (
+        <div className="absolute bottom-[96px] right-2.5 z-[500] flex flex-col items-end gap-1">
+          <button
+            type="button"
+            onClick={locateMe}
+            disabled={!map}
+            className="min-h-[40px] rounded-full bg-abyss-950/90 px-3 py-2 text-[12.5px] font-bold text-tide-300 shadow-[0_8px_20px_rgba(0,0,0,.45)] hover:bg-abyss-950 disabled:opacity-50"
+          >
+            Locate me
+          </button>
+          <p role="status" aria-live="polite" className="rounded bg-abyss-950/80 px-1.5 text-[11.5px] font-semibold text-sand-100">
+            {locating ?? ""}
+          </p>
+        </div>
+      ) : null}
 
       {/* crosshair for pin-to-center precision */}
       {aim ? (
@@ -585,7 +655,7 @@ export default function NowBeyMap({
                 aria-label="Search for a street or landmark"
                 className="w-full bg-transparent text-[13px] text-sand-100 outline-none placeholder:text-ink-400"
               />
-              {searching ? <span className="text-[11px] text-tide-300">…</span> : null}
+              {searching ? <span className="text-[11.5px] text-tide-300">…</span> : null}
             </div>
             {results.length ? (
               <ul className="glass nb-scroll absolute mt-1.5 max-h-64 w-full overflow-auto rounded-xl py-1 text-left shadow-[0_20px_44px_rgba(0,0,0,.55)]">
@@ -600,7 +670,7 @@ export default function NowBeyMap({
                       }}
                     >
                       <span className="block text-[13px] font-semibold">{r.label}</span>
-                      <span className="block text-[11px] text-ink-400">
+                      <span className="block text-[11.5px] text-ink-400">
                         {formatCoord(r.lat, "lat")} · {formatCoord(r.lng, "lng")}
                         {r.parish ? ` · ${r.parish}` : ""}
                       </span>
@@ -674,7 +744,7 @@ export default function NowBeyMap({
           </button>
         </div>
 
-        <div className="glass hidden rounded-xl px-2.5 py-1.5 text-[10.5px] font-semibold text-[#9fc4c9] sm:block">
+        <div className="glass hidden rounded-xl px-2.5 py-1.5 text-[11.5px] font-semibold text-[#9fc4c9] sm:block">
           zoom {zoomNow} · {precisionLabel(zoomNow, centerPt[0])} on screen · {mPerPx.toFixed(2)} m/px
         </div>
       </div>
@@ -734,7 +804,7 @@ export default function NowBeyMap({
                           key={i}
                           type="button"
                           onClick={() => nudge(cell.dN * step, cell.dE * step)}
-                          className="h-6 w-6 rounded-md bg-white/10 text-[11px] font-bold text-sand-100 hover:bg-tide-500 hover:text-abyss-950"
+                          className="h-6 w-6 rounded-md bg-white/10 text-[11.5px] font-bold text-sand-100 hover:bg-tide-500 hover:text-abyss-950"
                           title={`Move ${Math.abs(cell.dN * step)} m`}
                         >
                           {cell.g}
@@ -747,7 +817,7 @@ export default function NowBeyMap({
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="mb-1 text-[10.5px] leading-tight text-ink-400">
+                    <p className="mb-1 text-[11.5px] leading-tight text-ink-400">
                       Nudge the pin tip onto the kerb, gate or drain.
                     </p>
                     <div className="flex gap-1">
@@ -756,7 +826,7 @@ export default function NowBeyMap({
                           key={s}
                           type="button"
                           onClick={() => setStep(s)}
-                          className={`rounded-md px-1.5 py-0.5 text-[10.5px] font-bold ${
+                          className={`rounded-md px-1.5 py-0.5 text-[11.5px] font-bold ${
                             step === s ? "bg-tide-500 text-abyss-950" : "bg-white/10 text-ink-200"
                           }`}
                         >
@@ -824,7 +894,7 @@ export default function NowBeyMap({
               <path d="M12 8c-2.6 0-3.6 1.3-3.6 3.1V14H7v6h2.5v-5h5v5H17v-6h-1.4v-2.9C15.6 9.3 14.6 8 12 8Z" fill="#03121b" />
             </svg>
           </div>
-          {pegman.over ? <p className="mt-1 rounded bg-abyss-950/85 px-2 py-0.5 text-[10px] font-bold">Drop for street level</p> : null}
+          {pegman.over ? <p className="mt-1 rounded bg-abyss-950/85 px-2 py-0.5 text-[11.5px] font-bold">Drop for street level</p> : null}
         </div>
       ) : null}
 
@@ -833,7 +903,7 @@ export default function NowBeyMap({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="display text-[15px] font-bold">Street level</p>
-              <p className="text-[11px] text-ink-400">
+              <p className="text-[11.5px] text-ink-400">
                 {formatCoord(streetView.lat, "lat")} · {formatCoord(streetView.lng, "lng")}
               </p>
             </div>
@@ -886,7 +956,7 @@ export default function NowBeyMap({
                   >
                     Open street level in Google Maps
                   </a>
-                  <p className="text-[11px] text-[#7fa7a9]">
+                  <p className="text-[11.5px] text-[#7fa7a9]">
                     This opens Google Maps in a new tab.
                   </p>
                 </div>

@@ -19,18 +19,18 @@ export function PostCard({ post, eng, signedIn, badge }: { post: PostRow; eng: E
           {/* eslint-disable-next-line @next/next/no-img-element -- member photos are served by our own photo route */}
           <img src={photoUrl(post.firstPhotoId, "thumb")} alt={`Photo from ${post.placeName ?? post.title}`} loading="lazy" className="h-full w-full object-cover" />
           {post.photoCount > 1 ? (
-            <span className="absolute right-2 top-2 rounded-full bg-abyss-950/75 px-2 py-0.5 text-[10.5px] font-bold text-sand-100">+{post.photoCount - 1} more</span>
+            <span className="absolute right-2 top-2 rounded-full bg-abyss-950/75 px-2 py-0.5 text-[11.5px] font-bold text-sand-100">+{post.photoCount - 1} more</span>
           ) : null}
         </Link>
       ) : null}
 
       <div className="flex flex-1 flex-col p-3.5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="rounded-full px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide" style={{ background: `${kind.color}26`, color: kind.color }}>
+          <span className="rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide" style={{ background: `${kind.color}26`, color: kind.color }}>
             {kind.label}
           </span>
           {post.parish ? <span className="text-[11.5px] text-ink-400">{post.parish}</span> : null}
-          <span className="ml-auto text-[11px] text-ink-400">{timeAgo(post.createdAt)}</span>
+          <span className="ml-auto text-[11.5px] text-ink-400">{timeAgo(post.createdAt)}</span>
         </div>
 
         {post.placeName ? (

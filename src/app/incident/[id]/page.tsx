@@ -5,7 +5,6 @@ import { db } from "@/db";
 import { incidentUpdates, incidents, newsItems, users } from "@/db/schema";
 import { MapPanel } from "@/components/map/map-panel";
 import { IncidentActions } from "@/components/incident-actions";
-import { AdSlot } from "@/components/ad-slot";
 import { CATEGORIES, type CategoryKey, formatCoord, haversineMeters, timeAgo } from "@/lib/geo";
 import { HIDDEN_STATUSES, isHiddenStatus } from "@/lib/command";
 import { UUID_RE } from "@/lib/validate";
@@ -57,7 +56,6 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
     .sort((a, b) => a.d - b.d)
     .slice(0, 5);
   const handle = viewer.handle;
-  const adFree = viewer.adFree;
   const eng = (await engagementFor("incident", [row.id], viewer.userId)).get(row.id) ?? NO_ENGAGEMENT;
 
   return (
@@ -67,7 +65,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
           ← Back
         </Link>
 
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11.5px] font-bold uppercase tracking-wide">
           <span className="rounded-full px-2 py-0.5" style={{ background: `${meta.color}26`, color: meta.color }}>
             {meta.label}
           </span>
@@ -102,7 +100,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
           <span className="font-semibold text-sand-100">@{row.authorHandle ?? "someone"}</span>
           <BadgeMark kind={badges.get(row.authorHandle ?? "")} />
           {row.sourceKind === "official" ? (
-            <span className="rounded-full bg-tide-500/18 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-tide-300">
+            <span className="rounded-full bg-tide-500/18 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-tide-300">
               Official bulletin — auto-imported
             </span>
           ) : null}
@@ -132,7 +130,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2 [&_a]:min-h-[40px] [&_a]:inline-flex [&_a]:items-center">
           <div className="nb-surface rounded-xl2 p-3.5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-400">Pinned location</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Pinned location</p>
             <p className="mt-1 font-mono text-[12.5px] text-tide-300">
               {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
             </p>
@@ -147,7 +145,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
             </p>
           </div>
           <div className="nb-surface rounded-xl2 p-3.5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-400">Get there / see it</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Get there / see it</p>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               <a
                 className="rounded-full bg-white/8 px-2.5 py-1.5 text-[11.5px] font-bold hover:bg-white/16"
@@ -227,7 +225,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
         </section>
 
         <div className="mt-6">
-          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-tide-400">What do you think?</p>
+          <p className="mb-1.5 text-[11.5px] font-bold uppercase tracking-wide text-tide-400">What do you think?</p>
           <ReactionBar type="incident" id={row.id} initial={eng} signedIn={viewer.signedIn} />
         </div>
 
@@ -259,8 +257,6 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
             <p className="mt-1.5 text-sm text-ink-400">Nothing else pinned within a short walk.</p>
           )}
         </div>
-
-        <AdSlot index={2} adFree={adFree} variant="rail" />
 
         <div className="nb-surface rounded-xl2 p-3.5">
           <p className="display text-[14.5px] font-bold text-sand-100">{row.parish ?? "The Bahamas"} on the wire</p>

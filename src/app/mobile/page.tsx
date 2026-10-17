@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Get the mobile app" };
 
 const STEPS = [
-  ["Download and unzip", "Save the zip below and unzip it. You need Node.js 20 or newer on your computer."],
+  ["Get the project", "Ask the NowBey team for the nowbey-expo folder. It is not published as a download yet. You need Node.js 20 or newer on your computer."],
   ["Install", "Open a terminal in the unzipped folder and run npm install."],
   ["Point it at this site", "The app reads its data from this website, so you do not run a second server."],
   ["Start it", "Run the command below, then scan the QR code with the free Expo Go app on your phone."],
@@ -25,18 +25,39 @@ export default async function MobilePage() {
         blurb="The same feed, map, reports and news wire, built with Expo for iPhone and Android. It signs in with your NowBey account and shows your plan."
       />
 
-      <div className="glass flex flex-wrap items-center gap-4 rounded-2xl p-4">
-        <div className="min-w-[200px] flex-1">
-          <p className="display text-[15px] font-bold text-sand-100">NowBey mobile source code</p>
-          <p className="mt-0.5 text-[12.5px] text-ink-300">An Expo project you can run today and publish to the app stores later.</p>
+      <section aria-labelledby="install" className="glass space-y-3 rounded-2xl p-4">
+        <div>
+          <h2 id="install" className="display text-[16px] font-extrabold text-sand-100">
+            Add NowBey to your home screen
+          </h2>
+          <p className="mt-0.5 text-[12.5px] text-ink-300">
+            No app store and no download. It opens full screen like an app, and it keeps the last saved feed for when the signal drops.
+          </p>
         </div>
-        <a
-          href="/downloads/nowbey-expo.zip"
-          download
-          className="rounded-full bg-tide-500 px-4 py-2.5 text-[13px] font-extrabold text-abyss-950 hover:bg-tide-400"
-        >
-          Download the zip
-        </a>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border hairline p-3">
+            <p className="text-[13px] font-bold text-sand-100">Android (Chrome)</p>
+            <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-[12.5px] text-ink-300">
+              <li>Open this site in Chrome.</li>
+              <li>Tap the menu (⋮) and choose “Install app” or “Add to Home screen”.</li>
+            </ol>
+          </div>
+          <div className="rounded-xl border hairline p-3">
+            <p className="text-[13px] font-bold text-sand-100">iPhone (Safari)</p>
+            <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-[12.5px] text-ink-300">
+              <li>Open this site in Safari.</li>
+              <li>Tap Share, then “Add to Home Screen”.</li>
+            </ol>
+          </div>
+        </div>
+        <p className="text-[11.5px] text-ink-400">Push alerts on the phone are switched on from the Alerts page when the site has them enabled.</p>
+      </section>
+
+      <div className="pt-2">
+        <h2 className="display text-[16px] font-extrabold text-sand-100">For developers: the Expo app</h2>
+        <p className="mt-0.5 text-[12.5px] text-ink-300">
+          An Expo project you can run today and publish to the app stores later. It is not on the app stores yet, and no download is published.
+        </p>
       </div>
 
       <ol className="space-y-3">

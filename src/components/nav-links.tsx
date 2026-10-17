@@ -66,6 +66,13 @@ function Glyph({ name, active }: { name: string; active: boolean }) {
           <path d="M10 22h4" />
         </svg>
       );
+    case "clock":
+      return (
+        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M12 7.5V12l3 2" />
+        </svg>
+      );
     case "life":
       return (
         <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
@@ -103,14 +110,19 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
         aria-label="Primary"
       >
         <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
-          {[...LINKS.filter((l) => l.href !== "/support"), ...(SHOW_GAS ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : [])].map((l) => {
+          {[
+            ...LINKS.filter((l) => l.href !== "/support"),
+            // "What is open now" is one tap away on a phone (it lives under Plans on desktop).
+            { href: "/open-now", label: "What is open now", short: "Open", icon: "clock" } as const,
+            ...(SHOW_GAS ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : []),
+          ].map((l) => {
             const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
             return (
               <li key={l.href} className="flex-1">
                 <Link
                   href={l.href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10.5px] font-bold transition duration-200 ease-standard active:scale-[0.97] ${
+                  className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[11.5px] font-bold transition duration-200 ease-standard active:scale-[0.97] ${
                     active ? "bg-tide-500 text-abyss-950 shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
                   }`}
                 >
@@ -132,33 +144,14 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
         const childActive = "children" in l && l.children ? l.children.some((c) => pathname.startsWith(c.href)) : false;
         if ("children" in l && l.children) {
           return (
-            <div key={l.href} className="group relative">
-              <Link
-                href={l.href}
-                aria-current={active || childActive ? "page" : undefined}
-                className={`rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition duration-200 ease-standard ${
-                  active || childActive ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-ink-300 hover:bg-white/5 hover:text-sand-100"
-                }`}
-              >
-                {l.label}
-              </Link>
-              <div className="invisible absolute left-0 top-full z-[660] w-44 pt-1 opacity-0 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-                <div className="glass overflow-hidden rounded-xl p-1">
-                  {l.children.map((c) => (
-                    <Link
-                      key={c.href}
-                      href={c.href}
-                      aria-current={pathname.startsWith(c.href) ? "page" : undefined}
-                      className={`block rounded-lg px-2.5 py-2 text-[13px] font-semibold ${
-                        pathname.startsWith(c.href) ? "bg-tide-500/18 text-tide-300" : "text-ink-300 hover:bg-white/5 hover:text-sand-100"
-                      }`}
-                    >
-                      {c.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <PlansMenu
+              key={l.href}
+              href={l.href}
+              label={l.label}
+              active={active || childActive}
+              items={l.children}
+              pathname={pathname}
+            />
           );
         }
         return (
@@ -175,14 +168,86 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
         );
       })}
       <span
-        title={online ? "Browser is online" : "Browser is offline — showing the last cached feed"}
-        className={`ml-1 hidden items-center gap-1.5 rounded-full px-2 py-1 text-[10.5px] font-bold lg:inline-flex ${
+        title={online ? "Browser is online" : "Browser is offline — you can still read the last saved feed; new reports wait until you are back online"}
+        className={`ml-1 hidden items-center gap-1.5 rounded-full px-2 py-1 text-[11.5px] font-bold lg:inline-flex ${
           online ? "bg-ok-500/15 text-ok-600" : "bg-danger-500/15 text-danger-500"
         }`}
       >
         {online ? <span className="nb-live-dot" aria-hidden /> : <span className="h-1.5 w-1.5 rounded-full bg-danger-500" aria-hidden />}
-        {online ? "live" : "cached"}
+        {online ? "live" : "offline"}
       </span>
+    </div>
+  );
+}
+
+/**
+ * Plans opens on hover (pointer) and on tap or keyboard (the toggle button), so touch and keyboard users can
+ * reach "What is open now" and "Gas prices" too. Escape closes it.
+ */
+function PlansMenu({
+  href,
+  label,
+  active,
+  items,
+  pathname,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+  items: readonly { href: string; label: string }[];
+  pathname: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const menuId = "plans-menu";
+  return (
+    <div
+      className="group relative"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setOpen(false);
+      }}
+    >
+      <div className="flex items-center">
+        <Link
+          href={href}
+          aria-current={active ? "page" : undefined}
+          className={`rounded-l-lg px-2.5 py-1.5 text-[13px] font-semibold transition duration-200 ease-standard ${
+            active ? "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40" : "text-ink-300 hover:bg-white/5 hover:text-sand-100"
+          }`}
+        >
+          {label}
+        </Link>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={menuId}
+          aria-label={`${label} menu`}
+          onClick={() => setOpen((v) => !v)}
+          className="rounded-r-lg px-1.5 py-1.5 text-[11.5px] text-ink-300 hover:bg-white/5 hover:text-sand-100"
+        >
+          <span aria-hidden>▾</span>
+        </button>
+      </div>
+      <div
+        id={menuId}
+        className={`absolute left-0 top-full z-[660] w-44 pt-1 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 ${
+          open ? "visible opacity-100" : "invisible opacity-0"
+        }`}
+      >
+        <div className="glass overflow-hidden rounded-xl p-1">
+          {items.map((c) => (
+            <Link
+              key={c.href}
+              href={c.href}
+              aria-current={pathname.startsWith(c.href) ? "page" : undefined}
+              className={`block rounded-lg px-2.5 py-2 text-[13px] font-semibold ${
+                pathname.startsWith(c.href) ? "bg-tide-500/18 text-tide-300" : "text-ink-300 hover:bg-white/5 hover:text-sand-100"
+              }`}
+            >
+              {c.label}
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -193,14 +258,14 @@ export function SessionChip({ handle }: { handle: string | null }) {
       href="/you"
       className="flex min-h-[40px] items-center gap-2 rounded-full border hairline bg-white/5 px-2.5 py-1.5 text-[12.5px] font-bold text-sand-100 hover:bg-white/10 sm:min-h-0"
     >
-      <span className="grid h-5 w-5 place-items-center rounded-full bg-conch-500 text-[10px] text-abyss-950">
+      <span className="grid h-5 w-5 place-items-center rounded-full bg-conch-500 text-[11.5px] text-abyss-950">
         {handle.charAt(0).toUpperCase()}
       </span>
       @{handle}
     </Link>
   ) : (
     <Link
-      href="/login"
+      href="/login?mode=signin"
       className="flex min-h-[40px] items-center rounded-full border hairline px-3 py-1.5 text-[12.5px] font-bold text-ink-200 hover:bg-white/5 sm:min-h-0"
     >
       Sign in

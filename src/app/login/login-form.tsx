@@ -154,7 +154,7 @@ export function LoginForm() {
   return (
     <div className="mx-auto grid max-w-[900px] gap-5 py-4 lg:grid-cols-[1.05fr_1fr]">
       <div className="flex flex-col justify-center">
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-tide-400">Your account</p>
+        <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">Your account</p>
         <h1 className="display mt-1.5 text-[clamp(1.7rem,4.4vw,2.4rem)] font-extrabold leading-[1.05] text-sand-100">
           {mode === "signup" ? "Join your neighbours on NowBey" : "Welcome back"}
         </h1>
@@ -201,7 +201,7 @@ export function LoginForm() {
               One button for both. Google tells us your name and email address — we never see your Google password, and we do
               not post anything.
             </p>
-            <div className="my-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] text-[#5d848f]">
+            <div className="my-3 flex items-center gap-2 text-[11.5px] uppercase tracking-[0.14em] text-[#5d848f]">
               <span className="h-px flex-1 bg-white/10" />
               or
               <span className="h-px flex-1 bg-white/10" />
@@ -338,7 +338,7 @@ export function LoginForm() {
         <button type="submit" disabled={busy} className="mt-3 w-full rounded-xl bg-tide-500 py-2.5 text-[13.5px] font-extrabold text-abyss-950 disabled:opacity-50">
           {busy ? "Working…" : mode === "signup" ? "Create my account" : "Sign in"}
         </button>
-        <p className="mt-2 text-[11px] text-ink-400">
+        <p className="mt-2 text-[11.5px] text-ink-400">
           Just looking?{" "}
           <Link href="/map" className="font-bold text-tide-300 hover:underline">
             Open the map

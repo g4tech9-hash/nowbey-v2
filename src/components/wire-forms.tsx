@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
+import { trackFunnel } from "@/lib/funnel-client";
 import type { TierKey } from "@/lib/tiers";
 
 export function SubmitLink() {
@@ -41,7 +42,7 @@ export function SubmitLink() {
       }}
     >
       <label className="block">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Link</span>
+        <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Link</span>
         <input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
@@ -50,7 +51,7 @@ export function SubmitLink() {
         />
       </label>
       <label className="block">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Why it matters (and where)</span>
+        <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Why it matters (and where)</span>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
@@ -79,7 +80,7 @@ export function SubmitLink() {
         {busy ? "Filing…" : "Send to the desk"}
       </button>
       {msg ? <p className={`text-[11.5px] ${msg.ok ? "text-tide-300" : "text-danger-500"}`}>{msg.text}</p> : null}
-      <p className="text-[10.5px] leading-snug text-ink-400">
+      <p className="text-[11.5px] leading-snug text-ink-400">
         Every link is checked by a NowBey editor before anyone sees it, and shows up marked “Reader tip”.
       </p>
     </form>
@@ -162,9 +163,10 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error ?? "Could not save that.");
+          trackFunnel("alert_set_up");
           setMsg(
             data.mail === "sent"
-              ? { ok: true, text: `Check ${target} for a confirmation email and tap the link to switch alerts on.` }
+              ? { ok: true, text: `Check ${target} for a confirmation email and tap the link to switch alerts on. It can take a few minutes and often lands in spam or promotions, so look there too.` }
               : { ok: false, text: "We saved your alert profile but could not send the confirmation email just now. Please try again in a little while." },
           );
           router.refresh();
@@ -177,7 +179,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
     >
       {/* 1 · Where to send it. The email is the whole first step — everything else has a default. */}
       <label className="block">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Email address</span>
+        <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Email address</span>
         <input
           value={target}
           onChange={(e) => setTarget(e.target.value)}
@@ -192,7 +194,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
 
       {/* 2 · The island. Nassau is already chosen, so this reads as a fact rather than a question. */}
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Where</p>
+        <p className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Where</p>
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <span className="rounded-lg bg-tide-500 px-2.5 py-1.5 text-[12px] font-bold text-abyss-950">{LAUNCH_ISLAND} · live now</span>
           <button
@@ -237,7 +239,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
 
       {/* 3 · What is worth waking you up. */}
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Kinds of report</p>
+        <p className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Kinds of report</p>
         <div className="mt-1.5 flex flex-wrap gap-1.5">
           {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => {
             const on = cats.includes(k);

@@ -30,7 +30,7 @@ export const t = StyleSheet.create({
   body: { color: color.text, fontSize: 15, lineHeight: 22 },
   muted: { color: color.muted, fontSize: 14, lineHeight: 20 },
   subtle: { color: color.subtle, fontSize: 12, fontVariant: ["tabular-nums"] },
-  label: { color: color.tideLight, fontSize: 11, fontWeight: "800", letterSpacing: 0.8, textTransform: "uppercase" },
+  label: { color: color.tideLight, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.8, textTransform: "uppercase" },
   error: { color: color.danger500, fontSize: 12.5, lineHeight: 17 },
   ok: { color: color.ok500, fontSize: 12.5, lineHeight: 17 },
 });
@@ -192,7 +192,7 @@ export function CategoryBadge({ category, severity }: { category: string; severi
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <View style={{ backgroundColor: `${meta.color}26`, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
-        <Text style={{ color: meta.color, fontSize: 11, fontWeight: "800", letterSpacing: 0.6 }}>{meta.label.toUpperCase()}</Text>
+        <Text style={{ color: meta.color, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.6 }}>{meta.label.toUpperCase()}</Text>
       </View>
       {severity ? (
         <View style={{ flexDirection: "row", gap: 2 }} accessibilityLabel={`Severity ${Math.min(Math.max(severity, 1), 5)} of 5`}>
@@ -219,7 +219,7 @@ export function BadgeMark({ kind }: { kind?: Badge }) {
   const tint = desk ? color.tidePale : color.conchLight;
   return (
     <View style={{ backgroundColor: `${tint}2a`, paddingHorizontal: 7, paddingVertical: 2, borderRadius: radius.pill }}>
-      <Text style={{ color: tint, fontSize: 10, fontWeight: "800", letterSpacing: 0.5 }}>
+      <Text style={{ color: tint, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.5 }}>
         {desk ? "✓ NOWBEY DESK" : "✓ VERIFIED REPORTER"}
       </Text>
     </View>

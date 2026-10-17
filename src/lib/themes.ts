@@ -58,6 +58,13 @@ export const SCENES = {
   lagoon: { src: "/scenes/lagoon.jpg", focus: "50% 50%" },
 } as const;
 
+/**
+ * Flip to true once the five JPEGs are committed under public/scenes (TODO_HUMAN.md section 0a, item 10).
+ * They are not in the repository or its history today. While this is false, no component asks for a scene
+ * file, so the site renders without photos instead of requesting five 404s on every first visit.
+ */
+export const SCENE_PHOTOS_PRESENT = false;
+
 export type SceneKey = keyof typeof SCENES;
 
 /** Which photo sits behind each part of the site. null means a plain background. */

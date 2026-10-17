@@ -43,7 +43,7 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
     <div>
       <section className="glass relative isolate mb-5 overflow-hidden rounded-2xl p-5 sm:p-7">
         <PageScene name="lagoon" />
-        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-sun-600">Island Life</p>
+        <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-sun-600">Island Life</p>
         <h1 className="display mt-1.5 max-w-[22ch] text-[clamp(1.8rem,5vw,2.8rem)] font-extrabold leading-[1.05] text-sand-100">Where the islands eat, celebrate and unwind</h1>
         <p className="mt-2 max-w-[56ch] text-[14px] leading-relaxed text-ink-200">
           Real tips from people who live here. Share where you ate, how the festival went, which beach was perfect on Sunday, or the thing you wish a visitor knew.
@@ -78,7 +78,7 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
             ]}
           />
           <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1" style={{ scrollbarWidth: "none" }}>
-            <span className="shrink-0 text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Island</span>
+            <span className="shrink-0 text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Island</span>
             <Link
               href={href(params, { parish: undefined, page: undefined })}
               className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${!parish ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"}`}
@@ -139,7 +139,7 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
                           <Stars value={Math.round(t.avg)} size={11} />
                           {t.avg.toFixed(1)} · {t.n} {t.n === 1 ? "review" : "reviews"}
                         </span>
-                        <span className="block text-[11px]" style={{ color: k.color }}>
+                        <span className="block text-[11.5px]" style={{ color: k.color }}>
                           {k.label}
                           {t.parish ? ` · ${t.parish}` : ""}
                         </span>

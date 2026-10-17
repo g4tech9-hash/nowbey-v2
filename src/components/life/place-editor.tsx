@@ -13,7 +13,7 @@ type Props = {
 };
 
 const field = "mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[13px] outline-none focus:border-tide-400";
-const label = "text-[11px] font-bold uppercase tracking-wide text-tide-400";
+const label = "text-[11.5px] font-bold uppercase tracking-wide text-tide-400";
 
 export function PlaceEditor({ placeId, kind, signedIn, initial }: Props) {
   const router = useRouter();

@@ -16,7 +16,7 @@ export default function TabsLayout() {
         tabBarStyle: { backgroundColor: color.bg, borderTopColor: color.line },
         tabBarActiveTintColor: color.tideLight,
         tabBarInactiveTintColor: color.muted,
-        tabBarLabelStyle: { fontSize: 10.5, fontWeight: "800" },
+        tabBarLabelStyle: { fontSize: 11.5, fontWeight: "800" },
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Feed", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="newspaper-outline" size={size} color={c} /> }} />

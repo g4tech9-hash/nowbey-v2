@@ -11,14 +11,14 @@ const TONES: Record<string, string> = {
 
 export function Pill({ tone = "slate", children }: { tone?: keyof typeof TONES; children: ReactNode }) {
   return (
-    <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide ${TONES[tone]}`}>{children}</span>
+    <span className={`inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide ${TONES[tone]}`}>{children}</span>
   );
 }
 
 export function StatCard({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: string; tone?: "warn" }) {
   return (
     <div className={`glass rounded-2xl p-3.5 ${tone === "warn" ? "ring-1 ring-sun-500/40" : ""}`}>
-      <p className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">{label}</p>
+      <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">{label}</p>
       <p className="display text-[26px] font-extrabold leading-tight text-sand-100">{value}</p>
       {sub ? <p className="text-[11.5px] text-ink-400">{sub}</p> : null}
     </div>
@@ -42,7 +42,7 @@ export function MiniBars({ data, title }: { data: { label: string; n: number }[]
           </div>
         ))}
       </div>
-      <div className="mt-1 flex justify-between text-[10px] text-ink-400">
+      <div className="mt-1 flex justify-between text-[11.5px] text-ink-400">
         <span>{data[0]?.label}</span>
         <span>{data[data.length - 1]?.label}</span>
       </div>
@@ -81,7 +81,7 @@ export function FilterChips({
       className={scroll ? "-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1" : "flex flex-wrap items-center gap-1.5"}
       style={scroll ? { scrollbarWidth: "none" } : undefined}
     >
-      <span className="shrink-0 text-[10.5px] font-bold uppercase tracking-wide text-ink-400">{label}</span>
+      <span className="shrink-0 text-[11.5px] font-bold uppercase tracking-wide text-ink-400">{label}</span>
       {options.map((o) => (
         <Link
           key={o.value}

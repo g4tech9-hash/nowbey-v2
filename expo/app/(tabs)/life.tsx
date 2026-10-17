@@ -118,7 +118,7 @@ export default function Life() {
               <View style={{ padding: 14 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <View style={{ backgroundColor: `${k.color}26`, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 }}>
-                    <Text style={{ color: k.color, fontSize: 10.5, fontWeight: "800", letterSpacing: 0.6 }}>{k.label.toUpperCase()}</Text>
+                    <Text style={{ color: k.color, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.6 }}>{k.label.toUpperCase()}</Text>
                   </View>
                   {p.parish ? <Text style={t.subtle}>{p.parish}</Text> : null}
                   <Text style={[t.subtle, { marginLeft: "auto" }]}>{timeAgo(p.createdAt)}</Text>

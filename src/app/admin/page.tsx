@@ -97,7 +97,8 @@ export default async function AdminOverview() {
 
   const budget = await aiBudgetStatus();
 
-  const checks: [string, boolean, string][] = [
+  // The optional flag marks a row as not needed for the site to work. It shows neutral, not as a warning.
+  const checks: [string, boolean, string, boolean?][] = [
     ["Payments (Stripe key)", stripeConfigured(), "Add STRIPE_SECRET_KEY. Until then plans are disabled."],
     ["Payment webhook", webhookConfigured(), "Add STRIPE_WEBHOOK_SECRET so paid plans switch on and off by themselves."],
     ["Email sending", mailConfigured(), "Add SMTP_HOST, SMTP_USER and SMTP_PASS (for example a Gmail app password), or RESEND_API_KEY. Without one, confirmation, password-reset and alert emails cannot be sent."],
@@ -115,7 +116,7 @@ export default async function AdminOverview() {
           : "Run add-ai-usage.sql for shared counts across servers. Cap: AI_DAILY_CALL_LIMIT (default 500/day). Emergency stop: set AI_ENABLED=false and redeploy — see docs/AI_LOG_FIXES.md.",
     ],
     ["Push alerts (Firebase)", pushConfigured(), "Add FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, plus the NEXT_PUBLIC_FIREBASE_* web keys. Until then visitors only see email alerts."],
-    ["Geocoding fallback (Google)", googleConfigured(), "Add GOOGLE_MAPS_API_KEY with the Geocoding API enabled. Address searches and pin drops then fall back to Google when OpenStreetMap draws a blank — a big upgrade for Nassau streets."],
+    ["Geocoding fallback (Google)", googleConfigured(), "Add GOOGLE_MAPS_API_KEY with the Geocoding API enabled. Address searches and pin drops then fall back to Google when OpenStreetMap draws a blank — a big upgrade for Nassau streets.", true],
     ["Site address", Boolean(process.env.APP_URL), "Add APP_URL, your real https address. Emails will not send until it is set, so the links in them cannot be forged."],
     ["Session secret", Boolean(process.env.AUTH_SECRET), "Optional on a single server (a random one is saved in .data/). Set AUTH_SECRET if you run more than one server."],
   ];
@@ -152,12 +153,12 @@ export default async function AdminOverview() {
           <ul className="mt-3 space-y-1.5">
             {crashes.map((e) => (
               <li key={e.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg bg-white/4 px-3 py-2 text-[12px]">
-                <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${e.kind === "server" ? "bg-conch-500/20 text-conch-400" : e.kind === "boundary" ? "bg-sun-500/20 text-sun-400" : "bg-tide-500/18 text-tide-300"}`}>{e.kind}</span>
+                <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11.5px] font-extrabold uppercase ${e.kind === "server" ? "bg-conch-500/20 text-conch-400" : e.kind === "boundary" ? "bg-sun-500/20 text-sun-400" : "bg-tide-500/18 text-tide-300"}`}>{e.kind}</span>
                 <span className="min-w-0 flex-1 truncate font-semibold text-sand-100" title={e.message}>{e.message}</span>
-                <span className="shrink-0 font-mono text-[11px] text-[#6e97a0]">{e.url ?? "—"}</span>
+                <span className="shrink-0 font-mono text-[11.5px] text-[#6e97a0]">{e.url ?? "—"}</span>
                 <span className="shrink-0 text-[#8fb9b6]">×{e.count}</span>
                 {e.handle ? <span className="shrink-0 text-[#8fb9b6]">@{e.handle}</span> : null}
-                <span className="shrink-0 text-[11px] text-[#6e97a0]">{timeAgo(e.lastSeenAt)}</span>
+                <span className="shrink-0 text-[11.5px] text-[#6e97a0]">{timeAgo(e.lastSeenAt)}</span>
                 <span className="shrink-0"><CrashDismissButton id={e.id} /></span>
               </li>
             ))}
@@ -178,14 +179,14 @@ export default async function AdminOverview() {
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">Setup checklist</p>
         <ul className="mt-2 space-y-2">
-          {checks.map(([label, ok, help]) => (
+          {checks.map(([label, ok, help, optional]) => (
             <li key={label} className="flex items-start gap-2.5 text-[13px]">
-              <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-black ${ok ? "bg-tide-500 text-abyss-950" : "bg-sun-500/25 text-sun-400"}`}>
-                {ok ? "✓" : "!"}
+              <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11.5px] font-black ${ok ? "bg-tide-500 text-abyss-950" : optional ? "bg-[#8fb9b6]/20 text-[#8fb9b6]" : "bg-sun-500/25 text-sun-400"}`}>
+                {ok ? "✓" : optional ? "–" : "!"}
               </span>
               <span>
                 <span className="font-bold text-sand-100">{label}</span>
-                <span className="block text-[12px] text-[#8fb9b6]">{ok ? "Set up." : help}</span>
+                <span className="block text-[12px] text-[#8fb9b6]">{ok ? "Set up." : optional ? `Optional, not in use. ${help}` : help}</span>
               </span>
             </li>
           ))}

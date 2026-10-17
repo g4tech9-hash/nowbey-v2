@@ -21,7 +21,7 @@ export function AdminNav({ tabs }: { tabs: AdminTab[] }) {
             }`}
           >
             {t.label}
-            {t.badge ? <span className="rounded-full bg-conch-500 px-1.5 py-[1px] text-[10px] font-extrabold text-abyss-950">{t.badge}</span> : null}
+            {t.badge ? <span className="rounded-full bg-conch-500 px-1.5 py-[1px] text-[11.5px] font-extrabold text-abyss-950">{t.badge}</span> : null}
           </Link>
         );
       })}

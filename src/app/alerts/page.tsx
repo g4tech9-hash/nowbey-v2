@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { alertSubscriptions } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
+import { EmergencyNotice } from "@/components/emergency-notice";
 import { AlertForm, StopAlertButton } from "@/components/wire-forms";
 import { PushToggle } from "@/components/push-toggle";
 import { CATEGORIES, timeAgo } from "@/lib/geo";
@@ -37,6 +38,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0 space-y-4">
+        <EmergencyNotice />
         <PageHead
           eyebrow="Alerts"
           title="Only the ones that affect your shore"
@@ -127,7 +129,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
           </section>
         ) : (
           <p className="text-sm text-ink-400">
-            <Link href="/login?next=/alerts" className="font-bold text-tide-300 underline">
+            <Link href="/login?mode=signin&next=%2Falerts" className="font-bold text-tide-300 underline">
               Sign in
             </Link>{" "}
             to see and remove your alert profiles here. Every alert email also has a “Stop these alerts” link.
@@ -158,7 +160,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
 function Step({ n, title, children }: { n: string; title: string; children: ReactNode }) {
   return (
     <p className="mt-2 flex gap-2">
-      <span className="num mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tide-500/20 text-[11px] font-extrabold text-tide-300">
+      <span className="num mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tide-500/20 text-[11.5px] font-extrabold text-tide-300">
         {n}
       </span>
       <span>

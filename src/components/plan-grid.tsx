@@ -92,7 +92,7 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
             className={`rounded-full px-3.5 py-1.5 transition ${billing === v ? "bg-tide-500 text-abyss-950" : "text-ink-200 hover:bg-white/8"}`}
           >
             {v === "month" ? "Monthly" : "Yearly"}
-            {v === "year" ? <span className="ml-1.5 text-[10.5px] opacity-80">2 months free</span> : null}
+            {v === "year" ? <span className="ml-1.5 text-[11.5px] opacity-80">2 months free</span> : null}
           </button>
         ))}
       </div>

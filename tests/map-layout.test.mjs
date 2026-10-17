@@ -75,7 +75,7 @@ test("pin controls and reports share a scroll owner so controls cannot hide the 
   const scroll = page.indexOf('className="nb-pin-rail-scroll nb-scroll');
   const activity = page.indexOf('Island activity ·');
   const filters = page.indexOf('Row B — category filters');
-  const reports = page.indexOf('visible.slice(0, listLimit)');
+  const reports = page.indexOf('visible.slice(0, listLimit).map(');
   assert.ok(scroll > 0 && scroll < activity && activity < filters && filters < reports);
   assert.match(page.slice(scroll, activity), /<details className="px-3 lg:px-0">/,
     "activity statistics start collapsed, not expanded above the reports");

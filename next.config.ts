@@ -5,7 +5,8 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=(self)" },
-  { key: "Strict-Transport-Security", value: "max-age=15552000" },
+  // One year. No includeSubDomains: that would also pin every subdomain, which this repo cannot vouch for.
+  { key: "Strict-Transport-Security", value: "max-age=31536000" },
 ];
 
 // Production builds also refuse to be framed (clickjacking on /login, /you/settings and /admin) and lock

@@ -80,19 +80,19 @@ export default async function MyProfilePage() {
       <Section title="What your profile says today" blurb="A quick read of the same facts the profile page uses.">
         <dl className="grid grid-cols-2 gap-3 text-[13px] sm:grid-cols-4">
           <div>
-            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Visibility</dt>
+            <dt className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Visibility</dt>
             <dd className="mt-0.5 font-bold text-sand-100">{settings.visibility === "private" ? "Private" : "Open"}</dd>
           </div>
           <div>
-            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Bio</dt>
+            <dt className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Bio</dt>
             <dd className="mt-0.5 text-sand-100">{settings.bio ? `${settings.bio.length} characters` : "Not set"}</dd>
           </div>
           <div>
-            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Alert islands</dt>
+            <dt className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Alert islands</dt>
             <dd className="mt-0.5 text-sand-100">{islands ? (settings.showAlertSummary ? `${islands} shown` : `${islands} kept private`) : "None set up"}</dd>
           </div>
           <div>
-            <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Verified</dt>
+            <dt className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Verified</dt>
             <dd className="mt-0.5 text-sand-100">{verifiedByPerson ? "Yes, by a person" : "Not yet"}</dd>
           </div>
         </dl>
@@ -140,10 +140,10 @@ export default async function MyProfilePage() {
                     <p className="flex flex-wrap items-center gap-2 text-[13px] font-bold text-sand-100">
                       <span className="truncate">{r.title}</span>
                       {r.anonymous ? (
-                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-ink-300">anonymous</span>
+                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-ink-300">anonymous</span>
                       ) : null}
                       {r.hidden ? (
-                        <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-sun-600">hidden</span>
+                        <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-sun-600">hidden</span>
                       ) : null}
                     </p>
                     <p className="mt-0.5 text-[11.5px] text-ink-400">

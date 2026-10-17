@@ -40,7 +40,7 @@ export default async function WireAdmin() {
                   <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate text-[11.5px] text-tide-300 underline">
                     {n.url}
                   </a>
-                  <p className="text-[11px] text-[#6e97a0]">
+                  <p className="text-[11.5px] text-[#6e97a0]">
                     {n.sourceName} · {n.parish ?? "no island set"} · {timeAgo(n.publishedAt)}
                   </p>
                 </div>
@@ -66,7 +66,7 @@ export default async function WireAdmin() {
                   <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate text-[11.5px] text-tide-300 underline">
                     {n.url}
                   </a>
-                  <p className="text-[11px] text-[#6e97a0]">
+                  <p className="text-[11.5px] text-[#6e97a0]">
                     {n.parish ?? "no island"} · {timeAgo(n.publishedAt)}
                   </p>
                 </div>

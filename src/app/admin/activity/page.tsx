@@ -55,7 +55,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
       </p>
       <div className="glass nb-scroll overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[640px] text-left text-[12.5px]">
-          <thead className="text-[10.5px] uppercase tracking-wide text-[#6e97a0]">
+          <thead className="text-[11.5px] uppercase tracking-wide text-[#6e97a0]">
             <tr>
               <th className="px-3 py-2">When</th>
               <th className="px-2">Who</th>

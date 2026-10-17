@@ -16,7 +16,7 @@ export function SourceTrust({ sourceKind, sourceName, sourceUrl, confirmations, 
 
   return (
     <aside className="mt-3 rounded-xl border hairline bg-white/[.04] p-3" aria-label="Source and trust information">
-      <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-tide-400">Why you are seeing this</p>
+      <p className="text-[11.5px] font-extrabold uppercase tracking-[0.14em] text-tide-400">Why you are seeing this</p>
       <div className="mt-1.5 grid gap-1 text-[12.5px] leading-relaxed text-ink-300 sm:grid-cols-3">
         <p><strong className="text-sand-100">Source:</strong> {official ? (sourceName ?? "Official bulletin") : "Community report"}</p>
         <p><strong className="text-sand-100">Checks:</strong> {confirmations} neighbour{confirmations === 1 ? "" : "s"} confirmed it</p>

@@ -1,10 +1,13 @@
 import Link from "next/link";
-import { and, desc, eq, gte, ilike, ne, notInArray, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, ne, notInArray, or, sql } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { db } from "@/db";
-import { incidents, newsItems } from "@/db/schema";
+import { incidentUpdates, incidents, newsItems } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { IncidentCard } from "@/components/incident-card";
 import { AdSlot } from "@/components/ad-slot";
+import { EmergencyNotice } from "@/components/emergency-notice";
+import { OfficialSources } from "@/components/official-sources";
 import { MapPanel, type MapPin } from "@/components/map/map-panel";
 import { CATEGORIES, GAZETTEER, PARISHES, knownParish, nowMs, timeAgo, type CategoryKey } from "@/lib/geo";
 import { HIDDEN_STATUSES } from "@/lib/command";
@@ -26,34 +29,82 @@ function first(v: string | string[] | undefined) {
   return Array.isArray(v) ? v[0] : v;
 }
 
+type HomeQuery = { status: "active" | "resolved" | "all"; category?: string; parish?: string; q?: string; hours: number };
+
+/**
+ * Everything on the home page that does not depend on who is looking. Cached for 30 seconds, so a busy feed costs
+ * one set of queries per half-minute instead of one per visitor. Per-viewer data (reactions, ad-free) is still
+ * computed per request.
+ */
+async function loadHomeData(f: HomeQuery) {
+  const filters = [];
+  if (f.status === "all") filters.push(notInArray(incidents.status, HIDDEN_STATUSES));
+  else filters.push(eq(incidents.status, f.status));
+  if (f.category && Object.prototype.hasOwnProperty.call(CATEGORIES, f.category)) filters.push(eq(incidents.category, f.category));
+  if (f.parish) filters.push(eq(incidents.parish, f.parish));
+  if (f.q) {
+    const needle = `%${likeEscape(f.q)}%`;
+    filters.push(or(ilike(incidents.title, needle), ilike(incidents.details, needle), ilike(incidents.address, needle)));
+  }
+  if (f.hours > 0) filters.push(gte(incidents.createdAt, new Date(nowMs() - f.hours * 3600 * 1000)));
+  const where = filters.length ? and(...filters) : undefined;
+
+  const dayAgo = new Date(nowMs() - 864e5);
+  const [rows, recent, wire, totals, wireTotal] = await Promise.all([
+    db.select().from(incidents).where(where).orderBy(desc(incidents.createdAt)).limit(24),
+    db.select().from(incidents).where(notInArray(incidents.status, HIDDEN_STATUSES)).orderBy(desc(incidents.createdAt)).limit(40),
+    db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(6),
+    // Home stats are counted in the database. Counting the 40-row feed slice made them lie once the feed was busy.
+    db
+      .select({
+        reportsToday: sql<number>`count(*) filter (where ${incidents.createdAt} >= ${dayAgo})`,
+        active: sql<number>`count(*) filter (where ${incidents.status} = 'active')`,
+        activeSevere: sql<number>`count(*) filter (where ${incidents.status} = 'active' and ${incidents.severity} >= 3)`,
+        parishes: sql<number>`count(distinct ${incidents.parish})`,
+      })
+      .from(incidents)
+      .where(notInArray(incidents.status, HIDDEN_STATUSES))
+      .then((r) => r[0]),
+    db.select({ n: count() }).from(newsItems).where(eq(newsItems.review, "approved")).then((r) => r[0]),
+  ]);
+
+  // The newest timeline entry per report, for the card's "Latest" line. Flag entries are staff-only and are left out.
+  const ids = rows.map((r) => r.id);
+  const updates = ids.length
+    ? await db
+        .select({ incidentId: incidentUpdates.incidentId, kind: incidentUpdates.kind, note: incidentUpdates.note, createdAt: incidentUpdates.createdAt })
+        .from(incidentUpdates)
+        .where(and(inArray(incidentUpdates.incidentId, ids), ne(incidentUpdates.kind, "flag")))
+        .orderBy(desc(incidentUpdates.createdAt))
+        .limit(ids.length * 5)
+    : [];
+  const latest: Record<string, { kind: string; note: string | null; createdAt: string }> = {};
+  for (const u of updates) {
+    if (!latest[u.incidentId]) latest[u.incidentId] = { kind: u.kind, note: u.note, createdAt: new Date(u.createdAt).toISOString() };
+  }
+
+  return { rows, recent, wire, totals, wireTotal, latest };
+}
+
+const loadHomeCached = unstable_cache(loadHomeData, ["home-feed-v1"], { revalidate: 30 });
+
 export default async function Home({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
-  const category = first(sp.category);
-  const parish = knownParish(first(sp.parish) ?? null);
+  // Only a known category can reach the cache key; arbitrary strings would fill it.
+  const categoryIn = first(sp.category);
+  const category = categoryIn && Object.prototype.hasOwnProperty.call(CATEGORIES, categoryIn) ? categoryIn : undefined;
+  const parish = knownParish(first(sp.parish)) ?? undefined;
   const q = param(first(sp.q), 100);
   const statusIn = first(sp.status);
   const status = statusIn === "all" || statusIn === "resolved" ? statusIn : "active";
   const hours = clampInt(first(sp.hours), 0, 0, 24 * 365);
 
-  const filters = [];
-  if (status === "all") filters.push(notInArray(incidents.status, HIDDEN_STATUSES));
-  else filters.push(eq(incidents.status, status));
-  if (category && Object.prototype.hasOwnProperty.call(CATEGORIES, category)) filters.push(eq(incidents.category, category));
-  if (parish) filters.push(eq(incidents.parish, parish));
-  if (q) {
-    const needle = `%${likeEscape(q)}%`;
-    filters.push(or(ilike(incidents.title, needle), ilike(incidents.details, needle), ilike(incidents.address, needle)));
-  }
-  if (hours > 0) filters.push(gte(incidents.createdAt, new Date(nowMs() - hours * 3600 * 1000)));
-
-  const where = filters.length ? and(...filters) : undefined;
-
-  const [rows, recent, wire, viewer] = await Promise.all([
-    db.select().from(incidents).where(where).orderBy(desc(incidents.createdAt)).limit(24),
-    db.select().from(incidents).where(notInArray(incidents.status, HIDDEN_STATUSES)).orderBy(desc(incidents.createdAt)).limit(40),
-    db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(6),
-    getViewer(),
-  ]);
+  const query: HomeQuery = { status, category, parish, q, hours };
+  // Search text is not cached: free text would make an unbounded number of cache entries.
+  const loadHome = q ? loadHomeData : loadHomeCached;
+  const [home, viewer] = await Promise.all([loadHome(query), getViewer()]);
+  const { rows, recent, wire, totals, wireTotal, latest } = home;
+  const emergencyUp = Number(totals?.activeSevere ?? 0) > 0;
   const life = FEATURES.islandLife ? await listPosts({ perPage: 3 }) : null;
   const adFree = viewer.adFree;
   const handle = viewer.handle;
@@ -76,20 +127,25 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const center: [number, number] = anchor ? [anchor.lat, anchor.lng] : [24.9, -77.6];
   const zoom = anchor ? 14 : 8;
 
-  const activeCount = recent.filter((r) => r.status === "active").length;
+  const activeCount = Number(totals?.active ?? 0);
 
   return (
     <>
+      <div className="mb-4 space-y-3">
+        <EmergencyNotice />
+        <OfficialSources />
+      </div>
       <section className="mb-5 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="glass relative isolate overflow-hidden rounded-2xl p-4 sm:p-5">
           <PageScene name="aerial" />
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-tide-400">{BRAND.tagline}</p>
+          <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">{BRAND.tagline}</p>
           <h1 className="display mt-1.5 text-[clamp(1.55rem,6.2vw,2.6rem)] font-extrabold leading-[1.04] text-sand-100">
             What is actually happening, <span className="text-tide-400">street by street.</span>
           </h1>
           <p className="mt-2 max-w-[54ch] text-[13.5px] leading-relaxed text-ink-300">
-            Residents pin floods, outages, road damage and safety hazards on real aerial imagery — zoom to the roof, drag the
-            pin tip to the kerb, and neighbours confirm it. No accounts required to read the map.
+            Residents pin floods, outages, road damage and safety hazards on real aerial imagery. Pin the road or junction,
+            not a house: published pins sit a short distance from the exact spot, and neighbours confirm them. No accounts
+            are required to read the map.
           </p>
           <div className="mt-3.5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
             <Link
@@ -110,15 +166,21 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             >
               Read the news wire
             </Link>
+            <Link
+              href="/open-now"
+              className="rounded-full border hairline px-4 py-2 text-center text-[13px] font-bold text-ink-200 hover:bg-white/5"
+            >
+              What is open now
+            </Link>
           </div>
           <dl className="mt-4 grid grid-cols-3 gap-2 border-t hairline pt-3 text-left">
             {[
-              ["Reports today", String(recent.filter((r) => nowMs() - new Date(r.createdAt).getTime() < 864e5).length)],
-              ["Islands covered", String(new Set(recent.map((r) => r.parish).filter(Boolean)).size)],
-              ["Wire stories", String(wire.length)],
+              ["Reports, last 24h", String(Number(totals?.reportsToday ?? 0))],
+              ["Parishes reporting", String(Number(totals?.parishes ?? 0))],
+              ["Wire stories", String(Number(wireTotal?.n ?? 0))],
             ].map(([k, v]) => (
               <div key={k}>
-                <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">{k}</dt>
+                <dt className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">{k}</dt>
                 <dd className="display text-[19px] font-extrabold text-sand-100">{v}</dd>
               </div>
             ))}
@@ -180,7 +242,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           {rows.length ? (
             <div className="space-y-3">
               {rows.map((row, i) => (
-                <IncidentCard key={row.id} row={{ ...row, category: row.category as CategoryKey }} handle={handle} badge={badges.get(row.authorHandle ?? "") ?? null} eng={engMap.get(row.id) ?? NO_ENGAGEMENT} />
+                <IncidentCard key={row.id} row={{ ...row, category: row.category as CategoryKey }} handle={handle} badge={badges.get(row.authorHandle ?? "") ?? null} eng={engMap.get(row.id) ?? NO_ENGAGEMENT} latest={latest[row.id] ?? null} />
               ))}
             </div>
           ) : (
@@ -220,7 +282,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             </div>
           </div>
 
-          <AdSlot index={1} adFree={adFree} variant="rail" />
+          {/* No ads beside an active severe hazard: the space is for the warning. */}
+          {!adFree && !emergencyUp ? <AdSlot index={1} variant="rail" /> : null}
 
           <div className="nb-surface rounded-xl2 p-3.5">
             <div className="flex items-baseline justify-between">
@@ -235,7 +298,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                   <li key={n.id}>
                     <a href={n.url} target="_blank" rel="noreferrer" className="group block">
                       <p className="text-[13px] font-semibold leading-snug text-ink-200 group-hover:text-tide-300">{n.title}</p>
-                      <p className="mt-0.5 text-[11px] text-ink-400">
+                      <p className="mt-0.5 text-[11.5px] text-ink-400">
                         {n.sourceName} · {timeAgo(n.publishedAt)}
                         {n.parish ? ` · ${n.parish}` : ""}
                       </p>
@@ -266,7 +329,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                 <li key={p.id}>
                   <Link href={`/life/${p.id}`} className="group block">
                     <p className="text-[13px] font-semibold leading-snug text-ink-200 group-hover:text-tide-300">{p.title}</p>
-                    <p className="mt-0.5 text-[11px] text-ink-400">
+                    <p className="mt-0.5 text-[11.5px] text-ink-400">
                       {(KINDS[p.kind as KindKey] ?? KINDS.tip).label} · {p.placeName ?? p.parish} · {timeAgo(p.createdAt)}
                     </p>
                   </Link>

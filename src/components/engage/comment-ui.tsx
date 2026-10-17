@@ -90,7 +90,7 @@ export function CommentComposer({
             Cancel
           </button>
         ) : null}
-        <span className="ml-auto text-[11px] text-ink-400">
+        <span className="ml-auto text-[11.5px] text-ink-400">
           {body.length}/{COMMENT_MAX}
         </span>
       </div>

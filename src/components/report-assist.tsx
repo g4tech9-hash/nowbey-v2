@@ -80,13 +80,13 @@ export function ReportAssist({
   const placeDiff =
     data?.place && pick && Math.abs(data.place.lat - pick.lat) + Math.abs(data.place.lng - pick.lng) > 0.002 ? data.place : null;
 
-  const applyBtn = "rounded-full bg-tide-500 px-2.5 py-1 text-[11px] font-extrabold text-abyss-950";
+  const applyBtn = "rounded-full bg-tide-500 px-2.5 py-1 text-[11.5px] font-extrabold text-abyss-950";
 
   return (
     <div className="rounded-2xl border border-[#a78bfa]/30 bg-[#a78bfa]/8 p-3.5">
       <div className="flex flex-wrap items-center gap-2">
         <p className="display text-[13.5px] font-bold text-sand-100">✨ Check my report</p>
-        <span className="text-[11px] text-ink-400">optional — 5 seconds</span>
+        <span className="text-[11.5px] text-ink-400">optional — 5 seconds</span>
         <button
           type="button"
           onClick={check}
@@ -169,7 +169,7 @@ export function ReportAssist({
                   <li key={q}>{q}</li>
                 ))}
               </ul>
-              <p className="mt-0.5 text-[11px] text-ink-400">Add what you know to “What neighbours should know” — or publish as is.</p>
+              <p className="mt-0.5 text-[11.5px] text-ink-400">Add what you know to “What neighbours should know” — or publish as is.</p>
             </div>
           ) : null}
           {data.ai && !categoryDiff && !severityDiff && !headlineDiff && !s?.missingInfo.length && !data.duplicates.length ? (

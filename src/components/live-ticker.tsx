@@ -33,10 +33,18 @@ export function LiveTicker() {
       }
     };
     void load();
-    const t = setInterval(load, 45_000);
+    // Poll only while the tab is visible; refresh once when it comes back into view.
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, 45_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       alive = false;
       clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -48,7 +56,7 @@ export function LiveTicker() {
   return (
     <div className="w-full border-b hairline bg-abyss-900/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1180px] items-center gap-2.5 px-3.5 py-1 sm:gap-3 sm:px-5">
-        <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-sun-500/18 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-sun-600 sm:text-[10.5px]">
+        <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-sun-500/18 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-sun-600 sm:text-[11.5px]">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sun-500" />
           Gas Updates
         </span>

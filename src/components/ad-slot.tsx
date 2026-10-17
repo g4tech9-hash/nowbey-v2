@@ -54,7 +54,7 @@ export function AdSlot({
       }`}
       style={{ borderLeft: `3px solid ${ad.tone}` }}
     >
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: ad.tone }}>
+      <p className="text-[11.5px] font-bold uppercase tracking-[0.16em]" style={{ color: ad.tone }}>
         {label}
       </p>
       <div className={`mt-1 flex gap-3 ${variant === "rail" ? "flex-col" : "items-start justify-between"}`}>
@@ -69,7 +69,7 @@ export function AdSlot({
           {ad.cta}
         </Link>
       </div>
-      <p className="mt-1.5 text-[10.5px] text-ink-400">House slot · sold by hand, not an ad network. Plans from ${money(LOWEST_MONTHLY)} a month remove these.</p>
+      <p className="mt-1.5 text-[11.5px] text-ink-400">House slot · sold by hand, not an ad network. Plans from ${money(LOWEST_MONTHLY)} a month remove these.</p>
     </div>
   );
 }
