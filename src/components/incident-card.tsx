@@ -6,13 +6,6 @@ import { BadgeMark } from "./verified-badge";
 import { EngagementSummary } from "@/components/engage/summary";
 import type { Engagement } from "@/lib/engage-kinds";
 import type { Badge } from "@/lib/badges";
-import { CatBadge } from "@/ui/kit";
-
-/* =====================================================================
-   Incident card — rebuilt 2026-10-17 as the layered card architecture
-   from the reference set (category badge · title · muted brief · meta
-   row · footer row on a divider). Behavior and props unchanged.
-   ===================================================================== */
 
 export type IncidentRow = {
   id: string;
@@ -55,7 +48,7 @@ function SeverityMeter({ level, tone }: { level: number; tone: string }) {
         <span
           key={i}
           className="h-3 w-[5px] rounded-full"
-          style={{ background: i <= level ? tone : "rgba(121,146,151,.22)" }}
+          style={{ background: i <= level ? tone : "rgba(255,255,255,.14)" }}
         />
       ))}
     </span>
@@ -85,85 +78,78 @@ export function IncidentCard({
   const stale = fresh.level !== "current";
 
   return (
-    <article className="nb-card" style={{ padding: "20px 22px" }}>
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-        <CatBadge color={meta.color}>{meta.label}</CatBadge>
+    <article
+      className="nb-surface nb-card-link relative overflow-hidden rounded-[20px] p-4"
+      style={{ boxShadow: `0 10px 22px rgba(0,0,0,0.14), inset 3px 0 0 ${meta.color}` }}
+    >
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[11.5px] font-bold">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 uppercase tracking-[0.1em]"
+          style={{ color: meta.color, borderColor: `${meta.color}3d`, background: `${meta.color}14` }}
+        >
+          <span className="h-2 w-2 rounded-full" style={{ background: meta.color, boxShadow: `0 0 8px ${meta.color}80` }} />
+          {meta.label}
+        </span>
         <SeverityMeter level={row.severity} tone={meta.color} />
         {row.status !== "active" ? (
-          <span className="nb-chip" style={{ fontSize: 10.5 }}>
-            {row.status}
-          </span>
+          <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-ink-300">{row.status}</span>
         ) : stale ? (
-          <span className="nb-pill" style={{ fontSize: 10, letterSpacing: "0.08em" }}>
+          <span className="rounded-full border border-sun-500/30 bg-sun-500/12 px-2.5 py-1 text-[11.5px] text-sun-600">
             {fresh.level === "stale" ? "may be out of date" : "needs a re-check"} · {ageLabel(fresh.hoursAgo)}
           </span>
         ) : null}
         {row.sourceKind === "news" ? (
-          <span className="nb-chip" style={{ fontSize: 10.5 }}>
-            from the wire
-          </span>
+          <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-ink-300">from the wire</span>
         ) : null}
-        <span className="ml-auto text-[11.5px] font-semibold" style={{ color: "var(--nb-faint)" }}>
+        <span className="ml-auto text-[11.5px] font-semibold text-ink-400">
           {timeAgo(row.createdAt)}
         </span>
       </div>
 
-      <h3 className="display mt-3 text-[17px] font-extrabold leading-snug">
-        <Link href={`/incident/${row.id}`}>{row.title}</Link>
+      <h3 className="display mt-2.5 text-[17px] font-extrabold leading-snug tracking-[-0.04em] text-sand-100">
+        <Link href={`/incident/${row.id}`} className="transition duration-200 ease-standard hover:text-tide-300">
+          {row.title}
+        </Link>
       </h3>
 
-      {row.details ? (
-        <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
-          {row.details}
-        </p>
-      ) : null}
+      {row.details ? <p className="mt-1.5 line-clamp-2 text-[13px] leading-[1.75] text-ink-300">{row.details}</p> : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
-        <span className="font-semibold" style={{ color: "var(--nb-text)" }}>
-          {row.street ?? "Unmapped spot"}
-        </span>
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px] text-ink-400">
+        <span className="font-bold text-ink-200">{row.street ?? "Unmapped spot"}</span>
         {row.parish ? <span>· {row.parish}</span> : null}
-        <span className="num font-mono text-[11px]">
+        <span className="num font-mono text-[11.5px] text-ink-400">
           {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
         </span>
         {row.accuracyMeters ? (
-          <span className="nb-chip num" style={{ fontSize: 10.5, padding: "4px 9px" }}>
-            ± {Math.round(row.accuracyMeters)} m
-          </span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11.5px]">± {Math.round(row.accuracyMeters)} m</span>
         ) : null}
-        <Link href={`/map?focus=${row.id}`} className="nb-link-arrow ml-auto" style={{ fontSize: 11.5 }}>
+        <Link href={`/map?focus=${row.id}`} className="ml-auto font-bold text-tide-300 hover:underline">
           Open on map
         </Link>
       </div>
 
       {row.address && row.address !== row.street ? (
-        <p className="mt-1.5 text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
-          {row.address}
-        </p>
+        <p className="mt-1.5 text-[11.5px] text-ink-400">{row.address}</p>
       ) : null}
 
       {latest ? (
-        <p className="mt-2 text-[12.5px]" style={{ color: "var(--nb-text)" }}>
-          <span className="font-bold" style={{ color: "var(--nb-cream)" }}>
-            Latest: {UPDATE_LABELS[latest.kind] ?? latest.kind}
-          </span>
-          {latest.note ? <span style={{ color: "var(--nb-muted)" }}> — {latest.note}</span> : null}
-          <span style={{ color: "var(--nb-faint)" }}> · {timeAgo(latest.createdAt)}</span>
+        <p className="mt-2 text-[12.5px] leading-[1.75] text-ink-200">
+          <span className="font-bold text-sand-100">Latest: {UPDATE_LABELS[latest.kind] ?? latest.kind}</span>
+          {latest.note ? <span> — {latest.note}</span> : null}
+          <span className="text-ink-400"> · {timeAgo(latest.createdAt)}</span>
         </p>
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="nb-chip" style={{ fontSize: 11 }}>
+        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11.5px] font-bold text-ink-200">
           {row.confirmations} confirm{row.confirmations === 1 ? "" : "s"}
         </span>
         {row.sightings > 0 ? (
-          <span className="nb-chip" style={{ fontSize: 11 }}>
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11.5px] font-bold text-ink-200">
             {row.sightings} “saw it too”
           </span>
         ) : null}
-        <span className="text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
-          reported by @{row.authorHandle ?? "someone"}
-        </span>
+        <span className="text-[11.5px] text-ink-400">reported by @{row.authorHandle ?? "someone"}</span>
         <BadgeMark kind={badge} />
       </div>
 
@@ -174,7 +160,7 @@ export function IncidentCard({
       ) : null}
 
       {showActions ? (
-        <div className="mt-3 border-t pt-3" style={{ borderColor: "var(--nb-stroke-soft)" }}>
+        <div className="mt-2.5 border-t hairline pt-2.5">
           <IncidentActions id={row.id} confirmations={row.confirmations} status={row.status} handle={handle} />
         </div>
       ) : null}
@@ -183,25 +169,18 @@ export function IncidentCard({
 }
 
 export function IncidentRail({ rows, empty }: { rows: IncidentRow[]; empty: string }) {
-  if (!rows.length)
-    return (
-      <p className="px-1 text-[12.5px]" style={{ color: "var(--nb-faint)" }}>
-        {empty}
-      </p>
-    );
+  if (!rows.length) return <p className="px-1 text-[12.5px] text-ink-400">{empty}</p>;
   return (
     <ul className="space-y-2">
       {rows.map((row) => {
         const meta = CATEGORIES[row.category as CategoryKey] ?? CATEGORIES.notice;
         return (
           <li key={row.id}>
-            <Link href={`/incident/${row.id}`} className="group flex gap-2.5 rounded-xl px-2 py-2">
+            <Link href={`/incident/${row.id}`} className="group flex gap-2.5 rounded-xl px-2 py-1.5 hover:bg-white/5">
               <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: meta.color }} />
               <span className="min-w-0">
-                <span className="block truncate text-[13px] font-semibold" style={{ color: "var(--nb-cream)" }}>
-                  {row.title}
-                </span>
-                <span className="block truncate text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
+                <span className="block truncate text-[13px] font-semibold text-sand-100 group-hover:text-tide-300">{row.title}</span>
+                <span className="block truncate text-[11.5px] text-ink-400">
                   {row.street ?? row.parish ?? "The Bahamas"} · {timeAgo(row.createdAt)}
                 </span>
               </span>

@@ -2,22 +2,48 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { NavLinks, SessionChip, BottomTabBar } from "./nav-links";
-import { NowBeyMark, Wordmark } from "@/ui/kit";
+import { useId, type ReactNode } from "react";
+import { NavLinks, SessionChip } from "./nav-links";
+import { ModeToggle } from "./mode-toggle";
+import { LiveTicker } from "./live-ticker";
 import { BRAND } from "@/lib/brand";
+import type { ModeKey } from "@/lib/themes";
+import { AccessibilityControls } from "./accessibility-controls";
+import { SimpleViewToggle } from "./simple-view-toggle";
+import { DisplayTip } from "./display-tip";
+import { ArrowIcon, PageIntro } from "./ui";
 
-/** Re-exported for pages that show the brand mark (not-found, error screens). */
-export { NowBeyMark, Wordmark };
-export { BottomTabBar };
+export function NowBeyMark({ size = 30 }: { size?: number }) {
+  const gradientId = `nbmark-${useId().replace(/:/g, "")}`;
 
-/* =====================================================================
-   Global shell — rebuilt 2026-10-17.
-   New DOM: pill top bar (mark + wordmark + auth pills) and the fixed
-   bottom tab bar (Feed · Map · Report · Wire · Alerts) exactly as the
-   reference mockups show it. Legacy grid chrome removed.
-   ===================================================================== */
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden className="shrink-0">
+      <defs>
+        <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#6be9d9" />
+          <stop offset="55%" stopColor="#43e0cc" />
+          <stop offset="100%" stopColor="#ff8877" />
+        </linearGradient>
+      </defs>
+      <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="#0a1b26" stroke={`url(#${gradientId})`} strokeWidth="2" />
+      <path d="M8 25.5c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#43e0cc" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path
+        d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z"
+        fill="none"
+        stroke={`url(#${gradientId})`}
+        strokeWidth="2.2"
+      />
+      <circle cx="20" cy="15.2" r="2.4" fill="#f5c75d" />
+    </svg>
+  );
+}
 
+/**
+ * The application shell, re-architected on the landing page's layout grammar:
+ * a sticky glass header with pill actions, a centered content column, an
+ * editorial footer, and a phone tab bar with a More sheet. The old boxed
+ * header/main/footer containers are gone.
+ */
 export function AppShell({
   children,
   handle,
@@ -26,101 +52,157 @@ export function AppShell({
 }: {
   children: ReactNode;
   handle: string | null;
-  defaultMode: string;
+  defaultMode: ModeKey;
   kicker?: ReactNode;
 }) {
   const isLanding = usePathname() === "/";
-  void defaultMode;
 
   return (
-    <div className="relative min-h-screen">
+    <div className="grain relative min-h-screen">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[800] focus:rounded-full focus:bg-[#43e0cb] focus:px-4 focus:py-2 focus:text-[13px] focus:font-extrabold focus:text-[#06242c]"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[800] focus:rounded-full focus:bg-tide-500 focus:px-4 focus:py-2 focus:text-[13px] focus:font-extrabold focus:text-[#04202a]"
       >
         Skip to content
       </a>
-
       {!isLanding ? (
         <>
-          <header className="nb-topbar relative z-[650]">
-            <div className="mx-auto flex w-full max-w-[1180px] items-center gap-3 px-4 py-2.5 sm:px-6" style={{ minHeight: 58 }}>
-              <Link href="/" className="flex items-center gap-2.5">
-                <NowBeyMark size={34} />
+          {/* The header scrolls with the document on purpose (map and feed content must never sit
+              under a sticky bar); only the phone tab bar stays pinned. Same landing material. */}
+          <header className="glass-strong nb-pad-top relative z-[650] border-b hairline">
+            <div className="mx-auto flex min-h-[76px] w-full max-w-[1320px] items-center gap-4 px-4 sm:px-8">
+              <Link href="/" className="flex flex-none items-center gap-2.5">
+                <NowBeyMark />
                 <span className="leading-none">
-                  <Wordmark size={20} />
-                  <span className="nb-tagline mt-1 block text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--nb-faint)" }}>
+                  <span className="block text-[19px] font-extrabold tracking-[-0.055em] text-sand-100" style={{ fontFamily: "var(--font-display)" }}>
+                    Now<span className="text-tide-500">Bey</span>
+                  </span>
+                  <span className="nb-tagline mt-1 block text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">
                     {BRAND.tagline}
                   </span>
                 </span>
               </Link>
 
-              <div className="ml-auto hidden items-center gap-1 lg:flex">
+              <div className="mx-auto hidden items-center lg:flex">
                 <NavLinks />
               </div>
-              <div className="ml-auto flex items-center gap-2 lg:ml-4">
-                {kicker}
+
+              <div className="ml-auto flex items-center gap-2">
+                <Link
+                  href="/report"
+                  className="nb-btn nb-btn-primary hidden sm:inline-flex"
+                >
+                  Report a spot
+                  <ArrowIcon />
+                </Link>
+                <SimpleViewToggle />
+                <ModeToggle defaultMode={defaultMode} />
                 <SessionChip handle={handle} />
               </div>
             </div>
+            {kicker}
           </header>
 
-          <main id="main" className="relative z-[2] mx-auto w-full max-w-[1180px] px-4 pb-24 pt-7 sm:px-6 lg:pb-12">
-            {children}
-          </main>
-
-          <BottomTabBar />
+          <DisplayTip />
         </>
-      ) : (
-        <main id="main" className="relative z-[2]">
-          {children}
-        </main>
-      )}
+      ) : null}
+
+      {/* The marketing route has its own full-bleed, sticky navigation and footer. */}
+      <main
+        id="main"
+        className={
+          isLanding
+            ? "landing-main min-w-0 w-full max-w-none overflow-visible p-0"
+            : "mx-auto min-w-0 w-full max-w-[1240px] overflow-x-clip px-4 pb-6 pt-5 sm:px-8 sm:pt-7 lg:pb-12"
+        }
+      >
+        {children}
+      </main>
+
+      {!isLanding ? (
+        <>
+          <footer id="display-options" className="nb-clear-nav mx-auto w-full max-w-[1240px] overflow-x-clip px-4 sm:px-8">
+            <div className="grid gap-8 border-t hairline py-9 sm:grid-cols-[1.5fr_1fr_1fr]">
+              <div>
+                <p className="text-[19px] font-extrabold tracking-[-0.055em] text-sand-100" style={{ fontFamily: "var(--font-display)" }}>
+                  Now<span className="text-tide-500">Bey</span>
+                </p>
+                <p className="mt-2 max-w-[42ch] text-[12.5px] leading-[1.75] text-ink-300">
+                  {BRAND.name} · {BRAND.tagline}. Community safety, news and island life — pinned by residents,
+                  confirmed by neighbours.
+                </p>
+                <p className="mt-2 text-[12px] text-ink-400">Pins are placed by residents — verify before you travel.</p>
+              </div>
+              <nav aria-label="Product">
+                <p className="nb-eyebrow mb-3">Explore</p>
+                <ul className="space-y-2 text-[12.5px] font-semibold">
+                  {[
+                    ["/feed", "Community feed"],
+                    ["/map", "The map"],
+                    ["/report", "Report a hazard"],
+                    ["/wire", "News wire"],
+                    ["/alerts", "Alerts"],
+                  ].map(([href, label]) => (
+                    <li key={href}>
+                      <Link href={href} className="text-ink-200 transition duration-200 ease-standard hover:text-tide-300">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <nav aria-label="Company">
+                <p className="nb-eyebrow mb-3">NowBey</p>
+                <ul className="space-y-2 text-[12.5px] font-semibold">
+                  {[
+                    ["/open-now", "What is open now"],
+                    ["/support", "Plans and pricing"],
+                    ["/mobile", "Mobile app (developers)"],
+                    ["/terms", "Terms"],
+                    ["/privacy", "Privacy"],
+                    ["/credits", "Photo credits"],
+                  ].map(([href, label]) => (
+                    <li key={href}>
+                      <Link href={href} className="text-ink-200 transition duration-200 ease-standard hover:text-tide-300">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t hairline py-5">
+              <span className="text-[12px] font-bold text-ink-300">Display options</span>
+              <AccessibilityControls compact />
+            </div>
+          </footer>
+
+          <div className="lg:hidden">
+            <NavLinks variant="bar" />
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
 
-/** Shared page header for inner screens: micro-label eyebrow + display title + muted blurb. */
+/**
+ * Page intro kept for routes outside the rebuilt core (admin, legal, static).
+ * It now renders the landing "section intro" grammar: eyebrow → display
+ * headline → muted lede → pill actions.
+ */
 export function PageHead({
   eyebrow,
   title,
   blurb,
   actions,
 }: {
-  eyebrow?: string;
+  eyebrow: string;
   title: string;
   blurb?: string;
   actions?: ReactNode;
 }) {
-  return (
-    <header className="mb-6">
-      {eyebrow ? <p className="nb-label">{eyebrow}</p> : null}
-      <div className="mt-2 flex flex-wrap items-start gap-4">
-        <h1 className="display max-w-[34ch] text-[26px] font-extrabold leading-[1.12] sm:text-[32px]">{title}</h1>
-        {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
-      </div>
-      {blurb ? (
-        <p className="mt-3 max-w-[68ch] text-[15px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
-          {blurb}
-        </p>
-      ) : null}
-    </header>
-  );
+  return <PageIntro eyebrow={eyebrow} title={title} blurb={blurb} actions={actions} className="mb-6" />;
 }
 
-/** Slim live marquee used by the landing ticker rail. */
-export function LiveTicker({ items }: { items?: string[] }) {
-  const list = items ?? ["Stay Safe, Bahamas"];
-  return (
-    <div className="nb-no-scrollbar overflow-hidden border-y" style={{ borderColor: "var(--nb-stroke)" }}>
-      <div className="marquee-track flex w-max items-center gap-10 py-2.5">
-        {[...list, ...list].map((t, i) => (
-          <span key={i} className="flex items-center gap-3 text-[12px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--nb-faint)" }}>
-            <span className="nb-dot" style={{ background: "var(--nb-mint)" }} />
-            {t}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
+export { LiveTicker };

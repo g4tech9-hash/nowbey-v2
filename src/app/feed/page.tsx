@@ -4,7 +4,6 @@ import { unstable_cache } from "next/cache";
 import { db, hasDatabase } from "@/db";
 import { DatabaseSetup } from "@/components/db-setup";
 import { incidentUpdates, incidents, newsItems } from "@/db/schema";
-import { PageHead } from "@/components/app-shell";
 import { IncidentCard } from "@/components/incident-card";
 import { AdSlot } from "@/components/ad-slot";
 import { EmergencyNotice } from "@/components/emergency-notice";
@@ -21,16 +20,10 @@ import { BRAND } from "@/lib/brand";
 import { PageScene } from "@/components/page-scene";
 import { KINDS, listPosts, type KindKey } from "@/lib/life";
 import { FEATURES } from "@/lib/features";
-import { Dot, Pill } from "@/ui/kit";
+import { ButtonLink, Eyebrow, SectionTitle, TextLink, ArrowIcon, EmptyState } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Community feed" };
-
-/* =====================================================================
-   Community feed — page DOM rebuilt 2026-10-17.
-   New layout: layered hero card + map preview card + card rails, the
-   same architecture as the reference screens. Queries/cache untouched.
-   ===================================================================== */
 
 type Search = { [k: string]: string | string[] | undefined };
 
@@ -151,93 +144,88 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
   return (
     <>
-      <div className="mb-5 flex flex-col gap-3">
+      <div className="mb-5 space-y-3">
         <EmergencyNotice />
         <OfficialSources />
       </div>
 
-      {/* ---- hero band: layered card with breathing room ---- */}
-      <section className="mb-6 grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-        <div className="nb-card relative isolate overflow-hidden" style={{ padding: "30px 28px" }}>
+      {/* Hero band — landing hero grammar: asymmetric grid, display headline, one loud CTA. */}
+      <section className="mb-8 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)]">
+        <div className="glass relative isolate overflow-hidden rounded-[24px] p-5 sm:p-7">
           <PageScene name="aerial" />
-          <p className="nb-label nb-label-mint">{BRAND.tagline}</p>
-          <h1 className="display mt-3 text-[clamp(1.7rem,5.4vw,2.6rem)] font-extrabold leading-[1.06]">
-            What is actually happening, <span style={{ color: "var(--nb-mint)" }}>street by street.</span>
+          <Eyebrow>{BRAND.tagline}</Eyebrow>
+          <h1 className="display mt-3 text-[clamp(1.75rem,5.4vw,2.9rem)] font-extrabold leading-[1.02] tracking-[-0.06em] text-sand-100">
+            What is actually happening, <em className="text-tide-500 not-italic">street by street.</em>
           </h1>
-          <p className="mt-3.5 max-w-[54ch] text-[14px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
+          <p className="mt-3 max-w-[54ch] text-[13.5px] leading-[1.75] text-ink-300">
             Residents pin floods, outages, road damage and safety hazards on real aerial imagery. Pin the road or junction,
             not a house: published pins sit a short distance from the exact spot, and neighbours confirm them. No accounts
             are required to read the map.
           </p>
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            <Link href="/report" className="nb-btn nb-btn-primary nb-btn-sm">
+          <div className="mt-5 flex flex-wrap items-center gap-2.5">
+            <ButtonLink href="/report" variant="primary">
               Drop a pin
-            </Link>
-            <Link href="/map" className="nb-btn nb-btn-outline nb-btn-sm">
+              <ArrowIcon />
+            </ButtonLink>
+            <ButtonLink href="/map" variant="secondary">
               Open the map · {activeCount} live
-            </Link>
-            <Link href="/wire" className="nb-btn nb-btn-outline nb-btn-sm">
+            </ButtonLink>
+            <ButtonLink href="/wire" variant="ghost">
               Read the news wire
-            </Link>
-            <Link href="/open-now" className="nb-btn nb-btn-outline nb-btn-sm">
+            </ButtonLink>
+            <ButtonLink href="/open-now" variant="ghost">
               What is open now
-            </Link>
+            </ButtonLink>
           </div>
-          <dl className="mt-6 grid grid-cols-3 gap-2.5 border-t pt-5 text-left" style={{ borderColor: "var(--nb-stroke-soft)" }}>
+          <dl className="mt-6 grid grid-cols-3 gap-2.5 border-t hairline pt-4 text-left">
             {[
               ["Reports, last 24h", String(Number(totals?.reportsToday ?? 0))],
               ["Parishes reporting", String(Number(totals?.parishes ?? 0))],
               ["Wire stories", String(Number(wireTotal?.n ?? 0))],
             ].map(([k, v]) => (
               <div key={k}>
-                <dt className="nb-label" style={{ fontSize: 9.5 }}>
-                  {k}
-                </dt>
-                <dd className="display mt-1 text-[21px] font-extrabold">{v}</dd>
+                <dt className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">{k}</dt>
+                <dd className="num display mt-1 text-[21px] font-extrabold tracking-[-0.045em] text-sand-100">{v}</dd>
               </div>
             ))}
           </dl>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border" style={{ borderColor: "var(--nb-stroke)" }}>
-          <MapPanel pins={pins} center={center} zoom={zoom} initialLayer="hybrid" className="h-[260px] w-full sm:h-[340px]" mode="browse" />
+        <div className="overflow-hidden rounded-[24px] border border-tide-500/20 shadow-l2">
+          <MapPanel pins={pins} center={center} zoom={zoom} initialLayer="hybrid" className="h-[260px] w-full sm:h-[380px]" mode="browse" />
         </div>
       </section>
 
-      <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_318px]">
+      {/* Feed + rail — asymmetric two-column grid, mobile-first. */}
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_318px]">
         <div className="min-w-0">
-          <PageHead
-            eyebrow={status === "all" ? "Everything" : "Live now"}
-            title="The feed"
-            actions={
-              <div className="flex gap-1.5">
-                {(["active", "all", "resolved"] as const).map((s) => (
-                  <Link
-                    key={s}
-                    href={{ pathname: "/feed", query: { ...(category ? { category } : {}), ...(parish ? { parish } : {}), status: s } }}
-                    className="nb-chip"
-                    style={
-                      status === s
-                        ? { background: "var(--nb-mint)", borderColor: "var(--nb-mint)", color: "var(--nb-mint-ink)", fontWeight: 800 }
-                        : { color: "var(--nb-text)" }
-                    }
-                  >
-                    {s === "all" ? "All" : s === "active" ? "Open" : "Resolved"}
-                  </Link>
-                ))}
-              </div>
-            }
-          />
+          <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+            <div className="min-w-[200px] flex-1">
+              <Eyebrow dot={status !== "resolved"}>{status === "all" ? "Everything" : status === "active" ? "Live now" : "Cleared"}</Eyebrow>
+              <h2 className="display mt-2 text-[clamp(1.5rem,3.6vw,2rem)] font-extrabold leading-[1.06] tracking-[-0.055em] text-sand-100">
+                The feed
+              </h2>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {(["active", "all", "resolved"] as const).map((s) => (
+                <Link
+                  key={s}
+                  href={{ pathname: "/feed", query: { ...(category ? { category } : {}), ...(parish ? { parish } : {}), status: s } }}
+                  aria-current={status === s ? "true" : undefined}
+                  className={`nb-chip${status === s ? " nb-chip" : ""}`}
+                  data-on={status === s ? "true" : undefined}
+                >
+                  {s === "all" ? "All" : s === "active" ? "Open" : "Resolved"}
+                </Link>
+              ))}
+            </div>
+          </div>
 
-          <div className="nb-no-scrollbar -mx-4 mb-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+          <div className="nb-no-scrollbar -mx-4 mt-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
             <Link
               href="/feed"
-              className="shrink-0 rounded-full px-2.5 py-1.5 text-[11.5px] font-bold"
-              style={
-                !category
-                  ? { background: "var(--nb-cream)", color: "var(--nb-bg)" }
-                  : { border: "1px solid var(--nb-stroke)", color: "var(--nb-muted)" }
-              }
+              className="nb-chip shrink-0"
+              aria-current={!category ? "true" : undefined}
             >
               Everything
             </Link>
@@ -248,7 +236,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                 aria-current={category === key ? "true" : undefined}
                 className="nb-category-chip shrink-0 rounded-full border px-2.5 py-1 text-[11.5px] font-bold transition hover:brightness-125"
                 style={{
-                  borderColor: category === key ? CATEGORIES[key].color : "var(--nb-stroke)",
+                  borderColor: category === key ? CATEGORIES[key].color : "rgba(120,220,214,.18)",
                   background: category === key ? `${CATEGORIES[key].color}26` : "transparent",
                   color: category === key ? CATEGORIES[key].color : "var(--color-ink-300)",
                   ["--category-text" as string]: `var(--color-cat-${key}-t)`,
@@ -260,7 +248,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           </div>
 
           {rows.length ? (
-            <div className="flex flex-col gap-3.5">
+            <div className="mt-4 space-y-3">
               {rows.map((row) => (
                 <IncidentCard
                   key={row.id}
@@ -273,38 +261,34 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
               ))}
             </div>
           ) : (
-            <div className="nb-card text-center">
-              <p className="display text-[18px] font-bold">Nothing filed under that yet</p>
-              <p className="mx-auto mt-2 max-w-[46ch] text-[13.5px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
-                Clear the filters, or be the first to report it — the pin takes about twenty seconds and neighbours see it
-                immediately.
-              </p>
-              <div className="mt-4 flex justify-center gap-2.5">
-                <Link href="/report" className="nb-btn nb-btn-primary nb-btn-sm">
-                  Report a spot
-                </Link>
-                <Link href="/feed" className="nb-btn nb-btn-outline nb-btn-sm">
-                  Clear filters
-                </Link>
-              </div>
-            </div>
+            <EmptyState
+              className="mt-4"
+              title="Nothing filed under that yet"
+              blurb="Clear the filters, or be the first to report it — the pin takes about twenty seconds and neighbours see it immediately."
+              actions={
+                <>
+                  <ButtonLink href="/report" variant="primary" size="sm">
+                    Report a spot
+                  </ButtonLink>
+                  <ButtonLink href="/feed" variant="secondary" size="sm">
+                    Clear filters
+                  </ButtonLink>
+                </>
+              }
+            />
           )}
         </div>
 
-        <aside className="flex min-w-0 flex-col gap-4">
-          <div className="nb-card nb-card-tight">
-            <p className="display text-[15px] font-bold">Jump to an island</p>
-            <div className="nb-no-scrollbar -mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
+        <aside className="min-w-0 space-y-4">
+          <div className="nb-surface rounded-[20px] p-4">
+            <SectionTitle>Jump to an island</SectionTitle>
+            <div className="nb-no-scrollbar -mx-1 mt-2.5 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
               {PARISHES.slice(0, 12).map((p) => (
                 <Link
                   key={p}
                   href={{ pathname: "/feed", query: { parish: p, ...(category ? { category } : {}) } }}
                   className="nb-chip shrink-0"
-                  style={
-                    parish === p
-                      ? { background: "var(--nb-mint)", borderColor: "var(--nb-mint)", color: "var(--nb-mint-ink)", fontWeight: 800 }
-                      : undefined
-                  }
+                  data-on={parish === p ? "true" : undefined}
                 >
                   {p}
                 </Link>
@@ -315,22 +299,20 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           {/* No ads beside an active severe hazard: the space is for the warning. */}
           {!adFree && !emergencyUp ? <AdSlot index={1} variant="rail" /> : null}
 
-          <div className="nb-card nb-card-tight">
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="display text-[15px] font-bold">From the wire</p>
-              <Link href="/wire" className="nb-link-arrow" style={{ fontSize: 11.5 }}>
-                All stories
-              </Link>
+          <div className="nb-surface rounded-[20px] p-4">
+            <div className="flex items-baseline justify-between gap-2">
+              <SectionTitle>From the wire</SectionTitle>
+              <TextLink href="/wire">All stories</TextLink>
             </div>
-            <ul className="mt-3 flex flex-col gap-3">
+            <ul className="mt-2.5 space-y-2.5">
               {wire.length ? (
                 wire.map((n) => (
                   <li key={n.id}>
                     <a href={n.url} target="_blank" rel="noreferrer" className="group block">
-                      <p className="text-[13px] font-semibold leading-snug" style={{ color: "var(--nb-text)" }}>
+                      <p className="text-[13px] font-semibold leading-snug text-ink-200 transition duration-200 ease-standard group-hover:text-tide-300">
                         {n.title}
                       </p>
-                      <p className="mt-1 text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
+                      <p className="mt-1 text-[11.5px] text-ink-400">
                         {n.sourceName} · {timeAgo(n.publishedAt)}
                         {n.parish ? ` · ${n.parish}` : ""}
                       </p>
@@ -338,9 +320,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                   </li>
                 ))
               ) : (
-                <li className="text-[12.5px]" style={{ color: "var(--nb-faint)" }}>
+                <li className="text-[12.5px] text-ink-400">
                   No stories on the wire yet.{" "}
-                  <Link href="/wire" className="font-bold" style={{ color: "var(--nb-mint)" }}>
+                  <Link href="/wire" className="font-bold text-tide-300 hover:underline">
                     Refresh the wire
                   </Link>
                   .
@@ -350,59 +332,43 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
           </div>
 
           {life ? (
-            <div className="nb-card nb-card-tight">
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="display text-[15px] font-bold">Island Life</p>
-                <Link href="/life" className="nb-link-arrow" style={{ fontSize: 11.5 }}>
-                  See all
-                </Link>
+            <div className="nb-surface rounded-[20px] p-4">
+              <div className="flex items-baseline justify-between gap-2">
+                <SectionTitle>Island Life</SectionTitle>
+                <TextLink href="/life">See all</TextLink>
               </div>
-              <ul className="mt-3 flex flex-col gap-3">
+              <ul className="mt-2.5 space-y-2.5">
                 {life.rows.map((p) => (
                   <li key={p.id}>
                     <Link href={`/life/${p.id}`} className="group block">
-                      <p className="text-[13px] font-semibold leading-snug" style={{ color: "var(--nb-text)" }}>
+                      <p className="text-[13px] font-semibold leading-snug text-ink-200 transition duration-200 ease-standard group-hover:text-tide-300">
                         {p.title}
                       </p>
-                      <p className="mt-1 text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
+                      <p className="mt-1 text-[11.5px] text-ink-400">
                         {(KINDS[p.kind as KindKey] ?? KINDS.tip).label} · {p.placeName ?? p.parish} · {timeAgo(p.createdAt)}
                       </p>
                     </Link>
                   </li>
                 ))}
                 {life.rows.length === 0 ? (
-                  <li className="text-[12.5px]" style={{ color: "var(--nb-faint)" }}>
-                    Be the first to share a favourite spot or how an event went.
-                  </li>
+                  <li className="text-[12.5px] text-ink-400">Be the first to share a favourite spot or how an event went.</li>
                 ) : null}
               </ul>
-              <Link href="/life/new" className="nb-btn nb-btn-sm mt-4" style={{ background: "var(--nb-gold)", color: "#241a04" }}>
+              <ButtonLink href="/life/new" variant="secondary" size="sm" className="mt-3">
                 Share an experience
-              </Link>
+              </ButtonLink>
             </div>
           ) : null}
 
-          <div className="nb-card-gold" style={{ borderColor: "rgba(255,157,115,.4)", background: "rgba(255,157,115,.07)" }}>
-            <Dot color="var(--nb-coral)" glow />
-            <div>
-              <p className="text-[15px] font-bold" style={{ color: "var(--nb-cream)" }}>
-                Get pinged for your parish
-              </p>
-              <p className="mt-1 text-[12.5px] leading-relaxed" style={{ color: "#d9b9b2" }}>
-                Choose the islands and categories you care about — floods and power for a Family Island home, safety and roads
-                for Nassau.
-              </p>
-              <Link href="/alerts" className="nb-btn nb-btn-sm mt-3" style={{ background: "var(--nb-coral)", color: "#241408" }}>
-                Set up alerts
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5 px-1">
-            <Pill tone="mint">Free for everyone</Pill>
-            <span className="text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
-              Storm warnings are never paywalled
-            </span>
+          <div className="nb-surface rounded-[20px] border-conch-500/35 p-4">
+            <SectionTitle>Get pinged for your parish</SectionTitle>
+            <p className="mt-1.5 text-[12.5px] leading-[1.75] text-ink-300">
+              Choose the islands and categories you care about — floods and power for a Family Island home, safety and roads
+              for Nassau.
+            </p>
+            <ButtonLink href="/alerts" variant="secondary" size="sm" className="mt-3">
+              Set up alerts
+            </ButtonLink>
           </div>
         </aside>
       </div>

@@ -152,30 +152,39 @@ export function LoginForm() {
   }
 
   return (
-    <div className="mx-auto grid max-w-[900px] gap-5 py-4 lg:grid-cols-[1.05fr_1fr]">
+    <div className="mx-auto grid max-w-[900px] gap-8 py-6 lg:grid-cols-[1.05fr_1fr] lg:items-center">
       <div className="flex flex-col justify-center">
-        <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">Your account</p>
-        <h1 className="display mt-1.5 text-[clamp(1.7rem,4.4vw,2.4rem)] font-extrabold leading-[1.05] text-sand-100">
-          {mode === "signup" ? "Join your neighbours on NowBey" : "Welcome back"}
+        <p className="nb-eyebrow">
+          <span className="nb-eyebrow-dot" aria-hidden />
+          Your account
+        </p>
+        <h1 className="display mt-3 text-[clamp(1.9rem,5vw,2.75rem)] font-extrabold leading-[1.03] tracking-[-0.06em] text-sand-100">
+          {mode === "signup" ? (
+            <>
+              Join your neighbours on <em className="text-tide-500 not-italic">NowBey</em>
+            </>
+          ) : (
+            "Welcome back"
+          )}
         </h1>
-        <p className="mt-2 max-w-[52ch] text-[13.5px] leading-relaxed text-ink-300">
+        <p className="mt-3 max-w-[52ch] text-[13.5px] leading-[1.75] text-ink-300">
           You can read the map, confirm reports and file a pin without an account. An account puts your handle on the reports
           you file, keeps your alert settings, and brings your plan with you to any device.
         </p>
-        <ul className="mt-3 space-y-1.5 text-[12.5px] text-ink-400">
+        <ul className="mt-4 space-y-2 text-[12.5px] text-ink-400">
           <li className="flex gap-2">
-            <span className="text-tide-400">→</span> Your email is only used for account help and the alerts you ask for.
+            <span className="text-tide-500">→</span> Your email is only used for account help and the alerts you ask for.
           </li>
           <li className="flex gap-2">
-            <span className="text-tide-400">→</span> Forget your password? We email you a link to choose a new one.
+            <span className="text-tide-500">→</span> Forget your password? We email you a link to choose a new one.
           </li>
           <li className="flex gap-2">
-            <span className="text-tide-400">→</span> Delete your account any time. Your reports stay up, without your name.
+            <span className="text-tide-500">→</span> Delete your account any time. Your reports stay up, without your name.
           </li>
         </ul>
       </div>
 
-      <form onSubmit={submit} className="glass h-fit rounded-2xl p-4" noValidate>
+      <form onSubmit={submit} className="nb-surface h-fit rounded-[24px] p-5 shadow-l3" noValidate>
         {googleEnabled ? (
           <div className="mb-3">
             <button
@@ -187,7 +196,7 @@ export function LoginForm() {
                 const startUrl = next ? `/api/auth/google/start?next=${encodeURIComponent(safeNext(next, "/you"))}` : "/api/auth/google/start";
                 window.location.assign(startUrl);
               }}
-              className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-white/12 bg-white/6 text-[13.5px] font-extrabold text-sand-100 hover:bg-white/10"
+              className="nb-btn nb-btn-secondary min-h-[46px] w-full text-[13px]"
             >
               <svg viewBox="0 0 18 18" aria-hidden="true" className="h-4 w-4">
                 <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
@@ -201,7 +210,7 @@ export function LoginForm() {
               One button for both. Google tells us your name and email address — we never see your Google password, and we do
               not post anything.
             </p>
-            <div className="my-3 flex items-center gap-2 text-[11.5px] uppercase tracking-[0.14em] text-[#5d848f]">
+            <div className="my-4 flex items-center gap-2 text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">
               <span className="h-px flex-1 bg-white/10" />
               or
               <span className="h-px flex-1 bg-white/10" />
@@ -209,7 +218,7 @@ export function LoginForm() {
           </div>
         ) : null}
 
-        <div className="mb-3 flex gap-1.5" role="tablist">
+        <div className="mb-4 flex gap-1.5 rounded-full border border-white/10 bg-white/[.04] p-1" role="tablist">
           {(["signup", "signin"] as const).map((v) => (
             <button
               key={v}
@@ -220,7 +229,9 @@ export function LoginForm() {
                 setMode(v);
                 setError(null);
               }}
-              className={`flex-1 rounded-lg py-1.5 text-[12.5px] font-extrabold ${mode === v ? "bg-sand-100 text-abyss-950" : "bg-white/6 text-ink-300"}`}
+              className={`min-h-[40px] flex-1 rounded-full text-[12.5px] font-extrabold transition duration-200 ease-standard ${
+                mode === v ? "bg-tide-500 text-[#04202a] shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
+              }`}
             >
               {v === "signup" ? "Create account" : "Sign in"}
             </button>
@@ -335,7 +346,7 @@ export function LoginForm() {
           </p>
         ) : null}
 
-        <button type="submit" disabled={busy} className="mt-3 w-full rounded-xl bg-tide-500 py-2.5 text-[13.5px] font-extrabold text-abyss-950 disabled:opacity-50">
+        <button type="submit" disabled={busy} className="nb-btn nb-btn-primary mt-4 w-full">
           {busy ? "Working…" : mode === "signup" ? "Create my account" : "Sign in"}
         </button>
         <p className="mt-2 text-[11.5px] text-ink-400">

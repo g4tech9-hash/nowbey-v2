@@ -4,7 +4,6 @@ import { desc, eq, sql } from "drizzle-orm";
 import { db, hasDatabase } from "@/db";
 import { DatabaseSetup } from "@/components/db-setup";
 import { newsItems } from "@/db/schema";
-import { PageHead } from "@/components/app-shell";
 import { AdSlot } from "@/components/ad-slot";
 import { IngestButton } from "@/components/client-actions";
 import { SubmitLink } from "@/components/wire-forms";
@@ -16,17 +15,10 @@ import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { sanitizeArticleContent } from "@/lib/sanitize";
-import { CatBadge, Dot, Pill } from "@/ui/kit";
+import { Chip, EmptyState, PageIntro, Panel, SectionTitle } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "News wire" };
-
-/* =====================================================================
-   News wire — rebuilt 2026-10-17 against reference 1002177499.
-   New DOM: layered story cards (source tile · outlet label · REVIEWED
-   pill · title · brief · “map context / open story ↗” footer row).
-   Queries and ingest behavior preserved.
-   ===================================================================== */
 
 export default async function WirePage() {
   // No database configured at all: show the setup notice instead of crashing on the first
@@ -66,176 +58,149 @@ export default async function WirePage() {
 
   return (
     <>
-      <PageHead
+      <PageIntro
         eyebrow="News wire"
         title="The news wire, on the map"
         blurb="Headlines from Bahamian news outlets, sorted into NowBey categories and placed on the map when a street or island is named in the story. Stories we cannot place stay in the list without a pin."
         actions={<IngestButton />}
+        className="mb-7"
       />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
-        {/* ---- story cards ---- */}
-        <div className="flex min-w-0 flex-col gap-3.5">
+      {/* Editorial grid: story column + map-and-desk rail. */}
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
+        <div className="min-w-0 space-y-3.5">
           {rows.length ? (
-            rows.map((n) => {
+            rows.map((n, i) => {
               const c = CATEGORIES[(n.category as CategoryKey) ?? "notice"] ?? CATEGORIES.notice;
-              const eng = engMap.get(n.id) ?? NO_ENGAGEMENT;
-              let host = "source";
-              try {
-                host = new URL(n.url).host.replace(/^www\./, "");
-              } catch {
-                /* keep the fallback */
-              }
               return (
-                <article key={n.id} className="nb-card" style={{ padding: "20px 22px" }}>
-                  <div className="nb-card-head">
+                <article
+                  key={n.id}
+                  className="nb-surface nb-card-link rounded-[20px] p-4 sm:p-5"
+                >
+                  <div className="flex flex-wrap items-center gap-2 text-[11.5px] font-bold">
                     <span
-                      aria-hidden
-                      style={{
-                        width: 46,
-                        height: 46,
-                        borderRadius: 13,
-                        display: "grid",
-                        placeItems: "center",
-                        background: "#143b42",
-                        color: "var(--nb-mint)",
-                        fontFamily: "var(--font-display)",
-                        fontWeight: 800,
-                        fontSize: 19,
-                        flex: "none",
-                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 uppercase tracking-[0.1em]"
+                      style={{ color: c.color, borderColor: `${c.color}3d`, background: `${c.color}14` }}
                     >
-                      {(n.sourceName || "N").charAt(0).toUpperCase()}
+                      <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}80` }} />
+                      {c.label}
                     </span>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <span className="nb-label truncate">{n.sourceName}</span>
-                        <Pill tone="mint">Reviewed</Pill>
-                      </div>
-                      <p className="num mt-1 text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
-                        {timeAgo(n.publishedAt)}
-                        {n.parish ? ` · ${n.parish}` : ""}
-                      </p>
-                    </div>
+                    <span className="num text-ink-400">
+                      {n.sourceName} · {timeAgo(n.publishedAt)}
+                    </span>
+                    {n.parish ? (
+                      <Link
+                        href={`/map?parish=${encodeURIComponent(n.parish)}`}
+                        className="nb-chip min-h-[40px] px-3"
+                      >
+                        {n.parish}
+                      </Link>
+                    ) : null}
+                    {i === 0 ? (
+                      <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-ok-500/35 bg-ok-500/12 px-2.5 py-1 text-[11.5px] font-bold text-ok-600">
+                        <span className="nb-live-dot" aria-hidden />
+                        newest
+                      </span>
+                    ) : null}
                   </div>
-
-                  <h2 className="display mt-3.5 text-[18px] font-bold leading-snug">
-                    <a href={n.url} target="_blank" rel="noreferrer" style={{ color: "var(--nb-cream)" }}>
+                  <h2 className="display mt-2.5 text-[18px] font-extrabold leading-[1.25] tracking-[-0.04em] text-sand-100">
+                    <a href={n.url} target="_blank" rel="noreferrer" className="transition duration-200 ease-standard hover:text-tide-300">
                       {n.title}
                     </a>
                   </h2>
-
                   {n.aiSummary ? (
-                    <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
-                      <span
-                        className="mr-1.5 rounded px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide"
-                        style={{ background: "rgba(67,224,203,.14)", color: "var(--nb-mint)" }}
-                      >
+                    <p className="mt-2 text-[13px] leading-[1.75] text-ink-200">
+                      <span className="mr-1.5 rounded-md border border-tide-500/30 bg-tide-500/12 px-1.5 py-0.5 align-middle text-[10px] font-extrabold uppercase tracking-[0.1em] text-tide-300">
                         AI brief
                       </span>
                       {n.aiSummary}
                     </p>
                   ) : n.summary ? (
                     <p
-                      className="mt-2 text-[13.5px] leading-relaxed"
-                      style={{ color: "var(--nb-muted)" }}
+                      className="mt-2 text-[13px] leading-[1.75] text-ink-300"
                       dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(n.summary) }}
                     />
                   ) : null}
-
-                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
-                    <CatBadge color={c.color}>{c.label}</CatBadge>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11.5px]">
                     {n.lat != null && n.lng != null ? (
-                      <span className="nb-chip num" style={{ fontSize: 11 }}>
-                        Pinned · {(n.lat as number).toFixed(4)}, {(n.lng as number).toFixed(4)}
-                      </span>
+                      <Chip tone="neutral">
+                        <span className="num">
+                          Pinned · {(n.lat as number).toFixed(4)}, {(n.lng as number).toFixed(4)}
+                        </span>
+                      </Chip>
                     ) : (
-                      <span className="nb-chip" style={{ fontSize: 11 }}>
-                        No place named — unpinned
-                      </span>
+                      <Chip tone="neutral">No place named in the text — unpinned</Chip>
                     )}
+                    <a
+                      href={n.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="nb-textlink ml-auto"
+                    >
+                      Read at {(() => {
+                        try {
+                          return new URL(n.url).host.replace(/^www\./, "");
+                        } catch {
+                          return "source";
+                        }
+                      })()}
+                      {" ↗"}
+                    </a>
                   </div>
-
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3.5" style={{ borderColor: "var(--nb-stroke-soft)" }}>
-                    <span className="nb-label" style={{ fontSize: 9.5 }}>
-                      Map context
-                    </span>
-                    <div className="flex flex-wrap items-center gap-4">
-                      {eng.total + eng.comments > 0 ? <EngagementSummary eng={eng} href={`/wire/${n.id}`} /> : null}
-                      <Link href={`/wire/${n.id}#comments`} className="nb-link-arrow" style={{ fontSize: 13 }}>
-                        Discuss
-                      </Link>
-                      <a href={n.url} target="_blank" rel="noreferrer" className="nb-link-arrow" style={{ fontSize: 13 }}>
-                        Open story
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                          <path d="M7 17 17 7M9 7h8v8" />
-                        </svg>
-                        <span className="sr-only"> at {host}</span>
-                      </a>
-                    </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t hairline pt-3">
+                    {(engMap.get(n.id) ?? NO_ENGAGEMENT).total + (engMap.get(n.id) ?? NO_ENGAGEMENT).comments > 0 ? (
+                      <EngagementSummary eng={engMap.get(n.id) ?? NO_ENGAGEMENT} href={`/wire/${n.id}`} />
+                    ) : null}
+                    <Link href={`/wire/${n.id}#comments`} className="text-[12px] font-bold text-tide-300 hover:underline">
+                      React and comment
+                    </Link>
                   </div>
                 </article>
               );
             })
           ) : (
-            <div className="nb-card">
-              <p className="display text-[18px] font-bold">No stories on the wire yet</p>
-              <p className="mt-2 max-w-[60ch] text-[14px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
-                Tap <span style={{ color: "var(--nb-mint)", fontWeight: 700 }}>Refresh stories</span> to bring in the latest headlines, or send
-                us a link to a story you think neighbours should see.
-              </p>
-            </div>
+            <EmptyState
+              title="No stories on the wire yet"
+              blurb={
+                <>
+                  Tap <span className="font-bold text-tide-300">Refresh stories</span> to bring in the latest headlines, or send
+                  us a link to a story you think neighbours should see.
+                </>
+              }
+            />
           )}
         </div>
 
-        {/* ---- rail ---- */}
-        <aside className="flex min-w-0 flex-col gap-4">
-          <div className="overflow-hidden rounded-2xl border" style={{ borderColor: "var(--nb-stroke)" }}>
+        <aside className="space-y-4">
+          <div className="overflow-hidden rounded-[20px] border border-tide-500/20 shadow-l2">
             <MapPanel pins={pins} mode="browse" center={[24.9, -77.6]} zoom={7} initialLayer="hybrid" className="h-[220px] w-full sm:h-[260px]" />
           </div>
 
-          <div className="nb-card nb-card-tight">
-            <p className="display text-[15px] font-bold">Where stories come from</p>
-            <p className="num mt-1.5 text-[12.5px]" style={{ color: "var(--nb-faint)" }}>
+          <Panel className="rounded-[20px] p-4">
+            <SectionTitle>Where stories come from</SectionTitle>
+            <p className="num mt-1.5 text-[12px] leading-snug text-ink-400">
               {meta.n} {meta.n === 1 ? "story" : "stories"} on the wire
               {meta.at ? `, last updated ${timeAgo(meta.at)}` : ""}.
             </p>
-            <ul className="mt-3 flex flex-col gap-2 text-[12.5px]">
+            <ul className="mt-3 space-y-2 text-[12.5px]">
               {feeds.map((f) => (
                 <li key={f.url} className="flex items-center gap-2">
-                  <Dot color="var(--nb-mint)" />
-                  <span className="min-w-0 truncate font-semibold" style={{ color: "var(--nb-text)" }}>
-                    {f.name}
-                  </span>
+                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-tide-500" />
+                  <span className="min-w-0 truncate font-semibold text-ink-200">{f.name}</span>
                 </li>
               ))}
             </ul>
-            <p className="mt-3.5 border-t pt-3 text-[12.5px] leading-relaxed" style={{ borderColor: "var(--nb-stroke-soft)", color: "var(--nb-faint)" }}>
+            <p className="mt-3.5 border-t hairline pt-3 text-[12px] leading-[1.75] text-ink-400">
               Want another outlet covered, like the Tribune or the Nassau Guardian? Send us a story link below and we will
               add its island to the map.
             </p>
-          </div>
+          </Panel>
 
-          {/* reference: “Community-submitted links · Sent for review before appearing” */}
-          <div className="nb-card nb-card-tight" style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "var(--nb-surface-2)" }}>
-            <Dot color="var(--nb-coral)" glow />
-            <div>
-              <p className="text-[13.5px] font-bold" style={{ color: "var(--nb-cream)" }}>
-                Community-submitted links
-              </p>
-              <p className="mt-0.5 text-[12px]" style={{ color: "var(--nb-faint)" }}>
-                Sent for review before appearing
-              </p>
-            </div>
-          </div>
-
-          <div className="nb-card nb-card-tight">
-            <p className="display text-[15px] font-bold">Got a link worth mapping?</p>
-            <p className="mt-1.5 mb-3.5 text-[12.5px]" style={{ color: "var(--nb-faint)" }}>
-              Send the story and we will work out where it happened.
-            </p>
+          <Panel className="rounded-[20px] p-4">
+            <SectionTitle>Got a link worth mapping?</SectionTitle>
+            <p className="mt-1.5 mb-3 text-[12px] leading-[1.75] text-ink-400">Send the story and we will work out where it happened.</p>
             <SubmitLink />
-          </div>
+          </Panel>
 
           <AdSlot index={3} adFree={adFree} variant="rail" />
         </aside>

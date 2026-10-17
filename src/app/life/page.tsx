@@ -53,19 +53,26 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
 
   return (
     <div>
-      <section className="glass relative isolate mb-5 overflow-hidden rounded-2xl p-5 sm:p-7">
+      <section className="glass relative isolate mb-7 overflow-hidden rounded-[24px] p-5 sm:p-7">
         <PageScene name="lagoon" />
-        <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-sun-600">Island Life</p>
-        <h1 className="display mt-1.5 max-w-[22ch] text-[clamp(1.8rem,5vw,2.8rem)] font-extrabold leading-[1.05] text-sand-100">Where the islands eat, celebrate and unwind</h1>
-        <p className="mt-2 max-w-[56ch] text-[14px] leading-relaxed text-ink-200">
+        <p className="nb-eyebrow" style={{ color: "var(--color-sun-500)" }}>
+          <span className="nb-eyebrow-dot" style={{ background: "var(--color-sun-500)", boxShadow: "0 0 0 4px rgba(245,199,93,0.1)" }} aria-hidden />
+          Island Life
+        </p>
+        <h1 className="display mt-3 max-w-[22ch] text-[clamp(1.85rem,5vw,2.85rem)] font-extrabold leading-[1.03] tracking-[-0.06em] text-sand-100">
+          Where the islands eat, celebrate and <em className="text-tide-500 not-italic">unwind</em>
+        </h1>
+        <p className="mt-3 max-w-[56ch] text-[13.5px] leading-[1.75] text-ink-200">
           Real tips from people who live here. Share where you ate, how the festival went, which beach was perfect on Sunday, or the thing you wish a visitor knew.
         </p>
-        <Link href="/life/places" className="mt-4 inline-block rounded-full bg-white font-extrabold text-abyss-950 px-5 py-2.5 text-[13.5px] shadow-[0_12px_28px_rgba(255,255,255,0.15)] hover:bg-white/90">
-          Browse places
-        </Link>
-        <Link href="/life/new" className="ml-2 mt-4 inline-block rounded-full bg-sun-500 px-5 py-2.5 text-[13.5px] font-extrabold text-abyss-950 shadow-[0_12px_28px_rgba(255,191,60,.25)] hover:bg-sun-400">
-          Share an experience
-        </Link>
+        <div className="mt-5 flex flex-wrap gap-2.5">
+          <Link href="/life/new" className="nb-btn nb-btn-primary">
+            Share an experience
+          </Link>
+          <Link href="/life/places" className="nb-btn nb-btn-secondary">
+            Browse places
+          </Link>
+        </div>
       </section>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">

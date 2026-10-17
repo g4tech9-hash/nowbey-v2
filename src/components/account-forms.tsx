@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PARISHES } from "@/lib/geo";
 import { checkPassword } from "@/lib/password";
 import { INPUT, LABEL, PasswordField } from "@/components/password-field";
+import { Modal } from "@/components/ui";
 
 type Msg = { ok: boolean; text: string } | null;
 
@@ -217,7 +218,7 @@ export function SignOutOthers() {
             setBusy(false);
           }
         }}
-        className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8 disabled:opacity-50"
+        className="nb-btn nb-btn-secondary"
       >
         {busy ? "Signing out…" : "Sign out my other devices"}
       </button>
@@ -232,48 +233,60 @@ export function DeleteAccount({ hasPaidPlan }: { hasPaidPlan: boolean }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
 
-  if (!open) {
-    return (
-      <button type="button" onClick={() => setOpen(true)} className="rounded-full border border-conch-500/40 px-3.5 py-2 text-[12.5px] font-bold text-danger-500 hover:bg-conch-500/10">
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="nb-btn nb-btn-danger">
         Delete my account…
       </button>
-    );
-  }
-  return (
-    <form
-      noValidate
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setBusy(true);
-        setMsg(null);
-        try {
-          await send("/api/account", "DELETE", { password });
-          window.location.assign(new URL("/", window.location.origin).href);
-        } catch (err) {
-          setMsg({ ok: false, text: err instanceof Error ? err.message : "Could not delete it." });
-          setBusy(false);
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Delete your account?"
+        footer={
+          <>
+            <button type="button" onClick={() => setOpen(false)} className="nb-btn nb-btn-secondary">
+              Keep it
+            </button>
+            <button
+              type="submit"
+              form="nb-delete-account-form"
+              disabled={busy || !password}
+              className="nb-btn nb-btn-danger"
+            >
+              {busy ? "Deleting…" : "Yes, delete my account"}
+            </button>
+          </>
         }
-      }}
-      className="rounded-xl border border-conch-500/30 bg-conch-500/8 p-3"
-    >
-      <p className="text-[13px] font-bold text-danger-500">This cannot be undone.</p>
-      <p className="mt-1 text-[12.5px] leading-relaxed text-[#e8c8c4]">
-        Your account, alert settings and sign-in are removed. Reports you filed stay on the map so neighbours who confirmed them are not left confused, but
-        your name comes off them. Your Island Life posts and photos, and every comment and reaction you have left, are deleted.
-        {hasPaidPlan ? " Cancel your paid plan from Manage billing first." : ""}
-      </p>
-      <div className="mt-2.5">
-        <PasswordField label="Type your password to confirm" value={password} onChange={setPassword} autoComplete="current-password" />
-      </div>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button type="submit" disabled={busy || !password} className="rounded-xl bg-conch-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-50">
-          {busy ? "Deleting…" : "Yes, delete my account"}
-        </button>
-        <button type="button" onClick={() => setOpen(false)} className="rounded-xl border hairline px-4 py-2 text-[13px] font-bold text-sand-100 hover:bg-white/8">
-          Keep it
-        </button>
-      </div>
-      <Note msg={msg} />
-    </form>
+      >
+        <form
+          id="nb-delete-account-form"
+          noValidate
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            setMsg(null);
+            try {
+              await send("/api/account", "DELETE", { password });
+              window.location.assign(new URL("/", window.location.origin).href);
+            } catch (err) {
+              setMsg({ ok: false, text: err instanceof Error ? err.message : "Could not delete it." });
+              setBusy(false);
+            }
+          }}
+        >
+          <p className="text-[13px] font-bold text-danger-500">This cannot be undone.</p>
+          <p className="mt-2 text-[12.5px] leading-[1.75] text-ink-300">
+            Your account, alert settings and sign-in are removed. Reports you filed stay on the map so neighbours who
+            confirmed them are not left confused, but your name comes off them. Your Island Life posts and photos, and every
+            comment and reaction you have left, are deleted.
+            {hasPaidPlan ? " Cancel your paid plan from Manage billing first." : ""}
+          </p>
+          <div className="mt-3.5">
+            <PasswordField label="Type your password to confirm" value={password} onChange={setPassword} autoComplete="current-password" />
+          </div>
+          <Note msg={msg} />
+        </form>
+      </Modal>
+    </>
   );
 }
