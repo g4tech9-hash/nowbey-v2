@@ -201,19 +201,19 @@ export default function ReportWizard() {
 
   if (duplicate) {
     return (
-      <div className="mx-auto max-w-[640px] py-6">
-        <div className="nb-surface rounded-xl2 p-6 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-sun-500 text-[22px] font-black text-abyss-950">
+      <div className="mx-auto max-w-[640px] py-8">
+        <div className="nb-surface rounded-[24px] p-6 text-center sm:p-8">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-sun-500 text-[22px] font-black text-[#04202a]">
             !
           </span>
-          <h1 className="display mt-3 text-[24px] font-extrabold text-sand-100">Someone already reported this</h1>
-          <p className="mx-auto mt-2 max-w-[48ch] text-[13.5px] leading-relaxed text-ink-300">{duplicate.message}</p>
-          <p className="mx-auto mt-2 max-w-[48ch] text-[12.5px] leading-relaxed text-ink-400">
+          <h1 className="display mt-4 text-[24px] font-extrabold tracking-[-0.05em] text-sand-100">Someone already reported this</h1>
+          <p className="mx-auto mt-2.5 max-w-[48ch] text-[13.5px] leading-[1.75] text-ink-300">{duplicate.message}</p>
+          <p className="mx-auto mt-2 max-w-[48ch] text-[12.5px] leading-[1.75] text-ink-400">
             Nothing new was published, so your text is still here. Open the existing report to confirm it or add to it, or go
             back and change what you wrote.
           </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Link href={`/incident/${duplicate.id}`} className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <Link href={`/incident/${duplicate.id}`} className="nb-btn nb-btn-primary">
               Open the existing report
             </Link>
             <button
@@ -222,7 +222,7 @@ export default function ReportWizard() {
                 setDuplicate(null);
                 setStep(2);
               }}
-              className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5"
+              className="nb-btn nb-btn-secondary"
             >
               Back to my report
             </button>
@@ -234,24 +234,21 @@ export default function ReportWizard() {
 
   if (madeId) {
     return (
-      <div className="mx-auto max-w-[640px] py-6">
-        <div className="nb-surface rounded-xl2 p-6 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-tide-500 text-[22px] font-black text-abyss-950">
+      <div className="mx-auto max-w-[640px] py-8">
+        <div className="nb-surface rounded-[24px] p-6 text-center sm:p-8">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-tide-500 text-[22px] font-black text-[#04202a]">
             ✓
           </span>
-          <h1 className="display mt-3 text-[24px] font-extrabold text-sand-100">It is on the map</h1>
-          <p className="mx-auto mt-2 max-w-[48ch] text-[13.5px] leading-relaxed text-ink-300">
+          <h1 className="display mt-4 text-[24px] font-extrabold tracking-[-0.05em] text-sand-100">It is on the map</h1>
+          <p className="mx-auto mt-2.5 max-w-[48ch] text-[13.5px] leading-[1.75] text-ink-300">
             Your report is live for everyone in {pick?.parish ?? island}. Neighbours can confirm it, add “saw it too”, or mark
             it cleared. The pin is shown a short distance from the exact spot to protect homes.
           </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            <Link
-              href={`/incident/${madeId}`}
-              className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950"
-            >
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <Link href={`/incident/${madeId}`} className="nb-btn nb-btn-primary">
               Watch this report
             </Link>
-            <Link href="/map" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5">
+            <Link href="/map" className="nb-btn nb-btn-secondary">
               Back to the map
             </Link>
             <button
@@ -265,7 +262,7 @@ export default function ReportWizard() {
                 setPhotoNote("");
                 setArea("");
               }}
-              className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5"
+              className="nb-btn nb-btn-secondary"
             >
               Report another spot
             </button>
@@ -277,34 +274,42 @@ export default function ReportWizard() {
 
   return (
     <div className="mx-auto max-w-[1000px]">
-      <div className="mb-4"><EmergencyNotice /></div>
-      <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">Report a hazard</p>
+      <div className="mb-5">
+        <EmergencyNotice />
+      </div>
 
-      <h1 className="display mt-1 text-[clamp(1.6rem,4vw,2.2rem)] font-extrabold leading-tight text-sand-100">
-        Three steps, twenty seconds
+      {/* Landing hero grammar: eyebrow, display headline, then the step rail. */}
+      <p className="nb-eyebrow">
+        <span className="nb-eyebrow-dot" aria-hidden />
+        Report a hazard
+      </p>
+      <h1 className="display mt-2.5 text-[clamp(1.75rem,4.6vw,2.55rem)] font-extrabold leading-[1.04] tracking-[-0.055em] text-sand-100">
+        Three steps, <em className="text-tide-500 not-italic">twenty seconds</em>
       </h1>
 
-      <ol className="mt-4 flex flex-wrap gap-2">
+      <ol className="mt-5 flex flex-wrap gap-2">
         {STEPS.map((label, i) => (
           <li key={label}>
             <button
               type="button"
               onClick={() => setStep(i)}
-              className={`rounded-full px-3 py-1.5 text-[12px] font-bold transition ${
-                i === step ? "bg-sand-100 text-abyss-950" : "border hairline text-ink-300 hover:bg-white/5"
-              } ${i > step && !pick && i > 0 ? "opacity-60" : ""}`}
+              aria-current={i === step ? "step" : undefined}
+              data-on={i === step ? "true" : undefined}
+              className={`nb-chip min-h-[40px] px-3.5${i > step && !pick && i > 0 ? " opacity-60" : ""}`}
             >
-              <span className="mr-1.5 opacity-60">{i + 1}</span>
+              <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-white/10 text-[11.5px] font-extrabold">
+                {i + 1}
+              </span>
               {label}
-              {i === 1 && pick ? <span className="ml-1.5 text-[11.5px] text-tide-500">pinned</span> : null}
+              {i === 1 && pick ? <span className="text-[11.5px] font-extrabold text-tide-500">pinned</span> : null}
             </button>
           </li>
         ))}
       </ol>
 
       {step === 0 ? (
-        <div className="mt-4">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-5">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
             {(Object.keys(CATEGORIES) as CategoryKey[]).map((key) => {
               const c = CATEGORIES[key];
               const active = category === key;
@@ -313,17 +318,18 @@ export default function ReportWizard() {
                   key={key}
                   type="button"
                   onClick={() => chooseCategory(key)}
-                  className="rounded-2xl border p-3 text-left transition"
+                  className="rounded-[16px] border p-3.5 text-left transition duration-200 ease-standard hover:-translate-y-0.5"
                   style={{
-                    borderColor: active ? c.color : "rgba(120,220,214,.16)",
-                    background: active ? `${c.color}1f` : "rgba(255,255,255,.03)",
+                    borderColor: active ? c.color : "rgba(189,223,217,0.14)",
+                    background: active ? `${c.color}1f` : "linear-gradient(135deg, rgba(17,42,53,0.97), rgba(8,26,36,0.97))",
+                    boxShadow: active ? `0 12px 36px -10px ${c.color}40` : "0 10px 22px rgba(0,0,0,0.14)",
                   }}
                 >
                   <span className="block h-2 w-8 rounded-full" style={{ background: c.color }} />
-                  <span className="display mt-2 block text-[15px] font-extrabold" style={{ color: active ? c.color : "#f6ead8" }}>
+                  <span className="display mt-2.5 block text-[15px] font-extrabold tracking-[-0.04em]" style={{ color: active ? c.color : "#f7f1e7" }}>
                     {c.label}
                   </span>
-                  <span className="mt-0.5 block text-[11.5px] leading-snug text-ink-400">{c.blurb}</span>
+                  <span className="mt-1 block text-[11.5px] leading-snug text-ink-400">{c.blurb}</span>
                 </button>
               );
             })}
@@ -338,17 +344,16 @@ export default function ReportWizard() {
               .
             </p>
           ) : null}
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <span className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Severity</span>
-            <div className="flex gap-1.5">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <span className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Severity</span>
+            <div className="flex flex-wrap gap-1.5">
               {["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"].map((label, i) => (
                 <button
                   key={label}
                   type="button"
                   onClick={() => setSeverity(i + 1)}
-                  className={`rounded-lg px-2.5 py-1.5 text-[11.5px] font-bold ${
-                    severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"
-                  }`}
+                  data-on={severity === i + 1 ? "true" : undefined}
+                  className="nb-chip"
                 >
                   {label}
                 </button>
@@ -357,7 +362,7 @@ export default function ReportWizard() {
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="ml-auto rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950"
+              className="nb-btn nb-btn-primary ml-auto"
             >
               Next: put it on the map →
             </button>
@@ -366,7 +371,7 @@ export default function ReportWizard() {
       ) : null}
 
       {step === 1 ? (
-        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="mt-5 grid gap-3.5 lg:grid-cols-[minmax(0,1fr)_300px]">
           <MapPanel
             mode="pick"
             value={pick ? { lat: pick.lat, lng: pick.lng } : null}
@@ -375,23 +380,23 @@ export default function ReportWizard() {
             center={[25.0629, -77.3417]}
             zoom={15}
             initialLayer="hybrid"
-            className="h-[58dvh] min-h-[340px] w-full lg:h-[clamp(400px,64vh,620px)]"
+            className="h-[58dvh] min-h-[340px] w-full overflow-hidden rounded-[20px] border border-tide-500/20 lg:h-[clamp(400px,64vh,620px)]"
           />
           <div className="space-y-3">
-            <div className="nb-surface rounded-xl2 p-3.5">
-              <p className="display text-[14.5px] font-bold text-sand-100">Where exactly?</p>
-              <p className="mt-1 text-[12px] leading-relaxed text-ink-300">
+            <div className="nb-surface rounded-[20px] p-4">
+              <p className="display text-[15px] font-extrabold tracking-[-0.045em] text-sand-100">Where exactly?</p>
+              <p className="mt-1.5 text-[12px] leading-[1.75] text-ink-300">
                 Tap the road, junction or spot, then drag the pin tip onto it. Pin the road, not a house: the published pin
                 is moved a short distance from the exact spot, so a home cannot be pinpointed. The readout shows how wide
                 the screen is in metres.
               </p>
-              <div className="mt-2.5 space-y-1.5 rounded-xl bg-white/5 p-2.5 text-[12px]">
+              <div className="mt-3 space-y-1.5 rounded-[14px] border border-white/8 bg-white/[.04] p-3 text-[12px]">
                 {pick ? (
                   <>
-                    <p className="font-mono text-[11.5px] text-tide-300">
+                    <p className="num font-mono text-[11.5px] text-tide-300">
                       {pick.lat.toFixed(6)}, {pick.lng.toFixed(6)}
                     </p>
-                    <p className="font-semibold text-sand-100">{pick.street ?? "Finding the street…"}</p>
+                    <p className="font-bold text-sand-100">{pick.street ?? "Finding the street…"}</p>
                     <p className="text-[11.5px] text-ink-400">{pick.address ?? "No matched address yet"}</p>
                     <p className="text-[11.5px] text-ink-400">
                       Parish {pick.parish ?? island} · accuracy estimate ± {pick.precisionM.toFixed(1)} m
@@ -401,16 +406,16 @@ export default function ReportWizard() {
                   <p className="text-ink-400">Nothing pinned yet.</p>
                 )}
               </div>
-              <label className="mt-2.5 block">
-                <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Area (locals&apos; name)</span>
+              <label className="mt-3 block">
+                <span className="nb-field-label">Area (locals&apos; name)</span>
                 <input
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
                   placeholder={pick?.street ?? "e.g. Bay Street by the bus stand"}
-                  className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[13px] outline-none focus:border-tide-400"
+                  className="nb-field"
                 />
               </label>
-              <label className="mt-2 flex items-start gap-2 text-[11.5px] leading-snug text-ink-400">
+              <label className="mt-2.5 flex items-start gap-2 text-[11.5px] leading-snug text-ink-400">
                 <input
                   type="checkbox"
                   checked={prefillOn}
@@ -420,7 +425,7 @@ export default function ReportWizard() {
                     const a = e.target.checked && pick ? areaFor(pick) : null;
                     if (a) setArea(a);
                   }}
-                  className="mt-0.5 h-3.5 w-3.5 accent-[#00c9b7]"
+                  className="mt-0.5 h-4 w-4 accent-[#43e0cc]"
                 />
                 <span>
                   Prefill from the pin
@@ -430,7 +435,7 @@ export default function ReportWizard() {
               <select
                 value={island}
                 onChange={(e) => setIsland(e.target.value)}
-                className="mt-2.5 w-full rounded-lg border border-white/10 bg-abyss-950/80 px-2 py-1.5 text-[12px] outline-none"
+                className="nb-field mt-3"
               >
                 {PARISHES.map((p) => (
                   <option key={p} value={p}>
@@ -443,7 +448,7 @@ export default function ReportWizard() {
               type="button"
               disabled={!pick}
               onClick={() => setStep(2)}
-              className="w-full rounded-xl bg-tide-500 py-2.5 text-[13px] font-extrabold text-abyss-950 disabled:opacity-40"
+              className="nb-btn nb-btn-primary w-full"
             >
               Next: write it up →
             </button>
@@ -452,45 +457,45 @@ export default function ReportWizard() {
       ) : null}
 
       {step === 2 ? (
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-tide-500/25 bg-tide-500/8 p-3 text-[12px] text-tide-300 lg:hidden">
+        <div className="mt-5 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-[16px] border border-tide-500/25 bg-tide-500/8 p-3.5 text-[12px] leading-[1.75] text-tide-300 lg:hidden">
             <p className="font-bold">Pinned at {pick ? `${pick.lat.toFixed(5)}, ${pick.lng.toFixed(5)}` : "nothing yet"}.</p>
             <p className="text-ink-200">Scroll for the form — a thumbnail of the pin is at the bottom.</p>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             <label className="block">
-              <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Headline</span>
+              <span className="nb-field-label">Headline</span>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Knee-deep water across Bay Street at the bus stand"
-                className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/60 px-3 py-2.5 text-[14px] font-semibold outline-none focus:border-tide-400"
+                className="nb-field font-semibold"
               />
             </label>
             <label className="block">
-              <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">What neighbours should know</span>
+              <span className="nb-field-label">What neighbours should know</span>
               <textarea
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 rows={5}
                 placeholder="From the traffic light to the pharmacy. Small cars turning back; the bus is using the contraflow lane."
-                className="mt-1 w-full resize-none rounded-lg border border-white/10 bg-abyss-950/60 px-3 py-2.5 text-[13.5px] leading-relaxed outline-none focus:border-tide-400"
+                className="nb-field resize-y leading-relaxed"
               />
             </label>
             <label className="block">
-              <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Photo description (optional)</span>
+              <span className="nb-field-label">Photo description (optional)</span>
               <input
                 value={photoNote}
                 onChange={(e) => setPhotoNote(e.target.value)}
                 placeholder="Water up to the first step of the bus shelter, facing east"
-                className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/60 px-3 py-2 text-[13px] outline-none focus:border-tide-400"
+                className="nb-field"
               />
-              <span className="mt-1 block text-[11.5px] text-ink-400">
+              <span className="nb-field-hint">
                 Photo uploads are not available yet. A line describing what you see helps neighbours who cannot view images.
               </span>
             </label>
             <label className="flex items-center gap-2 text-[12.5px] text-ink-300">
-              <input type="checkbox" checked={anonymous} onChange={(e) => { setAnonymous(e.target.checked); setAnonTouched(true); }} className="h-3.5 w-3.5 accent-[#00c9b7]" />
+              <input type="checkbox" checked={anonymous} onChange={(e) => { setAnonymous(e.target.checked); setAnonTouched(true); }} className="h-4 w-4 accent-[#43e0cc]" />
               {handle !== "neighbour" ? `Post anonymously instead of as @${handle}` : "Post anonymously"}
             </label>
             <ReportAssist
@@ -506,12 +511,12 @@ export default function ReportWizard() {
               onHeadline={setTitle}
               onMovePin={handlePick}
             />
-            {error ? <p className="rounded-lg bg-danger-500/15 px-3 py-2 text-[12.5px] text-danger-500">{error}</p> : null}
+            {error ? <p className="rounded-[12px] border border-conch-500/40 bg-conch-500/12 px-3.5 py-2.5 text-[12.5px] text-conch-500">{error}</p> : null}
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="rounded-xl border hairline px-3.5 py-2.5 text-[12.5px] font-bold hover:bg-white/5"
+                className="nb-btn nb-btn-secondary"
               >
                 ← Move the pin
               </button>
@@ -520,7 +525,7 @@ export default function ReportWizard() {
                 onClick={submit}
                 disabled={saving || title.trim().length < 5 || !pick}
                 aria-describedby={publishBlocker ? "publish-blocker" : undefined}
-                className="flex-1 rounded-xl bg-tide-500 py-2.5 text-[13px] font-extrabold text-abyss-950 disabled:opacity-45"
+                className="nb-btn nb-btn-primary flex-1"
               >
                 {saving ? "Publishing…" : "Publish to NowBey"}
               </button>
@@ -533,43 +538,45 @@ export default function ReportWizard() {
           </div>
 
           <div className="space-y-3">
-            <div className="nb-surface rounded-xl2 p-3.5">
-              <p className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Preview</p>
-              <p className="display mt-1 text-[16px] font-extrabold leading-snug text-sand-100">
+            <div className="nb-surface rounded-[20px] p-4">
+              <p className="nb-eyebrow">Preview</p>
+              <p className="display mt-2 text-[17px] font-extrabold leading-snug tracking-[-0.045em] text-sand-100">
                 {title.trim() || "Your headline appears here"}
               </p>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-ink-300">
+              <p className="mt-1.5 text-[12.5px] leading-[1.75] text-ink-300">
                 {details.trim() || CATEGORIES[category].blurb}
               </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11.5px] text-ink-400">
-                <span className="rounded-full px-2 py-0.5 font-bold" style={{ background: `${CATEGORIES[category].color}26`, color: CATEGORIES[category].color }}>
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11.5px] text-ink-400">
+                <span className="rounded-full px-2.5 py-1 font-bold" style={{ background: `${CATEGORIES[category].color}26`, color: CATEGORIES[category].color }}>
                   {CATEGORIES[category].label}
                 </span>
                 <span>{area || pick?.street || "area pending"}</span>
                 <span>· {SEVERITY_LABELS[Math.min(4, Math.max(1, severity)) - 1]}</span>
-                {pick ? <span className="font-mono text-[11.5px]">{pick.lat.toFixed(5)}, {pick.lng.toFixed(5)}</span> : null}
+                {pick ? <span className="num font-mono text-[11.5px]">{pick.lat.toFixed(5)}, {pick.lng.toFixed(5)}</span> : null}
               </div>
             </div>
             {pick ? (
-              <MapPanel
-                mode="browse"
-                pins={[
-                  {
-                    id: "preview",
-                    lat: pick.lat,
-                    lng: pick.lng,
-                    category,
-                    title: title.trim() || "Your new pin",
-                    meta: area || pick.street || "",
-                    live: true,
-                  },
-                ]}
-                center={[pick.lat, pick.lng]}
-                zoom={18}
-                initialLayer="hybrid"
-                className="h-[220px] w-full"
-                compact
-              />
+              <div className="overflow-hidden rounded-[20px] border border-tide-500/20 shadow-l2">
+                <MapPanel
+                  mode="browse"
+                  pins={[
+                    {
+                      id: "preview",
+                      lat: pick.lat,
+                      lng: pick.lng,
+                      category,
+                      title: title.trim() || "Your new pin",
+                      meta: area || pick.street || "",
+                      live: true,
+                    },
+                  ]}
+                  center={[pick.lat, pick.lng]}
+                  zoom={18}
+                  initialLayer="hybrid"
+                  className="h-[220px] w-full"
+                  compact
+                />
+              </div>
             ) : null}
           </div>
         </div>

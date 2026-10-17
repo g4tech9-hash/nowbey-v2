@@ -79,43 +79,49 @@ export function IncidentCard({
 
   return (
     <article
-      className="glass relative overflow-hidden rounded-2xl p-3.5 transition hover:border-tide-400/35"
-      style={{ boxShadow: `inset 3px 0 0 ${meta.color}` }}
+      className="nb-surface nb-card-link relative overflow-hidden rounded-[20px] p-4"
+      style={{ boxShadow: `0 10px 22px rgba(0,0,0,0.14), inset 3px 0 0 ${meta.color}` }}
     >
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11.5px] font-bold uppercase tracking-wide">
-        <span style={{ color: meta.color }}>{meta.label}</span>
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[11.5px] font-bold">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 uppercase tracking-[0.1em]"
+          style={{ color: meta.color, borderColor: `${meta.color}3d`, background: `${meta.color}14` }}
+        >
+          <span className="h-2 w-2 rounded-full" style={{ background: meta.color, boxShadow: `0 0 8px ${meta.color}80` }} />
+          {meta.label}
+        </span>
         <SeverityMeter level={row.severity} tone={meta.color} />
         {row.status !== "active" ? (
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11.5px] text-ink-300">{row.status}</span>
+          <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-ink-300">{row.status}</span>
         ) : stale ? (
-          <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[11.5px] text-sun-600">
+          <span className="rounded-full border border-sun-500/30 bg-sun-500/12 px-2.5 py-1 text-[11.5px] text-sun-600">
             {fresh.level === "stale" ? "may be out of date" : "needs a re-check"} · {ageLabel(fresh.hoursAgo)}
           </span>
         ) : null}
         {row.sourceKind === "news" ? (
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11.5px] text-ink-300">from the wire</span>
+          <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-ink-300">from the wire</span>
         ) : null}
-        <span className="ml-auto text-[11.5px] font-semibold normal-case tracking-normal text-ink-400">
+        <span className="ml-auto text-[11.5px] font-semibold text-ink-400">
           {timeAgo(row.createdAt)}
         </span>
       </div>
 
-      <h3 className="display mt-1.5 text-[16.5px] font-extrabold leading-snug text-sand-100">
-        <Link href={`/incident/${row.id}`} className="hover:text-tide-300">
+      <h3 className="display mt-2.5 text-[17px] font-extrabold leading-snug tracking-[-0.04em] text-sand-100">
+        <Link href={`/incident/${row.id}`} className="transition duration-200 ease-standard hover:text-tide-300">
           {row.title}
         </Link>
       </h3>
 
-      {row.details ? <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-ink-300">{row.details}</p> : null}
+      {row.details ? <p className="mt-1.5 line-clamp-2 text-[13px] leading-[1.75] text-ink-300">{row.details}</p> : null}
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px] text-ink-400">
-        <span className="font-semibold text-ink-200">{row.street ?? "Unmapped spot"}</span>
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px] text-ink-400">
+        <span className="font-bold text-ink-200">{row.street ?? "Unmapped spot"}</span>
         {row.parish ? <span>· {row.parish}</span> : null}
-        <span className="font-mono text-[11.5px] text-ink-400">
+        <span className="num font-mono text-[11.5px] text-ink-400">
           {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
         </span>
         {row.accuracyMeters ? (
-          <span className="rounded-md bg-white/8 px-1.5 py-0.5 text-[11.5px]">± {Math.round(row.accuracyMeters)} m</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11.5px]">± {Math.round(row.accuracyMeters)} m</span>
         ) : null}
         <Link href={`/map?focus=${row.id}`} className="ml-auto font-bold text-tide-300 hover:underline">
           Open on map
@@ -123,23 +129,23 @@ export function IncidentCard({
       </div>
 
       {row.address && row.address !== row.street ? (
-        <p className="mt-1 text-[11.5px] text-ink-400">{row.address}</p>
+        <p className="mt-1.5 text-[11.5px] text-ink-400">{row.address}</p>
       ) : null}
 
       {latest ? (
-        <p className="mt-1.5 text-[12.5px] text-ink-200">
+        <p className="mt-2 text-[12.5px] leading-[1.75] text-ink-200">
           <span className="font-bold text-sand-100">Latest: {UPDATE_LABELS[latest.kind] ?? latest.kind}</span>
           {latest.note ? <span> — {latest.note}</span> : null}
           <span className="text-ink-400"> · {timeAgo(latest.createdAt)}</span>
         </p>
       ) : null}
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] font-semibold text-ink-200">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11.5px] font-bold text-ink-200">
           {row.confirmations} confirm{row.confirmations === 1 ? "" : "s"}
         </span>
         {row.sightings > 0 ? (
-          <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] font-semibold text-ink-200">
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11.5px] font-bold text-ink-200">
             {row.sightings} “saw it too”
           </span>
         ) : null}

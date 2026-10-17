@@ -17,31 +17,31 @@
   --text-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
   --text-3xl: clamp(1.9rem, 1.5rem + 1.8vw, 2.75rem);
 
-  /* ---- Surfaces: "abyss" (blue-shifted deep grays, calibrated contrast) --- */
-  --color-abyss-975: #03080f;
-  --color-abyss-950: #050d16;
-  --color-abyss-900: #081522;
-  --color-abyss-850: #0b1d2e;
-  --color-abyss-800: #0e2637;
-  --color-abyss-700: #143349;
-  --color-abyss-600: #1b4560;
+  /* ---- Surfaces: landing palette ("abyss" — blue-shifted deep navy) ------- */
+  --color-abyss-975: #040e15;
+  --color-abyss-950: #07131c;
+  --color-abyss-900: #0a1b26;
+  --color-abyss-850: #0d202c;
+  --color-abyss-800: #122b37;
+  --color-abyss-700: #16323f;
+  --color-abyss-600: #1c4352;
 
-  /* ---- Primary: "tide" (luminous signal teal) ----------------------------- */
-  --color-tide-650: #00988a;
-  --color-tide-600: #00a896;
-  --color-tide-500: #00c9b7;
-  --color-tide-400: #2ee6d0;
-  --color-tide-300: #74f3e3;
-  --color-tide-200: #a8f7ec;
+  /* ---- Primary: "tide" (luminous signal teal, landing #43e0cc) ----------- */
+  --color-tide-650: #1fa898;
+  --color-tide-600: #2cc4b2;
+  --color-tide-500: #43e0cc;
+  --color-tide-400: #6be9d9;
+  --color-tide-300: #9bfff0;
+  --color-tide-200: #c9fff7;
 
   /* ---- Secondary & caution ------------------------------------------------ */
-  --color-conch-600: #e4534a;
-  --color-conch-500: #ff7a6b;
+  --color-conch-600: #e4675a;
+  --color-conch-500: #ff8877;
   --color-conch-400: #ff9d8f;
-  --color-sun-600: #e0a800;
-  --color-sun-500: #ffc531;
+  --color-sun-600: #d9a832;
+  --color-sun-500: #f5c75d;
   --color-sun-400: #ffd766;
-  --color-sand-100: #f6ead8;
+  --color-sand-100: #f7f1e7;
   --color-sand-50: #fbf6ee;
   --color-rum-500: #b4713f;
 
@@ -95,11 +95,11 @@
   --color-cat-notice-t: #94a3b8;
   --color-cat-accident-t: #ef4444;
 
-  /* ---- Text --------------------------------------------------------------- */
-  --color-ink-100: #eaf6f4;
-  --color-ink-200: #b9d4d2;
-  --color-ink-300: #8fb9b6;
-  --color-ink-400: #6e97a0;
+  /* ---- Text (landing: cream #f7f1e7 / muted #9cb5b8 / quiet #718d95) ------ */
+  --color-ink-100: #f7f1e7;
+  --color-ink-200: #c8d7d4;
+  --color-ink-300: #9cb5b8;
+  --color-ink-400: #718d95;
 
   /* ---- Radii -------------------------------------------------------------- */
   --radius-xs: 8px;
@@ -114,7 +114,7 @@
   --shadow-l2: 0 8px 24px -8px rgba(2, 8, 16, 0.55);
   --shadow-l3: 0 18px 48px -12px rgba(2, 8, 16, 0.65);
   --shadow-l4: 0 32px 80px -16px rgba(2, 8, 16, 0.75);
-  --shadow-glow-tide: 0 0 0 1px rgba(0, 201, 183, 0.35), 0 8px 32px -8px rgba(0, 201, 183, 0.45);
+  --shadow-glow-tide: 0 0 0 1px rgba(67, 224, 204, 0.35), 0 8px 32px -8px rgba(67, 224, 204, 0.45);
   --shadow-glow-danger: 0 0 0 1px rgba(244, 63, 94, 0.4), 0 8px 32px -8px rgba(244, 63, 94, 0.4);
 
   /* ---- Motion ------------------------------------------------------------- */
@@ -137,8 +137,10 @@
     max-width: 100%;
     overflow-x: hidden; /* fallback for browsers without overflow: clip */
     overflow-x: clip;
-    background: radial-gradient(1200px 620px at 85% -10%, rgba(0, 201, 183, 0.14), transparent 60%),
-      radial-gradient(900px 500px at 5% 0%, rgba(255, 122, 107, 0.09), transparent 55%), var(--color-abyss-950);
+    background:
+      radial-gradient(1100px 720px at 84% 3%, rgba(23, 93, 98, 0.2), transparent 65%),
+      radial-gradient(800px 540px at 0% 31%, rgba(36, 72, 84, 0.15), transparent 70%),
+      var(--color-abyss-950);
     color: var(--color-ink-100);
     font-family: var(--font-sans);
     min-height: 100%;
@@ -341,21 +343,22 @@ canvas {
 }
 
 /* ---------- App furniture ---------- */
-/* 2026 Tideglass control material: deeper blur, tide-tinted edge, inset
-   highlight, ambient shadow. Used by nav, map controls, overlays, chips. */
+/* Landing "control material": translucent deep-navy glass with a tide-tinted
+   edge, inset highlight and ambient shadow. Used by nav, map controls,
+   overlays, chips. The sticky header matches the landing nav exactly. */
 .glass {
-  background: linear-gradient(180deg, rgba(16, 57, 76, 0.5), rgba(6, 28, 40, 0.7));
-  border: 1px solid rgba(120, 220, 214, 0.16);
-  backdrop-filter: blur(20px) saturate(1.5);
-  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  background: linear-gradient(180deg, rgba(17, 42, 53, 0.5), rgba(8, 26, 36, 0.7));
+  border: 1px solid rgba(170, 222, 218, 0.14);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
   box-shadow: var(--shadow-l2), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .glass-strong {
-  background: linear-gradient(180deg, rgba(16, 57, 76, 0.66), rgba(6, 28, 40, 0.84));
-  border: 1px solid rgba(120, 220, 214, 0.2);
-  backdrop-filter: blur(32px) saturate(1.6);
-  -webkit-backdrop-filter: blur(32px) saturate(1.6);
-  box-shadow: var(--shadow-l3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  background: rgba(5, 16, 24, 0.84);
+  border: 1px solid rgba(185, 226, 220, 0.12);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  box-shadow: var(--shadow-l2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* honour iOS / Android bottom safe area for the nav and the home indicator */
@@ -461,7 +464,7 @@ input[type="range"] {
   height: 36px;
 }
 .hairline {
-  border-color: rgba(120, 220, 214, 0.14);
+  border-color: rgba(170, 222, 218, 0.14);
 }
 .marquee-track {
   animation: nb-marquee 34s linear infinite;
@@ -875,6 +878,9 @@ html[data-mode="light"] .nb-surface {
 html[data-mode="light"] :is(.bg-tide-500, .bg-tide-400).text-abyss-950 {
   color: #ffffff !important;
 }
+html[data-mode="light"] :is(.nb-btn-primary, .nb-chip[aria-current="true"], .nb-chip[data-on="true"]) {
+  color: #ffffff;
+}
 /* Inline night-only chip colours previously bypassed the theme palette. */
 html[data-mode="light"] .nb-category-chip {
   color: var(--color-ink-300) !important;
@@ -1007,12 +1013,13 @@ html[data-mode="light"] .nb-pagescene-veil {
     -webkit-backdrop-filter: blur(32px) saturate(1.6);
     box-shadow: var(--shadow-l3), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   }
-  /* Solid data surface — never glass. */
+  /* Solid data surface — landing card DNA: gradient panel, hairline edge,
+     20px radius, soft ambient shadow. Never glass: data stays legible. */
   .nb-surface {
-    background: var(--color-abyss-900);
-    border: 1px solid color-mix(in srgb, var(--color-ink-400) 18%, transparent);
+    background: linear-gradient(135deg, rgba(17, 42, 53, 0.97), rgba(8, 26, 36, 0.97));
+    border: 1px solid rgba(189, 223, 217, 0.14);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-l1);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
   }
 
   /* Live indicator dot. */
@@ -1041,6 +1048,209 @@ html[data-mode="light"] .nb-pagescene-veil {
   .nb-focus:focus-visible {
     outline: 2px solid var(--color-tide-400);
     outline-offset: 2px;
+  }
+
+  /* ---- Landing DNA: buttons (pills, 180ms lift) ------------------------- */
+  .nb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 0 17px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease,
+      transform 180ms ease, box-shadow 180ms ease;
+  }
+  .nb-btn:active {
+    transform: translateY(0) scale(0.97);
+  }
+  .nb-btn:focus-visible {
+    outline: 2px solid var(--color-sun-500);
+    outline-offset: 3px;
+  }
+  .nb-btn[disabled],
+  .nb-btn[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+  /* Primary — the one loud action in a view. */
+  .nb-btn-primary {
+    min-height: 46px;
+    padding: 0 21px;
+    background: var(--color-tide-500);
+    color: #04202a;
+    font-weight: 850;
+    box-shadow: 0 12px 36px rgba(30, 217, 195, 0.2);
+  }
+  .nb-btn-primary:hover {
+    background: var(--color-tide-400);
+    transform: translateY(-2px);
+    box-shadow: 0 15px 38px rgba(30, 217, 195, 0.3);
+  }
+  /* Secondary — outline pill on the panel material. */
+  .nb-btn-secondary {
+    border-color: rgba(207, 235, 231, 0.2);
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--color-ink-100);
+    font-weight: 750;
+  }
+  .nb-btn-secondary:hover {
+    border-color: rgba(207, 235, 231, 0.45);
+    background: rgba(255, 255, 255, 0.075);
+    transform: translateY(-1px);
+  }
+  /* Quiet — inline row actions. */
+  .nb-btn-ghost {
+    border-color: rgba(185, 226, 220, 0.2);
+    color: var(--color-ink-200);
+  }
+  .nb-btn-ghost:hover {
+    border-color: rgba(185, 226, 220, 0.38);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--color-ink-100);
+  }
+  .nb-btn-danger {
+    border-color: rgba(255, 122, 107, 0.4);
+    background: rgba(255, 122, 107, 0.12);
+    color: var(--color-conch-500);
+    font-weight: 850;
+  }
+  .nb-btn-danger:hover {
+    border-color: var(--color-conch-500);
+    background: rgba(255, 122, 107, 0.2);
+    transform: translateY(-1px);
+  }
+  .nb-btn-sm {
+    min-height: 38px;
+    padding: 0 13px;
+    font-size: 12px;
+  }
+
+  /* ---- Landing DNA: text link with the widening gap --------------------- */
+  .nb-textlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-tide-500);
+    font-size: 12px;
+    font-weight: 850;
+    text-decoration: none;
+    transition: gap 180ms ease, color 180ms ease;
+  }
+  .nb-textlink:hover {
+    gap: 14px;
+    color: var(--color-tide-300);
+  }
+
+  /* ---- Landing DNA: eyebrow label --------------------------------------- */
+  .nb-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    color: var(--color-tide-500);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.17em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+  .nb-eyebrow-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--color-tide-500);
+    box-shadow: 0 0 0 4px rgba(67, 224, 204, 0.12), 0 0 18px rgba(67, 224, 204, 0.7);
+  }
+
+  /* ---- Landing DNA: fields ---------------------------------------------- */
+  .nb-field {
+    width: 100%;
+    border: 1px solid rgba(189, 223, 217, 0.16);
+    border-radius: 12px;
+    background: rgba(4, 14, 21, 0.58);
+    color: var(--color-ink-100);
+    padding: 11px 14px;
+    font-size: 14px;
+    line-height: 1.45;
+    outline: none;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+  }
+  .nb-field::placeholder {
+    color: var(--color-ink-400);
+  }
+  .nb-field:hover {
+    border-color: rgba(189, 223, 217, 0.3);
+  }
+  .nb-field:focus {
+    border-color: var(--color-tide-500);
+    box-shadow: 0 0 0 3px rgba(67, 224, 204, 0.16);
+  }
+  .nb-field-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-tide-500);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .nb-field-hint {
+    display: block;
+    margin-top: 6px;
+    color: var(--color-ink-400);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  /* ---- Landing DNA: chips / pills --------------------------------------- */
+  .nb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 32px;
+    padding: 0 11px;
+    border: 1px solid rgba(185, 226, 220, 0.2);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--color-ink-200);
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+  .nb-chip:hover {
+    border-color: rgba(185, 226, 220, 0.42);
+    background: rgba(255, 255, 255, 0.075);
+    color: var(--color-ink-100);
+    transform: translateY(-1px);
+  }
+  .nb-chip[aria-current="true"],
+  .nb-chip[data-on="true"] {
+    background: var(--color-tide-500);
+    border-color: var(--color-tide-500);
+    color: #04202a;
+  }
+
+  /* Interactive card: hairline → tide edge and a small lift on hover. */
+  .nb-card-link {
+    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  }
+  .nb-card-link:hover {
+    border-color: rgba(67, 224, 204, 0.38);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 48px -12px rgba(2, 8, 16, 0.65);
   }
 }
 

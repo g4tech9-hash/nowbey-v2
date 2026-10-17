@@ -305,14 +305,14 @@ export default function MapWorkspace() {
     <div className="nb-fill-view nb-map-workspace gap-2.5 lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:items-stretch lg:gap-4">
       {/* The map */}
       <div className={`relative flex min-h-0 min-w-0 flex-col lg:h-full lg:order-2 ${view === "list" ? "hidden lg:flex" : ""}`}>
-        <div className="mb-2 hidden flex-wrap items-end justify-between gap-2 lg:flex">
+        <div className="mb-2.5 hidden flex-wrap items-end justify-between gap-2 lg:flex">
           <div>
-            <p className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-tide-400">Safety map</p>
-            <h1 className="display text-[clamp(1.4rem,3.4vw,1.9rem)] font-extrabold leading-tight text-sand-100">
+            <p className="nb-eyebrow">Safety map</p>
+            <h1 className="display mt-1.5 text-[clamp(1.45rem,3.4vw,2rem)] font-extrabold leading-[1.06] tracking-[-0.055em] text-sand-100">
               What is happening, street by street
             </h1>
           </div>
-          <p className="max-w-[46ch] text-[11.5px] leading-snug text-ink-400">
+          <p className="max-w-[46ch] text-[12px] leading-[1.75] text-ink-400">
             Tap a pin to read the report, or <span className="font-bold text-tide-300">Report a hazard</span> to add your own.
             Drag the yellow figure onto a road for street level.
           </p>
@@ -341,7 +341,7 @@ export default function MapWorkspace() {
             <button
               type="button"
               onClick={startPinning}
-              className="absolute bottom-3 left-1/2 z-[500] min-h-[44px] -translate-x-1/2 rounded-full bg-tide-500 px-4 py-2.5 text-[13px] font-extrabold text-abyss-950 shadow-[0_12px_28px_rgba(0,0,0,.5)] transition active:scale-95 lg:hidden"
+              className="nb-btn nb-btn-primary absolute bottom-3 left-1/2 z-[500] min-h-[44px] -translate-x-1/2 shadow-[0_12px_28px_rgba(0,0,0,.5)] lg:hidden"
             >
               + Report a hazard
             </button>
@@ -351,15 +351,15 @@ export default function MapWorkspace() {
 
       {/* What the phone shows: the map, the list, or both. Never on desktop — there everything fits. */}
       <div className={`flex-none items-center gap-2 lg:hidden ${pickMode ? "hidden" : "flex"}`}>
-        <div className="glass flex min-h-[48px] flex-1 rounded-xl p-1" role="group" aria-label="What to show on this screen">
+        <div className="glass flex min-h-[48px] flex-1 rounded-full p-1" role="group" aria-label="What to show on this screen">
           {PHONE_MODES.map((m) => (
             <button
               key={m.key}
               type="button"
               onClick={() => setMode(m.key)}
               aria-pressed={view === m.key}
-              className={`min-h-[40px] flex-1 rounded-lg px-2 text-[12px] font-bold transition ${
-                view === m.key ? "bg-tide-500 text-abyss-950" : "text-ink-200 hover:bg-white/10"
+              className={`min-h-[40px] flex-1 rounded-full px-2 text-[12px] font-extrabold transition duration-200 ease-standard ${
+                view === m.key ? "bg-tide-500 text-[#04202a] shadow-glow-tide" : "text-ink-200 hover:bg-white/10"
               }`}
             >
               {m.label}
@@ -384,7 +384,7 @@ export default function MapWorkspace() {
             <button
               type="button"
               onClick={cancelPinning}
-              className="min-h-[40px] flex-none rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/20"
+              className="nb-btn nb-btn-secondary nb-btn-sm min-h-[40px] flex-none"
             >
               Cancel
             </button>
@@ -392,7 +392,7 @@ export default function MapWorkspace() {
             <button
               type="button"
               onClick={startPinning}
-              className="min-h-[40px] flex-none rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950 lg:min-h-[36px]"
+              className="nb-btn nb-btn-primary nb-btn-sm min-h-[40px] flex-none lg:min-h-[36px]"
             >
               + Report a hazard
             </button>
@@ -659,7 +659,7 @@ export default function MapWorkspace() {
                       type="checkbox"
                       checked={form.anonymous}
                       onChange={(e) => setForm({ ...form, anonymous: e.target.checked })}
-                      className="h-4 w-4 accent-[#00c9b7]"
+                      className="h-4 w-4 accent-[#43e0cc]"
                     />
                     {handle ? `Post as “someone” instead of @${handle}` : "Post as “someone” (you are not signed in)"}
                   </label>
