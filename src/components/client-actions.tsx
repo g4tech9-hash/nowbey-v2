@@ -37,11 +37,11 @@ export function IngestButton() {
             setBusy(false);
           }
         }}
-        className="rounded-full bg-tide-500 px-3.5 py-2 text-[12.5px] font-extrabold text-abyss-950 disabled:opacity-50"
+        className="nb-btn nb-btn-primary nb-btn-sm"
       >
         {busy ? "Checking…" : "Refresh stories"}
       </button>
-      {report ? <p className="text-[12px] text-ink-300">{report}</p> : null}
+      {report ? <p className="text-[12px]" style={{ color: "var(--nb-muted)" }}>{report}</p> : null}
     </div>
   );
 }
@@ -75,7 +75,7 @@ export function ManageBillingButton({ demo }: { demo: boolean }) {
             setBusy(false);
           }
         }}
-        className="rounded-full bg-sand-100 px-3.5 py-2 text-[12.5px] font-extrabold text-abyss-950 hover:bg-white disabled:opacity-50"
+        className="nb-btn nb-btn-primary nb-btn-sm"
       >
         {busy ? "One moment…" : demo ? "End demo plan" : "Manage billing"}
       </button>
@@ -95,7 +95,7 @@ export function SignOut() {
         await fetch("/api/session", { method: "DELETE" });
         window.location.assign(new URL("/", window.location.origin).href);
       }}
-      className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-ink-300 hover:bg-white/5"
+      className="nb-btn nb-btn-outline nb-btn-sm"
     >
       {busy ? "Signing out…" : "Sign out"}
     </button>

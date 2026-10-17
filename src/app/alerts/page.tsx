@@ -12,11 +12,19 @@ import { CATEGORIES, timeAgo } from "@/lib/geo";
 import { pushConfigured, pushPublicConfig } from "@/lib/push";
 import { getViewer } from "@/lib/viewer";
 import { text } from "@/lib/validate";
+import { Dot, NumBadge } from "@/ui/kit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Alerts" };
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+
+/* =====================================================================
+   Alerts — rebuilt 2026-10-17 against reference 1002177500.
+   New DOM: one content column of layered cards (settings card with
+   toggle rows + gold “Storm warnings” card + push card), matching the
+   Email alerts mockup. All queries and contract copy preserved.
+   ===================================================================== */
 
 export default async function AlertsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
@@ -48,78 +56,128 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
     : [];
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="min-w-0 space-y-4">
-        <EmergencyNotice />
-        <PageHead
-          eyebrow="Alerts"
-          title="Only the ones that affect your shore"
-          blurb="Nassau first: alerts cover New Providence at launch, and when a neighbour files a matching report we email you a link straight to it. Two fields decide everything — your email address and the kinds of report you care about."
-        />
+    <div className="mx-auto flex w-full max-w-[760px] flex-col gap-5">
+      <PageHead
+        eyebrow="Alerts"
+        title="Only the ones that affect your shore"
+        blurb="Nassau first: alerts cover New Providence at launch, and when a neighbour files a matching report we email you a link straight to it. Two fields decide everything — your email address and the kinds of report you care about."
+      />
 
-        {confirmed === "1" ? (
-          <p className="nb-surface rounded-xl border-ok-500/40 bg-ok-500/10 px-4 py-3 text-base text-ok-600">
-            You are confirmed. We will email you when a matching report is filed.
-          </p>
-        ) : null}
-        {confirmed === "0" ? (
-          <p className="nb-surface rounded-xl bg-danger-500/12 px-4 py-3 text-base text-danger-500">
-            That confirmation link is not valid any more. Fill in the form below and we will send a fresh one.
-          </p>
-        ) : null}
+      <EmergencyNotice />
 
-        {stop ? (
-          <div className="nb-surface rounded-xl2 p-4">
-            {stopRow ? (
-              <>
-                <p className="display text-base font-bold tracking-tight text-sand-100">Stop alerts to {mask(stopRow.target)}?</p>
-                <p className="mt-1 text-sm text-ink-300">
-                  This profile covers {stopRow.parishes.split(",").join(", ")}. You can set up a new one at any time.
-                </p>
-                <div className="mt-3">
-                  <StopAlertButton token={stop} label="Yes, stop these alerts" />
-                </div>
-              </>
-            ) : (
-              <p className="text-base text-ink-200">That alert profile has already been stopped.</p>
-            )}
-          </div>
-        ) : null}
+      {confirmed === "1" ? (
+        <p className="nb-card nb-card-tight" style={{ color: "var(--nb-mint)", fontSize: 15 }}>
+          You are confirmed. We will email you when a matching report is filed.
+        </p>
+      ) : null}
+      {confirmed === "0" ? (
+        <p className="nb-card nb-card-tight" style={{ color: "#ff7a6b", fontSize: 15 }}>
+          That confirmation link is not valid any more. Fill in the form below and we will send a fresh one.
+        </p>
+      ) : null}
 
-        <div className="nb-surface rounded-xl2 p-4">
+      {stop ? (
+        <div className="nb-card">
+          {stopRow ? (
+            <>
+              <p className="display text-[17px] font-bold">Stop alerts to {mask(stopRow.target)}?</p>
+              <p className="mt-1.5 text-[14px]" style={{ color: "var(--nb-muted)" }}>
+                This profile covers {stopRow.parishes.split(",").join(", ")}. You can set up a new one at any time.
+              </p>
+              <div className="mt-4">
+                <StopAlertButton token={stop} label="Yes, stop these alerts" />
+              </div>
+            </>
+          ) : (
+            <p style={{ color: "var(--nb-text)" }}>That alert profile has already been stopped.</p>
+          )}
+        </div>
+      ) : null}
+
+      {/* ---- the settings card (reference: “Email alerts” screen) ---- */}
+      <section className="nb-card">
+        <p className="display text-[22px] font-extrabold leading-tight">Email alerts</p>
+        <p className="mt-1.5 text-[14.5px]" style={{ color: "var(--nb-muted)" }}>
+          Choose your island and the updates you want.
+        </p>
+        <div className="mt-5">
           <AlertForm plan={viewer.tier} defaultEmail={viewer.email ?? ""} />
         </div>
+      </section>
 
-        {push ? <PushToggle config={push.config} vapidKey={push.vapidKey} parishes={["New Providence"]} /> : (
-          <div className="nb-surface rounded-xl2 p-4">
-            <p className="display text-base font-bold tracking-tight text-sand-100">Push alerts on this device</p>
-            <p className="mt-0.5 text-sm leading-relaxed text-ink-300">
-              Not switched on for this site yet. Email is the channel that works today; the Android app has a push switch of its own once it is
-              installed.
-            </p>
-          </div>
-        )}
+      {/* ---- gold always-on card (reference: “Storm warnings”) ---- */}
+      <section className="nb-card-gold">
+        <span
+          aria-hidden
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            display: "grid",
+            placeItems: "center",
+            border: "1px solid #6d6a45",
+            background: "#2e3122",
+            color: "var(--nb-gold)",
+            flex: "none",
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9" />
+          </svg>
+        </span>
+        <div>
+          <p className="text-[16px] font-bold" style={{ color: "var(--nb-gold-ink)" }}>
+            Storm warnings
+          </p>
+          <p className="mt-1 text-[13.5px] leading-relaxed" style={{ color: "#a9a68c" }}>
+            Storm reports for your islands always reach you, even if you did not tick the Storm category. That is the same for everyone,
+            Free plan included — a warning a household needs is never something we charge for.
+          </p>
+        </div>
+      </section>
 
-        {viewer.signedIn ? (
-          <section>
-            <p className="display text-base font-extrabold tracking-tight text-sand-100">Your alert profiles</p>
-            {mine.length ? (
-              <ul className="mt-2 space-y-2">
-                {mine.map((s) => (
-                  <li key={s.id} className="nb-surface flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl px-3 py-2.5 text-sm">
+      {/* ---- push card ---- */}
+      {push ? (
+        <PushToggle config={push.config} vapidKey={push.vapidKey} parishes={["New Providence"]} />
+      ) : (
+        <section className="nb-card">
+          <p className="display text-[17px] font-bold">Push alerts on this device</p>
+          <p className="mt-1.5 text-[14px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
+            Not switched on for this site yet. Email is the channel that works today; the Android app has a push switch of its own once it is
+            installed.
+          </p>
+        </section>
+      )}
+
+      {/* ---- profiles ---- */}
+      {viewer.signedIn ? (
+        <section>
+          <p className="display text-[17px] font-extrabold">Your alert profiles</p>
+          {mine.length ? (
+            <ul className="mt-3 flex flex-col gap-2.5">
+              {mine.map((s) => (
+                <li key={s.id} className="nb-card nb-card-tight" style={{ padding: "16px 18px" }}>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px]">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-bold ${s.verified ? "bg-ok-500/15 text-ok-600" : "bg-sun-500/15 text-sun-600"}`}
+                      className="nb-pill nb-pill-mint"
+                      style={s.verified ? undefined : { borderColor: "rgba(246,199,93,.38)", background: "rgba(246,199,93,.08)", color: "var(--nb-gold)" }}
                     >
-                      {s.verified ? <><span className="nb-live-dot" aria-hidden />On</> : "Waiting for your confirmation email"}
+                      {s.verified ? (
+                        <>
+                          <Dot color="var(--nb-mint)" glow /> On
+                        </>
+                      ) : (
+                        "Waiting for your confirmation email"
+                      )}
                     </span>
-                    <span className="num font-mono text-xs text-ink-200">{s.target}</span>
-                    <span className="text-ink-300">{s.parishes.split(",").join(" · ")}</span>
-                    <span className="num text-ink-400">
-                      {typeof s.lat === "number" && typeof s.lng === "number"
-                        ? `within ${s.radiusKm ?? 12} km of you`
-                        : "whole island"}
+                    <span className="num font-mono text-[12px]" style={{ color: "var(--nb-text)" }}>
+                      {s.target}
                     </span>
-                    <span className="num text-ink-400">
+                    <span style={{ color: "var(--nb-muted)" }}>{s.parishes.split(",").join(" · ")}</span>
+                    <span className="num" style={{ color: "var(--nb-faint)", fontSize: 12 }}>
+                      {typeof s.lat === "number" && typeof s.lng === "number" ? `within ${s.radiusKm ?? 12} km of you` : "whole island"}
+                    </span>
+                    <span className="num" style={{ color: "var(--nb-faint)", fontSize: 12 }}>
                       {s.categories
                         ? s.categories
                             .split(",")
@@ -128,56 +186,59 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
                             .join(", ")
                         : "every category"}
                     </span>
-                    <span className="num text-xs text-ink-400">{timeAgo(s.createdAt)}</span>
+                    <span className="num text-[12px]" style={{ color: "var(--nb-faint)" }}>
+                      {timeAgo(s.createdAt)}
+                    </span>
                     <span className="ml-auto">
                       <StopAlertButton id={s.id} label="Remove" />
                     </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-sm text-ink-400">You have no alert profiles yet.</p>
-            )}
-          </section>
-        ) : (
-          <p className="text-sm text-ink-400">
-            <Link href="/login?mode=signin&next=%2Falerts" className="font-bold text-tide-300 underline">
-              Sign in
-            </Link>{" "}
-            to see and remove your alert profiles here. Every alert email also has a “Stop these alerts” link.
-          </p>
-        )}
-      </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-[14px]" style={{ color: "var(--nb-faint)" }}>
+              You have no alert profiles yet.
+            </p>
+          )}
+        </section>
+      ) : (
+        <p className="text-[13.5px]" style={{ color: "var(--nb-faint)" }}>
+          <Link href="/login?mode=signin&next=%2Falerts" className="font-bold underline" style={{ color: "var(--nb-mint)" }}>
+            Sign in
+          </Link>{" "}
+          to see and remove your alert profiles here. Every alert email also has a “Stop these alerts” link.
+        </p>
+      )}
 
-      <aside className="space-y-4">
-        <div className="nb-surface rounded-xl2 p-3.5 text-sm leading-relaxed text-ink-300">
-          <p className="display text-base font-bold tracking-tight text-sand-100">How a report reaches you</p>
-          <Step n="1" title="Filed">A neighbour or the news wire puts a pin on the map with a category.</Step>
-          <Step n="2" title="Matched">We check it against the island and categories you picked — and, if you switched on “only near me”, the kilometres you chose.</Step>
-          <Step n="3" title="Sent">An email arrives with the street, how serious it is, and a link to the live report. You get at most one every three minutes.</Step>
+      {/* ---- how it works ---- */}
+      <section className="nb-card">
+        <p className="display text-[17px] font-bold">How a report reaches you</p>
+        <div className="mt-4 flex flex-col gap-3.5">
+          <Step n={1} title="Filed">
+            A neighbour or the news wire puts a pin on the map with a category.
+          </Step>
+          <Step n={2} title="Matched">
+            We check it against the island and categories you picked — and, if you switched on “only near me”, the kilometres you chose.
+          </Step>
+          <Step n={3} title="Sent">
+            An email arrives with the street, how serious it is, and a link to the live report. You get at most one every three minutes.
+          </Step>
         </div>
-
-        <div className="nb-surface rounded-xl2 border-sun-500/35 bg-sun-500/10 p-3.5">
-          <p className="display text-base font-bold tracking-tight text-sand-100">Storm warnings</p>
-          <p className="mt-1 text-sm leading-relaxed text-ink-200">
-            Storm reports for your islands always reach you, even if you did not tick the Storm category. That is the same for everyone,
-            Free plan included — a warning a household needs is never something we charge for.
-          </p>
-        </div>
-      </aside>
+      </section>
     </div>
   );
 }
 
-function Step({ n, title, children }: { n: string; title: string; children: ReactNode }) {
+function Step({ n, title, children }: { n: number; title: string; children: ReactNode }) {
   return (
-    <p className="mt-2 flex gap-2">
-      <span className="num mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tide-500/20 text-[11.5px] font-extrabold text-tide-300">
-        {n}
-      </span>
+    <p className="nb-check-row" style={{ alignItems: "flex-start" }}>
+      <NumBadge n={n} />
       <span>
-        <span className="font-bold text-sand-100">{title}. </span>
-        {children}
+        <span className="font-bold" style={{ color: "var(--nb-cream)" }}>
+          {title}.{" "}
+        </span>
+        <span style={{ color: "var(--nb-muted)" }}>{children}</span>
       </span>
     </p>
   );
