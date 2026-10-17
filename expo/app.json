@@ -10,7 +10,10 @@
       "bundleIdentifier": "app.nowbey.mobile",
       "buildNumber": "2",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "NowBey uses your location to drop a report pin on the right spot.",
+        "NSCameraUsageDescription": "NowBey needs camera access to attach photos to a report.",
+        "NSPhotoLibraryUsageDescription": "NowBey needs photo library access to attach photos to a report."
       }
     },
     "android": {
@@ -59,7 +62,9 @@
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "updates": {},
+    "updates": {
+      "url": "https://u.expo.dev/10e4a677-274e-43b1-99e6-33a2b32ccd23"
+    },
     "owner": "oasistech242"
   }
 }

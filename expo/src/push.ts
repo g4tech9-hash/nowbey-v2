@@ -23,14 +23,13 @@ const CHANNEL = "default";
  *  - "on"          this device is registered with the server
  *  - "off"         the phone supports push and the person has not switched it on
  *  - "denied"      Android notifications are blocked for NowBey in the phone's settings
- *  - "unsupported" not a phone, or not Android — iPhone push needs an Apple push key in the
- *                  store build first, so the app does not pretend it works there
+ *  - "unsupported" not a phone (emulator/web) — push needs a real device
  *  - "signedout"   no signed-in member, and a device token belongs to a member
  */
 export type PushState = "on" | "off" | "denied" | "unsupported" | "signedout";
 
 function supported(): boolean {
-  return Platform.OS === "android" && Device.isDevice;
+  return (Platform.OS === "android" || Platform.OS === "ios") && Device.isDevice;
 }
 
 async function permission(): Promise<"granted" | "denied" | "undetermined"> {
@@ -63,10 +62,15 @@ export async function pushState(): Promise<PushState> {
 export async function enablePush(): Promise<PushState> {
   try {
     if (!supported()) return "unsupported";
-    await Notifications.setNotificationChannelAsync(CHANNEL, {
-      name: "General",
-      importance: Notifications.AndroidImportance.MAX,
-    });
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync(CHANNEL, {
+        name: "General",
+        importance: Notifications.AndroidImportance.MAX,
+      });
+    }
+    if (Platform.OS === "ios") {
+      await Notifications.setNotificationCategoryAsync("default", []);
+    }
     const asked = await Notifications.requestPermissionsAsync();
     if (asked.status !== "granted") return asked.status === "denied" ? "denied" : "off";
 

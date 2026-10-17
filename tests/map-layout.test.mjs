@@ -142,6 +142,18 @@ test("APK workflow runs a real preflight before the preview build", () => {
   const eas = JSON.parse(read("expo/eas.json"));
   assert.equal(eas.build.preview.android.buildType, "apk");
   assert.equal(eas.build.preview.distribution, "internal");
-  assert.ok(workflow.indexOf("npm run preflight:apk:full") < workflow.indexOf("build --platform android --profile preview"));
-  assert.match(read("expo/scripts/preflight-apk.js"), /expo', 'export', '--platform', 'android/);
+  // EAS build uses a $PLATFORM matrix variable now; look for the platform-agnostic
+  // build invocation and ensure preflight still runs before it.
+  const preflight = workflow.indexOf("npm run preflight:apk:full");
+  const easBuild = workflow.indexOf("eas-cli@latest build");
+  assert.ok(preflight >= 0, "preflight command found in workflow");
+  assert.ok(easBuild >= 0, "eas build command found in workflow");
+  assert.ok(preflight < easBuild, "preflight runs before the EAS build dispatch");
+  // Matrix builds Android + iOS in parallel.
+  assert.match(workflow, /platform:\s*android/);
+  assert.match(workflow, /platform:\s*ios/);
+  const preflightScript = read("expo/scripts/preflight-apk.js");
+  assert.match(preflightScript, /expo export --platform/);
+  assert.match(preflightScript, /Android package is/);
+  assert.match(preflightScript, /iOS bundleIdentifier is/);
 });

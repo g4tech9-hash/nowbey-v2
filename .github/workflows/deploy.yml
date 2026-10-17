@@ -5,14 +5,15 @@ on:
   push:
     branches: [master]
   # The same knob, reachable from a script: POST a "deploy" repository_dispatch event with
-  # client_payload {"target": "mobile"} to start a build with nobody opening the Actions tab.
-  # workflow_dispatch needs the actions:write permission, which a deployment token does not always
-  # have; repository_dispatch only needs the permission to push, so the job can be started from a
-  # script, a bot or an agent. The target travels in the payload, and the build still runs on
-  # master, and still has to pass the gate.
+  # client_payload {"target": "mobile" | "android" | "ios" | "web" | "all"} to start a build with
+  # nobody opening the Actions tab. workflow_dispatch needs the actions:write permission, which a
+  # deployment token does not always have; repository_dispatch only needs the permission to push,
+  # so the job can be started from a script, a bot or an agent. The target travels in the payload,
+  # and the build still runs on master, and still has to pass the gate.
   repository_dispatch:
     types: [deploy]
-  # Manual knob in the Actions tab: web (Vercel prod), mobile (EAS APK), or all.
+  # Manual knob in the Actions tab: web (Vercel prod), android (EAS APK), ios (EAS archive),
+  # mobile (both), all (web + mobile), or smoke.
   workflow_dispatch:
     inputs:
       target:
@@ -23,6 +24,8 @@ on:
         options:
           - web
           - mobile
+          - android
+          - ios
           - all
           - smoke
 
@@ -347,23 +350,47 @@ jobs:
       - name: Check the live site
         env:
           SMOKE_BASE: https://nowbey-v2.vercel.app
-          # Expect this commit exactly when deploy-web was *supposed* to run — the same condition that
-          # job uses. Keying it off deploy-web's result is what made a failed deploy also cancel the
-          # check of the live site. A standalone "smoke" run leaves it empty: nothing was deployed, so
-          # there is no new release to wait for and smoke-prod.mjs checks the site immediately.
           EXPECT_SHA: ${{ (github.event_name == 'push' || inputs.target == 'web' || inputs.target == 'all' || github.event.client_payload.target == 'web' || github.event.client_payload.target == 'all') && github.sha || '' }}
         run: node scripts/smoke-prod.mjs
 
+  # EAS builds: one job per platform (matrix) so Android and iOS build in parallel.
+  # Platforms always run together unless the target is platform-specific ("android" or "ios").
+  # The dispatcher guards against running for "web"/"smoke" targets in the job's `if` below,
+  # and the early-out step is a safety net if someone adds a new target that slips past.
   build-mobile:
     needs: gate
-    # EAS minutes cost money, so the APK is built on demand only (Actions tab > Deploy > Run workflow > mobile),
-    # or automatically right after a production web deploy when you choose "all".
-    if: inputs.target == 'mobile' || inputs.target == 'all' || github.event.client_payload.target == 'mobile' || github.event.client_payload.target == 'all'
+    if: |
+      !cancelled()
+      && needs.gate.result == 'success'
+      && (
+        inputs.target == 'mobile' || inputs.target == 'all'
+        || inputs.target == 'android' || inputs.target == 'ios'
+        || github.event.client_payload.target == 'mobile' || github.event.client_payload.target == 'all'
+        || github.event.client_payload.target == 'android' || github.event.client_payload.target == 'ios'
+      )
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            artifact_label: APK
+          - platform: ios
+            artifact_label: IPA
     steps:
       - uses: actions/checkout@v4
 
+      # If the user asked for only one platform, skip the other matrix leg instead of billing
+      # EAS minutes for it. Both legs run for "mobile" and "all".
+      - name: Skip if ${{ matrix.platform }} was not requested
+        id: skip
+        run: |
+          target="${{ inputs.target || github.event.client_payload.target || 'mobile' }}"
+          if [ "$target" = "android" ] && [ "${{ matrix.platform }}" = "ios" ]; then echo "skip=true" >> "$GITHUB_OUTPUT"; echo "skipping iOS: target=android"; fi
+          if [ "$target" = "ios" ] && [ "${{ matrix.platform }}" = "android" ]; then echo "skip=true" >> "$GITHUB_OUTPUT"; echo "skipping Android: target=ios"; fi
+
       - uses: actions/setup-node@v4
+        if: steps.skip.outputs.skip != 'true'
         with:
           # 22, not 20: the EAS CLI now says a future release will require Node 22 or newer, and
           # it says so on every build. The gate job already runs on 22.
@@ -372,19 +399,19 @@ jobs:
           cache-dependency-path: expo/package-lock.json
 
       - name: Install Expo dependencies
+        if: steps.skip.outputs.skip != 'true'
         working-directory: expo
         run: npm ci --no-audit --no-fund
 
-      # google-services.json is a credential-bearing build input and must never be committed.
-      # Store its complete JSON as the FIREBASE_GOOGLE_SERVICES_JSON Actions secret.
+      # google-services.json (Android) and GoogleService-Info.plist (iOS) are credential-bearing
+      # build inputs and must never be committed. They come from repository secrets.
       #
-      # Writing the file is not enough on its own: EAS archives the project with the .gitignore rules
-      # applied, and expo/.gitignore ignores this file, so for a long time the worker received an
-      # app.json pointing at a file that had never been uploaded — the build failed before it
-      # compiled anything. The root .easignore (used by EAS *instead of* every .gitignore) is what
-      # lets the file travel while staying out of Git, so the last two checks below prove the
-      # arrangement still holds and fail loudly if someone re-adds the rule there.
+      # Writing the file is not enough on its own: EAS archives the project with the .gitignore
+      # rules applied, and expo/.gitignore ignores both files, so the worker would receive an
+      # app.json pointing at files that were never uploaded. The root .easignore (used by EAS
+      # *instead of* every .gitignore) is what lets the files travel while staying out of Git.
       - name: Install Firebase Android configuration
+        if: matrix.platform == 'android'
         working-directory: expo
         env:
           FIREBASE_GOOGLE_SERVICES_JSON: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON }}
@@ -393,26 +420,45 @@ jobs:
           : "${FIREBASE_GOOGLE_SERVICES_JSON:?Add the FIREBASE_GOOGLE_SERVICES_JSON repository secret}"
           printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON" > google-services.json
           node -e 'const f=require("./google-services.json"); if (!f.project_info?.project_id || !f.client?.some(c => c.client_info?.android_client_info?.package_name === "app.nowbey.mobile")) throw new Error("google-services.json does not contain app.nowbey.mobile")'
-
           test -s google-services.json
           test -f ../.easignore
           if grep -qE '^[[:space:]]*google-services\.json' ../.easignore; then
-            echo "::error title=Firebase config would not reach EAS::.easignore now ignores google-services.json, so it will not be in the uploaded archive and the build will fail on the worker. Remove that rule."
+            echo "::error title=Firebase Android config would not reach EAS::.easignore now ignores google-services.json, so it will not be in the uploaded archive and the build will fail on the worker. Remove that rule."
             exit 1
           fi
           echo "google-services.json ($(wc -c < google-services.json) bytes) is present and .easignore keeps it eligible for the EAS upload."
 
-      - name: APK preflight (profile, Firebase, types and Android bundle)
+      - name: Install Firebase iOS configuration (if provided)
+        if: matrix.platform == 'ios'
         working-directory: expo
-        run: npm run preflight:apk:full
+        env:
+          FIREBASE_GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.FIREBASE_GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FIREBASE_GOOGLE_SERVICE_INFO_PLIST:-}" ]; then
+            echo "::warning title=iOS Firebase config missing::FIREBASE_GOOGLE_SERVICE_INFO_PLIST is not set; the iOS build will run but FCM push notifications will not work until the file is added (the app builds without it). Add it via repo Settings → Secrets and variables → Actions."
+            # Still succeed: iOS builds without FCM for ad-hoc distribution.
+            exit 0
+          fi
+          printf '%s' "$FIREBASE_GOOGLE_SERVICE_INFO_PLIST" > GoogleService-Info.plist
+          test -s GoogleService-Info.plist
+          if ! grep -q 'BUNDLE_ID' GoogleService-Info.plist || ! grep -q 'app.nowbey.mobile' GoogleService-Info.plist; then
+            echo "::warning title=iOS Firebase config may be wrong::GoogleService-Info.plist does not appear to contain app.nowbey.mobile; push may not deliver."
+          fi
+          if grep -qE '^[[:space:]]*GoogleService-Info\.plist' ../.easignore; then
+            echo "::error title=Firebase iOS config would not reach EAS::.easignore now ignores GoogleService-Info.plist. Remove that rule."
+            exit 1
+          fi
+          echo "GoogleService-Info.plist ($(wc -c < GoogleService-Info.plist) bytes) is present and .easignore keeps it eligible for the EAS upload."
+
+      - name: Preflight (profile, Firebase, types and bundle for ${{ matrix.platform }})
+        if: steps.skip.outputs.skip != 'true'
+        working-directory: expo
+        run: npm run preflight:apk:full -- --${{ matrix.platform }}
 
       # Needs repo secret: EXPO_TOKEN (expo.dev > Account settings > Access tokens).
-      #
-      # The identity check runs first on purpose: a rejected or missing token and a project that never
-      # reaches the build worker both fail fast, and without this step the two look identical from the
-      # outside (the raw step log lives on a storage host some clients cannot reach). With it, a red run
-      # names its own cause in a single annotation.
       - name: Check EAS credentials
+        if: steps.skip.outputs.skip != 'true'
         working-directory: expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -429,26 +475,23 @@ jobs:
             exit "$code"
           fi
 
-      # The step captures the build output instead of streaming it, so a failure can be turned into a
-      # ::error annotation on the run's check: annotations are readable through the Checks API, while
-      # the raw step log lives on a storage host that some clients cannot reach at all. A red run here
-      # is therefore self-diagnosing wherever it is opened.
-      #
-      # The exit code alone does not say whether there is an APK: the CLI exits 0 for a build that was
-      # cancelled on Expo's servers, exactly as it does for one that finished (it only counts ERRORED
-      # as a failure). With --json the CLI prints the build record on stdout and its progress on
-      # stderr, so the step reads the outcome from the record, and only FINISHED is green.
-      - name: Send Android build to EAS (preview profile → APK)
+      # The step captures the build output instead of streaming it, so a failure can be turned into
+      # a ::error annotation on the run's check. With --json the CLI prints the build record on
+      # stdout, so the step reads the outcome from the record, and only FINISHED is green (the CLI
+      # exits 0 for a cancelled build, which we still treat as red).
+      - name: Send ${{ matrix.platform }} build to EAS (preview profile → ${{ matrix.artifact_label }})
         id: eas
+        if: steps.skip.outputs.skip != 'true'
         working-directory: expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           EXPO_PUBLIC_API_BASE: https://nowbey-v2.vercel.app
+          PLATFORM: ${{ matrix.platform }}
         run: |
           set -uo pipefail
           : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret (repo Settings > Secrets and variables > Actions)}"
           set +e
-          npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > eas-build.json 2> eas-build.log
+          npx --yes eas-cli@latest build --platform "$PLATFORM" --profile preview --non-interactive --wait --json > eas-build.json 2> eas-build.log
           code=$?
           set -e
           tail -n 80 eas-build.log
@@ -457,37 +500,36 @@ jobs:
           id="$(field '.[0].id // empty')"
           status="$(field '.[0].status // empty')"
           page="$(field '.[0] | select(.app.ownerAccount.name and .app.slug) | "https://expo.dev/accounts/\(.app.ownerAccount.name)/projects/\(.app.slug)/builds/\(.id)"')"
-          apk="$(field '.[0].artifacts.buildUrl // empty')"
+          artifact="$(field '.[0].artifacts.buildUrl // empty')"
           error="$(field '.[0].error | select(.) | [.errorCode, .message] | map(select(.)) | join(": ")')"
           echo "EAS build ${id:-(no build record)}: ${status:-unknown} (CLI exit $code)"
 
           case "$status" in
             FINISHED)
               {
-                echo "### EAS build finished"
+                echo "### EAS $PLATFORM build finished"
                 echo ""
                 echo "Build page: ${page:-unknown}"
-                if [ -n "$apk" ]; then
+                if [ -n "$artifact" ]; then
                   echo ""
-                  echo "APK: $apk"
+                  echo "${{ matrix.artifact_label }}: $artifact"
                 fi
               } >> "$GITHUB_STEP_SUMMARY"
-              echo "::notice title=EAS build finished::${apk:-${page:-build $id}}"
+              echo "::notice title=EAS $PLATFORM build finished::${artifact:-${page:-build $id}}"
               exit 0
               ;;
             CANCELED|PENDING_CANCEL)
-              echo "::error title=EAS build was cancelled::Build $id was cancelled on Expo's servers, so there is no APK. ${page}"
+              echo "::error title=EAS $PLATFORM build was cancelled::Build $id was cancelled on Expo's servers, so there is no ${{ matrix.artifact_label }}. ${page}"
               ;;
             ERRORED)
-              echo "::error title=EAS build failed on the worker::${error:-the build record has no error message} ${page}"
+              echo "::error title=EAS $PLATFORM build failed on the worker::${error:-the build record has no error message} ${page}"
               ;;
             "")
-              # No build record: the CLI stopped before it started a build, or while it was waiting.
               first="$(grep -v '^[[:space:]]*$' eas-build.log | tail -n 1 | tr -d '\r' | cut -c1-300 || true)"
-              echo "::error title=EAS build failed (exit $code)::$first"
+              echo "::error title=EAS $PLATFORM build failed (exit $code)::$first"
               ;;
             *)
-              echo "::error title=EAS build ended $status::Build $id did not finish, so there is no APK. ${page}"
+              echo "::error title=EAS $PLATFORM build ended $status::Build $id did not finish, so there is no ${{ matrix.artifact_label }}. ${page}"
               ;;
           esac
           echo "--- full output ---"
@@ -495,50 +537,34 @@ jobs:
           if [ "$code" -ne 0 ]; then exit "$code"; fi
           exit 1
 
-      # The EAS step writes its output to a file, and the step log itself lives on a storage host
-      # that some clients cannot reach. Uploading that file as an artifact puts the same text where
-      # the API can serve it, so the reason for a red run can be read with the API alone — no
-      # browser, no Actions tab, and no guessing from an exit code. It runs after the EAS step, and
-      # it runs whether that step passed or failed, because the passing log is worth keeping too.
       - name: Upload the EAS logs
-        if: always()
+        if: steps.skip.outputs.skip != 'true' && always()
         uses: actions/upload-artifact@v4
         with:
-          name: eas-build-log
+          name: eas-build-log-${{ matrix.platform }}
           if-no-files-found: ignore
           path: |
             expo/eas-build.log
             expo/eas-build.json
             expo/eas-whoami.log
 
-      # "Error: build command failed." is the CLI's last line whatever stopped it — an eas.json the
-      # CLI refused, a worker that failed, a cancelled build — and the reason sits further up the log
-      # or on the build record. Annotations are the one place the Checks API serves back, so the
-      # reason is written there as well: the build record's status and error (read back with the same
-      # token when the CLI did not print it) and the tail of the CLI output. A red run then names its
-      # own cause instead of asking somebody to open expo.dev.
-      - name: Report why the EAS build failed
-        if: failure()
+      - name: Report why the EAS ${{ matrix.platform }} build failed
+        if: steps.skip.outputs.skip != 'true' && failure()
         working-directory: expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PLATFORM: ${{ matrix.platform }}
         run: |
           set -uo pipefail
-          # The build record the EAS step printed with --json, when it got that far.
           build_id="$(jq -r '.[0].id // empty' eas-build.json 2>/dev/null || true)"
           if [ -z "$build_id" ]; then
-            # Otherwise the build page the CLI links to when a build starts:
-            # https://expo.dev/accounts/<owner>/projects/<slug>/builds/<id>
             build_id="$(grep -Eo 'https://expo\.dev/accounts/[^/[:space:]]+/projects/[^/[:space:]]+/builds/[0-9A-Fa-f-]+' eas-build.log 2>/dev/null | tail -n 1 | sed 's#.*/##' || true)"
           fi
           echo "build id: ${build_id:-none found in the log}"
 
-          # Either record has the same shape: .status, and .error = { errorCode, message } when it failed.
           describe() { jq -r '(if type == "array" then .[0] else . end) | select(.) | [("status " + (.status // "unknown")), ((.error // {}) | [.errorCode, .message] | map(select(.)) | join(": "))] | map(select(. != "")) | join(" — ")' "$1" 2>/dev/null || true; }
           reason="$(describe eas-build.json)"
           if [ -z "$reason" ] && [ -n "$build_id" ]; then
-            # build:view takes --json and nothing else: it has no --non-interactive flag, and an
-            # unknown flag makes it refuse to run.
             npx --yes eas-cli@latest build:view "$build_id" --json > eas-view.json 2> eas-view.err || true
             reason="$(describe eas-view.json)"
           fi
@@ -553,7 +579,7 @@ jobs:
           fi
 
           {
-            echo "### Why the EAS build failed"
+            echo "### Why the EAS $PLATFORM build failed"
             echo ""
             echo "Build id: ${build_id:-unknown}"
             echo ""
@@ -562,6 +588,5 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # One annotation, one line: newlines become %0A, percent signs %25, carriage returns %0D.
           payload="$(printf '%s' "$reason" | awk 'BEGIN{ORS=""} {gsub(/%/,"%25"); gsub(/\r/,"%0D"); printf "%s%%0A", $0}')"
-          printf '::error title=EAS build output::%s\n' "$payload"
+          printf '::error title=EAS %s build output::%s\n' "$PLATFORM" "$payload"
