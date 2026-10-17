@@ -271,6 +271,18 @@ build is green, and its summary carries the build page and the APK link.
 The newest APK on EAS is preview build `56ab2649-194b-492c-b5d9-8901da9dec50`, built from `6e4ca45`
 (2026-10-14 22:59 UTC). Master is 63 commits ahead of it, so it predates every fix above.
 
+**Status 2026-10-17 — resumed on the owner's request; an APK finished.** The owner asked for a build,
+so the dispatch below was sent (workflow_dispatch still answers 403 for this integration). Run
+`39050991724` from `c23510a` passed the gate, the APK preflight and the EAS credential check, and EAS
+returned a **FINISHED** preview build:
+
+* APK: https://expo.dev/artifacts/eas/t-q_89mYpUAVHPhxqZ_zPBzpdYQmFcRslap4o08YX9E.apk
+
+This is the first build of the pipeline to finish since the pause — earlier attempts were refused,
+cancelled, or blocked by a billing flag on the account. The APK carries the Firebase config baked in
+from the `FIREBASE_GOOGLE_SERVICES_JSON` secret; push delivery to a device is still unproven and stays
+on this checklist.
+
 **To resume, only when the owner says so:** Actions → Deploy (Vercel + EAS) → Run workflow → `mobile`, or
 
 ```bash
