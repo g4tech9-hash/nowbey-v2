@@ -12,7 +12,8 @@ on:
   # master, and still has to pass the gate.
   repository_dispatch:
     types: [deploy]
-  # Manual knob in the Actions tab: web (Vercel prod), mobile (EAS APK), or all.
+  # Manual knob in the Actions tab: web (Vercel prod), mobile (EAS Android APK), all (both),
+  # or smoke.
   workflow_dispatch:
     inputs:
       target:
@@ -28,9 +29,7 @@ on:
 
 jobs:
   # Nothing reaches production until the code type-checks, lints, builds and passes the hermetic
-  # unit tests. The live suites (endpoints / auth / mail / admin / UI) need Postgres and the SMTP
-  # catcher, so they run locally with `npm run test:local` and `npm run test:ui`; the physical-device
-  # push check stays on the human checklist in TODO_HUMAN.md.
+  # unit tests.
   gate:
     runs-on: ubuntu-latest
     steps:
@@ -38,7 +37,6 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          # 22, not 20: the unit tests import TypeScript directly, which needs Node's type stripping.
           node-version: 22
           cache: npm
 
@@ -57,7 +55,6 @@ jobs:
       - name: Production build
         run: npm run build
         env:
-          # A build must not need production secrets; these keep Next.js from failing on a missing value.
           NEXT_TELEMETRY_DISABLED: "1"
 
   deploy-web:
@@ -74,45 +71,8 @@ jobs:
 
       # Needs repo secrets: VERCEL_TOKEN (vercel.com/account/tokens), plus VERCEL_ORG_ID and
       # VERCEL_PROJECT_ID from .vercel/project.json locally or the project's Settings → General.
-      #
-      # This job is the *second* way production gets deployed. Vercel's own GitHub App integration
-      # already deploys every push to master: on 2026-10-16 it created the Production deployment for
-      # 47e7bc5 at 21:52:24Z, a minute after the push, while this job was still starting. So the
-      # contract of this job is not "this job deployed it" but "production serves this commit" —
-      # who deployed it is not the point. The step therefore does two things in order:
-      #
-      #   1. Deploy with the token, when the token works.
-      #   2. Otherwise ask the live site what it is serving. If it already serves this commit, the
-      #      release is live: the run goes green with a warning that names the broken part and the
-      #      exact fix. If it does not, the run fails and says why.
-      #
-      # A rejected token must not be able to take the whole pipeline down while the release is
-      # already live — that is what produced five red runs on 2026-10-16 while production served
-      # the right commit the whole time. A rejected token AND a production that is behind still
-      # fails loudly.
-      #
-      # The diagnosis has to live in the check annotation, not in the step log: the raw logs are
-      # served from a blob host that is often unreachable, so "Process completed with exit code 1"
-      # was all a reader ever got. Every secret is reported as a length and a SHA-256 fingerprint
-      # (never a value), and Vercel's own words are quoted in the annotation.
-      #
-      # Two traps worth naming, because between them they cost a whole day.
-      #
-      # One is the secret's scope. This repository has "Preview" and "Production" *environment*
-      # secret scopes, and this job declares no `environment:`, so it can only ever read the
-      # **repository** scope. A token saved under Production is invisible here, the run keeps using
-      # the old value byte for byte, and the fingerprint never changes. On 2026-10-16 the
-      # fingerprint was sha256:bf4b8c6d on every run from 18:41Z to 22:20Z, across a re-created
-      # token — proof that the repository secret itself was never touched, whatever was done
-      # elsewhere.
-      #
-      # The other is the token's own scope, and it is the one that is still broken. The value in the
-      # secret is a real 60-character Vercel token, and Vercel does not reject it: it authenticates
-      # it and then answers 404 "User not found". The CLI runs GET /v2/user as a preflight on every
-      # command, and a token scoped to a team or to a single project is denied on user-level
-      # resources, so the preflight 404s and the command aborts before deploying anything. A token
-      # scoped to a team — which is what "select the account/team that owns the project" produces —
-      # cannot be used by the CLI at all. The token has to be **Full Account**.
+      # See docs/AUTH_DEPLOY_STATUS.md for the token-scope rules (must be Full Account, saved at
+      # Repository scope, not Production/Preview environment scope).
       - name: Deploy NowBey web to Vercel (production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -124,25 +84,10 @@ jobs:
           PROD_BASE="https://nowbey-v2.vercel.app"
           EXPECT_SHA="$(printf '%s' "${GITHUB_SHA:-}" | cut -c1-12)"
 
-          # A length and a fingerprint describe a secret without printing it. An empty value
-          # fingerprints as e3b0c442, which is unmistakable.
           fp() { printf '%s' "$1" | sha256sum | cut -c1-8; }
           describe() { printf '%-18s length=%-5s sha256:%s\n' "$1" "${#2}" "$(fp "$2")"; }
 
-          # A token copied from the Vercel page often arrives with a trailing newline, a stray
-          # carriage return, or wrapped in quotes. Vercel then rejects a perfectly good credential
-          # with "not valid", which is indistinguishable from a revoked one.
-          #
-          # A Vercel token never contains whitespace, so removing every whitespace character
-          # cannot corrupt a good one, and it repairs the usual pastes: a trailing newline, a
-          # leading newline, a quote at either end, or a token that arrived wrapped over two
-          # lines. One layer of surrounding quotes comes off after that. The shape report below
-          # says how many lines and how much whitespace the raw value had, so a bad paste is
-          # visible instead of looking exactly like a revoked token.
           raw_token="${VERCEL_TOKEN:-}"
-          # The quote patterns need the closing quote *inside* the group (`^"\(.*\)"$`): with it
-          # outside, a greedy `.*` swallows the closing quote and leaves it behind. A lone quote at
-          # either end is stripped too, because a token never contains one.
           token="$(printf '%s' "$raw_token" | tr -d '[:space:]' | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/" -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
           raw_lines="$(printf '%s\n' "$raw_token" | grep -c . || true)"
           raw_ws="$(printf '%s' "$raw_token" | tr -cd '[:space:]' | wc -c | tr -d ' ')"
@@ -157,35 +102,24 @@ jobs:
           describe VERCEL_TOKEN      "$token"
           describe VERCEL_ORG_ID     "${VERCEL_ORG_ID:-}"
           describe VERCEL_PROJECT_ID "${VERCEL_PROJECT_ID:-}"
-          # The shape of the token, still without the value: lines > 1 or raw_whitespace > 0 means
-          # the value was pasted badly.
           printf '%-18s lines=%-3s raw_whitespace=%-3s\n' VERCEL_TOKEN "$raw_lines" "$raw_ws"
 
-          # What commit is the live site serving? This one fact is the difference between "the
-          # release is live" and "the release is missing", so it is read straight from the site.
           live_sha() {
             curl -fsS --max-time 20 "${PROD_BASE}/api/health?t=$(date +%s%N)" 2>/dev/null \
               | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1 || true
           }
 
-          # Wait for the site to report the expected commit, up to the given number of seconds.
           wait_for_release() {
             local deadline=$((SECONDS + $1)) last=""
             while [ "$SECONDS" -lt "$deadline" ]; do
               last="$(live_sha || true)"
-              if [ -n "$last" ] && [ "$last" = "$EXPECT_SHA" ]; then
-                return 0
-              fi
+              if [ -n "$last" ] && [ "$last" = "$EXPECT_SHA" ]; then return 0; fi
               sleep 10
             done
             echo "the live site reports: ${last:-<no answer>}" >&2
             return 1
           }
 
-          # Resolve the CLI once, then reuse that exact version. `vercel@latest` is unpinned, so
-          # without this a publish part-way through a run could make the calls below disagree about
-          # which CLI they used — and the version in the log is the first thing to compare against
-          # npm when a deploy starts failing with no code change.
           cli_pkg=vercel@latest
           cli_version=$(npx --yes vercel@latest --version 2>/dev/null | tail -1 || true)
           case $cli_version in
@@ -193,7 +127,6 @@ jobs:
           esac
           echo "== vercel CLI: $cli_pkg =="
 
-          # Why the deploy path did not run, in the reader's words. Empty means it is running.
           blocked=""
           token_ok=no
 
@@ -203,20 +136,6 @@ jobs:
             token_ok=yes
             printf '%s\n' "$whoami_out" | head -5
           else
-            # The CLI answers "The token provided via `--token` argument is not valid." for a token
-            # it cannot authenticate, "Error: User not found." for a token it *can* authenticate but
-            # cannot use, and something about the network for a runner that cannot reach
-            # api.vercel.com. Three different problems with three different fixes, so tell them
-            # apart instead of calling all of them "the token was rejected".
-            #
-            # "User not found" is the interesting one: the CLI runs GET /v2/user as a preflight on
-            # every command to resolve the account identity, and a token scoped to a team or to a
-            # single project is denied there (user-level resources are out of scope for it), so the
-            # preflight 404s and the command aborts before it deploys anything. Such a token needs
-            # Full Account scope, not a team or project scope.
-            #
-            # Quote the lines that actually say what went wrong: the CLI prints a version banner
-            # and a telemetry notice first, so the first lines of its output are noise.
             detail="$(printf '%s\n' "$whoami_out" | grep -iE "error|not valid|unauthorized|forbidden|denied|expired|invalid|not found" | head -3)"
             if [ -z "$detail" ]; then
               detail="$(printf '%s\n' "$whoami_out" | grep -v '^[[:space:]]*$' | tail -2)"
@@ -234,9 +153,6 @@ jobs:
             fi
           fi
 
-          # The checkout has no .vercel/project.json (it is gitignored) and the CLI refuses to deploy
-          # to a project it is not linked to. Link it from the two id secrets — this is exactly what
-          # `vercel pull --yes` does, minus downloading every production env var onto the runner.
           if [ "$token_ok" = yes ] && [ -z "$blocked" ]; then
             if [ -n "${VERCEL_ORG_ID:-}" ] && [ -n "${VERCEL_PROJECT_ID:-}" ]; then
               mkdir -p .vercel
@@ -249,8 +165,6 @@ jobs:
           deployed=no
           url=""
           if [ "$token_ok" = yes ] && [ -z "$blocked" ]; then
-            # PIPESTATUS[0] is the CLI's own exit code; tee alone would mask it, and the CLI's
-            # message is the whole reason this step is instrumented.
             set +e
             npx --yes "$cli_pkg" deploy --prod --yes --token="$token" 2>&1 | tee vercel-out.txt
             rc=${PIPESTATUS[0]}
@@ -259,12 +173,11 @@ jobs:
               deployed=yes
               url="$(grep -Eo 'https://[a-zA-Z0-9./-]+\.vercel\.app' vercel-out.txt | head -1 || true)"
             else
-              blocked="the Vercel deploy failed (exit $rc). VERCEL_ORG_ID / VERCEL_PROJECT_ID most likely no longer match the project — check them against the project's Settings → General (expected team now-bey, project nowbey-v2)."
+              blocked="the Vercel deploy failed (exit $rc). VERCEL_ORG_ID / VERCEL_PROJECT_ID most likely no longer match the project — check them against the project's Settings → General."
             fi
           fi
 
-          # The verdict. Production has to serve this commit; who deployed it is not the point.
-          FIX_HINT="create the token at vercel.com/account/tokens with scope Full Account — a token scoped to a team or to a single project is denied on the user-level endpoint the CLI checks, and Vercel answers 404 'User not found' — and save it under repo Settings > Secrets and variables > Actions > Repository, since this job declares no environment and the Production/Preview environment secrets are invisible to it. The value it reads now fingerprints as sha256:$(fp "$token") (length ${#token}); after you save a new one, that fingerprint changes."
+          FIX_HINT="create the token at vercel.com/account/tokens with scope Full Account and save it under repo Settings > Secrets and variables > Actions > Repository. The value it reads now fingerprints as sha256:$(fp "$token") (length ${#token}); after you save a new one, that fingerprint changes."
           if [ -n "$EXPECT_SHA" ]; then
             if wait_for_release 300; then
               if [ "$deployed" = yes ]; then
@@ -274,8 +187,6 @@ jobs:
                 fi
                 exit 0
               fi
-              # The release is live even though this job could not deploy it. Say so loudly enough
-              # that it is not mistaken for a normal deploy, and name what is still broken.
               echo "::warning::This job did not deploy, but production already serves $EXPECT_SHA — Vercel's GitHub App integration deployed it. Reason: $blocked"
               echo "::warning::Fix the deploy path: $FIX_HINT"
               {
@@ -291,27 +202,11 @@ jobs:
             exit 1
           fi
 
-          # No expected commit to check against: the deploy itself is the only verdict there is.
-          if [ "$deployed" = yes ]; then
-            exit 0
-          fi
+          if [ "$deployed" = yes ]; then exit 0; fi
           echo "::error::The deploy did not happen: $blocked"
           echo "::error::Fix the deploy path: $FIX_HINT"
           exit 1
 
-  # Read-only check of the live site: creates nothing, signs nobody in. It waits until /api/health
-  # reports this commit, then checks the security headers, CORS, the origin wall, that the app's
-  # sign-in path is still open, and that plans cannot be bought for free. Run it alone with
-  # target "smoke" (Actions > Deploy > Run workflow, or repository_dispatch {"target":"smoke"}).
-  #
-  # It runs whenever the gate passes, *including* when deploy-web failed. It used to require
-  # deploy-web to succeed, so across the five failed deploys of 2026-10-16 this job was skipped every
-  # time and the pipeline had no way to say what production was actually serving. Checking the live
-  # site is exactly what is most worth doing when the deploy step is broken: Vercel's GitHub App
-  # integration also deploys this repo, and only this job — running on a GitHub runner, which can
-  # reach the site — can settle whether production is at this commit.
-  #   SHA matches   → the App integration deploys production; deploy-web is redundant.
-  #   SHA times out → deploy-web is load-bearing and has to be fixed.
   smoke-web:
     needs: [gate, deploy-web]
     if: ${{ !cancelled() && needs.gate.result == 'success' }}
@@ -324,8 +219,6 @@ jobs:
         with:
           node-version: 22
 
-      # State which of the two readings above this run is testing, so a red smoke-web after a failed
-      # deploy is an answer instead of noise.
       - name: Record what this run can prove
         env:
           DEPLOY_RESULT: ${{ needs.deploy-web.result }}
@@ -347,17 +240,13 @@ jobs:
       - name: Check the live site
         env:
           SMOKE_BASE: https://nowbey-v2.vercel.app
-          # Expect this commit exactly when deploy-web was *supposed* to run — the same condition that
-          # job uses. Keying it off deploy-web's result is what made a failed deploy also cancel the
-          # check of the live site. A standalone "smoke" run leaves it empty: nothing was deployed, so
-          # there is no new release to wait for and smoke-prod.mjs checks the site immediately.
           EXPECT_SHA: ${{ (github.event_name == 'push' || inputs.target == 'web' || inputs.target == 'all' || github.event.client_payload.target == 'web' || github.event.client_payload.target == 'all') && github.sha || '' }}
         run: node scripts/smoke-prod.mjs
 
-  build-mobile:
+  # EAS Android APK (preview / internal distribution). No iOS or Play Store yet — APK only,
+  # distributed via the artifact URL Expo returns on a finished build.
+  build-apk:
     needs: gate
-    # EAS minutes cost money, so the APK is built on demand only (Actions tab > Deploy > Run workflow > mobile),
-    # or automatically right after a production web deploy when you choose "all".
     if: inputs.target == 'mobile' || inputs.target == 'all' || github.event.client_payload.target == 'mobile' || github.event.client_payload.target == 'all'
     runs-on: ubuntu-latest
     steps:
@@ -365,8 +254,6 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          # 22, not 20: the EAS CLI now says a future release will require Node 22 or newer, and
-          # it says so on every build. The gate job already runs on 22.
           node-version: 22
           cache: npm
           cache-dependency-path: expo/package-lock.json
@@ -375,15 +262,9 @@ jobs:
         working-directory: expo
         run: npm ci --no-audit --no-fund
 
-      # google-services.json is a credential-bearing build input and must never be committed.
-      # Store its complete JSON as the FIREBASE_GOOGLE_SERVICES_JSON Actions secret.
-      #
-      # Writing the file is not enough on its own: EAS archives the project with the .gitignore rules
-      # applied, and expo/.gitignore ignores this file, so for a long time the worker received an
-      # app.json pointing at a file that had never been uploaded — the build failed before it
-      # compiled anything. The root .easignore (used by EAS *instead of* every .gitignore) is what
-      # lets the file travel while staying out of Git, so the last two checks below prove the
-      # arrangement still holds and fail loudly if someone re-adds the rule there.
+      # google-services.json is written from the FIREBASE_GOOGLE_SERVICES_JSON repo secret.
+      # The root .easignore (used by EAS instead of every .gitignore) lets it travel to the worker
+      # while staying out of Git.
       - name: Install Firebase Android configuration
         working-directory: expo
         env:
@@ -393,25 +274,19 @@ jobs:
           : "${FIREBASE_GOOGLE_SERVICES_JSON:?Add the FIREBASE_GOOGLE_SERVICES_JSON repository secret}"
           printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON" > google-services.json
           node -e 'const f=require("./google-services.json"); if (!f.project_info?.project_id || !f.client?.some(c => c.client_info?.android_client_info?.package_name === "app.nowbey.mobile")) throw new Error("google-services.json does not contain app.nowbey.mobile")'
-
           test -s google-services.json
           test -f ../.easignore
           if grep -qE '^[[:space:]]*google-services\.json' ../.easignore; then
-            echo "::error title=Firebase config would not reach EAS::.easignore now ignores google-services.json, so it will not be in the uploaded archive and the build will fail on the worker. Remove that rule."
+            echo "::error title=Firebase config would not reach EAS::.easignore now ignores google-services.json, so it will not be in the uploaded archive. Remove that rule."
             exit 1
           fi
           echo "google-services.json ($(wc -c < google-services.json) bytes) is present and .easignore keeps it eligible for the EAS upload."
 
-      - name: APK preflight (profile, Firebase, types and Android bundle)
+      - name: APK preflight (profile, Firebase, types, Android bundle)
         working-directory: expo
         run: npm run preflight:apk:full
 
       # Needs repo secret: EXPO_TOKEN (expo.dev > Account settings > Access tokens).
-      #
-      # The identity check runs first on purpose: a rejected or missing token and a project that never
-      # reaches the build worker both fail fast, and without this step the two look identical from the
-      # outside (the raw step log lives on a storage host some clients cannot reach). With it, a red run
-      # names its own cause in a single annotation.
       - name: Check EAS credentials
         working-directory: expo
         env:
@@ -429,15 +304,6 @@ jobs:
             exit "$code"
           fi
 
-      # The step captures the build output instead of streaming it, so a failure can be turned into a
-      # ::error annotation on the run's check: annotations are readable through the Checks API, while
-      # the raw step log lives on a storage host that some clients cannot reach at all. A red run here
-      # is therefore self-diagnosing wherever it is opened.
-      #
-      # The exit code alone does not say whether there is an APK: the CLI exits 0 for a build that was
-      # cancelled on Expo's servers, exactly as it does for one that finished (it only counts ERRORED
-      # as a failure). With --json the CLI prints the build record on stdout and its progress on
-      # stderr, so the step reads the outcome from the record, and only FINISHED is green.
       - name: Send Android build to EAS (preview profile → APK)
         id: eas
         working-directory: expo
@@ -446,7 +312,7 @@ jobs:
           EXPO_PUBLIC_API_BASE: https://nowbey-v2.vercel.app
         run: |
           set -uo pipefail
-          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret (repo Settings > Secrets and variables > Actions)}"
+          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret}"
           set +e
           npx --yes eas-cli@latest build --platform android --profile preview --non-interactive --wait --json > eas-build.json 2> eas-build.log
           code=$?
@@ -482,7 +348,6 @@ jobs:
               echo "::error title=EAS build failed on the worker::${error:-the build record has no error message} ${page}"
               ;;
             "")
-              # No build record: the CLI stopped before it started a build, or while it was waiting.
               first="$(grep -v '^[[:space:]]*$' eas-build.log | tail -n 1 | tr -d '\r' | cut -c1-300 || true)"
               echo "::error title=EAS build failed (exit $code)::$first"
               ;;
@@ -495,11 +360,6 @@ jobs:
           if [ "$code" -ne 0 ]; then exit "$code"; fi
           exit 1
 
-      # The EAS step writes its output to a file, and the step log itself lives on a storage host
-      # that some clients cannot reach. Uploading that file as an artifact puts the same text where
-      # the API can serve it, so the reason for a red run can be read with the API alone — no
-      # browser, no Actions tab, and no guessing from an exit code. It runs after the EAS step, and
-      # it runs whether that step passed or failed, because the passing log is worth keeping too.
       - name: Upload the EAS logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -511,12 +371,6 @@ jobs:
             expo/eas-build.json
             expo/eas-whoami.log
 
-      # "Error: build command failed." is the CLI's last line whatever stopped it — an eas.json the
-      # CLI refused, a worker that failed, a cancelled build — and the reason sits further up the log
-      # or on the build record. Annotations are the one place the Checks API serves back, so the
-      # reason is written there as well: the build record's status and error (read back with the same
-      # token when the CLI did not print it) and the tail of the CLI output. A red run then names its
-      # own cause instead of asking somebody to open expo.dev.
       - name: Report why the EAS build failed
         if: failure()
         working-directory: expo
@@ -524,21 +378,15 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           set -uo pipefail
-          # The build record the EAS step printed with --json, when it got that far.
           build_id="$(jq -r '.[0].id // empty' eas-build.json 2>/dev/null || true)"
           if [ -z "$build_id" ]; then
-            # Otherwise the build page the CLI links to when a build starts:
-            # https://expo.dev/accounts/<owner>/projects/<slug>/builds/<id>
             build_id="$(grep -Eo 'https://expo\.dev/accounts/[^/[:space:]]+/projects/[^/[:space:]]+/builds/[0-9A-Fa-f-]+' eas-build.log 2>/dev/null | tail -n 1 | sed 's#.*/##' || true)"
           fi
           echo "build id: ${build_id:-none found in the log}"
 
-          # Either record has the same shape: .status, and .error = { errorCode, message } when it failed.
           describe() { jq -r '(if type == "array" then .[0] else . end) | select(.) | [("status " + (.status // "unknown")), ((.error // {}) | [.errorCode, .message] | map(select(.)) | join(": "))] | map(select(. != "")) | join(" — ")' "$1" 2>/dev/null || true; }
           reason="$(describe eas-build.json)"
           if [ -z "$reason" ] && [ -n "$build_id" ]; then
-            # build:view takes --json and nothing else: it has no --non-interactive flag, and an
-            # unknown flag makes it refuse to run.
             npx --yes eas-cli@latest build:view "$build_id" --json > eas-view.json 2> eas-view.err || true
             reason="$(describe eas-view.json)"
           fi
@@ -562,6 +410,5 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-          # One annotation, one line: newlines become %0A, percent signs %25, carriage returns %0D.
           payload="$(printf '%s' "$reason" | awk 'BEGIN{ORS=""} {gsub(/%/,"%25"); gsub(/\r/,"%0D"); printf "%s%%0A", $0}')"
           printf '::error title=EAS build output::%s\n' "$payload"
