@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { desc, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { alertSubscriptions } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { EmergencyNotice } from "@/components/emergency-notice";
@@ -19,6 +20,17 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
 
 export default async function AlertsPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
+  // No database configured: the form could never store a subscription (and ?stop links query
+  // the database directly), so show the setup notice instead of half-working.
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="Alerts"
+        title="Alerts start once the database is connected"
+        blurb="Parish and category alerts are stored in the database, so this deployment needs its DATABASE_URL before anyone can subscribe."
+      />
+    );
+  }
   const viewer = await getViewer();
   const confirmed = first(sp.confirmed);
   const stop = text(first(sp.stop), 100) || undefined;

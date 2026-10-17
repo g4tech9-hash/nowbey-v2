@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq, asc, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { placePhotos, places } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { PostCard } from "@/components/life/post-card";
@@ -19,6 +20,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  // No database configured → the page below renders the setup notice, so keep the title generic.
+  if (!hasDatabase()) return { title: "Place · Island Life" };
   if (!UUID_RE.test(id)) return { title: "Place" };
   const [p] = await db.select({ name: places.name }).from(places).where(eq(places.id, id)).limit(1);
   return { title: p ? `${p.name} · Island Life` : "Place" };
@@ -26,6 +29,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function PlacePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="Island Life"
+        title="This place opens once the database is connected"
+        blurb="Places and their reviews live in the database, so this deployment needs its DATABASE_URL before anything here can load."
+      />
+    );
+  }
   if (!UUID_RE.test(id)) notFound();
   const [place] = await db.select().from(places).where(eq(places.id, id)).limit(1);
   if (!place) notFound();

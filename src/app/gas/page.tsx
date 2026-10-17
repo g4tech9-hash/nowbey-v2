@@ -1,5 +1,7 @@
 import { PageHead } from "@/components/app-shell";
 import { GasForm } from "@/components/gas-form";
+import { hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { timeAgo } from "@/lib/geo";
 import { gasBoard } from "@/lib/gas";
 import { getViewer } from "@/lib/viewer";
@@ -10,6 +12,15 @@ export const metadata = { title: "Gas prices" };
 const money = (c: number) => `B$${(c / 100).toFixed(2)}`;
 
 export default async function GasPage() {
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="Gas tracker"
+        title="Gas prices appear once the database is connected"
+        blurb="Pump prices are reported by members and stored in the database, so this deployment needs its DATABASE_URL first."
+      />
+    );
+  }
   const [board, viewer] = await Promise.all([gasBoard(), getViewer()]);
   return (
     <div>

@@ -1,13 +1,13 @@
 import { NextResponse, after } from "next/server";
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
 import { users } from "@/db/schema";
 import { clearSessionCookie, hashPassword, makeToken, passwordNeedsRehash, setSessionCookie, verifyPassword } from "@/lib/auth";
 import { getViewer, type Viewer } from "@/lib/viewer";
 import { PARISHES } from "@/lib/geo";
 import { clientIp, sharedExhausted, sharedForget, sharedHit, sharedRecord, tooMany } from "@/lib/ratelimit";
 import { EMAIL_RE, text, readJson } from "@/lib/validate";
-import { badOrigin, hasBadOrigin } from "@/lib/http";
+import { badOrigin, dbNotConfigured, hasBadOrigin } from "@/lib/http";
 import { HANDLE_RE, envAdminHandles, handleProblem, isEnvAdmin, mayClaimAdminHandle, normalizeHandle } from "@/lib/handles";
 import { MAX_PASSWORD, checkPassword } from "@/lib/password";
 import { sendVerificationEmail } from "@/lib/account";
@@ -50,6 +50,9 @@ export async function GET() {
 
 export async function POST(req: Request) {
   if (hasBadOrigin(req)) return badOrigin();
+  // Without a database nobody can sign in or register — say so in words the form can show,
+  // instead of letting the first user query blow up into an unreadable 500.
+  if (!hasDatabase()) return dbNotConfigured();
   const body = await readJson(req);
   // The mobile app has no cookie jar, so it asks for the token and sends it back as a bearer token.
   const native = req.headers.get("x-nowbey-client") === "native";

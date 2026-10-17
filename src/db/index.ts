@@ -18,6 +18,16 @@ function requireDatabaseUrl(): string {
   return url;
 }
 
+/**
+ * True when a connection string is configured, false when this deployment simply has no database yet.
+ * Pages use this to render a calm "setup not finished" notice instead of crashing on the first query,
+ * and route handlers use it to answer a readable 503 JSON body (the map and the forms show `error`
+ * verbatim). A misconfigured deployment should look paused, not broken.
+ */
+export function hasDatabase(): boolean {
+  return Boolean(process.env.DATABASE_URL?.trim());
+}
+
 const globalForDb = globalThis as typeof globalThis & {
   __arenaNextJsPostgresqlPool?: Pool;
   __arenaNextJsPostgresqlDb?: NodePgDatabase;

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { after } from "next/server";
 import { desc, eq, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { newsItems } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
 import { AdSlot } from "@/components/ad-slot";
@@ -20,6 +21,17 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "News wire" };
 
 export default async function WirePage() {
+  // No database configured at all: show the setup notice instead of crashing on the first
+  // query, and skip the background refresh — it would only throw behind the scenes.
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="News wire"
+        title="The wire goes live once the database is connected"
+        blurb="Headlines from Bahamian news outlets will be sorted into NowBey categories and placed on the map. This deployment just needs its DATABASE_URL first."
+      />
+    );
+  }
   after(() => refreshIfStale());
   const [rows, lastRun, viewer] = await Promise.all([
     db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(40),

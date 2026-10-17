@@ -1,5 +1,5 @@
 import { NextResponse, after } from "next/server";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
 import { postPhotos, posts } from "@/db/schema";
 import { findOrCreatePlace } from "@/lib/places";
 import { badgesFor } from "@/lib/badges";
@@ -10,6 +10,7 @@ import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { KINDS, LIMITS, isKind, listPosts, publicPost } from "@/lib/life";
 import { clientIp, exhausted, hit, record, tooMany } from "@/lib/ratelimit";
+import { dbNotConfigured } from "@/lib/http";
 import { clampInt, text } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 
@@ -23,6 +24,7 @@ const HOUR = 60 * 60_000;
 const bad = (error: string, status = 400) => NextResponse.json({ error }, { status });
 
 export async function GET(req: Request) {
+  if (!hasDatabase()) return dbNotConfigured();
   const sp = new URL(req.url).searchParams;
   const kindRaw = sp.get("kind");
   const parishRaw = sp.get("parish");
@@ -61,6 +63,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  if (!hasDatabase()) return dbNotConfigured();
   const viewer = await getViewer();
   if (!viewer.signedIn || !viewer.userId || !viewer.handle) return bad("Sign in to share an experience.", 401);
 

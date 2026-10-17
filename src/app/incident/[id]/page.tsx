@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, ne, notInArray } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { incidentUpdates, incidents, newsItems, users } from "@/db/schema";
 import { MapPanel } from "@/components/map/map-panel";
 import { IncidentActions } from "@/components/incident-actions";
@@ -22,6 +23,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  // No database configured → the page below renders the setup notice, so keep the title generic.
+  if (!hasDatabase()) return { title: "Report" };
   if (!UUID_RE.test(id)) return { title: "Report not found" };
   const [row] = await db.select({ title: incidents.title, status: incidents.status }).from(incidents).where(eq(incidents.id, id)).limit(1);
   // A hidden or unfounded report never leaks its title into the page title.
@@ -30,6 +33,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function IncidentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="Report"
+        title="This report opens once the database is connected"
+        blurb="Reports live in the database, so this deployment needs its DATABASE_URL before any pin can be shown."
+      />
+    );
+  }
   if (!UUID_RE.test(id)) notFound();
   const [row] = await db.select().from(incidents).where(eq(incidents.id, id)).limit(1);
   if (!row) notFound();

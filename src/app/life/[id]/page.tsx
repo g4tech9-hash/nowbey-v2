@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
-import { db } from "@/db";
+import { db, hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { postPhotos, posts } from "@/db/schema";
 import { BadgeMark } from "@/components/verified-badge";
 import { MapPanel } from "@/components/map/map-panel";
@@ -23,6 +24,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  // No database configured → the page below renders the setup notice, so keep the title generic.
+  if (!hasDatabase()) return { title: "Island Life" };
   if (!UUID_RE.test(id)) return { title: "Post not found" };
   const [row] = await db.select({ title: posts.title, status: posts.status }).from(posts).where(eq(posts.id, id)).limit(1);
   // A hidden post never leaks its title into the page title.
@@ -31,6 +34,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="Island Life"
+        title="This post opens once the database is connected"
+        blurb="Posts live in the database, so this deployment needs its DATABASE_URL before anything here can load."
+      />
+    );
+  }
   if (!UUID_RE.test(id)) notFound();
   const [post] = await db.select().from(posts).where(eq(posts.id, id)).limit(1);
   if (!post) notFound();

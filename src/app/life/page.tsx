@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { hasDatabase } from "@/db";
+import { DatabaseSetup } from "@/components/db-setup";
 import { PageScene } from "@/components/page-scene";
 import { AdSlot } from "@/components/ad-slot";
 import { FilterChips, Pager } from "@/components/admin-ui";
@@ -33,6 +35,16 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
   const parish = parishIn && (PARISHES as readonly string[]).includes(parishIn) ? parishIn : null;
   const sort = first(sp.sort) === "loved" ? "loved" : "new";
   const page = clampInt(first(sp.page), 1, 1, 10000);
+
+  if (!hasDatabase()) {
+    return (
+      <DatabaseSetup
+        eyebrow="Island Life"
+        title="Island Life opens once the database is connected"
+        blurb="Tips, reviews and favourite spots are stored in the database, so this deployment needs its DATABASE_URL first."
+      />
+    );
+  }
 
   const viewer = await getViewer();
   const [list, top] = await Promise.all([listPosts({ kind, parish, sort, page, perPage: 12 }), topPlaces({ kind, parish, limit: 5 })]);
