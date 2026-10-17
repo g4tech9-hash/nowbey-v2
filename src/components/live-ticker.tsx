@@ -33,10 +33,18 @@ export function LiveTicker() {
       }
     };
     void load();
-    const t = setInterval(load, 45_000);
+    // Poll only while the tab is visible; refresh once when it comes back into view.
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, 45_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       alive = false;
       clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 

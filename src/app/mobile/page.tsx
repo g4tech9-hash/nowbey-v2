@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Get the mobile app" };
 
 const STEPS = [
-  ["Download and unzip", "Save the zip below and unzip it. You need Node.js 20 or newer on your computer."],
+  ["Get the project", "The Expo project is not published as a download yet. Ask the NowBey team for the nowbey-expo folder (or its zip). You need Node.js 20 or newer on your computer."],
   ["Install", "Open a terminal in the unzipped folder and run npm install."],
   ["Point it at this site", "The app reads its data from this website, so you do not run a second server."],
   ["Start it", "Run the command below, then scan the QR code with the free Expo Go app on your phone."],
@@ -25,18 +25,11 @@ export default async function MobilePage() {
         blurb="The same feed, map, reports and news wire, built with Expo for iPhone and Android. It signs in with your NowBey account and shows your plan."
       />
 
-      <div className="glass flex flex-wrap items-center gap-4 rounded-2xl p-4">
-        <div className="min-w-[200px] flex-1">
-          <p className="display text-[15px] font-bold text-sand-100">NowBey mobile source code</p>
-          <p className="mt-0.5 text-[12.5px] text-ink-300">An Expo project you can run today and publish to the app stores later.</p>
-        </div>
-        <a
-          href="/downloads/nowbey-expo.zip"
-          download
-          className="rounded-full bg-tide-500 px-4 py-2.5 text-[13px] font-extrabold text-abyss-950 hover:bg-tide-400"
-        >
-          Download the zip
-        </a>
+      <div className="glass rounded-2xl p-4">
+        <p className="display text-[15px] font-bold text-sand-100">Developer setup</p>
+        <p className="mt-0.5 text-[12.5px] text-ink-300">
+          This is an Expo project you can run today and publish to the app stores later. It is not on the app stores yet.
+        </p>
       </div>
 
       <ol className="space-y-3">

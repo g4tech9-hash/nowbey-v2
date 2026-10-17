@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { SCENES } from "@/lib/themes";
+import { SCENE_PHOTOS_PRESENT, SCENES } from "@/lib/themes";
 
 /**
  * The opening screen: a Nassau twilight photo, the NowBey mark drawing itself, the tagline and a few waves.
@@ -42,9 +42,11 @@ export function SplashScreen({ tagline, promise }: { tagline: string; promise: s
       aria-hidden="true"
       onClick={() => setPhase((p) => (p === "show" ? "leave" : p))}
     >
-      <div className="nb-splash-photo">
-        <Image src={SCENES.nassau.src} alt="" fill sizes="100vw" preload style={{ objectFit: "cover", objectPosition: SCENES.nassau.focus }} />
-      </div>
+      {SCENE_PHOTOS_PRESENT ? (
+        <div className="nb-splash-photo">
+          <Image src={SCENES.nassau.src} alt="" fill sizes="100vw" preload style={{ objectFit: "cover", objectPosition: SCENES.nassau.focus }} />
+        </div>
+      ) : null}
       <div className="nb-splash-veil" />
 
       <div className="nb-splash-waves">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, desc, eq, gte, ilike, ne, notInArray, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, ne, notInArray, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { incidents, newsItems } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
@@ -48,12 +48,26 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
 
   const where = filters.length ? and(...filters) : undefined;
 
-  const [rows, recent, wire, viewer] = await Promise.all([
+  const dayAgo = new Date(nowMs() - 864e5);
+  const [rows, recent, wire, viewer, totals, wireTotal] = await Promise.all([
     db.select().from(incidents).where(where).orderBy(desc(incidents.createdAt)).limit(24),
     db.select().from(incidents).where(notInArray(incidents.status, HIDDEN_STATUSES)).orderBy(desc(incidents.createdAt)).limit(40),
     db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(6),
     getViewer(),
+    // Home stats are counted in the database. Counting the 40-row feed slice made them lie once the feed was busy.
+    db
+      .select({
+        reportsToday: sql<number>`count(*) filter (where ${incidents.createdAt} >= ${dayAgo})`,
+        active: sql<number>`count(*) filter (where ${incidents.status} = 'active')`,
+        activeSevere: sql<number>`count(*) filter (where ${incidents.status} = 'active' and ${incidents.severity} >= 3)`,
+        parishes: sql<number>`count(distinct ${incidents.parish})`,
+      })
+      .from(incidents)
+      .where(notInArray(incidents.status, HIDDEN_STATUSES))
+      .then((r) => r[0]),
+    db.select({ n: count() }).from(newsItems).where(eq(newsItems.review, "approved")).then((r) => r[0]),
   ]);
+  const emergencyUp = Number(totals?.activeSevere ?? 0) > 0;
   const life = FEATURES.islandLife ? await listPosts({ perPage: 3 }) : null;
   const adFree = viewer.adFree;
   const handle = viewer.handle;
@@ -76,7 +90,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const center: [number, number] = anchor ? [anchor.lat, anchor.lng] : [24.9, -77.6];
   const zoom = anchor ? 14 : 8;
 
-  const activeCount = recent.filter((r) => r.status === "active").length;
+  const activeCount = Number(totals?.active ?? 0);
 
   return (
     <>
@@ -88,8 +102,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             What is actually happening, <span className="text-tide-400">street by street.</span>
           </h1>
           <p className="mt-2 max-w-[54ch] text-[13.5px] leading-relaxed text-ink-300">
-            Residents pin floods, outages, road damage and safety hazards on real aerial imagery — zoom to the roof, drag the
-            pin tip to the kerb, and neighbours confirm it. No accounts required to read the map.
+            Residents pin floods, outages, road damage and safety hazards on real aerial imagery. Pin the road or junction,
+            not a house: published pins sit a short distance from the exact spot, and neighbours confirm them. No accounts
+            are required to read the map.
           </p>
           <div className="mt-3.5 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
             <Link
@@ -110,12 +125,18 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             >
               Read the news wire
             </Link>
+            <Link
+              href="/open-now"
+              className="rounded-full border hairline px-4 py-2 text-center text-[13px] font-bold text-ink-200 hover:bg-white/5"
+            >
+              What is open now
+            </Link>
           </div>
           <dl className="mt-4 grid grid-cols-3 gap-2 border-t hairline pt-3 text-left">
             {[
-              ["Reports today", String(recent.filter((r) => nowMs() - new Date(r.createdAt).getTime() < 864e5).length)],
-              ["Islands covered", String(new Set(recent.map((r) => r.parish).filter(Boolean)).size)],
-              ["Wire stories", String(wire.length)],
+              ["Reports, last 24h", String(Number(totals?.reportsToday ?? 0))],
+              ["Parishes reporting", String(Number(totals?.parishes ?? 0))],
+              ["Wire stories", String(Number(wireTotal?.n ?? 0))],
             ].map(([k, v]) => (
               <div key={k}>
                 <dt className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">{k}</dt>
@@ -220,7 +241,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             </div>
           </div>
 
-          <AdSlot index={1} adFree={adFree} variant="rail" />
+          {/* No ads beside an active severe hazard: the space is for the warning. */}
+          {!adFree && !emergencyUp ? <AdSlot index={1} variant="rail" /> : null}
 
           <div className="nb-surface rounded-xl2 p-3.5">
             <div className="flex items-baseline justify-between">

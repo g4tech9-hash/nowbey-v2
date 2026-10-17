@@ -23,6 +23,18 @@ import {
 } from "@/lib/geo";
 import { clusterPins } from "@/lib/cluster";
 
+/**
+ * Leaflet draws markers as bare elements with no name, so a screen reader hears "button" with nothing to say.
+ * Name each marker once it is on the map (the element does not exist before that).
+ */
+function nameMarker(label: string) {
+  return {
+    add: (e: { target: { getElement?: () => HTMLElement | undefined } }) => {
+      e.target.getElement?.()?.setAttribute("aria-label", label);
+    },
+  };
+}
+
 export type MapPin = {
   id: string;
   lat: number;
@@ -489,6 +501,7 @@ export default function NowBeyMap({
                   zIndexOffset={400}
                   eventHandlers={{
                     click: () => map?.flyTo([group.lat, group.lng], Math.min(18, zoomNow + 2), { duration: 0.6 }),
+                    ...nameMarker(`${group.pins.length} reports near here. Press to zoom in.`),
                   }}
                 >
                   <Popup>
@@ -507,7 +520,10 @@ export default function NowBeyMap({
                 position={[pin.lat, pin.lng]}
                 icon={iconFor(pin, selected === pin.id)}
                 zIndexOffset={selected === pin.id ? 800 : 0}
-                eventHandlers={{ click: () => setSelected(pin.id) }}
+                eventHandlers={{
+                  click: () => setSelected(pin.id),
+                  ...nameMarker(`${pin.label ?? CATEGORIES[pin.category]?.label ?? pin.category}: ${pin.title}`),
+                }}
               >
                 <Popup>
                   <div className="space-y-1">

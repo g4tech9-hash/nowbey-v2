@@ -127,7 +127,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
           </section>
         ) : (
           <p className="text-sm text-ink-400">
-            <Link href="/login?next=/alerts" className="font-bold text-tide-300 underline">
+            <Link href="/login?mode=signin&next=%2Falerts" className="font-bold text-tide-300 underline">
               Sign in
             </Link>{" "}
             to see and remove your alert profiles here. Every alert email also has a “Stop these alerts” link.

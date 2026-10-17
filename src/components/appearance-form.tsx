@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MODES, MODE_KEYS, THEMES, THEME_KEYS, type ModeKey, type ThemeKey } from "@/lib/themes";
+import { MODES, MODE_KEYS, SCENE_PHOTOS_PRESENT, THEMES, THEME_KEYS, type ModeKey, type ThemeKey } from "@/lib/themes";
 
 type Props = { theme: ThemeKey; mode: ModeKey; splashPref: boolean; themeLocked: boolean; modeLocked: boolean; splashLocked: boolean };
 
@@ -60,7 +60,7 @@ export function AppearanceForm(props: Props) {
                 <div
                   className="h-28 w-full"
                   style={
-                    key === "island"
+                    key === "island" && SCENE_PHOTOS_PRESENT
                       ? { backgroundImage: "linear-gradient(180deg, rgba(3,18,27,.2), rgba(3,18,27,.75)), url(/scenes/aerial.jpg)", backgroundSize: "cover", backgroundPosition: "center" }
                       : { background: "radial-gradient(500px 200px at 85% -10%, rgba(0,201,183,.25), transparent 60%), radial-gradient(400px 200px at 5% 0%, rgba(255,122,107,.16), transparent 55%), #03121b" }
                   }

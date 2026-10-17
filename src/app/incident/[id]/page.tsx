@@ -5,7 +5,6 @@ import { db } from "@/db";
 import { incidentUpdates, incidents, newsItems, users } from "@/db/schema";
 import { MapPanel } from "@/components/map/map-panel";
 import { IncidentActions } from "@/components/incident-actions";
-import { AdSlot } from "@/components/ad-slot";
 import { CATEGORIES, type CategoryKey, formatCoord, haversineMeters, timeAgo } from "@/lib/geo";
 import { HIDDEN_STATUSES, isHiddenStatus } from "@/lib/command";
 import { UUID_RE } from "@/lib/validate";
@@ -57,7 +56,6 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
     .sort((a, b) => a.d - b.d)
     .slice(0, 5);
   const handle = viewer.handle;
-  const adFree = viewer.adFree;
   const eng = (await engagementFor("incident", [row.id], viewer.userId)).get(row.id) ?? NO_ENGAGEMENT;
 
   return (
@@ -259,8 +257,6 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
             <p className="mt-1.5 text-sm text-ink-400">Nothing else pinned within a short walk.</p>
           )}
         </div>
-
-        <AdSlot index={2} adFree={adFree} variant="rail" />
 
         <div className="nb-surface rounded-xl2 p-3.5">
           <p className="display text-[14.5px] font-bold text-sand-100">{row.parish ?? "The Bahamas"} on the wire</p>

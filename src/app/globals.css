@@ -760,9 +760,11 @@ html[data-low-data="true"] * { scroll-behavior: auto !important; }
 
 /* =====================================================================
    LIGHT MODE — 2026 "Tideglass" remediation
-   Same tokens, light values, WCAG AAA on white and raised surfaces
-   (ink-100 16.5:1 · ink-200 11.2:1 · ink-300 7.5:1 · ink-400 7.6:1 ·
-   tide text tier 7.2:1). The visitor toggle sets
+   Same tokens, light values. Measured contrast (WCAG 2.x, against the
+   white, page and raised surfaces): ink-100 ≥15.9:1, ink-200 ≥9.6:1,
+   ink-300 ≥7.3:1, ink-400 ≥7.5:1 (all AAA). tide-300 #00635a ≥6.1:1 (AA;
+   7.2:1 on pure white). tide-400 #007d70 is 4.3–5.0:1, AA only, so do not
+   use it for small body text. The visitor toggle sets
    <html data-mode="light"> (see ModeToggle + MODE_BOOT in layout.tsx);
    the admin default comes from site_settings.mode / NOWBEY_MODE.
    ===================================================================== */
@@ -900,7 +902,7 @@ html[data-mode="light"] .nb-tagline {
   color: var(--color-ink-300) !important;
 }
 /* Muted body copy that was hardcoded for dark. */
-html[data-mode="light"] :is(.text-\[\#a9cdc9\], .text-\[\#8fb9b6\], .text-\[\#6e97a0\], .text-\[\#bfe4e0\], .text-\[\#cfeee9\], .text-\[\#d6f5f1\], .text-\[\#e8f6f4\], .text-\[\#4f7a83\]) {
+html[data-mode="light"] :is(.text-\[\#a9cdc9\], .text-\[\#8fb9b6\], .text-\[\#6e97a0\], .text-\[\#bfe4e0\], .text-\[\#cfeee9\], .text-\[\#d6f5f1\], .text-\[\#e8f6f4\]) {
   color: var(--color-ink-300) !important;
 }
 html[data-mode="light"] :focus-visible {

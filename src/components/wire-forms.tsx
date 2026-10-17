@@ -164,7 +164,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
           if (!res.ok) throw new Error(data.error ?? "Could not save that.");
           setMsg(
             data.mail === "sent"
-              ? { ok: true, text: `Check ${target} for a confirmation email and tap the link to switch alerts on.` }
+              ? { ok: true, text: `Check ${target} for a confirmation email and tap the link to switch alerts on. It can take a few minutes and often lands in spam or promotions, so look there too.` }
               : { ok: false, text: "We saved your alert profile but could not send the confirmation email just now. Please try again in a little while." },
           );
           router.refresh();

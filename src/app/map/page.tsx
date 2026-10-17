@@ -71,7 +71,11 @@ export default function MapWorkspace() {
   const [wire, setWire] = useState<WireRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<CategoryKey | "all">("all");
+  // The category filter lives in the URL (?category=) so a filtered view can be shared, reloaded or bookmarked.
+  const [filter, setFilter] = useState<CategoryKey | "all">(() => {
+    const c = params.get("category");
+    return c && Object.prototype.hasOwnProperty.call(CATEGORIES, c) ? (c as CategoryKey) : "all";
+  });
   const [island, setIsland] = useState<string>(() => {
     const p = params.get("parish");
     return p && (PARISHES as readonly string[]).includes(p) ? p : "all";
@@ -125,9 +129,27 @@ export default function MapWorkspace() {
     // The loader only sets state after its network calls finish, never synchronously, so this is safe.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
-    const t = setInterval(load, 60_000);
-    return () => clearInterval(t);
+    // Poll only while the tab is visible; refresh once when it comes back into view.
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
   }, [load]);
+
+  // Keep the URL in step with the filter without adding history entries.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (filter === "all") url.searchParams.delete("category");
+    else url.searchParams.set("category", filter);
+    if (url.href !== window.location.href) window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [filter]);
 
   // The map calls this whenever the pin moves, and again when the street lookup comes back.
   function handlePick(p: PickResult) {
@@ -267,7 +289,7 @@ export default function MapWorkspace() {
             </h1>
           </div>
           <p className="max-w-[46ch] text-[11.5px] leading-snug text-ink-400">
-            Tap a pin to read the report, or <span className="font-bold text-tide-300">Pin a spot</span> to add your own.
+            Tap a pin to read the report, or <span className="font-bold text-tide-300">Report a hazard</span> to add your own.
             Drag the yellow figure onto a road for street level.
           </p>
         </div>
@@ -295,7 +317,7 @@ export default function MapWorkspace() {
               onClick={startPinning}
               className="absolute bottom-3 left-1/2 z-[500] min-h-[44px] -translate-x-1/2 rounded-full bg-tide-500 px-4 py-2.5 text-[13px] font-extrabold text-abyss-950 shadow-[0_12px_28px_rgba(0,0,0,.5)] transition active:scale-95 lg:hidden"
             >
-              + Pin a spot
+              + Report a hazard
             </button>
           )}
         </div>
@@ -346,7 +368,7 @@ export default function MapWorkspace() {
               onClick={startPinning}
               className="min-h-[40px] flex-none rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950 lg:min-h-[36px]"
             >
-              + Pin a spot
+              + Report a hazard
             </button>
           )}
         </div>

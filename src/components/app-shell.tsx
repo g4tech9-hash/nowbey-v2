@@ -103,8 +103,11 @@ export function AppShell({
             <Link href="/credits" className="text-tide-300 hover:underline">
               Photo credits
             </Link>
+            <Link href="/open-now" className="text-tide-300 hover:underline">
+              What is open now
+            </Link>
             <Link href="/mobile" className="text-tide-300 hover:underline">
-              Get the app
+              Mobile app (developers)
             </Link>
             <Link href="/support" className="text-tide-300 hover:underline">
               Plans and pricing

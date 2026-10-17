@@ -29,7 +29,7 @@ test("the phone map is short and the pin list sits under it", async () => {
     assert.ok(html.includes(label), `the phone map switch should offer ${label}`);
   }
   assert.ok(html.includes("nb-map-split"), "the map must carry the reduced-height class on phones");
-  assert.ok(html.includes("+ Pin a spot") || html.includes("Pin a spot"), "there should be a one-tap way to add a pin");
+  assert.ok(html.includes("+ Report a hazard") || html.includes("Report a hazard"), "there should be a one-tap way to report a hazard");
 
   // The rule itself keeps the phone map between ~124px and ~260px, never the whole screen.
   assert.match(css, /\.nb-map-split\s*\{\s*height:\s*150px/, "the base phone map height must be small");

@@ -1,12 +1,13 @@
 import Image from "next/image";
 import { getSiteSettings } from "@/lib/settings";
-import { SCENES, type SceneKey } from "@/lib/themes";
+import { SCENE_PHOTOS_PRESENT, SCENES, type SceneKey } from "@/lib/themes";
 
 /**
  * A photo behind a banner or card. Put it as the first child of a box that has the "isolate" class,
  * and it sits behind the text. It renders nothing in the Classic look.
  */
 export async function PageScene({ name }: { name: SceneKey }) {
+  if (!SCENE_PHOTOS_PRESENT) return null;
   const settings = await getSiteSettings();
   if (settings.theme !== "island") return null;
   const scene = SCENES[name];
