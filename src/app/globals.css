@@ -1294,3 +1294,402 @@ html[data-mode="light"] .nb-pagescene-veil {
     animation: none;
   }
 }
+
+/* =====================================================================
+   COMPAT LAYER — landing vocabulary for the components PR #34 kept.
+   ---------------------------------------------------------------------
+   Two redesigns landed on 2026-10-17. This branch owns the application
+   pages (feed / wire / map / report / alerts / you); master's PR #34 owns
+   the rebuilt landing (src/app/page.tsx + landing.module.css + src/ui/)
+   and a handful of shared components (wire-forms, ad-slot,
+   official-sources, client-actions, not-found).
+
+   Those shared files speak a second class vocabulary (.nb-card, .nb-pill,
+   .nb-input, .nb-phone, ...) and read .nb-* custom properties. Rather than
+   fork the palette, every .nb-* token below is an ALIAS onto this
+   branch's theme tokens, so the kept components repaint with the same
+   colours — and inherit the light-mode flip for free, because the
+   html[data-mode="light"] block re-points the underlying --color-* values.
+
+   Rules this branch already owns (.nb-btn, .nb-btn-primary, .nb-btn-sm,
+   .nb-chip, .nb-field) are deliberately NOT re-declared here, so the
+   application pages keep their own button/chip/field treatment.
+   ===================================================================== */
+:root {
+  /* surfaces + strokes -> abyss ramp */
+  --nb-bg: var(--color-abyss-975);
+  --nb-bg-deep: var(--color-abyss-975);
+  --nb-surface-1: var(--color-abyss-900);
+  --nb-surface-2: var(--color-abyss-850);
+  --nb-stroke: var(--color-abyss-700);
+  --nb-stroke-soft: var(--color-abyss-800);
+  --nb-stroke-btn: var(--color-abyss-600);
+
+  /* signal -> tide */
+  --nb-mint: var(--color-tide-500);
+  --nb-mint-deep: var(--color-tide-650);
+  --nb-tide-300: var(--color-tide-400);
+  /* Ink for text sitting ON tide. Night: deep tide ink. Light: tide goes
+     dark (#007d70), so the ink has to invert — see the light block below. */
+  --nb-mint-ink: #04202a;
+
+  /* text -> ink / sand scale (flips in light mode) */
+  --nb-cream: var(--color-sand-100);
+  --nb-text: var(--color-ink-100);
+  --nb-muted: var(--color-ink-300);
+  --nb-faint: var(--color-ink-400);
+
+  /* accents -> sun / conch / info */
+  --nb-gold: var(--color-sun-500);
+  --nb-gold-soft: var(--color-sun-400);
+  --nb-gold-ink: var(--color-sun-600);
+  --nb-coral: var(--color-conch-500);
+  --nb-danger-500: var(--color-danger-500);
+  --nb-sky: var(--color-info-500);
+  /* Translucent tints rather than fixed hex, so the badge reads on both
+     the night surface and the light one. */
+  --nb-sky-bg: color-mix(in srgb, var(--color-info-500) 16%, transparent);
+  --nb-sky-stroke: color-mix(in srgb, var(--color-info-500) 38%, transparent);
+
+  /* switch hardware */
+  --nb-knob-dark: var(--color-abyss-850);
+  --nb-knob-light: var(--color-ink-100);
+  --nb-toggle-off: var(--color-abyss-700);
+}
+
+/* Light mode inverts the tide ink (tide-500 becomes #007d70, so dark text
+   on it would fail contrast). */
+html[data-mode="light"] {
+  --nb-mint-ink: #ffffff;
+}
+
+@layer components {
+    /* ---- Cards ---------------------------------------------------------- */
+    .nb-card {
+      background: var(--nb-surface-1);
+      border: 1px solid var(--nb-stroke);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: var(--shadow-l1);
+    }
+    .nb-card-tight {
+      padding: 16px;
+    }
+    .nb-card-inner {
+      background: var(--nb-surface-2);
+      border: 1px solid var(--nb-stroke-soft);
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .nb-card-gold {
+      background: #1c2118;
+      border: 1px solid #4d4f3c;
+      border-radius: 18px;
+      padding: 18px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .nb-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+  
+    /* ---- Micro label (letterspaced uppercase) --------------------------- */
+    .nb-label {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--nb-faint);
+      line-height: 1.4;
+    }
+    .nb-label-mint {
+      color: var(--nb-mint);
+    }
+  
+    /* ---- Buttons -------------------------------------------------------- */
+    .nb-btn-outline {
+      background: rgba(12, 34, 45, 0.6);
+      border-color: var(--nb-stroke-btn);
+      color: var(--nb-cream);
+    }
+    .nb-btn-outline:hover {
+      border-color: rgba(67, 224, 203, 0.45);
+      color: var(--nb-mint);
+    }
+    .nb-btn-block {
+      width: 100%;
+    }
+  
+    /* ---- Status pills / badges ------------------------------------------ */
+    .nb-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(246, 199, 93, 0.38);
+      background: rgba(246, 199, 93, 0.08);
+      color: var(--nb-gold);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 7px 13px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .nb-pill-mint {
+      border-color: rgba(67, 224, 203, 0.4);
+      background: rgba(67, 224, 203, 0.08);
+      color: var(--nb-mint);
+    }
+    .nb-pill-dark {
+      border-color: var(--nb-stroke-btn);
+      background: rgba(3, 12, 19, 0.75);
+      color: var(--nb-cream);
+      letter-spacing: 0.08em;
+    }
+    .nb-badge-cat {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 10px;
+      background: var(--nb-sky-bg);
+      border: 1px solid var(--nb-sky-stroke);
+      color: var(--nb-sky);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 7px 11px;
+      line-height: 1;
+    }
+    .nb-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      flex: none;
+      display: inline-block;
+    }
+  
+    /* ---- Toggle switch (mint track + dark knob right | gray track + light knob left) */
+    .nb-toggle {
+      position: relative;
+      width: 52px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--nb-toggle-off);
+      border: none;
+      cursor: pointer;
+      flex: none;
+      transition: background 0.18s var(--ease-standard);
+      padding: 0;
+    }
+    .nb-toggle::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      background: var(--nb-knob-light);
+      transition: transform 0.18s var(--ease-standard), background 0.18s var(--ease-standard);
+      box-shadow: 0 2px 6px rgba(2, 8, 16, 0.35);
+    }
+    .nb-toggle[aria-checked="true"] {
+      background: var(--nb-mint-deep);
+    }
+    .nb-toggle[aria-checked="true"]::after {
+      transform: translateX(22px);
+      background: var(--nb-knob-dark);
+    }
+    .nb-toggle:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  
+    /* ---- Form fields ----------------------------------------------------- */
+    .nb-field > .nb-field-label {
+      display: block;
+      margin-bottom: 8px;
+    }
+    .nb-input,
+    .nb-select,
+    .nb-textarea {
+      width: 100%;
+      background: var(--nb-surface-2);
+      border: 1px solid var(--nb-stroke);
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--nb-cream);
+      transition: border-color 0.15s var(--ease-standard);
+    }
+    .nb-input:hover,
+    .nb-select:hover,
+    .nb-textarea:hover {
+      border-color: #2a4552;
+    }
+    .nb-input:focus,
+    .nb-select:focus,
+    .nb-textarea:focus {
+      outline: none;
+      border-color: var(--nb-mint);
+      box-shadow: 0 0 0 3px rgba(67, 224, 203, 0.18);
+    }
+    .nb-textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+    .nb-hint {
+      margin-top: 7px;
+      font-size: 12.5px;
+      color: var(--nb-faint);
+    }
+  
+    /* ---- Check rows / numbered rows -------------------------------------- */
+    .nb-check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 15.5px;
+      color: var(--nb-text);
+      line-height: 1.5;
+    }
+    .nb-check-row .nb-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1.5px solid var(--nb-mint);
+      color: var(--nb-mint);
+      display: grid;
+      place-items: center;
+      flex: none;
+      margin-top: 1px;
+      background: rgba(67, 224, 203, 0.08);
+    }
+    .nb-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      font-size: 12px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      border: 1.5px solid var(--nb-mint);
+      color: var(--nb-mint);
+      background: rgba(67, 224, 203, 0.08);
+    }
+    .nb-num-off {
+      border-color: var(--nb-stroke);
+      color: var(--nb-faint);
+      background: transparent;
+    }
+  
+    /* ---- Link with arrow --------------------------------------------------- */
+    .nb-link-arrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--nb-mint);
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .nb-link-arrow:hover {
+      color: var(--nb-tide-300, #6beedc);
+    }
+  
+    /* ---- Dividers / rows ---------------------------------------------------- */
+    .nb-divider {
+      height: 1px;
+      background: var(--nb-stroke-soft);
+      border: none;
+      margin: 0;
+    }
+    .nb-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 15px 0;
+    }
+  
+    /* ---- Section marker ("03" + uppercase title) ----------------------------- */
+    .nb-section-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(67, 224, 203, 0.55);
+      color: var(--nb-mint);
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 15px;
+      flex: none;
+      background: rgba(67, 224, 203, 0.07);
+    }
+  
+    /* ---- Phone mockup ------------------------------------------------------- */
+    .nb-phone {
+      position: relative;
+      border-radius: 44px;
+      padding: 12px;
+      background: linear-gradient(160deg, #23404c 0%, #0b1f2a 28%, #0b1f2a 100%);
+      box-shadow: var(--shadow-l4), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+      max-width: 390px;
+    }
+    .nb-phone-screen {
+      position: relative;
+      border-radius: 34px;
+      overflow: hidden;
+      background: var(--nb-bg);
+      background-image: radial-gradient(circle, rgba(150, 220, 214, 0.05) 1px, transparent 1px);
+      background-size: 22px 22px;
+      display: flex;
+      flex-direction: column;
+      min-height: 620px;
+    }
+    .nb-phone-notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 116px;
+      height: 30px;
+      border-radius: 999px;
+      background: #050d13;
+      z-index: 5;
+    }
+  
+    /* ---- Bottom tab bar -------------------------------------------------------- */
+  
+  /* ---- Top bar — material only; the header itself scrolls with the document ---- */
+
+  /* PR #34's wire-forms wraps a field in <label class="nb-field"> and styles
+     the control itself with .nb-input / .nb-textarea. This branch's
+     .nb-field IS the control style, so neutralise it on a wrapper element
+     — otherwise the label picks up a second border and background. */
+  label.nb-field,
+  .nb-field:has(> .nb-input),
+  .nb-field:has(> .nb-textarea) {
+    display: block;
+    width: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    box-shadow: none;
+  }
+}

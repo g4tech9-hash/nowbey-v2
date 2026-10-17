@@ -139,3 +139,37 @@ Button ink on tide fills: **#04202a – #062a30** (deep teal-black, never pure b
 Base UI components (`src/components/ui/`) implement this spec: `Button`, `Panel`, `Field`,
 `Chip`, `StatTile`, `Modal`, `PageIntro`, `EmptyState`. Pages compose those primitives with
 new grids — no legacy layout containers are reused.
+
+## The two-redesign split (2026-10-17)
+
+Two ground-up redesigns landed the same day:
+
+| Scope | Owner | Files |
+| --- | --- | --- |
+| **Application pages** — feed, wire, map, report, alerts, you, settings, the app shell, nav bar, incident cards | this branch (PR #33) | `src/app/{feed,wire,map,report,alerts,life}/page.tsx`, `src/app/you/**`, `src/components/{app-shell,nav-links,incident-card,account-forms,password-field}.tsx`, `src/components/ui/`, the main body of `src/app/globals.css` |
+| **Landing + shared components** | master (PR #34) | `src/app/page.tsx`, `src/app/landing.module.css`, `src/ui/{kit,mock-screens}.tsx`, `src/components/{wire-forms,ad-slot,official-sources,client-actions}.tsx`, `src/app/not-found.tsx` |
+
+Both drew on the same reference, so they agree on colour DNA but use two class
+vocabularies. Rather than fork the palette, the **COMPAT LAYER** at the end of
+`src/app/globals.css` maps every `.nb-*` custom property PR #34's components read
+onto this branch's theme tokens:
+
+- `--nb-surface-1/2`, `--nb-stroke*` → the `--color-abyss-*` ramp
+- `--nb-mint`, `--nb-mint-deep`, `--nb-tide-300` → `--color-tide-*`
+- `--nb-cream/text/muted/faint` → `--color-sand-100`, `--color-ink-100/300/400`
+- `--nb-gold*`, `--nb-coral`, `--nb-sky*` → `--color-sun-*`, `--color-conch-500`, `--color-info-500`
+- `--nb-mint-ink` is the one literal: `#04202a` on the night tide, and inverted to
+  `#ffffff` in the light block, because `--color-tide-500` goes dark there.
+
+Because the aliases resolve through the theme tokens, the kept components inherit
+the light-mode flip for free — no per-component light overrides.
+
+Rules this branch already owns (`.nb-btn`, `.nb-btn-primary`, `.nb-btn-sm`,
+`.nb-chip`, `.nb-field`) are deliberately **not** re-declared in the compat layer,
+so application pages keep their own button/chip/field treatment.
+
+One genuine collision is handled explicitly: PR #34's `wire-forms.tsx` wraps a
+field in `<label class="nb-field">` and styles the control with `.nb-input`,
+while here `.nb-field` **is** the control style. The compat layer neutralises
+`.nb-field` on a wrapper element (`label.nb-field`, or anything `:has(> .nb-input)`)
+so the label does not pick up a second border and background.
