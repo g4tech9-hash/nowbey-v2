@@ -32,6 +32,8 @@ Think before answering. Do not show this reasoning in the output, because the ca
 
 ## 3. Tools and failure handling
 
+The directive is sent as the Gemini `systemInstruction` on every call. The condensed text is `NOWBEY_AI_DIRECTIVE` in `src/lib/ai.ts`, and this document is the full rule book. Keep them in step.
+
 The AI layer has one tool: `geminiJson` / `geminiGenerate` / `geminiVision` in `src/lib/ai.ts`. It makes one request to the Gemini API per call. It has no database write access, and it cannot publish, email or deploy anything. The code around it does the writing, and only after validation.
 
 - **Missing input:** if the text is empty or unusable, return the empty answer the schema allows (for example `null` or an empty list). Do not invent a value to fill it.

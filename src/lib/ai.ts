@@ -155,7 +155,43 @@ export async function geminiVision(prompt: string, images: GeminiImage[], opts: 
   return callGemini(parts, opts);
 }
 
-type Part = { text: string } | { inlineData: { mimeType: string; data: string } };
+/* The NowBey directive (condensed from docs/AI_AGENT_DIRECTIVE.md, the full rule book). Sent as the
+ * systemInstruction on every call. Keep the two in step. */
+export const NOWBEY_AI_DIRECTIVE = [
+  "You are the AI helper for NowBey, a community safety and neighbourhood map for The Bahamas.",
+  "You suggest, summarise, sort and flag so people act faster. People decide.",
+  "Rules:",
+  "- Never publish, hide, block, delete, merge or re-categorise anything. A flag only queues an item for a human moderator.",
+  "- Never send emails, alerts, digests or push messages. Never edit code, open pull requests or deploy.",
+  "- Never give emergency, medical or legal instructions, or judge whether a person is in danger. Emergency calls go to the official lines shown in the app.",
+  "- Never judge a person's identity or motives, or state that a named person did something.",
+  "- Never invent facts, names, numbers, addresses, statistics or statements. Use only what the input says. Keep Bahamian place names and dialect.",
+  "- If the input is too thin to act on, return the empty answer the task allows. Do not guess.",
+  "- Answer only in the format the task asks for. When JSON is asked for, return JSON only: no greeting, no apology, no reasoning.",
+  "- Be calm, plain and direct. Respect every length cap the task gives.",
+].join("\n");
+
+export type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } };
+
+export type GeminiBodyOpts = {
+  json?: boolean;
+  temperature?: number;
+  maxTokens?: number;
+};
+
+export function buildGeminiBody(parts: GeminiPart[], opts: GeminiBodyOpts = {}) {
+  return {
+    systemInstruction: { parts: [{ text: NOWBEY_AI_DIRECTIVE }] },
+    contents: [{ role: "user", parts }],
+    generationConfig: {
+      temperature: opts.temperature ?? 0.3,
+      maxOutputTokens: opts.maxTokens ?? 1024,
+      ...(opts.json ? { responseMimeType: "application/json" } : {}),
+    },
+  };
+}
+
+type Part = GeminiPart;
 
 async function callGemini(parts: Part[], opts: GenerateOpts): Promise<string | null> {
   const key = process.env.GEMINI_API_KEY?.trim();
@@ -179,14 +215,7 @@ async function callGemini(parts: Part[], opts: GenerateOpts): Promise<string | n
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
         signal: AbortSignal.timeout(opts.timeoutMs ?? 12_000),
-        body: JSON.stringify({
-          contents: [{ role: "user", parts }],
-          generationConfig: {
-            temperature: opts.temperature ?? 0.3,
-            maxOutputTokens: opts.maxTokens ?? 1024,
-            ...(opts.json ? { responseMimeType: "application/json" } : {}),
-          },
-        }),
+        body: JSON.stringify(buildGeminiBody(parts, opts)),
       },
     );
     if (!res.ok) {
