@@ -43,6 +43,7 @@ function page(req: NextRequest) {
   // Start from the incoming headers: passing a new Headers object would drop cookies and everything else.
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-pathname", new URL(req.url).pathname);
   requestHeaders.set("Content-Security-Policy", csp);
   const res = NextResponse.next({ request: { headers: requestHeaders } });
   res.headers.set("Content-Security-Policy-Report-Only", csp);

@@ -62,7 +62,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <OfflineWorker />
         {settings.theme === "island" ? <SceneBackdrop /> : null}
         {settings.splash ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}
-        <AppShell handle={viewer.handle} defaultMode={settings.mode}>
+        <AppShell handle={viewer.handle} defaultMode={settings.mode} bare={!viewer.signedIn && (h.get("x-pathname") ?? "") === "/"}>
           {children}
         </AppShell>
       </body>

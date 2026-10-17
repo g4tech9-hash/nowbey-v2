@@ -37,12 +37,28 @@ export function AppShell({
   handle,
   defaultMode,
   kicker,
+  bare,
 }: {
   children: ReactNode;
   handle: string | null;
   defaultMode: ModeKey;
   kicker?: ReactNode;
+  bare?: boolean;
 }) {
+  if (bare) {
+    return (
+      <div className="grain relative min-h-screen">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[800] focus:rounded-full focus:bg-tide-500 focus:px-4 focus:py-2 focus:text-[13px] focus:font-extrabold focus:text-abyss-950"
+        >
+          Skip to content
+        </a>
+        <main id="main">{children}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="grain relative min-h-screen">
       <a

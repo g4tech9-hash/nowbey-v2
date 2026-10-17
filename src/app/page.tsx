@@ -18,6 +18,7 @@ import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { BRAND } from "@/lib/brand";
 import { PageScene } from "@/components/page-scene";
+import { LandingPage } from "@/components/landing-page";
 import { KINDS, listPosts, type KindKey } from "@/lib/life";
 import { FEATURES } from "@/lib/features";
 
@@ -89,6 +90,9 @@ async function loadHomeData(f: HomeQuery) {
 const loadHomeCached = unstable_cache(loadHomeData, ["home-feed-v1"], { revalidate: 30 });
 
 export default async function Home({ searchParams }: { searchParams: Promise<Search> }) {
+  const viewerEarly = await getViewer();
+  if (!viewerEarly.signedIn) return <LandingPage />;
+
   const sp = await searchParams;
   // Only a known category can reach the cache key; arbitrary strings would fill it.
   const categoryIn = first(sp.category);
