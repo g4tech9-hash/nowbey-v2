@@ -11,7 +11,7 @@ const SHOW_LIFE = FEATURES.islandLife;
 const SHOW_GAS = FEATURES.gasTracker;
 
 const LINKS = [
-  { href: "/", label: "Feed", short: "Feed", icon: "feed" },
+  { href: "/feed", label: "Feed", short: "Feed", icon: "feed" },
   { href: "/map", label: "Map", short: "Map", icon: "map" },
   { href: "/report", label: "Report", short: "Report", icon: "report" },
   ...(SHOW_LIFE ? [{ href: "/life", label: "Island Life", short: "Life", icon: "life" }] : []),

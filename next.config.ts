@@ -24,6 +24,8 @@ const productionOnlyHeaders =
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Arena's live preview is served from a per-session subdomain of e2b.app.
+  allowedDevOrigins: ["*.e2b.app"],
   // Type errors fail the build on purpose: `npm run typecheck` is clean,
   // so a red Vercel build means a real regression, not background noise.
   async headers() {

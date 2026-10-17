@@ -47,8 +47,9 @@ const MODE_BOOT = `try{(function(){var d="__SITE_MODE__";var m=null;try{m=localS
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // Checks the database, so a deleted or suspended member stops looking signed in straight away.
   const [viewer, settings, h] = await Promise.all([getViewer(), getSiteSettings(), headers()]);
-  // The proxy sets a per-request nonce for the content security policy; the inline boot scripts carry it.
+  // The proxy sets a per-request nonce and pathname; both are trusted request-scoped values.
   const nonce = h.get("x-nonce") ?? undefined;
+  const initialPath = h.get("x-nowbey-pathname");
 
   return (
     <html lang="en" className={`${sora.variable} ${manrope.variable}`} data-theme={settings.theme} data-mode={settings.mode} suppressHydrationWarning>
@@ -61,7 +62,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <ErrorReporter />
         <OfflineWorker />
         {settings.theme === "island" ? <SceneBackdrop /> : null}
-        {settings.splash ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}
+        {settings.splash && initialPath !== "/" ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}
         <AppShell handle={viewer.handle} defaultMode={settings.mode}>
           {children}
         </AppShell>

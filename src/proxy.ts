@@ -36,12 +36,15 @@ export function proxy(req: NextRequest) {
  * what it would block, and the framework reads the nonce from the request header to tag its own scripts.
  */
 function page(req: NextRequest) {
+  const path = new URL(req.url).pathname;
   // Service-worker scripts get no page policy: see isWorkerScriptPath in src/lib/csp.ts.
-  if (isWorkerScriptPath(new URL(req.url).pathname)) return NextResponse.next();
+  if (isWorkerScriptPath(path)) return NextResponse.next();
   const nonce = newNonce();
   const csp = buildCsp(nonce);
   // Start from the incoming headers: passing a new Headers object would drop cookies and everything else.
   const requestHeaders = new Headers(req.headers);
+  // The root layout uses the trusted proxy path to avoid hydrating route-dependent splash markup differently.
+  requestHeaders.set("x-nowbey-pathname", path);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
   const res = NextResponse.next({ request: { headers: requestHeaders } });
