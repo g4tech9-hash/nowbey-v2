@@ -6,6 +6,13 @@ import { useRouter } from "next/navigation";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
 import { trackFunnel } from "@/lib/funnel-client";
 import type { TierKey } from "@/lib/tiers";
+import { Toggle } from "@/ui/kit";
+
+/* =====================================================================
+   Wire forms — rebuilt 2026-10-17.
+   New DOM (cards, toggle rows, pill actions) matching the reference
+   “Email alerts” screen; all submit logic and contract copy preserved.
+   ===================================================================== */
 
 export function SubmitLink() {
   const router = useRouter();
@@ -17,7 +24,7 @@ export function SubmitLink() {
 
   return (
     <form
-      className="space-y-2.5"
+      className="flex flex-col gap-3.5"
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
@@ -41,30 +48,28 @@ export function SubmitLink() {
         }
       }}
     >
-      <label className="block">
-        <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Link</span>
+      <label className="nb-field">
+        <span className="nb-field-label nb-label nb-label-mint">Link</span>
         <input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://www.bahamaspress.com/story/"
-          className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[13px] outline-none focus:border-tide-400"
+          className="nb-input"
+          style={{ fontSize: 14, padding: "11px 14px" }}
         />
       </label>
-      <label className="block">
-        <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Why it matters (and where)</span>
+      <label className="nb-field">
+        <span className="nb-field-label nb-label nb-label-mint">Why it matters (and where)</span>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
           placeholder="Ferry schedule cut to four runnings a week — affects Spanish Wells and Bimini traffic."
-          className="mt-1 w-full resize-none rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[13px] leading-relaxed outline-none focus:border-tide-400"
+          className="nb-textarea"
+          style={{ fontSize: 14, padding: "11px 14px", minHeight: 84 }}
         />
       </label>
-      <select
-        value={parish}
-        onChange={(e) => setParish(e.target.value)}
-        className="w-full rounded-lg border border-white/10 bg-abyss-950/80 px-2 py-1.5 text-[12px] outline-none"
-      >
+      <select value={parish} onChange={(e) => setParish(e.target.value)} className="nb-select" style={{ fontSize: 14, padding: "11px 14px" }}>
         <option value="">Let NowBey guess the island</option>
         {PARISHES.map((p) => (
           <option key={p} value={p}>
@@ -72,17 +77,11 @@ export function SubmitLink() {
           </option>
         ))}
       </select>
-      <button
-        type="submit"
-        disabled={busy || url.trim().length < 12}
-        className="w-full rounded-xl bg-tide-500 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-45"
-      >
+      <button type="submit" disabled={busy || url.trim().length < 12} className="nb-btn nb-btn-primary nb-btn-sm nb-btn-block">
         {busy ? "Filing…" : "Send to the desk"}
       </button>
-      {msg ? <p className={`text-[11.5px] ${msg.ok ? "text-tide-300" : "text-danger-500"}`}>{msg.text}</p> : null}
-      <p className="text-[11.5px] leading-snug text-ink-400">
-        Every link is checked by a NowBey editor before anyone sees it, and shows up marked “Reader tip”.
-      </p>
+      {msg ? <p style={{ fontSize: 12.5, color: msg.ok ? "var(--nb-mint)" : "var(--nb-danger-500, #ff7a6b)" }}>{msg.text}</p> : null}
+      <p className="nb-hint">Every link is checked by a NowBey editor before anyone sees it, and shows up marked “Reader tip”.</p>
     </form>
   );
 }
@@ -92,12 +91,10 @@ const DEFAULT_CATS: CategoryKey[] = ["flood", "storm", "power", "water", "fire"]
 const LAUNCH_ISLAND = "New Providence";
 
 /**
- * The email-alert sign-up. Nassau MVP rules:
- *  - one island is preselected and stays first, because that is what the launch covers;
- *  - the optional extras (other islands, a radius around you) are folded away until asked for;
- *  - the shortest path to a working alert is: type your email, tap the button.
- * The full island list and the location/radius matcher still exist behind "More options" — they are
- * simply not in the way of the common case.
+ * The email-alert sign-up — rebuilt as the reference settings card:
+ * an island row followed by one toggle row per report type. Nassau MVP
+ * rules still hold: New Providence preselected, extras folded away,
+ * email + one tap is the shortest path to a working alert.
  */
 export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; defaultEmail?: string }) {
   const router = useRouter();
@@ -142,7 +139,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
 
   return (
     <form
-      className="space-y-4"
+      className="flex flex-col gap-4"
       onSubmit={async (e) => {
         e.preventDefault();
         setBusy(true);
@@ -177,9 +174,9 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
         }
       }}
     >
-      {/* 1 · Where to send it. The email is the whole first step — everything else has a default. */}
-      <label className="block">
-        <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Email address</span>
+      {/* 1 · Where to send it. The email is the whole first step. */}
+      <label className="nb-field">
+        <span className="nb-field-label nb-label nb-label-mint">Email address</span>
         <input
           value={target}
           onChange={(e) => setTarget(e.target.value)}
@@ -187,46 +184,63 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
           autoComplete="email"
           inputMode="email"
           placeholder="you@example.com"
-          className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2.5 text-[16px] outline-none focus:border-tide-400 sm:text-[14px]"
+          className="nb-input"
         />
-        <span className="mt-1 block text-[11.5px] text-ink-400">Every alert email has a one-tap “Stop these alerts” link.</span>
+        <span className="nb-hint">Every alert email has a one-tap “Stop these alerts” link.</span>
       </label>
 
-      {/* 2 · The island. Nassau is already chosen, so this reads as a fact rather than a question. */}
-      <div>
-        <p className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Where</p>
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-          <span className="rounded-lg bg-tide-500 px-2.5 py-1.5 text-[12px] font-bold text-abyss-950">{LAUNCH_ISLAND} · live now</span>
+      {/* 2 · The island — the “YOUR ISLAND · New Providence ✓” row of the reference. */}
+      <div className="nb-card-inner" style={{ padding: "6px 18px" }}>
+        <div className="flex items-center justify-between gap-3 py-3.5">
+          <span className="nb-label">Your island</span>
+          <span className="flex items-center gap-2 text-[15px] font-bold" style={{ color: "var(--nb-cream)" }}>
+            {islands[0] ?? LAUNCH_ISLAND}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--nb-mint)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M4 12.5 9.5 18 20 6.5" />
+            </svg>
+          </span>
+        </div>
+        <hr className="nb-divider" />
+        <div className="flex items-center justify-between gap-3 py-3.5">
+          <span className="text-[15px] font-semibold" style={{ color: "var(--nb-text)" }}>
+            {LAUNCH_ISLAND} · live now
+          </span>
           <button
             type="button"
             onClick={() => setShowIslands((v) => !v)}
             aria-expanded={showIslands}
-            className="min-h-[34px] rounded-lg bg-white/6 px-2.5 py-1.5 text-[12px] font-semibold text-ink-300 hover:bg-white/12"
+            className="nb-chip"
+            style={{ cursor: "pointer" }}
           >
             {showIslands ? "Hide other islands" : "Other islands"}
           </button>
         </div>
         {showIslands ? (
-          <div className="mt-2 flex flex-wrap gap-1.5 rounded-xl bg-white/[.04] p-2">
+          <div className="flex flex-wrap gap-1.5 pb-3.5">
             {PARISHES.map((p) => (
               <button
                 key={p}
                 type="button"
                 onClick={() => toggleIsland(p)}
                 aria-pressed={islands.includes(p)}
-                className={`min-h-[34px] rounded-lg px-2 py-1 text-[11.5px] font-semibold ${
-                  islands.includes(p) ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"
-                }`}
+                className="nb-chip"
+                style={
+                  islands.includes(p)
+                    ? { background: "var(--nb-mint)", borderColor: "var(--nb-mint)", color: "var(--nb-mint-ink)", cursor: "pointer" }
+                    : { cursor: "pointer" }
+                }
               >
                 {p}
               </button>
             ))}
-            <p className="w-full px-1 pt-1 text-[11.5px] text-ink-400">
+            <p className="nb-hint w-full">
               Nassau is live today; reports elsewhere depend on neighbours filing them.{" "}
-              {multi ? "Your plan can follow as many islands as you like." : (
+              {multi ? (
+                "Your plan can follow as many islands as you like."
+              ) : (
                 <>
                   The free plan covers one island.{" "}
-                  <Link href="/support" className="font-bold text-tide-300 underline">
+                  <Link href="/support" className="font-bold underline" style={{ color: "var(--nb-mint)" }}>
                     Pick a plan
                   </Link>{" "}
                   for more.
@@ -237,46 +251,40 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
         ) : null}
       </div>
 
-      {/* 3 · What is worth waking you up. */}
-      <div>
-        <p className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Kinds of report</p>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => {
-            const on = cats.includes(k);
-            return (
-              <button
-                key={k}
-                type="button"
-                onClick={() => toggleCat(k)}
-                aria-pressed={on}
-                className="min-h-[34px] rounded-lg px-2 py-1 text-[11.5px] font-bold"
-                style={{ background: on ? `${CATEGORIES[k].color}2e` : "rgba(255,255,255,.05)", color: on ? CATEGORIES[k].color : "#8fb9b6" }}
-              >
-                {CATEGORIES[k].label}
-              </button>
-            );
-          })}
+      {/* 3 · What is worth waking you up — one toggle row per report type. */}
+      <div className="nb-card-inner" style={{ padding: "6px 18px" }}>
+        <div className="py-3.5">
+          <span className="nb-label">Kinds of report</span>
         </div>
-        <p className="mt-1.5 text-[11.5px] text-ink-400">
+        {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
+          <div key={k}>
+            <hr className="nb-divider" />
+            <div className="flex items-center justify-between gap-3 py-3">
+              <span className="flex items-center gap-2.5 text-[15px] font-semibold" style={{ color: "var(--nb-text)" }}>
+                <span className="nb-dot" style={{ background: CATEGORIES[k].color }} aria-hidden />
+                {CATEGORIES[k].label}
+              </span>
+              <Toggle on={cats.includes(k)} onClick={() => toggleCat(k)} label={CATEGORIES[k].label} />
+            </div>
+          </div>
+        ))}
+        <p className="nb-hint" style={{ paddingBottom: 14 }}>
           Leave everything unselected to hear about every report. Reports rated “annoying” never trigger an email.
         </p>
       </div>
 
-      {/* 4 · The optional extras, folded away. Most people want the whole island. */}
-      <div className="rounded-xl border hairline bg-white/[.03] p-2.5">
-        <button
-          type="button"
-          onClick={() => setShowRadius((v) => !v)}
-          aria-expanded={showRadius}
-          className="flex w-full items-center gap-2 text-left"
-        >
-          <span className="min-w-0 flex-1 text-[12.5px] font-bold text-sand-100">
+      {/* 4 · The optional extras, folded away. */}
+      <div className="nb-card-inner">
+        <button type="button" onClick={() => setShowRadius((v) => !v)} aria-expanded={showRadius} className="flex w-full items-center gap-2 text-left">
+          <span className="min-w-0 flex-1 text-[13.5px] font-bold" style={{ color: "var(--nb-cream)" }}>
             Only near me {centre ? `· on, within ${radiusKm} km` : "· off, the whole island"}
           </span>
-          <span className="flex-none text-[11.5px] font-bold text-tide-300">{showRadius ? "Hide" : "Set up"}</span>
+          <span className="flex-none text-[12px] font-bold" style={{ color: "var(--nb-mint)", cursor: "pointer" }}>
+            {showRadius ? "Hide" : "Set up"}
+          </span>
         </button>
         {showRadius ? (
-          <div className="mt-2">
+          <div className="mt-3">
             <div className="flex flex-wrap items-center gap-1.5">
               {[5, 12, 25, 50].map((r) => (
                 <button
@@ -284,50 +292,40 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
                   type="button"
                   onClick={() => setRadiusKm(r)}
                   aria-pressed={radiusKm === r}
-                  className={`min-h-[34px] rounded-lg px-2.5 py-1 text-[11.5px] font-semibold ${
-                    radiusKm === r ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"
-                  }`}
+                  className="nb-chip"
+                  style={
+                    radiusKm === r
+                      ? { background: "var(--nb-mint)", borderColor: "var(--nb-mint)", color: "var(--nb-mint-ink)", cursor: "pointer" }
+                      : { cursor: "pointer" }
+                  }
                 >
                   {r} km
                 </button>
               ))}
-              <button
-                type="button"
-                onClick={locate}
-                disabled={locBusy}
-                className="min-h-[34px] rounded-lg border hairline px-2.5 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/8 disabled:opacity-50"
-              >
+              <button type="button" onClick={locate} disabled={locBusy} className="nb-chip" style={{ cursor: "pointer", color: "var(--nb-cream)" }}>
                 {locBusy ? "Reading location…" : centre ? "Update my location" : "Use my location"}
               </button>
               {centre ? (
-                <button
-                  type="button"
-                  onClick={() => setCentre(null)}
-                  className="min-h-[34px] rounded-lg px-2 py-1.5 text-[12px] font-bold text-ink-400 hover:text-sand-100"
-                >
+                <button type="button" onClick={() => setCentre(null)} className="nb-chip" style={{ cursor: "pointer" }}>
                   Clear
                 </button>
               ) : null}
             </div>
-            <p className="mt-1.5 text-[11.5px] text-ink-400">
+            <p className="nb-hint">
               {centre
                 ? `Only reports within ${radiusKm} km of where you are now will email you.`
                 : "Without a location we match the whole island. Your position is only used for matching and is never shown to anyone."}
             </p>
-            {locMsg ? <p className="mt-1 text-[11.5px] text-danger-500">{locMsg}</p> : null}
+            {locMsg ? <p className="nb-hint" style={{ color: "#ff7a6b" }}>{locMsg}</p> : null}
           </div>
         ) : null}
       </div>
 
-      <button
-        type="submit"
-        disabled={busy || !target.trim()}
-        className="min-h-[48px] w-full rounded-xl bg-tide-500 py-2.5 text-[14px] font-extrabold text-abyss-950 disabled:opacity-45"
-      >
+      <button type="submit" disabled={busy || !target.trim()} className="nb-btn nb-btn-primary nb-btn-block">
         {busy ? "Saving…" : "Send me a confirmation email"}
       </button>
-      {msg ? <p className={`text-[12.5px] leading-snug ${msg.ok ? "text-tide-300" : "text-danger-500"}`}>{msg.text}</p> : null}
-      <p className="text-[11.5px] leading-relaxed text-ink-400">
+      {msg ? <p style={{ fontSize: 13, lineHeight: 1.5, color: msg.ok ? "var(--nb-mint)" : "#ff7a6b" }}>{msg.text}</p> : null}
+      <p className="nb-hint" style={{ lineHeight: 1.7 }}>
         Email is the one channel that always works today. Phone push is a separate switch — it stays off until you turn it on, and only the
         Android app and some browsers can show it. Text messages are not available yet.
       </p>
@@ -342,7 +340,7 @@ export function StopAlertButton({ token, id, label = "Stop these alerts" }: { to
   const [done, setDone] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  if (done) return <p className="text-[12px] font-bold text-tide-300">Stopped. You will not get more of these.</p>;
+  if (done) return <p className="text-[12px] font-bold" style={{ color: "var(--nb-mint)" }}>Stopped. You will not get more of these.</p>;
   return (
     <div>
       <button
@@ -367,11 +365,12 @@ export function StopAlertButton({ token, id, label = "Stop these alerts" }: { to
             setBusy(false);
           }
         }}
-        className="rounded-full border hairline px-3 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/8 disabled:opacity-50"
+        className="nb-chip"
+        style={{ cursor: "pointer", color: "var(--nb-cream)" }}
       >
         {busy ? "Stopping…" : label}
       </button>
-      {err ? <p className="mt-1 text-[11.5px] text-danger-500">{err}</p> : null}
+      {err ? <p className="nb-hint" style={{ color: "#ff7a6b" }}>{err}</p> : null}
     </div>
   );
 }

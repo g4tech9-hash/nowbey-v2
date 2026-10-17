@@ -41,7 +41,7 @@ export function AdSlot({
 }) {
   if (adFree) {
     return (
-      <p className="rounded-xl border border-dashed border-tide-500/30 bg-tide-500/5 px-3 py-2 text-[11.5px] font-semibold text-tide-300">
+      <p className="nb-card nb-card-tight" style={{ borderStyle: "dashed", borderColor: "rgba(67,224,203,.35)", color: "var(--nb-mint)", fontSize: 11.5, fontWeight: 700 }}>
         Ads are off on your account — NowBey stays ad-free while your plan is active.
       </p>
     );
@@ -49,27 +49,32 @@ export function AdSlot({
   const ad = HOUSE_ADS[index % HOUSE_ADS.length];
   return (
     <div
-      className={`glass relative overflow-hidden rounded-xl px-3.5 py-3 ${
-        variant === "rail" ? "" : ""
-      }`}
+      className="nb-card nb-card-tight"
       style={{ borderLeft: `3px solid ${ad.tone}` }}
     >
       <p className="text-[11.5px] font-bold uppercase tracking-[0.16em]" style={{ color: ad.tone }}>
         {label}
       </p>
-      <div className={`mt-1 flex gap-3 ${variant === "rail" ? "flex-col" : "items-start justify-between"}`}>
+      <div className={`mt-2 flex gap-3 ${variant === "rail" ? "flex-col" : "items-start justify-between"}`}>
         <div>
-          <p className="display text-[14.5px] font-bold text-sand-100">{ad.brand}</p>
-          <p className="mt-0.5 text-[12.5px] leading-snug text-ink-300">{ad.line}</p>
+          <p className="display text-[14.5px] font-bold" style={{ color: "var(--nb-cream)" }}>
+            {ad.brand}
+          </p>
+          <p className="mt-1 text-[12.5px] leading-snug" style={{ color: "var(--nb-muted)" }}>
+            {ad.line}
+          </p>
         </div>
         <Link
           href="/support"
-          className="shrink-0 self-center rounded-full bg-white/10 px-2.5 py-1.5 text-[11.5px] font-bold text-sand-100 hover:bg-white/20"
+          className="nb-chip shrink-0 self-center"
+          style={{ color: "var(--nb-cream)" }}
         >
           {ad.cta}
         </Link>
       </div>
-      <p className="mt-1.5 text-[11.5px] text-ink-400">House slot · sold by hand, not an ad network. Plans from ${money(LOWEST_MONTHLY)} a month remove these.</p>
+      <p className="mt-2 text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
+        House slot · sold by hand, not an ad network. Plans from ${money(LOWEST_MONTHLY)} a month remove these.
+      </p>
     </div>
   );
 }

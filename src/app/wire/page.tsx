@@ -16,9 +16,17 @@ import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { sanitizeArticleContent } from "@/lib/sanitize";
+import { CatBadge, Dot, Pill } from "@/ui/kit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "News wire" };
+
+/* =====================================================================
+   News wire — rebuilt 2026-10-17 against reference 1002177499.
+   New DOM: layered story cards (source tile · outlet label · REVIEWED
+   pill · title · brief · “map context / open story ↗” footer row).
+   Queries and ingest behavior preserved.
+   ===================================================================== */
 
 export default async function WirePage() {
   // No database configured at all: show the setup notice instead of crashing on the first
@@ -66,120 +74,166 @@ export default async function WirePage() {
       />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
-        <div className="space-y-3">
+        {/* ---- story cards ---- */}
+        <div className="flex min-w-0 flex-col gap-3.5">
           {rows.length ? (
-            rows.map((n, i) => {
+            rows.map((n) => {
               const c = CATEGORIES[(n.category as CategoryKey) ?? "notice"] ?? CATEGORIES.notice;
+              const eng = engMap.get(n.id) ?? NO_ENGAGEMENT;
+              let host = "source";
+              try {
+                host = new URL(n.url).host.replace(/^www\./, "");
+              } catch {
+                /* keep the fallback */
+              }
               return (
-                <article key={n.id} className="nb-surface rounded-xl2 p-3.5 transition duration-200 ease-standard hover:border-tide-400/30 hover:shadow-l2">
-                  <div className="flex flex-wrap items-center gap-2 text-[11.5px] font-bold uppercase tracking-wide">
-                    <span className="inline-flex items-center gap-1.5" style={{ color: c.color }}>
-                      <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}80` }} />
-                      {c.label}
+                <article key={n.id} className="nb-card" style={{ padding: "20px 22px" }}>
+                  <div className="nb-card-head">
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 46,
+                        height: 46,
+                        borderRadius: 13,
+                        display: "grid",
+                        placeItems: "center",
+                        background: "#143b42",
+                        color: "var(--nb-mint)",
+                        fontFamily: "var(--font-display)",
+                        fontWeight: 800,
+                        fontSize: 19,
+                        flex: "none",
+                      }}
+                    >
+                      {(n.sourceName || "N").charAt(0).toUpperCase()}
                     </span>
-                    <span className="num text-ink-400 normal-case tracking-normal">
-                      {n.sourceName} · {timeAgo(n.publishedAt)}
-                    </span>
-                    {n.parish ? (
-                      <Link
-                        href={`/map?parish=${encodeURIComponent(n.parish)}`}
-                        className="rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] text-ink-200 normal-case tracking-normal hover:bg-white/16"
-                      >
-                        {n.parish}
-                      </Link>
-                    ) : null}
-                    {i === 0 ? (
-                      <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-ok-500/15 px-2 py-0.5 text-[11.5px] font-bold text-ok-600 normal-case tracking-normal">
-                        <span className="nb-live-dot" aria-hidden />
-                        newest
-                      </span>
-                    ) : null}
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <span className="nb-label truncate">{n.sourceName}</span>
+                        <Pill tone="mint">Reviewed</Pill>
+                      </div>
+                      <p className="num mt-1 text-[11.5px]" style={{ color: "var(--nb-faint)" }}>
+                        {timeAgo(n.publishedAt)}
+                        {n.parish ? ` · ${n.parish}` : ""}
+                      </p>
+                    </div>
                   </div>
-                  <h2 className="display mt-1.5 text-lg font-extrabold leading-snug tracking-tight text-sand-100">
-                    <a href={n.url} target="_blank" rel="noreferrer" className="hover:text-tide-300">
+
+                  <h2 className="display mt-3.5 text-[18px] font-bold leading-snug">
+                    <a href={n.url} target="_blank" rel="noreferrer" style={{ color: "var(--nb-cream)" }}>
                       {n.title}
                     </a>
                   </h2>
+
                   {n.aiSummary ? (
-                    <p className="mt-1.5 text-base leading-relaxed text-ink-200">
-                      <span className="mr-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI brief</span>
+                    <p className="mt-2 text-[13.5px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
+                      <span
+                        className="mr-1.5 rounded px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide"
+                        style={{ background: "rgba(67,224,203,.14)", color: "var(--nb-mint)" }}
+                      >
+                        AI brief
+                      </span>
                       {n.aiSummary}
                     </p>
                   ) : n.summary ? (
                     <p
-                      className="mt-1.5 text-base leading-relaxed text-ink-300"
+                      className="mt-2 text-[13.5px] leading-relaxed"
+                      style={{ color: "var(--nb-muted)" }}
                       dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(n.summary) }}
                     />
                   ) : null}
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11.5px]">
+
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                    <CatBadge color={c.color}>{c.label}</CatBadge>
                     {n.lat != null && n.lng != null ? (
-                      <span className="num rounded-full bg-white/8 px-2 py-0.5 font-semibold text-ink-200">
+                      <span className="nb-chip num" style={{ fontSize: 11 }}>
                         Pinned · {(n.lat as number).toFixed(4)}, {(n.lng as number).toFixed(4)}
                       </span>
                     ) : (
-                      <span className="rounded-full bg-white/8 px-2 py-0.5 text-ink-400">No place named in the text — unpinned</span>
+                      <span className="nb-chip" style={{ fontSize: 11 }}>
+                        No place named — unpinned
+                      </span>
                     )}
-                    <a href={n.url} target="_blank" rel="noreferrer" className="font-bold text-tide-300 hover:underline">
-                      Read at {(() => {
-                        try {
-                          return new URL(n.url).host.replace(/^www\./, "");
-                        } catch {
-                          return "source";
-                        }
-                      })()}
-                      {" ↗"}
-                    </a>
                   </div>
-                  <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t hairline pt-2.5">
-                    {(engMap.get(n.id) ?? NO_ENGAGEMENT).total + (engMap.get(n.id) ?? NO_ENGAGEMENT).comments > 0 ? (
-                      <EngagementSummary eng={engMap.get(n.id) ?? NO_ENGAGEMENT} href={`/wire/${n.id}`} />
-                    ) : null}
-                    <Link href={`/wire/${n.id}#comments`} className="text-[12px] font-bold text-tide-300 hover:underline">
-                      React and comment
-                    </Link>
+
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-3.5" style={{ borderColor: "var(--nb-stroke-soft)" }}>
+                    <span className="nb-label" style={{ fontSize: 9.5 }}>
+                      Map context
+                    </span>
+                    <div className="flex flex-wrap items-center gap-4">
+                      {eng.total + eng.comments > 0 ? <EngagementSummary eng={eng} href={`/wire/${n.id}`} /> : null}
+                      <Link href={`/wire/${n.id}#comments`} className="nb-link-arrow" style={{ fontSize: 13 }}>
+                        Discuss
+                      </Link>
+                      <a href={n.url} target="_blank" rel="noreferrer" className="nb-link-arrow" style={{ fontSize: 13 }}>
+                        Open story
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                          <path d="M7 17 17 7M9 7h8v8" />
+                        </svg>
+                        <span className="sr-only"> at {host}</span>
+                      </a>
+                    </div>
                   </div>
                 </article>
               );
             })
           ) : (
-            <div className="nb-surface rounded-xl2 p-6">
-              <p className="display text-lg font-bold tracking-tight text-sand-100">No stories on the wire yet</p>
-              <p className="mt-1.5 max-w-[60ch] text-base leading-relaxed text-ink-300">
-                Tap <span className="font-bold text-tide-300">Refresh stories</span> to bring in the latest headlines, or send
+            <div className="nb-card">
+              <p className="display text-[18px] font-bold">No stories on the wire yet</p>
+              <p className="mt-2 max-w-[60ch] text-[14px] leading-relaxed" style={{ color: "var(--nb-muted)" }}>
+                Tap <span style={{ color: "var(--nb-mint)", fontWeight: 700 }}>Refresh stories</span> to bring in the latest headlines, or send
                 us a link to a story you think neighbours should see.
               </p>
             </div>
           )}
         </div>
 
-        <aside className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-tide-500/20">
+        {/* ---- rail ---- */}
+        <aside className="flex min-w-0 flex-col gap-4">
+          <div className="overflow-hidden rounded-2xl border" style={{ borderColor: "var(--nb-stroke)" }}>
             <MapPanel pins={pins} mode="browse" center={[24.9, -77.6]} zoom={7} initialLayer="hybrid" className="h-[220px] w-full sm:h-[260px]" />
           </div>
 
-          <div className="nb-surface rounded-xl2 p-3.5">
-            <p className="display text-[14.5px] font-bold tracking-tight text-sand-100">Where stories come from</p>
-            <p className="num mt-1 text-sm leading-snug text-ink-400">
+          <div className="nb-card nb-card-tight">
+            <p className="display text-[15px] font-bold">Where stories come from</p>
+            <p className="num mt-1.5 text-[12.5px]" style={{ color: "var(--nb-faint)" }}>
               {meta.n} {meta.n === 1 ? "story" : "stories"} on the wire
               {meta.at ? `, last updated ${timeAgo(meta.at)}` : ""}.
             </p>
-            <ul className="mt-2.5 space-y-1.5 text-[12.5px]">
+            <ul className="mt-3 flex flex-col gap-2 text-[12.5px]">
               {feeds.map((f) => (
                 <li key={f.url} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-tide-400" />
-                  <span className="min-w-0 truncate font-semibold text-ink-200">{f.name}</span>
+                  <Dot color="var(--nb-mint)" />
+                  <span className="min-w-0 truncate font-semibold" style={{ color: "var(--nb-text)" }}>
+                    {f.name}
+                  </span>
                 </li>
               ))}
             </ul>
-            <p className="mt-3 border-t hairline pt-2.5 text-sm leading-relaxed text-ink-400">
+            <p className="mt-3.5 border-t pt-3 text-[12.5px] leading-relaxed" style={{ borderColor: "var(--nb-stroke-soft)", color: "var(--nb-faint)" }}>
               Want another outlet covered, like the Tribune or the Nassau Guardian? Send us a story link below and we will
               add its island to the map.
             </p>
           </div>
 
-          <div className="nb-surface rounded-xl2 p-3.5">
-            <p className="display text-[14.5px] font-bold tracking-tight text-sand-100">Got a link worth mapping?</p>
-            <p className="mt-1 mb-2.5 text-sm text-ink-400">Send the story and we will work out where it happened.</p>
+          {/* reference: “Community-submitted links · Sent for review before appearing” */}
+          <div className="nb-card nb-card-tight" style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "var(--nb-surface-2)" }}>
+            <Dot color="var(--nb-coral)" glow />
+            <div>
+              <p className="text-[13.5px] font-bold" style={{ color: "var(--nb-cream)" }}>
+                Community-submitted links
+              </p>
+              <p className="mt-0.5 text-[12px]" style={{ color: "var(--nb-faint)" }}>
+                Sent for review before appearing
+              </p>
+            </div>
+          </div>
+
+          <div className="nb-card nb-card-tight">
+            <p className="display text-[15px] font-bold">Got a link worth mapping?</p>
+            <p className="mt-1.5 mb-3.5 text-[12.5px]" style={{ color: "var(--nb-faint)" }}>
+              Send the story and we will work out where it happened.
+            </p>
             <SubmitLink />
           </div>
 
