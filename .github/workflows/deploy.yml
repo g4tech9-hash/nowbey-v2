@@ -55,10 +55,16 @@ jobs:
         run: npm test
 
       - name: Production build
-        run: npm run build
+        run: npm run build:app
         env:
           # A build must not need production secrets; these keep Next.js from failing on a missing value.
           NEXT_TELEMETRY_DISABLED: "1"
+
+      # The landing page is a separate Vite build. It also regenerates docs/FEATURES.md from
+      # src/content/featureRegistry.ts, so a registry entry that points at a module which no
+      # longer exists fails the gate instead of shipping.
+      - name: Landing page build and documentation sync
+        run: npm run build
 
   deploy-web:
     needs: gate

@@ -7,4 +7,5 @@
 expo/
 temp_*/
 node_modules/
+dist/
 *.log

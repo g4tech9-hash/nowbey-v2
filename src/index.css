@@ -1,0 +1,177 @@
+/*
+ * NowBey — landing page design system.
+ *
+ * One place for the tokens every landing-page component reads. Tailwind v4 turns each
+ * `--color-*` entry below into a utility (`ink-950`, `brand-400`, `mist-300`, ...), so a
+ * component never writes a raw hex value: it names the token it means.
+ *
+ * The palette is deliberately dark. This page sells safety at night, during a squall, with a
+ * dead phone battery, so contrast is calibrated for a phone screen in a car park rather than
+ * for a designer's monitor.
+ *
+ *   ink-*    surface hierarchy: page background -> panel -> raised panel
+ *   brand-*  the primary accent (tide teal), used for actions and focus
+ *   alert-*  critical signal: something is wrong right now
+ *   safe-*   success signal: resolved, confirmed, working
+ *   amber-*  warning signal: look, but not urgent
+ *   mist-*   neutral text ramp, headings (mist-50) down to subtle borders (mist-950)
+ *
+ * The application itself keeps its own tokens in `src/app/globals.css`. The two ramps are
+ * independent: `ink-950..ink-500` here are surfaces, while the app's `ink-100..ink-400` are
+ * text. Nothing imports both bundles into the same document.
+ */
+
+@import "tailwindcss" source(none);
+
+/* Only the landing page's own files contribute classes to this stylesheet. */
+@source "./App.tsx";
+@source "./main.tsx";
+@source "./components/{Icon,Nav,Hero,FeatureRegistry,Spotlight,Faq,Cta,Footer}.tsx";
+
+/* The two variable fonts the app already ships, reused so the landing page and the
+   product speak with the same voice. */
+@font-face {
+  font-family: "Sora";
+  src: url("./app/fonts/sora-latin.woff2") format("woff2");
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Manrope";
+  src: url("./app/fonts/manrope-latin.woff2") format("woff2");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+/* `static` keeps every token in the output, even the ones a page happens not to use
+   today: a design system that only exists in the file that happened to need it is not a
+   design system. */
+@theme static {
+  /* ---- Surfaces: ink (deep background / panel hierarchy) --------------------- */
+  --color-ink-950: #04070d;
+  --color-ink-900: #080d18;
+  --color-ink-850: #0b1220;
+  --color-ink-800: #101a2b;
+  --color-ink-700: #162338;
+  --color-ink-600: #1d2d46;
+  --color-ink-500: #27395a;
+
+  /* ---- Brand: the primary accent ------------------------------------------- */
+  --color-brand-600: #0a6b83;
+  --color-brand-500: #0c86a3;
+  --color-brand-400: #17a8c4;
+  --color-brand-300: #4ac7dd;
+  --color-brand-200: #9fe4f0;
+
+  /* ---- Signal colours ------------------------------------------------------ */
+  --color-alert-500: #f43f5e;
+  --color-safe-400: #34d399;
+  --color-amber-400: #fbbf24;
+
+  /* ---- Neutral text ramp: mist-50 (headings) -> mist-950 (borders) ----------- */
+  --color-mist-50: #f8fafc;
+  --color-mist-100: #f1f5f9;
+  --color-mist-200: #e2e8f0;
+  --color-mist-300: #cbd5e1;
+  --color-mist-400: #94a3b8;
+  --color-mist-500: #64748b;
+  --color-mist-600: #475569;
+  --color-mist-700: #334155;
+  --color-mist-800: #1e293b;
+  --color-mist-900: #0f172a;
+  --color-mist-950: #020617;
+
+  /* ---- Type ---------------------------------------------------------------- */
+  --font-display: "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ---- Elevation ----------------------------------------------------------- */
+  --shadow-panel: 0 18px 48px -24px color-mix(in srgb, var(--color-ink-950) 92%, transparent);
+  --shadow-lift: 0 28px 64px -28px color-mix(in srgb, var(--color-ink-950) 95%, transparent);
+  --shadow-glow-brand: 0 0 0 1px color-mix(in srgb, var(--color-brand-400) 35%, transparent),
+    0 18px 48px -20px color-mix(in srgb, var(--color-brand-400) 45%, transparent);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Anchor targets must clear the sticky navigation bar. */
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-ink-950);
+    color: var(--color-mist-300);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: var(--font-display);
+    color: var(--color-mist-50);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-400);
+    color: var(--color-ink-950);
+  }
+
+  /* A visible focus ring for keyboard users, everywhere, without a utility class. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* The layout container every section sits in. */
+  .shell {
+    @apply max-w-7xl mx-auto px-5;
+  }
+
+  /* A faint survey grid behind the hero: the map's own coordinate grid, barely there. */
+  .grid-veil {
+    background-image:
+      linear-gradient(to right, color-mix(in srgb, var(--color-brand-300) 9%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in srgb, var(--color-brand-300) 9%, transparent) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: center top;
+    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, var(--color-mist-50) 25%, transparent 76%);
+    mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, var(--color-mist-50) 25%, transparent 76%);
+  }
+
+  /* A dark, blurred panel: navigation, overlays and floating cards. */
+  .glass {
+    @apply border border-mist-800 bg-ink-900/70 backdrop-blur-xl;
+    box-shadow: var(--shadow-panel);
+  }
+
+  /* The keyboard focus indicator, for elements that need it without a global rule. */
+  .focus-ring {
+    @apply rounded-xl;
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

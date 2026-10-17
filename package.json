@@ -5,12 +5,15 @@
     "node": ">=20.19.4"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "vite",
+    "build": "node scripts/sync-docs.mjs && vite build",
+    "sync-docs": "node scripts/sync-docs.mjs",
+    "dev:app": "next dev",
+    "build:app": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/collect.test.mjs tests/redirect.test.mjs tests/security-unit.test.mjs tests/error-ai.test.mjs tests/report-ai.test.mjs tests/ai-budget.test.mjs tests/cluster.test.mjs tests/map-layout.test.mjs tests/admin-command.test.mjs tests/admin-access.test.mjs tests/avatar.test.mjs tests/broadcast.test.mjs tests/location-privacy.test.mjs tests/freshness.test.mjs tests/csp.test.mjs tests/funnel.test.mjs tests/ai-directive.test.mjs",
+    "test": "node --test tests/collect.test.mjs tests/redirect.test.mjs tests/security-unit.test.mjs tests/error-ai.test.mjs tests/report-ai.test.mjs tests/ai-budget.test.mjs tests/cluster.test.mjs tests/map-layout.test.mjs tests/admin-command.test.mjs tests/admin-access.test.mjs tests/avatar.test.mjs tests/broadcast.test.mjs tests/location-privacy.test.mjs tests/freshness.test.mjs tests/csp.test.mjs tests/funnel.test.mjs tests/ai-directive.test.mjs tests/landing.test.mjs",
     "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs tests/profile.test.mjs && node --test tests/security.test.mjs",
     "test:ui": "node --test tests/ui.test.mjs",
     "fuzz": "node tests/fuzz.mjs",
@@ -44,13 +47,16 @@
     "@types/pg": "8.18.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
     "drizzle-kit": "0.31.10",
+    "esbuild": "^0.28.2",
     "eslint": "9.39.4",
     "eslint-config-next": "^16.4.0",
     "jsdom": "25.0.1",
     "postcss": "8.5.8",
     "tailwindcss": "4.1.17",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vite": "^8.3.4"
   },
   "version": "1.0.0",
   "overrides": {

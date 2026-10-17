@@ -2,6 +2,7 @@
 node_modules
 .next
 out
+dist
 tsconfig.tsbuildinfo
 
 # secrets and local data. .data holds the generated sign-in secret.

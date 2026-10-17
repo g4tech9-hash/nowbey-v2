@@ -1,14 +1,46 @@
 # NowBey
 
 Community safety map and news wire for The Bahamas. Pure Next.js website (App Router, Tailwind 4,
-Drizzle + Postgres/Neon, Stripe, optional Firebase push), plus an Expo app in `expo/` for Android.
+Drizzle + Postgres/Neon, Stripe, optional Firebase push), plus an Expo app in `expo/` for Android, plus a
+standalone landing page (Vite + React + Tailwind 4) that sits in front of the product.
 
 ```bash
-npm run dev          # http://localhost:3000
-npm run build        # production build
+npm run dev          # landing page, http://localhost:5173
+npm run dev:app      # the application, http://localhost:3000
+npm run build        # landing page: sync the feature docs, then vite build
+npm run build:app    # the application: next build
+npm run sync-docs    # regenerate docs/FEATURES.md from the feature registry
 npm run typecheck    # tsc --noEmit
 npm run lint         # eslint .
 ```
+
+## The landing page
+
+`src/App.tsx` assembles the page from `src/components/` (`Hero`, `FeatureRegistry`, `Spotlight`, `Faq`,
+`Cta`, `Footer`, `Nav` and the dependency-free `Icon` set). Nothing on the page is hard-coded in a
+component:
+
+| What | Where it lives |
+| --- | --- |
+| Design tokens and the shared component layer | `src/index.css` (`@theme static`, plus `.shell`, `.grid-veil`, `.glass`, `.focus-ring`) |
+| Every word a reader sees | `src/content/site.ts` |
+| Every feature, and the `src/lib` module that implements it | `src/content/featureRegistry.ts` |
+| The domain model, the page state and the seeded demo data | `src/lib/landing-model.ts`, `src/lib/landing-state.ts`, `src/lib/landing-seed.ts` |
+| The generated feature reference | `docs/FEATURES.md` |
+
+`scripts/sync-docs.mjs` bundles `src/content/featureRegistry.ts` with esbuild, checks that every
+`source` path still exists, and rewrites `docs/FEATURES.md`. It runs before every landing-page build
+and in CI, so the documentation cannot describe a feature the code does not have. Run it by hand
+after touching the registry:
+
+```bash
+npm run sync-docs            # rewrite docs/FEATURES.md
+node scripts/sync-docs.mjs --check   # fail if the docs are out of date
+```
+
+The landing page links to the product's own routes (`/map`, `/wire`, ...). In local development the
+Vite server proxies those paths to the Next.js app on port 3000, so run `npm run dev:app` as well if
+you want the links to land somewhere real.
 
 ## What works today, honestly
 
@@ -71,3 +103,8 @@ and the redirect-URI registration. `TODO_HUMAN.md` §0c has those steps.
 passes typecheck, lint, the unit tests and a production build. The APK build is manual
 (Actions → Deploy → Run workflow → `mobile`) and is deliberately postponed until the push credentials
 and a physical-device test are ready. `TODO_HUMAN.md` lists every step that needs a human.
+
+The `gate` job builds both halves of the repository: `npm run build:app` (the Next.js application
+that Vercel serves) and `npm run build` (the landing page, which also regenerates
+`docs/FEATURES.md`). If the Vercel project ever has a custom build command, it must be
+`npm run build:app` - `npm run build` builds the landing page, not the application.
