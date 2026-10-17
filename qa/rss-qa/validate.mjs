@@ -26,7 +26,7 @@
  */
 
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
 /* ───────────────────────── constants ───────────────────────── */
@@ -650,7 +650,7 @@ function renderTextReport(ctx) {
 
   // [4] content verification
   L.push("[4] CONTENT VERIFICATION");
-  const cv = FINDINGS.filter((f) => f.code.startsWith("CONTENT_") || f.code.startsWith("CDATA_") || f.code.startsWith("ESC_") || f.code.startsWith("SECURITY_"));
+  const cv = FINDINGS.filter((f) => (f.code.startsWith("CONTENT_") && f.code !== "CONTENT_TYPE") || f.code.startsWith("CDATA_") || f.code.startsWith("ESC_") || f.code.startsWith("SECURITY_"));
   for (const f of cv) L.push(`  ${ICON[f.severity]} line ${f.line ?? "?"}: ${f.message}`);
   if (ctx.meta) {
     const tOk = !FINDINGS.some((f) => f.code === "CONTENT_TITLE_MISMATCH");
@@ -857,4 +857,10 @@ function runSelftest() {
   return failures ? 1 : 0;
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+const invokedDirectly = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (invokedDirectly) main().catch((e) => { console.error(e); process.exit(1); });
+
+/* ───────────────────────── library exports (used by tests and other tools) ───────────────────────── */
+
+export { scanXml, validateXmlString, runSelftest };
+

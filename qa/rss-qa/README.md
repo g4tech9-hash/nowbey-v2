@@ -4,6 +4,11 @@ Senior-QA validation for the **Facebook→RSS conversion endpoint** (target page
 <https://www.facebook.com/mybpl242/> — Bahamas Power and Light), and for any other RSS
 feed NowBey ingests through `NEWS_FEEDS` / `src/lib/ingest.ts`.
 
+The endpoint under test is this repo's own converter: `/api/rss/facebook?url=…`
+(built in `src/lib/facebook.ts` + `src/app/api/rss/facebook/route.ts`, displayed on the
+Wire page). The harness doubles as its regression gate — the serializer's output is
+validated by `tests/facebook-rss.test.mjs` through the same code path.
+
 The harness (`validate.mjs`, zero dependencies, Node ≥ 20) checks, in report order:
 
 | # | Section | What it does |
