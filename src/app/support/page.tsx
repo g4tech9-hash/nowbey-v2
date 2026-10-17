@@ -123,7 +123,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           <p className="mt-2 text-[12.5px] leading-relaxed text-ink-300">
             In the mobile app, plans are bought here on the website and follow your account to your phone.
           </p>
-          <Link href="/" className="mt-3 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">
+          <Link href="/feed" className="mt-3 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">
             Back to the feed →
           </Link>
         </div>

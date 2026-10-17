@@ -9,5 +9,5 @@ export const BRAND = {
   /** A line of reassurance for splash screens and hero banners. */
   promise: "Know what is happening, island by island.",
   description:
-    "NowBey helps you stay safe across The Bahamas. Pin a flood, an outage or a street hazard on real aerial imagery, hear from your neighbours, and find the best food and events on every island.",
+    "NowBey is a community safety map and news wire for The Bahamas. Browse neighbourhood reports on aerial imagery, confirm what neighbours see, and set email alerts for your island.",
 } as const;

@@ -115,8 +115,8 @@ test("light mode supplies readable surfaces, header and category chips", () => {
     assert.ok(css.includes(`html[data-mode="light"] ${selector} {`), `missing light treatment for ${selector}`);
   }
   assert.ok(css.includes('html[data-mode="light"] :is(.bg-tide-500, .bg-tide-400).text-abyss-950'));
-  assert.ok(read("src/app/page.tsx").includes("--category-text"));
-  assert.ok(read("src/app/page.tsx").includes("nb-category-chip"));
+  assert.ok(read("src/app/feed/page.tsx").includes("--category-text"));
+  assert.ok(read("src/app/feed/page.tsx").includes("nb-category-chip"));
 });
 
 test("daylight action and chip text have WCAG AA normal-text contrast", () => {
