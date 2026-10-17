@@ -45,6 +45,13 @@ test("health reports the local stack honestly", async () => {
   assert.equal(res.json.status, "ready");
 });
 
+test("the front door is the landing page for a signed-out visitor", async () => {
+  const res = await api("/");
+  assert.equal(res.status, 200);
+  assert.ok(res.text.includes("Browse the map without an account"), "the landing page offers the guest route into the map");
+  assert.ok(!res.text.includes(">The feed<"), "the feed belongs to members");
+});
+
 test("public feeds answer without a session", async () => {
   for (const path of ["/api/incidents?limit=5", "/api/news?limit=5", "/api/site", "/api/session"]) {
     const res = await api(path);

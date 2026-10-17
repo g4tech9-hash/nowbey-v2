@@ -88,6 +88,18 @@ test("sign-up creates the account and a session", async () => {
   assert.match(hostileNext.headers.get("location") ?? "", /\/you$/);
 });
 
+test("the front door is the feed for a member and the landing page for a guest", async () => {
+  const guest = await api("/");
+  assert.equal(guest.status, 200);
+  assert.ok(guest.text.includes("Browse the map without an account"), "a signed-out visitor gets the landing page");
+  assert.ok(!guest.text.includes(">The feed<"), "a signed-out visitor does not get the member feed");
+
+  const member = await api("/", { cookie });
+  assert.equal(member.status, 200);
+  assert.ok(member.text.includes(">The feed<"), "a signed-in member skips the landing page");
+  assert.ok(!member.text.includes("Browse the map without an account"), "the member never sees the landing page");
+});
+
 test("a second account cannot take the same handle or email", async () => {
   const sameHandle = await api("/api/session", {
     method: "POST",

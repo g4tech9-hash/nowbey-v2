@@ -49,6 +49,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const [viewer, settings, h] = await Promise.all([getViewer(), getSiteSettings(), headers()]);
   // The proxy sets a per-request nonce for the content security policy; the inline boot scripts carry it.
   const nonce = h.get("x-nonce") ?? undefined;
+  // A signed-out visitor on "/" is reading the landing page, which brings its own header and footer.
+  // Everyone else keeps the app furniture. The page itself repeats the sign-in check before it
+  // renders anything, so this only decides the chrome.
+  const bare = !viewer.signedIn && h.get("x-pathname") === "/";
 
   return (
     <html lang="en" className={`${sora.variable} ${manrope.variable}`} data-theme={settings.theme} data-mode={settings.mode} suppressHydrationWarning>
@@ -62,7 +66,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <OfflineWorker />
         {settings.theme === "island" ? <SceneBackdrop /> : null}
         {settings.splash ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}
-        <AppShell handle={viewer.handle} defaultMode={settings.mode}>
+        <AppShell handle={viewer.handle} signedIn={viewer.signedIn} bare={bare} defaultMode={settings.mode}>
           {children}
         </AppShell>
       </body>

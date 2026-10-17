@@ -32,17 +32,60 @@ export function NowBeyMark({ size = 30 }: { size?: number }) {
   );
 }
 
+/** The logo and wordmark. Shared by the member link and the guest full-page anchor above. */
+function BrandLockup() {
+  return (
+    <>
+      <NowBeyMark />
+      <span className="leading-none">
+        <span className="display block text-[19px] font-extrabold tracking-tight text-sand-100">
+          Now<span className="text-tide-400">Bey</span>
+        </span>
+        <span className="nb-tagline mt-0.5 block text-[11.5px] font-semibold uppercase tracking-[0.14em] text-ink-400">
+          {BRAND.tagline}
+        </span>
+      </span>
+    </>
+  );
+}
+
 export function AppShell({
   children,
   handle,
+  signedIn,
+  bare,
   defaultMode,
   kicker,
 }: {
   children: ReactNode;
   handle: string | null;
+  /**
+   * Signed-out visitors have no feed at "/" (they get the landing page), so the Feed link is left
+   * out of their navigation. The map, wire, report and alerts pages stay public.
+   */
+  signedIn: boolean;
+  /**
+   * The landing page brings its own header and footer, so it is rendered without the app's
+   * navigation, display controls and phone bar. Never set this for an application page.
+   */
+  bare?: boolean;
   defaultMode: ModeKey;
   kicker?: ReactNode;
 }) {
+  if (bare) {
+    return (
+      <div className="grain relative min-h-screen">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[800] focus:rounded-full focus:bg-tide-500 focus:px-4 focus:py-2 focus:text-[13px] focus:font-extrabold focus:text-abyss-950"
+        >
+          Skip to content
+        </a>
+        <main id="main">{children}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="grain relative min-h-screen">
       <a
@@ -53,20 +96,21 @@ export function AppShell({
       </a>
       <header className="glass-strong nb-pad-top relative z-[650] border-b hairline">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3 px-3.5 py-2.5 sm:px-5">
-          <Link href="/" className="flex items-center gap-2.5">
-            <NowBeyMark />
-            <span className="leading-none">
-              <span className="display block text-[19px] font-extrabold tracking-tight text-sand-100">
-                Now<span className="text-tide-400">Bey</span>
-              </span>
-              <span className="nb-tagline mt-0.5 block text-[11.5px] font-semibold uppercase tracking-[0.14em] text-ink-400">
-                {BRAND.tagline}
-              </span>
-            </span>
-          </Link>
+          {/* A guest who taps the logo must get a full page load: that is what rebuilds the bare
+              landing shell. A member stays inside the client router. */}
+          {signedIn ? (
+            <Link href="/" className="flex items-center gap-2.5">
+              <BrandLockup />
+            </Link>
+          ) : (
+            // eslint-disable-next-line @next/next/no-html-link-for-pages -- a full document load is required to rebuild the landing page shell
+            <a href="/" className="flex items-center gap-2.5">
+              <BrandLockup />
+            </a>
+          )}
 
           <div className="ml-auto hidden items-center gap-1 lg:flex">
-            <NavLinks />
+            <NavLinks showFeed={signedIn} />
           </div>
           <div className="ml-auto flex items-center gap-2 md:ml-3">
             <Link
@@ -122,7 +166,7 @@ export function AppShell({
       </footer>
 
       <div className="lg:hidden">
-        <NavLinks variant="bar" />
+        <NavLinks variant="bar" showFeed={signedIn} />
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
 import { reportClientError } from "@/components/error-reporter";
 
@@ -27,9 +26,10 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
         <button type="button" onClick={reset} className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
           Try again
         </button>
-        <Link href="/" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a full document load is required to rebuild the landing page shell */}
+        <a href="/" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5">
           Back to the feed
-        </Link>
+        </a>
       </div>
     </div>
   );

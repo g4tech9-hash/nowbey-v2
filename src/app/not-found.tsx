@@ -13,9 +13,10 @@ export default function NotFound() {
         <Link href="/map" className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
           Open the map
         </Link>
-        <Link href="/" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5">
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- a full document load is required to rebuild the landing page shell */}
+        <a href="/" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5">
           Back to the feed
-        </Link>
+        </a>
         <Link href="/report" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5">
           Report a spot
         </Link>

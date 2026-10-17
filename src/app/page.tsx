@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { db } from "@/db";
 import { incidentUpdates, incidents, newsItems } from "@/db/schema";
 import { PageHead } from "@/components/app-shell";
+import { Landing } from "@/components/landing";
 import { IncidentCard } from "@/components/incident-card";
 import { AdSlot } from "@/components/ad-slot";
 import { EmergencyNotice } from "@/components/emergency-notice";
@@ -89,6 +90,12 @@ async function loadHomeData(f: HomeQuery) {
 const loadHomeCached = unstable_cache(loadHomeData, ["home-feed-v1"], { revalidate: 30 });
 
 export default async function Home({ searchParams }: { searchParams: Promise<Search> }) {
+  // The front door. A visitor who is not signed in gets the landing page, and nothing behind it
+  // (no feed query, no badges, no engagement lookup) runs for them. A member skips it and lands
+  // straight on the live feed, which is what "/" has always meant to them.
+  const viewer = await getViewer();
+  if (!viewer.signedIn) return <Landing />;
+
   const sp = await searchParams;
   // Only a known category can reach the cache key; arbitrary strings would fill it.
   const categoryIn = first(sp.category);
@@ -102,7 +109,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const query: HomeQuery = { status, category, parish, q, hours };
   // Search text is not cached: free text would make an unbounded number of cache entries.
   const loadHome = q ? loadHomeData : loadHomeCached;
-  const [home, viewer] = await Promise.all([loadHome(query), getViewer()]);
+  const home = await loadHome(query);
   const { rows, recent, wire, totals, wireTotal, latest } = home;
   const emergencyUp = Number(totals?.activeSevere ?? 0) > 0;
   const life = FEATURES.islandLife ? await listPosts({ perPage: 3 }) : null;

@@ -88,9 +88,12 @@ function Glyph({ name, active }: { name: string; active: boolean }) {
   }
 }
 
-export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
+export function NavLinks({ variant = "top", showFeed = true }: { variant?: "top" | "bar"; showFeed?: boolean }) {
   const pathname = usePathname();
   const [online, setOnline] = useState(true);
+  // A signed-out visitor at "/" gets the landing page, not the feed, so pointing them at a "Feed"
+  // link would only bounce them back to where they started. The rest of the app stays public.
+  const links = showFeed ? LINKS : LINKS.filter((l) => l.href !== "/");
 
   useEffect(() => {
     const up = () => setOnline(true);
@@ -111,7 +114,7 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
       >
         <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
           {[
-            ...LINKS.filter((l) => l.href !== "/support"),
+            ...links.filter((l) => l.href !== "/support"),
             // "What is open now" is one tap away on a phone (it lives under Plans on desktop).
             { href: "/open-now", label: "What is open now", short: "Open", icon: "clock" } as const,
             ...(SHOW_GAS ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : []),
@@ -139,7 +142,7 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
 
   return (
     <div className="flex items-center gap-1">
-      {LINKS.map((l) => {
+      {links.map((l) => {
         const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
         const childActive = "children" in l && l.children ? l.children.some((c) => pathname.startsWith(c.href)) : false;
         if ("children" in l && l.children) {
