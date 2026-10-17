@@ -66,8 +66,8 @@ export default async function InboxPage() {
               <li key={m.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-2">
                 <Pill tone={m.status === "sent" ? "tide" : m.status === "failed" ? "conch" : "sun"}>{m.status}</Pill>
                 <span className="text-[#cfeee9]">{m.subject}</span>
-                <span className="font-mono text-[11px] text-[#8fb9b6]">{m.toAddr}</span>
-                <span className="text-[11px] text-[#6e97a0]">
+                <span className="font-mono text-[11.5px] text-[#8fb9b6]">{m.toAddr}</span>
+                <span className="text-[11.5px] text-[#6e97a0]">
                   {m.kind} · {timeAgo(m.createdAt)}
                 </span>
                 {m.error ? <span className="w-full text-[11.5px] text-[#8fb9b6]">{m.error}</span> : null}

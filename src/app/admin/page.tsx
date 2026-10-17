@@ -152,12 +152,12 @@ export default async function AdminOverview() {
           <ul className="mt-3 space-y-1.5">
             {crashes.map((e) => (
               <li key={e.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg bg-white/4 px-3 py-2 text-[12px]">
-                <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${e.kind === "server" ? "bg-conch-500/20 text-conch-400" : e.kind === "boundary" ? "bg-sun-500/20 text-sun-400" : "bg-tide-500/18 text-tide-300"}`}>{e.kind}</span>
+                <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11.5px] font-extrabold uppercase ${e.kind === "server" ? "bg-conch-500/20 text-conch-400" : e.kind === "boundary" ? "bg-sun-500/20 text-sun-400" : "bg-tide-500/18 text-tide-300"}`}>{e.kind}</span>
                 <span className="min-w-0 flex-1 truncate font-semibold text-sand-100" title={e.message}>{e.message}</span>
-                <span className="shrink-0 font-mono text-[11px] text-[#6e97a0]">{e.url ?? "—"}</span>
+                <span className="shrink-0 font-mono text-[11.5px] text-[#6e97a0]">{e.url ?? "—"}</span>
                 <span className="shrink-0 text-[#8fb9b6]">×{e.count}</span>
                 {e.handle ? <span className="shrink-0 text-[#8fb9b6]">@{e.handle}</span> : null}
-                <span className="shrink-0 text-[11px] text-[#6e97a0]">{timeAgo(e.lastSeenAt)}</span>
+                <span className="shrink-0 text-[11.5px] text-[#6e97a0]">{timeAgo(e.lastSeenAt)}</span>
                 <span className="shrink-0"><CrashDismissButton id={e.id} /></span>
               </li>
             ))}
@@ -180,7 +180,7 @@ export default async function AdminOverview() {
         <ul className="mt-2 space-y-2">
           {checks.map(([label, ok, help]) => (
             <li key={label} className="flex items-start gap-2.5 text-[13px]">
-              <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-black ${ok ? "bg-tide-500 text-abyss-950" : "bg-sun-500/25 text-sun-400"}`}>
+              <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11.5px] font-black ${ok ? "bg-tide-500 text-abyss-950" : "bg-sun-500/25 text-sun-400"}`}>
                 {ok ? "✓" : "!"}
               </span>
               <span>

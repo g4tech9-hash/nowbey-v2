@@ -31,7 +31,7 @@ export function ServiceStatusForm() {
 }
 
 export function DeleteServiceStatus({ id }: { id: number }) {
-  return <button type="button" className="text-[11px] font-bold text-danger-500 underline" onClick={async () => { if (!confirm("Remove this public status?")) return; await fetch("/api/admin/statuses", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) }); window.location.reload(); }}>Remove</button>;
+  return <button type="button" className="text-[11.5px] font-bold text-danger-500 underline" onClick={async () => { if (!confirm("Remove this public status?")) return; await fetch("/api/admin/statuses", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) }); window.location.reload(); }}>Remove</button>;
 }
 
 function Field({ name, label, type = "text", required = false, defaultValue }: { name: string; label: string; type?: string; required?: boolean; defaultValue?: string }) {

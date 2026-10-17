@@ -49,7 +49,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <>
               <span className="font-mono text-[12.5px] text-sand-100">{viewer.email}</span>
               <span
-                className={`rounded-full px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide ${
+                className={`rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide ${
                   viewer.emailVerified ? "bg-tide-500/18 text-tide-300" : "bg-sun-500/15 text-sun-600"
                 }`}
               >

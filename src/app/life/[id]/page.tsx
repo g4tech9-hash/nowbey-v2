@@ -65,7 +65,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         ) : null}
 
         <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1">
-          <span className="rounded-full px-2 py-0.5 text-[10.5px] font-extrabold uppercase tracking-wide" style={{ background: `${kind.color}26`, color: kind.color }}>
+          <span className="rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide" style={{ background: `${kind.color}26`, color: kind.color }}>
             {kind.label}
           </span>
           {post.parish ? <span className="text-[12px] text-ink-400">{post.parish}</span> : null}
@@ -124,7 +124,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
         {viewer.isEditor ? (
           <div className="mt-4 rounded-2xl border border-tide-400/25 bg-tide-500/[.06] p-3">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-tide-300">
+            <p className="text-[11.5px] font-bold uppercase tracking-wide text-tide-300">
               Staff tools · {post.flagCount} {post.flagCount === 1 ? "report" : "reports"}
             </p>
             <div className="mt-2">
@@ -171,7 +171,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                 <li key={o.id}>
                   <Link href={`/life/${o.id}`} className="group block">
                     <span className="block text-[13px] font-semibold leading-snug text-ink-200 group-hover:text-tide-300">{o.title}</span>
-                    <span className="block text-[11px] text-ink-400">
+                    <span className="block text-[11.5px] text-ink-400">
                       {o.placeName ?? o.parish} · {timeAgo(o.createdAt)}
                     </span>
                   </Link>

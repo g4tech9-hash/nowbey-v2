@@ -16,6 +16,8 @@ export function GET() {
   if (!pub) return new NextResponse("Push is not configured.", { status: 404 });
 
   const js = `/* NowBey push worker — generated from server env, do not edit by hand. */
+// The offline worker shares this registration (one worker per scope), so it is loaded first.
+importScripts("/sw.js");
 importScripts("https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-messaging-compat.js");
 

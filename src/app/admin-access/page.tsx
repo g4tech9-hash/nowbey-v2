@@ -29,7 +29,7 @@ export default async function AdminAccessPage() {
   const access = adminAccess(u);
   const row = (k: string, v: React.ReactNode, warn = false) => (
     <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/5 py-2 last:border-0">
-      <dt className="text-[11px] font-bold uppercase tracking-wide text-[#6e97a0]">{k}</dt>
+      <dt className="text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">{k}</dt>
       <dd className={`text-right text-[13px] ${warn ? "font-bold text-sun-400" : "text-sand-100"}`}>{v}</dd>
     </div>
   );

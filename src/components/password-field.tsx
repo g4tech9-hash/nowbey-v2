@@ -7,7 +7,7 @@ const SEGMENT = ["", "bg-conch-500", "bg-sun-500", "bg-tide-400", "bg-tide-400"]
 
 export const INPUT =
   "w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2.5 text-[14px] outline-none focus:border-tide-400";
-export const LABEL = "text-[11px] font-bold uppercase tracking-wide text-tide-400";
+export const LABEL = "text-[11.5px] font-bold uppercase tracking-wide text-tide-400";
 
 export function PasswordField({
   label,

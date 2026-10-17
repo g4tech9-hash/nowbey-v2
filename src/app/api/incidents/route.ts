@@ -14,7 +14,7 @@ import { publicIncident } from "@/lib/public";
 import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo";
 import { isLikelyDuplicateIncident } from "@/lib/collect";
 import { clientIp, sharedHit, tooMany } from "@/lib/ratelimit";
-import { approximatePin, pinPrivacyMeters } from "@/lib/location-privacy";
+import { pinPrivacyMeters, storedPinFor } from "@/lib/location-privacy";
 import { badOrigin, hasBadOrigin } from "@/lib/http";
 import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
 
@@ -123,7 +123,8 @@ export async function POST(req: Request) {
     .limit(12);
   const duplicate = recentCandidates.find((candidate) => isLikelyDuplicateIncident({ category, lat, lng }, candidate));
   // Duplicate matching uses the exact spot the reporter chose; what is stored and published is approximate.
-  const published = approximatePin(lat, lng, pinPrivacyMeters());
+  const reportedAccuracy = Number.isFinite(accuracy) && accuracy >= 0 && accuracy <= 10_000 ? accuracy : null;
+  const stored = storedPinFor({ lat, lng, accuracyMeters: reportedAccuracy }, pinPrivacyMeters());
   if (duplicate) {
     return NextResponse.json({ incident: publicIncident(duplicate), duplicate: true, message: "A nearby report already covers this event. We opened it instead of sending neighbours another alert." });
   }
@@ -140,14 +141,10 @@ export async function POST(req: Request) {
       details: text(body.details, 2000) || null,
       category,
       severity,
-      lat: published.lat,
-      lng: published.lng,
-      // When the pin was moved for privacy, the accuracy shown to readers is at least that distance.
-      accuracyMeters: (() => {
-        const reported = Number.isFinite(accuracy) && accuracy >= 0 && accuracy <= 10_000 ? accuracy : null;
-        if (!published.offsetMeters) return reported;
-        return Math.max(reported ?? 0, published.offsetMeters);
-      })(),
+      lat: stored.lat,
+      lng: stored.lng,
+      accuracyMeters: stored.accuracyMeters,
+      pinApproximated: stored.pinApproximated,
       address: text(body.address, 200) || null,
       street: text(body.street, 120) || null,
       // A missing or unrecognised island is worked out from the pin, so alerts reach the right people.

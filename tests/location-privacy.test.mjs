@@ -87,3 +87,23 @@ test("longitude offset widens correctly at higher latitudes", () => {
   const ratio = north.lng / equator.lng;
   assert.ok(Math.abs(ratio - 2) < 0.02, `expected a ratio near 2, got ${ratio.toFixed(4)}`);
 });
+
+// storedPinFor is what the incident route writes. These tests pin the rules the public feed relies on.
+import { storedPinFor } from "../src/lib/location-privacy.ts";
+
+test("storedPinFor moves a resident pin and raises accuracy to the offset", () => {
+  const out = storedPinFor({ lat: NASSAU.lat, lng: NASSAU.lng, accuracyMeters: 4 }, 60, () => 0.25);
+  assert.equal(out.pinApproximated, true);
+  assert.ok(out.lat !== NASSAU.lat || out.lng !== NASSAU.lng, "the stored pin is not the reported spot");
+  assert.ok(out.accuracyMeters >= 37 && out.accuracyMeters <= 38, "accuracy becomes the larger value (the 37.5 m offset)");
+});
+
+test("storedPinFor keeps device accuracy when it is larger than the offset", () => {
+  const out = storedPinFor({ lat: NASSAU.lat, lng: NASSAU.lng, accuracyMeters: 500 }, 60, () => 0.25);
+  assert.equal(out.accuracyMeters, 500);
+});
+
+test("storedPinFor with the rule off stores the exact spot and says so", () => {
+  const out = storedPinFor({ lat: NASSAU.lat, lng: NASSAU.lng, accuracyMeters: null }, 0);
+  assert.deepEqual(out, { lat: NASSAU.lat, lng: NASSAU.lng, accuracyMeters: null, pinApproximated: false });
+});

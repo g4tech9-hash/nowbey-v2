@@ -5,6 +5,8 @@ import { AppShell, LiveTicker } from "@/components/app-shell";
 import { ErrorReporter } from "@/components/error-reporter";
 import { SceneBackdrop } from "@/components/scene-backdrop";
 import { SplashScreen } from "@/components/splash-screen";
+import { OfflineWorker } from "@/components/offline-worker";
+import { headers } from "next/headers";
 import { BRAND } from "@/lib/brand";
 import { getSiteSettings } from "@/lib/settings";
 import { getViewer } from "@/lib/viewer";
@@ -44,17 +46,20 @@ const MODE_BOOT = `try{(function(){var d="__SITE_MODE__";var m=null;try{m=localS
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // Checks the database, so a deleted or suspended member stops looking signed in straight away.
-  const [viewer, settings] = await Promise.all([getViewer(), getSiteSettings()]);
+  const [viewer, settings, h] = await Promise.all([getViewer(), getSiteSettings(), headers()]);
+  // The proxy sets a per-request nonce for the content security policy; the inline boot scripts carry it.
+  const nonce = h.get("x-nonce") ?? undefined;
 
   return (
     <html lang="en" className={`${sora.variable} ${manrope.variable}`} data-theme={settings.theme} data-mode={settings.mode} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: MODE_BOOT.replace("__SITE_MODE__", settings.mode) }} />
-        <script dangerouslySetInnerHTML={{ __html: PREFS_BOOT }} />
-        {settings.splash ? <script dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} /> : null}
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: MODE_BOOT.replace("__SITE_MODE__", settings.mode) }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: PREFS_BOOT }} />
+        {settings.splash ? <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SPLASH_BOOT }} /> : null}
       </head>
       <body className="min-h-screen bg-abyss-950 text-ink-100 antialiased">
         <ErrorReporter />
+        <OfflineWorker />
         {settings.theme === "island" ? <SceneBackdrop /> : null}
         {settings.splash ? <SplashScreen tagline={BRAND.tagline} promise={BRAND.promise} /> : null}
         <AppShell handle={viewer.handle} defaultMode={settings.mode}>

@@ -66,6 +66,13 @@ function Glyph({ name, active }: { name: string; active: boolean }) {
           <path d="M10 22h4" />
         </svg>
       );
+    case "clock":
+      return (
+        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M12 7.5V12l3 2" />
+        </svg>
+      );
     case "life":
       return (
         <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
@@ -103,14 +110,19 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
         aria-label="Primary"
       >
         <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
-          {[...LINKS.filter((l) => l.href !== "/support"), ...(SHOW_GAS ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : [])].map((l) => {
+          {[
+            ...LINKS.filter((l) => l.href !== "/support"),
+            // "What is open now" is one tap away on a phone (it lives under Plans on desktop).
+            { href: "/open-now", label: "What is open now", short: "Open", icon: "clock" } as const,
+            ...(SHOW_GAS ? [{ href: "/gas", label: "Gas", short: "Gas", icon: "wire" } as const] : []),
+          ].map((l) => {
             const active = l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
             return (
               <li key={l.href} className="flex-1">
                 <Link
                   href={l.href}
                   aria-current={active ? "page" : undefined}
-                  className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[10.5px] font-bold transition duration-200 ease-standard active:scale-[0.97] ${
+                  className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-xl px-1 text-[11.5px] font-bold transition duration-200 ease-standard active:scale-[0.97] ${
                     active ? "bg-tide-500 text-abyss-950 shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
                   }`}
                 >
@@ -156,8 +168,8 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
         );
       })}
       <span
-        title={online ? "Browser is online" : "Browser is offline — pages you already opened may still show, but new reports will not appear"}
-        className={`ml-1 hidden items-center gap-1.5 rounded-full px-2 py-1 text-[10.5px] font-bold lg:inline-flex ${
+        title={online ? "Browser is online" : "Browser is offline — you can still read the last saved feed; new reports wait until you are back online"}
+        className={`ml-1 hidden items-center gap-1.5 rounded-full px-2 py-1 text-[11.5px] font-bold lg:inline-flex ${
           online ? "bg-ok-500/15 text-ok-600" : "bg-danger-500/15 text-danger-500"
         }`}
       >
@@ -210,7 +222,7 @@ function PlansMenu({
           aria-controls={menuId}
           aria-label={`${label} menu`}
           onClick={() => setOpen((v) => !v)}
-          className="rounded-r-lg px-1.5 py-1.5 text-[11px] text-ink-300 hover:bg-white/5 hover:text-sand-100"
+          className="rounded-r-lg px-1.5 py-1.5 text-[11.5px] text-ink-300 hover:bg-white/5 hover:text-sand-100"
         >
           <span aria-hidden>▾</span>
         </button>
@@ -246,7 +258,7 @@ export function SessionChip({ handle }: { handle: string | null }) {
       href="/you"
       className="flex min-h-[40px] items-center gap-2 rounded-full border hairline bg-white/5 px-2.5 py-1.5 text-[12.5px] font-bold text-sand-100 hover:bg-white/10 sm:min-h-0"
     >
-      <span className="grid h-5 w-5 place-items-center rounded-full bg-conch-500 text-[10px] text-abyss-950">
+      <span className="grid h-5 w-5 place-items-center rounded-full bg-conch-500 text-[11.5px] text-abyss-950">
         {handle.charAt(0).toUpperCase()}
       </span>
       @{handle}

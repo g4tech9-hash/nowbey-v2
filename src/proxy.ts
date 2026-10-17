@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { CORS_HEADERS, UNSAFE_METHODS, classifyOrigin, originExempt } from "@/lib/origin";
+import { buildCsp, newNonce } from "@/lib/csp";
 
 /**
  * Turns a web address with broken % escapes ("/life/%", "/api/photos/%E0%A4%A") into a plain 400 before it reaches
@@ -27,7 +28,23 @@ export function proxy(req: NextRequest) {
   }
 
   if (path.startsWith("/api/")) return api(req, path);
-  return NextResponse.next();
+  return page(req);
+}
+
+/**
+ * Pages get a fresh nonce for scripts. The policy is report-only for now (see src/lib/csp.ts): the browser logs
+ * what it would block, and the framework reads the nonce from the request header to tag its own scripts.
+ */
+function page(req: NextRequest) {
+  const nonce = newNonce();
+  const csp = buildCsp(nonce);
+  // Start from the incoming headers: passing a new Headers object would drop cookies and everything else.
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+  const res = NextResponse.next({ request: { headers: requestHeaders } });
+  res.headers.set("Content-Security-Policy-Report-Only", csp);
+  return res;
 }
 
 /** CORS allowlist and the cross-site write wall for every API route (rules in src/lib/origin.ts). */

@@ -11,7 +11,7 @@ const SIZES = [
 
 const FIELD =
   "mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2.5 text-[14px] outline-none focus:border-tide-400";
-const LABEL = "text-[11px] font-bold uppercase tracking-wide text-tide-400";
+const LABEL = "text-[11.5px] font-bold uppercase tracking-wide text-tide-400";
 
 export function EnterpriseForm() {
   const [organisation, setOrganisation] = useState("");
@@ -147,7 +147,7 @@ export function EnterpriseForm() {
       >
         {busy ? "Sending…" : "Talk to us"}
       </button>
-      <p className="text-[11px] leading-snug text-ink-400">
+      <p className="text-[11.5px] leading-snug text-ink-400">
         We only use these details to reply about Enterprise. We will not add you to a mailing list.
       </p>
     </form>

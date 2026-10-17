@@ -17,12 +17,12 @@ export default async function GasPage() {
       <div className="grid gap-4 md:grid-cols-3">
         {board.stats.map((s) => (
           <div key={s.fuel} className="rounded-2xl border border-white/10 bg-abyss-900/60 p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-tide-400">{s.fuel}</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">{s.fuel}</p>
             <p className="mt-1 text-2xl font-extrabold">{s.averageCents ? money(s.averageCents) : "No reports yet"}</p>
             <p className="text-[12px] text-sand-200">
               {s.cheapest ? `Cheapest: ${money(s.cheapest.priceCents)} at ${s.cheapest.station}, ${s.cheapest.parish}` : "Be the first to report one."}
             </p>
-            {board.official?.[s.fuel] ? <p className="mt-1 text-[11px] text-sand-300">Government price: {money(board.official[s.fuel]!)}</p> : null}
+            {board.official?.[s.fuel] ? <p className="mt-1 text-[11.5px] text-sand-300">Government price: {money(board.official[s.fuel]!)}</p> : null}
           </div>
         ))}
       </div>
@@ -33,7 +33,7 @@ export default async function GasPage() {
             <div key={`${s.station}${s.parish}${s.fuel}`} className="flex items-center justify-between rounded-xl border border-white/10 bg-abyss-900/50 px-3 py-2.5">
               <div>
                 <p className="text-[14px] font-bold">{s.station}</p>
-                <p className="text-[11px] text-sand-300">{s.parish} · {s.fuel} · {timeAgo(new Date(s.reportedAt))}</p>
+                <p className="text-[11.5px] text-sand-300">{s.parish} · {s.fuel} · {timeAgo(new Date(s.reportedAt))}</p>
               </div>
               <p className="text-lg font-extrabold text-tide-300">{money(s.priceCents)}</p>
             </div>

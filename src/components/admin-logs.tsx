@@ -91,11 +91,11 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
   return (
     <article className="nb-surface rounded-xl2 p-4">
       <div className="flex flex-wrap items-start gap-2">
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${group.kind === "server" ? "bg-danger-500/20 text-danger-500" : group.kind === "app" ? "bg-[#a78bfa]/18 text-[#c4b5fd]" : "bg-tide-500/18 text-tide-300"}`}>
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase ${group.kind === "server" ? "bg-danger-500/20 text-danger-500" : group.kind === "app" ? "bg-[#a78bfa]/18 text-[#c4b5fd]" : "bg-tide-500/18 text-tide-300"}`}>
           {group.kind} · {group.platform}
         </span>
         {a && a.status !== "unavailable" ? (
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${SEVERITY_STYLE[a.severity] ?? SEVERITY_STYLE.low}`}>{a.severity}</span>
+          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase ${SEVERITY_STYLE[a.severity] ?? SEVERITY_STYLE.low}`}>{a.severity}</span>
         ) : null}
         <p className="min-w-0 flex-1 text-[13.5px] font-semibold leading-snug text-sand-100">{group.message}</p>
         <span className="shrink-0 text-[12px] font-bold text-ink-400">×{group.count}</span>
@@ -108,7 +108,7 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
 
       {a ? (
         <div className="mt-3 rounded-xl bg-white/4 p-3">
-          <p className="text-[11px] font-extrabold uppercase tracking-wide text-tide-300">
+          <p className="text-[11.5px] font-extrabold uppercase tracking-wide text-tide-300">
             AI diagnosis · {STATUS_LABEL[a.status] ?? a.status}
             {a.status !== "unavailable" ? ` · confidence ${a.confidence}` : ""}
           </p>
@@ -174,7 +174,7 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
         <div className="mt-3 space-y-3">
           {group.breadcrumbs.length ? (
             <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-wide text-ink-400">Breadcrumbs before the crash</p>
+              <p className="text-[11.5px] font-extrabold uppercase tracking-wide text-ink-400">Breadcrumbs before the crash</p>
               <ol className="mt-1 space-y-0.5 text-[12px] text-ink-300">
                 {group.breadcrumbs.map((b, i) => (
                   <li key={i} className="font-mono">[{b.type}] {b.detail}</li>
@@ -183,10 +183,10 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
             </div>
           ) : null}
           <div>
-            <p className="text-[11px] font-extrabold uppercase tracking-wide text-ink-400">Stack</p>
-            <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-abyss-950/70 p-3 font-mono text-[11px] leading-relaxed text-ink-300">{group.stack ?? "(none recorded)"}</pre>
+            <p className="text-[11.5px] font-extrabold uppercase tracking-wide text-ink-400">Stack</p>
+            <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-abyss-950/70 p-3 font-mono text-[11.5px] leading-relaxed text-ink-300">{group.stack ?? "(none recorded)"}</pre>
           </div>
-          {group.userAgent ? <p className="break-all font-mono text-[11px] text-ink-400">{group.userAgent}</p> : null}
+          {group.userAgent ? <p className="break-all font-mono text-[11.5px] text-ink-400">{group.userAgent}</p> : null}
         </div>
       ) : null}
     </article>

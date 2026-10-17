@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CATEGORIES, type CategoryKey, formatCoord, nowMs, timeAgo } from "@/lib/geo";
+import { ageLabel, freshnessFor } from "@/lib/freshness";
 import { IncidentActions } from "./incident-actions";
 import { BadgeMark } from "./verified-badge";
 import { EngagementSummary } from "@/components/engage/summary";
@@ -31,6 +32,15 @@ export type IncidentRow = {
   resolvedAt?: string | Date | null;
 };
 
+/** Words for the timeline entries, as residents see them (the detail page uses the same words). */
+export const UPDATE_LABELS: Record<string, string> = {
+  confirm: "Confirmed still there",
+  photo: "Saw it too",
+  note: "Left a note",
+  clear: "Marked cleared",
+  escalate: "Escalated severity",
+};
+
 function SeverityMeter({ level, tone }: { level: number; tone: string }) {
   return (
     <span className="inline-flex items-center gap-[3px]" title={`Severity ${level} of 4`}>
@@ -51,6 +61,7 @@ export function IncidentCard({
   showActions = true,
   badge = null,
   eng,
+  latest = null,
 }: {
   row: IncidentRow;
   handle?: string | null;
@@ -58,27 +69,33 @@ export function IncidentCard({
   badge?: Badge | null;
   /** Reactions and comments, shown as a link into the conversation. */
   eng?: Engagement;
+  /** The newest timeline entry, so a card says what happened last without opening it. */
+  latest?: { kind: string; note: string | null; createdAt: string | Date } | null;
 }) {
   const meta = CATEGORIES[row.category as CategoryKey] ?? CATEGORIES.notice;
-  const stale = nowMs() - new Date(row.updatedAt).getTime() > 1000 * 60 * 60 * 18;
+  // Freshness is per category (see src/lib/freshness.ts). Old reports are labelled, never hidden.
+  const fresh = freshnessFor(row.category, row.updatedAt, nowMs());
+  const stale = fresh.level !== "current";
 
   return (
     <article
       className="glass relative overflow-hidden rounded-2xl p-3.5 transition hover:border-tide-400/35"
       style={{ boxShadow: `inset 3px 0 0 ${meta.color}` }}
     >
-      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] font-bold uppercase tracking-wide">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11.5px] font-bold uppercase tracking-wide">
         <span style={{ color: meta.color }}>{meta.label}</span>
         <SeverityMeter level={row.severity} tone={meta.color} />
         {row.status !== "active" ? (
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-ink-300">{row.status}</span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11.5px] text-ink-300">{row.status}</span>
         ) : stale ? (
-          <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[10px] text-sun-600">needs a re-check</span>
+          <span className="rounded-full bg-sun-500/15 px-2 py-0.5 text-[11.5px] text-sun-600">
+            {fresh.level === "stale" ? "may be out of date" : "needs a re-check"} · {ageLabel(fresh.hoursAgo)}
+          </span>
         ) : null}
         {row.sourceKind === "news" ? (
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-ink-300">from the wire</span>
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[11.5px] text-ink-300">from the wire</span>
         ) : null}
-        <span className="ml-auto text-[10.5px] font-semibold normal-case tracking-normal text-ink-400">
+        <span className="ml-auto text-[11.5px] font-semibold normal-case tracking-normal text-ink-400">
           {timeAgo(row.createdAt)}
         </span>
       </div>
@@ -94,11 +111,11 @@ export function IncidentCard({
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px] text-ink-400">
         <span className="font-semibold text-ink-200">{row.street ?? "Unmapped spot"}</span>
         {row.parish ? <span>· {row.parish}</span> : null}
-        <span className="font-mono text-[10.5px] text-ink-400">
+        <span className="font-mono text-[11.5px] text-ink-400">
           {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
         </span>
         {row.accuracyMeters ? (
-          <span className="rounded-md bg-white/8 px-1.5 py-0.5 text-[10.5px]">± {Math.round(row.accuracyMeters)} m</span>
+          <span className="rounded-md bg-white/8 px-1.5 py-0.5 text-[11.5px]">± {Math.round(row.accuracyMeters)} m</span>
         ) : null}
         <Link href={`/map?focus=${row.id}`} className="ml-auto font-bold text-tide-300 hover:underline">
           Open on map
@@ -109,12 +126,20 @@ export function IncidentCard({
         <p className="mt-1 text-[11.5px] text-ink-400">{row.address}</p>
       ) : null}
 
+      {latest ? (
+        <p className="mt-1.5 text-[12.5px] text-ink-200">
+          <span className="font-bold text-sand-100">Latest: {UPDATE_LABELS[latest.kind] ?? latest.kind}</span>
+          {latest.note ? <span> — {latest.note}</span> : null}
+          <span className="text-ink-400"> · {timeAgo(latest.createdAt)}</span>
+        </p>
+      ) : null}
+
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11px] font-semibold text-ink-200">
+        <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] font-semibold text-ink-200">
           {row.confirmations} confirm{row.confirmations === 1 ? "" : "s"}
         </span>
         {row.sightings > 0 ? (
-          <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11px] font-semibold text-ink-200">
+          <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] font-semibold text-ink-200">
             {row.sightings} “saw it too”
           </span>
         ) : null}
@@ -149,7 +174,7 @@ export function IncidentRail({ rows, empty }: { rows: IncidentRow[]; empty: stri
               <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: meta.color }} />
               <span className="min-w-0">
                 <span className="block truncate text-[13px] font-semibold text-sand-100 group-hover:text-tide-300">{row.title}</span>
-                <span className="block truncate text-[11px] text-ink-400">
+                <span className="block truncate text-[11.5px] text-ink-400">
                   {row.street ?? row.parish ?? "The Bahamas"} · {timeAgo(row.createdAt)}
                 </span>
               </span>

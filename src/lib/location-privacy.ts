@@ -43,3 +43,24 @@ export function approximatePin(
   const dLng = (distance * Math.sin(bearing)) / (METRES_PER_DEGREE_LAT * Math.cos((lat * Math.PI) / 180));
   return { lat: round6(lat + dLat), lng: round6(lng + dLng), offsetMeters: Math.round(distance) };
 }
+
+/**
+ * What a resident report stores and publishes. The map shows `lat`/`lng`; `accuracyMeters` is the larger of the
+ * device's own accuracy and the privacy offset, so readers never see a precision the pin does not have.
+ */
+export function storedPinFor(
+  input: { lat: number; lng: number; accuracyMeters: number | null },
+  meters: number,
+  random: () => number = Math.random,
+): { lat: number; lng: number; accuracyMeters: number | null; pinApproximated: boolean } {
+  const published = approximatePin(input.lat, input.lng, meters, random);
+  if (!published.offsetMeters) {
+    return { lat: input.lat, lng: input.lng, accuracyMeters: input.accuracyMeters, pinApproximated: false };
+  }
+  return {
+    lat: published.lat,
+    lng: published.lng,
+    accuracyMeters: Math.max(input.accuracyMeters ?? 0, published.offsetMeters),
+    pinApproximated: true,
+  };
+}

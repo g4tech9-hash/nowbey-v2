@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { MapPanel, type MapPin, type PickResult } from "@/components/map/map-panel";
 import { useIsMobile } from "@/lib/use-is-mobile";
+import { EmergencyNotice } from "@/components/emergency-notice";
+import { trackFunnel } from "@/lib/funnel-client";
 import { CATEGORIES, PARISHES, timeAgo, type CategoryKey } from "@/lib/geo";
 
 type Row = {
@@ -151,6 +153,11 @@ export default function MapWorkspace() {
     if (url.href !== window.location.href) window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }, [filter]);
 
+  // Adoption count: one visit to the map per page load (no visitor identifier is sent).
+  useEffect(() => {
+    trackFunnel("visit_map");
+  }, []);
+
   // The map calls this whenever the pin moves, and again when the street lookup comes back.
   function handlePick(p: PickResult) {
     setPick(p);
@@ -164,6 +171,23 @@ export default function MapWorkspace() {
       ),
     [rows, filter, island],
   );
+
+  // The rail's first row is the single Tab stop (arrow keys move through the rest). The selected pin takes that role.
+  const railStop = Math.max(0, visible.slice(0, listLimit).findIndex((r) => r.id === selected));
+  // Changing a filter re-frames the map on what is now listed.
+  const fitKey = `${filter}|${island}`;
+  const fitPoints = useMemo(() => visible.map((r) => [r.lat, r.lng] as [number, number]), [visible]);
+
+  function railKeys(e: ReactKeyboardEvent<HTMLUListElement>) {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(e.key)) return;
+    const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>("[data-pin-row]"));
+    const at = items.indexOf(document.activeElement as HTMLElement);
+    if (at < 0) return;
+    e.preventDefault();
+    const next =
+      e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : e.key === "ArrowDown" ? Math.min(items.length - 1, at + 1) : Math.max(0, at - 1);
+    items[next]?.focus();
+  }
 
   const pins: MapPin[] = useMemo(
     () =>
@@ -283,7 +307,7 @@ export default function MapWorkspace() {
       <div className={`relative flex min-h-0 min-w-0 flex-col lg:h-full lg:order-2 ${view === "list" ? "hidden lg:flex" : ""}`}>
         <div className="mb-2 hidden flex-wrap items-end justify-between gap-2 lg:flex">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-tide-400">Safety map</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-tide-400">Safety map</p>
             <h1 className="display text-[clamp(1.4rem,3.4vw,1.9rem)] font-extrabold leading-tight text-sand-100">
               What is happening, street by street
             </h1>
@@ -309,6 +333,8 @@ export default function MapWorkspace() {
             initialLayer="hybrid"
             focusId={selected}
             focusNonce={focusNonce}
+            fitKey={fitKey}
+            fitPoints={fitPoints}
             className="h-full w-full rounded-2xl"
           />
           {pickMode || view !== "map" ? null : (
@@ -373,6 +399,9 @@ export default function MapWorkspace() {
           )}
         </div>
 
+        <div className="px-3 pt-2 lg:px-0">
+          <EmergencyNotice compact />
+        </div>
         {/* One scroll owner: controls must never squeeze the reports to zero height. */}
         <div className="nb-pin-rail-scroll nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3 lg:pr-1.5" tabIndex={0} aria-label="Pin filters and reports">
         <details className="px-3 lg:px-0">
@@ -383,14 +412,14 @@ export default function MapWorkspace() {
         <div className="grid flex-none grid-cols-3 gap-2 px-3 pt-2 lg:px-0">
           <section className="nb-surface col-span-2 p-3">
             <div className="mb-2 flex items-center gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-400">Island pulse</p>
+              <p className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Island pulse</p>
               <span className="nb-live-dot ml-auto" aria-hidden />
             </div>
             {pulse.top.length ? (
               <ul className="space-y-1.5">
                 {pulse.top.map(([k, n]) => (
                   <li key={k} className="flex items-center gap-2">
-                    <span className="flex w-[86px] shrink-0 items-center gap-1.5 text-[11px] font-bold text-ink-200">
+                    <span className="flex w-[86px] shrink-0 items-center gap-1.5 text-[11.5px] font-bold text-ink-200">
                       <span className="h-2 w-2 rounded-full" style={{ background: CATEGORIES[k]?.color }} />
                       <span className="truncate">{CATEGORIES[k]?.label ?? k}</span>
                     </span>
@@ -400,7 +429,7 @@ export default function MapWorkspace() {
                         style={{ width: `${(n / pulse.max) * 100}%`, background: CATEGORIES[k]?.color, boxShadow: `0 0 10px ${CATEGORIES[k]?.color}88` }}
                       />
                     </span>
-                    <span className="num w-5 text-right font-mono text-[11px] text-ink-300">{n}</span>
+                    <span className="num w-5 text-right font-mono text-[11.5px] text-ink-300">{n}</span>
                   </li>
                 ))}
               </ul>
@@ -410,11 +439,11 @@ export default function MapWorkspace() {
           </section>
           <div className="flex flex-col gap-2">
             <div className="nb-surface flex flex-1 flex-col justify-center p-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Open pins</p>
+              <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Open pins</p>
               <p className="num display mt-1 text-2xl font-extrabold text-tide-300">{pulse.open}</p>
             </div>
             <div className="nb-surface flex flex-1 flex-col justify-center p-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmed</p>
+              <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmed</p>
               <p className="num display mt-1 text-2xl font-extrabold text-ink-100">
                 {rows.reduce((sum, r) => sum + (r.confirmations ?? 0), 0).toLocaleString("en-US")}
               </p>
@@ -456,7 +485,7 @@ export default function MapWorkspace() {
         {/* Row C — island + wire pins. Folded away on a phone until asked for, always open on desktop. */}
         <div className={`${moreFilters ? "flex" : "hidden lg:flex"} flex-none flex-wrap items-center gap-1.5 px-3 pt-2 lg:px-0`}>
           <label className="flex items-center gap-1.5">
-            <span className="text-[10.5px] font-bold uppercase tracking-wide text-ink-400">Island</span>
+            <span className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Island</span>
             <select
               value={island}
               onChange={(e) => { setIsland(e.target.value); setListLimit(40); }}
@@ -475,7 +504,7 @@ export default function MapWorkspace() {
             type="button"
             onClick={() => setShowWire((v) => !v)}
             aria-pressed={showWire}
-            className={`min-h-[40px] rounded-lg px-2 py-1 text-[11px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-ink-400"}`}
+            className={`min-h-[40px] rounded-lg px-2 py-1 text-[11.5px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-ink-400"}`}
           >
             Wire pins {showWire ? "on" : "off"}
           </button>
@@ -488,7 +517,7 @@ export default function MapWorkspace() {
           </summary>
           <ul className="flex flex-wrap gap-x-3 gap-y-1 pb-1">
             {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
-              <li key={k} className="flex items-center gap-1.5 text-[11px] text-ink-300">
+              <li key={k} className="flex items-center gap-1.5 text-[11.5px] text-ink-300">
                 <span
                   className="grid h-[22px] w-[22px] place-items-center rounded-full border border-white/70 text-[8px] font-extrabold text-abyss-950"
                   style={{ background: CATEGORIES[k].color }}
@@ -498,7 +527,7 @@ export default function MapWorkspace() {
                 {CATEGORIES[k].label}
               </li>
             ))}
-            <li className="flex items-center gap-1.5 text-[11px] text-ink-300">
+            <li className="flex items-center gap-1.5 text-[11.5px] text-ink-300">
               <span className="grid h-[22px] w-[22px] place-items-center rounded-full border-2 border-tide-400 bg-abyss-950 text-[9px] font-extrabold text-tide-300">
                 12
               </span>
@@ -513,7 +542,7 @@ export default function MapWorkspace() {
             <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: CATEGORIES[current.category]?.color }} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[12.5px] font-bold text-sand-100">{current.title}</span>
-              <span className="block truncate text-[11px] text-ink-400">
+              <span className="block truncate text-[11.5px] text-ink-400">
                 {current.street ?? "unmapped"} · {timeAgo(current.createdAt)} · {current.confirmations} ✓
               </span>
             </span>
@@ -559,7 +588,7 @@ export default function MapWorkspace() {
               ) : (
                 <div className="space-y-2.5">
                   <label className="block">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Headline</span>
+                    <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Headline</span>
                     <input
                       value={form.title}
                       onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -568,19 +597,19 @@ export default function MapWorkspace() {
                     />
                   </label>
                   <label className="block">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Area</span>
+                    <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Area</span>
                     <input
                       value={form.area}
                       onChange={(e) => setForm({ ...form, area: e.target.value })}
                       placeholder="Bay Street"
                       className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[16px] outline-none focus:border-tide-400 sm:text-[13px]"
                     />
-                    <span className="mt-1 block text-[10.5px] text-ink-400">
+                    <span className="mt-1 block text-[11.5px] text-ink-400">
                       Prefilled from the pin. Edit it if locals call the spot something else.
                     </span>
                   </label>
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Category</span>
+                    <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Category</span>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
                         <button
@@ -599,14 +628,14 @@ export default function MapWorkspace() {
                     </div>
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">How bad is it?</span>
+                    <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">How bad is it?</span>
                     <div className="mt-1 grid grid-cols-2 gap-1 sm:grid-cols-4">
                       {["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"].map((label, i) => (
                         <button
                           key={label}
                           type="button"
                           onClick={() => setForm({ ...form, severity: i + 1 })}
-                          className={`min-h-[40px] rounded-lg px-1.5 py-1.5 text-[10.5px] font-bold ${
+                          className={`min-h-[40px] rounded-lg px-1.5 py-1.5 text-[11.5px] font-bold ${
                             form.severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-ink-300"
                           }`}
                         >
@@ -616,7 +645,7 @@ export default function MapWorkspace() {
                     </div>
                   </div>
                   <label className="block">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">What should neighbours know?</span>
+                    <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">What should neighbours know?</span>
                     <textarea
                       value={form.details}
                       onChange={(e) => setForm({ ...form, details: e.target.value })}
@@ -656,7 +685,7 @@ export default function MapWorkspace() {
             </div>
           ) : (
             <div className="nb-surface rounded-xl2 p-2.5 lg:p-3.5">
-              <ul className="space-y-1.5" aria-busy={loading}>
+              <ul className="space-y-1.5" aria-busy={loading} onKeyDown={railKeys}>
                 {loading ? (
                   <>
                     <li className="sr-only">Loading pins…</li>
@@ -668,7 +697,7 @@ export default function MapWorkspace() {
                     ))}
                   </>
                 ) : visible.length ? (
-                  visible.slice(0, listLimit).map((r) => {
+                  visible.slice(0, listLimit).map((r, idx) => {
                     const cat = CATEGORIES[r.category];
                     const sev = Math.min(Math.max(r.severity ?? 1, 1), 5);
                     return (
@@ -680,6 +709,8 @@ export default function MapWorkspace() {
                             setFocusNonce((n) => n + 1);
                           }}
                           aria-current={selected === r.id ? "true" : undefined}
+                          data-pin-row
+                          tabIndex={idx === railStop ? 0 : -1}
                           className={`group min-h-[56px] w-full rounded-xl border p-2.5 text-left transition duration-200 ease-standard ${
                             selected === r.id
                               ? "border-tide-400/50 bg-tide-500/12 shadow-[0_0_0_1px_var(--color-tide-400)]"
@@ -693,17 +724,17 @@ export default function MapWorkspace() {
                             />
                             <span className="truncate text-[12.5px] font-bold tracking-tight text-sand-100">{r.title}</span>
                             {r.status === "resolved" ? (
-                              <span className="flex-none rounded-full bg-ok-500/15 px-1.5 py-0.5 text-[10px] font-bold text-ok-600">
+                              <span className="flex-none rounded-full bg-ok-500/15 px-1.5 py-0.5 text-[11.5px] font-bold text-ok-600">
                                 Resolved
                               </span>
                             ) : r.severity >= 3 ? (
-                              <span className="flex-none rounded-full bg-danger-500/15 px-1.5 py-0.5 text-[10px] font-bold text-danger-500">
+                              <span className="flex-none rounded-full bg-danger-500/15 px-1.5 py-0.5 text-[11.5px] font-bold text-danger-500">
                                 {r.severity >= 4 ? "Dangerous" : "Blocking"}
                               </span>
                             ) : null}
                           </span>
                           <span className="mt-1 flex items-center gap-2">
-                            <span className="num font-mono text-[11px] text-ink-400">
+                            <span className="num font-mono text-[11.5px] text-ink-400">
                               {r.street ?? "unmapped"} · {timeAgo(r.createdAt)} · {r.confirmations} confirmed
                             </span>
                             <span className="ml-auto flex flex-none items-center gap-1" aria-label={`Severity ${sev} of 5`}>
@@ -802,7 +833,7 @@ function FilterChip({
       onClick={onClick}
       aria-pressed={active}
       aria-current={active ? "true" : undefined}
-      className="nb-category-chip min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold transition duration-200 ease-standard active:scale-95"
+      className="nb-category-chip min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold transition duration-200 ease-standard active:scale-95"
       style={{
         background: active ? `${color ?? "var(--color-tide-400)"}26` : "rgba(255,255,255,.05)",
         border: `1px solid ${active ? `${color ?? "var(--color-tide-400)"}66` : "rgba(255,255,255,.08)"}`,

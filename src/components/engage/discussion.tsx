@@ -5,7 +5,7 @@ import { timeAgo } from "@/lib/geo";
 import type { Viewer } from "@/lib/viewer";
 import { CommentComposer, CommentTools } from "./comment-ui";
 
-const TAG = "rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide";
+const TAG = "rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide";
 
 function Row({ c, type, id, viewer, open }: { c: CommentNode; type: TargetType; id: string; viewer: Viewer; open: boolean }) {
   const staff = viewer.isEditor;

@@ -212,7 +212,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
             placeholder={def.bodyHint}
             className={`${INPUT} mt-1 resize-y leading-relaxed`}
           />
-          <span className="mt-1 block text-right text-[11px] text-ink-400">
+          <span className="mt-1 block text-right text-[11.5px] text-ink-400">
             {body.length}/{LIMITS.body}
           </span>
         </label>

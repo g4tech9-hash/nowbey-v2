@@ -68,7 +68,7 @@ export default async function CommunityAdmin({ searchParams }: { searchParams: P
             <li key={p.id} className="glass flex flex-wrap items-start justify-between gap-3 rounded-2xl p-3.5" style={{ boxShadow: `inset 3px 0 0 ${k.color}` }}>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: k.color }}>
+                  <span className="text-[11.5px] font-extrabold uppercase tracking-wide" style={{ color: k.color }}>
                     {k.label}
                   </span>
                   {p.status === "hidden" ? <Pill tone="conch">Hidden</Pill> : null}

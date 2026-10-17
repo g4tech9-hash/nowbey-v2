@@ -1,18 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MapPanel, type PickResult } from "@/components/map/map-panel";
 import { EmergencyNotice } from "@/components/emergency-notice";
 import { ReportAssist } from "@/components/report-assist";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
+import { trackFunnel } from "@/lib/funnel-client";
 
 const STEPS = ["What is it?", "Where is it?", "Tell neighbours"] as const;
 const SEVERITY_LABELS = ["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"] as const;
 const prefillAllowed = process.env.NEXT_PUBLIC_PREFILL_AREA !== "0";
 /** A report in progress survives a refresh, a dropped signal or a trip to the map. Cleared once it is published. */
 const DRAFT_KEY = "nb_report_draft_v1";
+/** Outages and water problems are often at someone's home, so they default to posting without a name. */
+const PRIVATE_BY_DEFAULT = new Set<CategoryKey>(["flood", "water", "power"]);
 
 type Draft = {
   step: number;
@@ -72,6 +75,9 @@ export default function ReportWizard() {
   // Set when the server says a nearby report already covers this event. Nothing was published, so the draft stays.
   const [duplicate, setDuplicate] = useState<{ id: string; message: string } | null>(null);
   const [restored, setRestored] = useState(false);
+  // Once the person touches the anonymous box, their choice wins over the category default.
+  const [anonTouched, setAnonTouched] = useState(false);
+  const startedRef = useRef(false);
 
   // Restore a draft once, after mount (sessionStorage is not available during server rendering).
   useEffect(() => {
@@ -100,6 +106,11 @@ export default function ReportWizard() {
   }, [restored, madeId, step, category, severity, pick, area, island, title, details, photoNote, anonymous]);
 
   /** The area name that goes with a pin: the street the map matched, or failing that the island. */
+  function chooseCategory(k: CategoryKey) {
+    setCategory(k);
+    if (!anonTouched && PRIVATE_BY_DEFAULT.has(k)) setAnonymous(true);
+  }
+
   // Why Publish is off. Shown as text so a disabled button is never a mystery.
   const publishBlocker = !pick
     ? "Drop the pin on the map first: the report needs a spot."
@@ -114,6 +125,10 @@ export default function ReportWizard() {
 
   // The map calls this whenever the pin moves, and again when the street lookup comes back.
   function handlePick(p: PickResult) {
+    if (!startedRef.current) {
+      startedRef.current = true;
+      trackFunnel("report_started");
+    }
     setPick(p);
     if (p.parish) setIsland(p.parish);
     const a = prefillOn ? areaFor(p) : null;
@@ -174,6 +189,7 @@ export default function ReportWizard() {
         return;
       }
       clearDraft();
+      trackFunnel("report_published");
       setMadeId(data.incident.id);
       router.refresh();
     } catch (e) {
@@ -262,7 +278,7 @@ export default function ReportWizard() {
   return (
     <div className="mx-auto max-w-[1000px]">
       <div className="mb-4"><EmergencyNotice /></div>
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-tide-400">Report a hazard</p>
+      <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">Report a hazard</p>
 
       <h1 className="display mt-1 text-[clamp(1.6rem,4vw,2.2rem)] font-extrabold leading-tight text-sand-100">
         Three steps, twenty seconds
@@ -280,7 +296,7 @@ export default function ReportWizard() {
             >
               <span className="mr-1.5 opacity-60">{i + 1}</span>
               {label}
-              {i === 1 && pick ? <span className="ml-1.5 text-[10px] text-tide-500">pinned</span> : null}
+              {i === 1 && pick ? <span className="ml-1.5 text-[11.5px] text-tide-500">pinned</span> : null}
             </button>
           </li>
         ))}
@@ -296,7 +312,7 @@ export default function ReportWizard() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => setCategory(key)}
+                  onClick={() => chooseCategory(key)}
                   className="rounded-2xl border p-3 text-left transition"
                   style={{
                     borderColor: active ? c.color : "rgba(120,220,214,.16)",
@@ -312,8 +328,18 @@ export default function ReportWizard() {
               );
             })}
           </div>
+          {category === "power" ? (
+            <p className="mt-3 rounded-xl border hairline p-3 text-[12.5px] leading-relaxed text-ink-300">
+              Power out? NowBey shows what neighbours see, but only the utility can restore supply. Report the outage to Bahamas
+              Power and Light as well:{" "}
+              <a href="https://bplco.com/services/outages" className="font-bold text-tide-300 underline-offset-2 hover:underline">
+                bplco.com/services/outages
+              </a>
+              .
+            </p>
+          ) : null}
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-ink-400">Severity</span>
+            <span className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Severity</span>
             <div className="flex gap-1.5">
               {["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"].map((label, i) => (
                 <button
@@ -367,7 +393,7 @@ export default function ReportWizard() {
                     </p>
                     <p className="font-semibold text-sand-100">{pick.street ?? "Finding the street…"}</p>
                     <p className="text-[11.5px] text-ink-400">{pick.address ?? "No matched address yet"}</p>
-                    <p className="text-[11px] text-ink-400">
+                    <p className="text-[11.5px] text-ink-400">
                       Parish {pick.parish ?? island} · accuracy estimate ± {pick.precisionM.toFixed(1)} m
                     </p>
                   </>
@@ -376,7 +402,7 @@ export default function ReportWizard() {
                 )}
               </div>
               <label className="mt-2.5 block">
-                <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Area (locals&apos; name)</span>
+                <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Area (locals&apos; name)</span>
                 <input
                   value={area}
                   onChange={(e) => setArea(e.target.value)}
@@ -433,7 +459,7 @@ export default function ReportWizard() {
           </div>
           <div className="space-y-3">
             <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Headline</span>
+              <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Headline</span>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -442,7 +468,7 @@ export default function ReportWizard() {
               />
             </label>
             <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">What neighbours should know</span>
+              <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">What neighbours should know</span>
               <textarea
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
@@ -452,19 +478,19 @@ export default function ReportWizard() {
               />
             </label>
             <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Photo description (optional)</span>
+              <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Photo description (optional)</span>
               <input
                 value={photoNote}
                 onChange={(e) => setPhotoNote(e.target.value)}
                 placeholder="Water up to the first step of the bus shelter, facing east"
                 className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/60 px-3 py-2 text-[13px] outline-none focus:border-tide-400"
               />
-              <span className="mt-1 block text-[10.5px] text-ink-400">
+              <span className="mt-1 block text-[11.5px] text-ink-400">
                 Photo uploads are not available yet. A line describing what you see helps neighbours who cannot view images.
               </span>
             </label>
             <label className="flex items-center gap-2 text-[12.5px] text-ink-300">
-              <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="h-3.5 w-3.5 accent-[#00c9b7]" />
+              <input type="checkbox" checked={anonymous} onChange={(e) => { setAnonymous(e.target.checked); setAnonTouched(true); }} className="h-3.5 w-3.5 accent-[#00c9b7]" />
               {handle !== "neighbour" ? `Post anonymously instead of as @${handle}` : "Post anonymously"}
             </label>
             <ReportAssist
@@ -475,7 +501,7 @@ export default function ReportWizard() {
               severity={severity}
               pick={pick}
               parish={island}
-              onCategory={setCategory}
+              onCategory={chooseCategory}
               onSeverity={setSeverity}
               onHeadline={setTitle}
               onMovePin={handlePick}
@@ -508,7 +534,7 @@ export default function ReportWizard() {
 
           <div className="space-y-3">
             <div className="nb-surface rounded-xl2 p-3.5">
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Preview</p>
+              <p className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Preview</p>
               <p className="display mt-1 text-[16px] font-extrabold leading-snug text-sand-100">
                 {title.trim() || "Your headline appears here"}
               </p>
@@ -521,7 +547,7 @@ export default function ReportWizard() {
                 </span>
                 <span>{area || pick?.street || "area pending"}</span>
                 <span>· {SEVERITY_LABELS[Math.min(4, Math.max(1, severity)) - 1]}</span>
-                {pick ? <span className="font-mono text-[10.5px]">{pick.lat.toFixed(5)}, {pick.lng.toFixed(5)}</span> : null}
+                {pick ? <span className="font-mono text-[11.5px]">{pick.lat.toFixed(5)}, {pick.lng.toFixed(5)}</span> : null}
               </div>
             </div>
             {pick ? (

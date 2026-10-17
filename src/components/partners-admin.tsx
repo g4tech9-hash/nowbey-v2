@@ -39,7 +39,7 @@ const PAYMENT = ["unpaid", "paid", "comp"] as const;
 
 const FIELD =
   "mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2 text-[13px] outline-none focus:border-tide-400";
-const LABEL = "block text-[11px] font-bold uppercase tracking-wide text-[#6e97a0]";
+const LABEL = "block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]";
 
 const blank = {
   organisation: "",
@@ -252,7 +252,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                     </span>
                     <span className="text-[12px] text-[#a9cdc9]">{p.parish}</span>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                      className={`rounded-full px-2 py-0.5 text-[11.5px] font-bold ${
                         p.paymentStatus === "paid"
                           ? "bg-tide-500/20 text-tide-300"
                           : p.paymentStatus === "comp"
@@ -290,7 +290,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                   </dl>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 border-t hairline pt-3">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-[#6e97a0]">Payment</span>
+                    <span className="text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Payment</span>
                     {PAYMENT.map((s) => (
                       <button
                         key={s}

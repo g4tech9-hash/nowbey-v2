@@ -69,7 +69,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
               .
             </p>
           )}
-          <p className="mt-1 text-[11px] text-ink-400">
+          <p className="mt-1 text-[11.5px] text-ink-400">
             Prices are in US dollars. The Bahamian dollar is pegged one to one, so $10 is B$10.
           </p>
         </div>
@@ -78,7 +78,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
       <section id="enterprise" aria-label="Enterprise" className="scroll-mt-24">
         <div className="glass grid gap-6 rounded-2xl p-4 sm:p-6 lg:grid-cols-[1fr_minmax(0,430px)]">
           <div className="flex flex-col">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em]" style={{ color: ENTERPRISE.tone }}>
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.16em]" style={{ color: ENTERPRISE.tone }}>
               {ENTERPRISE.name}
             </p>
             <h2 className="display mt-1 text-[clamp(1.4rem,3.6vw,1.9rem)] font-extrabold leading-tight text-sand-100">

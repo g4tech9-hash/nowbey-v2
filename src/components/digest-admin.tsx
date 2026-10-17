@@ -217,7 +217,7 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
                       <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                         <span className="font-bold text-sand-100">{d.subject}</span>
                       </span>
-                      <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-ink-400">
+                      <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11.5px] text-ink-400">
                         <span>{d.parish}</span>
                         <span>· {d.itemCount} items</span>
                         <span className={d.generatedBy === "ai" ? "font-bold text-tide-300" : ""}>{d.generatedBy === "ai" ? "Gemini" : "template"}</span>
@@ -234,7 +234,7 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
 
           {open ? (
             <div className="nb-surface rounded-xl2 p-4">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-ink-400">Preview — exactly what lands in the inbox</p>
+              <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Preview — exactly what lands in the inbox</p>
               <div
                 className="mt-2 overflow-hidden rounded-xl border hairline bg-[#03121b] [&_a]:pointer-events-none"
                 // Every variable inside was escaped by the generator; links are ours from the database.

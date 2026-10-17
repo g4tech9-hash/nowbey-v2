@@ -8,7 +8,7 @@ export function BadgeMark({ kind }: { kind: Badge | null | undefined }) {
   return (
     <span
       title={desk ? "NowBey staff account" : kind === "broadcaster" ? "Approved to broadcast on NowBey" : "Verified reporter — someone at NowBey checked this account"}
-      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-[1px] text-[10px] font-extrabold uppercase tracking-wide ${
+      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-[1px] text-[11.5px] font-extrabold uppercase tracking-wide ${
         desk ? "bg-tide-500/20 text-tide-300" : "bg-danger-500/15 text-danger-500"
       }`}
     >

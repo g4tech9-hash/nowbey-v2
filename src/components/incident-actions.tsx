@@ -87,7 +87,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
     // aria-busy tells assistive tech that the group is mid-request, and the
     // live region below is inside it so the announcement is not orphaned.
     <div className="space-y-1.5" aria-busy={busy !== null}>
-      <div className={`flex flex-wrap gap-1.5 ${compact ? "text-[11px]" : "text-[12px]"}`}>
+      <div className={`flex flex-wrap gap-1.5 ${compact ? "text-[11.5px]" : "text-[12px]"}`}>
         <button
           type="button"
           onClick={() => send("confirm")}

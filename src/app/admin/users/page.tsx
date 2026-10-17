@@ -118,7 +118,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
 
       <div className="glass nb-scroll overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[820px] text-left text-[12.5px]">
-          <thead className="text-[10.5px] uppercase tracking-wide text-[#6e97a0]">
+          <thead className="text-[11.5px] uppercase tracking-wide text-[#6e97a0]">
             <tr>
               <th className="px-3 py-2">Member</th>
               <th className="px-2">Email</th>
@@ -158,7 +158,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                       <span className="font-bold" style={{ color: TIERS[r.tier].tone }}>
                         {TIERS[r.tier].name}
                       </span>
-                      <span className="block text-[11px] text-[#8fb9b6]">{r.planStatus === "comp" ? "complimentary" : (r.planStatus ?? "active")}</span>
+                      <span className="block text-[11.5px] text-[#8fb9b6]">{r.planStatus === "comp" ? "complimentary" : (r.planStatus ?? "active")}</span>
                     </>
                   ) : (
                     <span className="text-[#6e97a0]">Free</span>

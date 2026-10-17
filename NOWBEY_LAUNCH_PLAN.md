@@ -1,5 +1,12 @@
 # NOWBEY LAUNCH PLAN
 
+> **Status update (2026-10-17).** Three items below are resolved in code, so this plan is no longer the source of truth for them:
+> - **P0 (paid Verified badge): resolved.** `src/lib/badges.ts` grants verification through `badge_grants`, which staff grant, revoke and can time-limit. A plan tier does not grant it.
+> - **P1 (payment language): resolved.** Billing copy depends on the real state (`src/lib/billing.ts`), so demo mode is no longer described as live billing.
+> - **P2 (alert paywall): resolved.** Storm warnings are free (`src/lib/alerts.ts`, `stormOverride`).
+> The original analysis is kept below for history.
+
+
 ## 1. Actual Functionality Audit
 NowBey is a community-driven hazard and news aggregator for the Bahamas.
 - **Core Features:** Residents "drop pins" to report hazards (floods, outages, etc.) on a map with aerial imagery. Neighbors can confirm these reports.

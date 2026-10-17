@@ -106,15 +106,15 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
       <dl className="grid grid-cols-3 gap-2">
         <div className="nb-surface p-3">
-          <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Reports</dt>
+          <dt className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Reports</dt>
           <dd className="num display mt-1 text-2xl font-extrabold text-tide-300">{record.reports}</dd>
         </div>
         <div className="nb-surface p-3">
-          <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmations</dt>
+          <dt className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Confirmations</dt>
           <dd className="num display mt-1 text-2xl font-extrabold text-ok-500">{record.confirmations}</dd>
         </div>
         <div className="nb-surface p-3">
-          <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-400">Alert islands</dt>
+          <dt className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Alert islands</dt>
           <dd className="num display mt-1 text-2xl font-extrabold text-ink-100">{settings.showAlertSummary && islands ? islands : "—"}</dd>
         </div>
       </dl>

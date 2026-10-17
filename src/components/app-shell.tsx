@@ -6,6 +6,8 @@ import { LiveTicker } from "./live-ticker";
 import { BRAND } from "@/lib/brand";
 import type { ModeKey } from "@/lib/themes";
 import { AccessibilityControls } from "./accessibility-controls";
+import { SimpleViewToggle } from "./simple-view-toggle";
+import { DisplayTip } from "./display-tip";
 
 export function NowBeyMark({ size = 30 }: { size?: number }) {
   return (
@@ -57,7 +59,7 @@ export function AppShell({
               <span className="display block text-[19px] font-extrabold tracking-tight text-sand-100">
                 Now<span className="text-tide-400">Bey</span>
               </span>
-              <span className="nb-tagline mt-0.5 block text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink-400">
+              <span className="nb-tagline mt-0.5 block text-[11.5px] font-semibold uppercase tracking-[0.14em] text-ink-400">
                 {BRAND.tagline}
               </span>
             </span>
@@ -73,6 +75,7 @@ export function AppShell({
             >
               Report a spot
             </Link>
+            <SimpleViewToggle />
             <ModeToggle defaultMode={defaultMode} />
             <SessionChip handle={handle} />
           </div>
@@ -80,10 +83,12 @@ export function AppShell({
         {kicker}
       </header>
 
+      <DisplayTip />
+
       {/* main keeps a small gap above the footer; the footer itself clears the fixed nav (nb-clear-nav) */}
       <main id="main" className="mx-auto min-w-0 w-full max-w-[1180px] overflow-x-clip px-3.5 pb-6 pt-3 sm:px-5 sm:pt-4 lg:pb-10">{children}</main>
 
-      <footer className="nb-clear-nav mx-auto min-w-0 w-full max-w-[1180px] overflow-x-clip px-3.5 pt-2 text-xs text-ink-400 sm:px-5 lg:pb-8">
+      <footer id="display-options" className="nb-clear-nav mx-auto min-w-0 w-full max-w-[1180px] overflow-x-clip px-3.5 pt-2 text-xs text-ink-400 sm:px-5 lg:pb-8">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-t hairline pt-3">
           <span className="font-bold text-ink-300">Display options</span>
           <AccessibilityControls compact />

@@ -67,7 +67,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
               const k = KINDS[p.kind] ?? KINDS.tip;
               return (
                 <article key={p.id} className="glass min-w-0 rounded-2xl p-4 transition hover:bg-white/[0.06]">
-                  <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: k.color }}>
+                  <p className="text-[11.5px] font-bold uppercase tracking-wide" style={{ color: k.color }}>
                     {k.label}
                     {p.parish ? ` · ${p.parish}` : ""}
                   </p>
@@ -101,7 +101,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                       </>
                     ) : null}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-ink-400">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] font-medium text-ink-400">
                     {p.hours ? (
                       <span className="flex items-center gap-1">
                         <span className="opacity-50">🕒</span> {p.hours}
@@ -131,7 +131,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           </div>
         )}
         <Pager page={currentPage} pages={pages} path="/life/places" params={params} />
-        <p className="text-center text-[11px] text-[#7fa6a2]">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
+        <p className="text-center text-[11.5px] text-[#7fa6a2]">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
       </div>
     </div>
   );

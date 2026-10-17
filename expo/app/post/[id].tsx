@@ -69,7 +69,7 @@ export default function PostScreen() {
         {back}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <View style={{ backgroundColor: `${kind.color}26`, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 }}>
-            <Text style={{ color: kind.color, fontSize: 10.5, fontWeight: "800", letterSpacing: 0.6 }}>{kind.label.toUpperCase()}</Text>
+            <Text style={{ color: kind.color, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.6 }}>{kind.label.toUpperCase()}</Text>
           </View>
           {post.parish ? <Text style={t.subtle}>{post.parish}</Text> : null}
           <Text style={t.subtle}>{timeAgo(post.createdAt)}</Text>

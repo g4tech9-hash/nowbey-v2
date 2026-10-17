@@ -216,7 +216,7 @@ export function SendAlertButton({ id }: { id: string }) {
       <button type="button" disabled={busy} onClick={go} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
         {busy ? "Sending…" : "Send alert"}
       </button>
-      {err ? <p className="text-[11px] text-danger-500">{err}</p> : null}
+      {err ? <p className="text-[11.5px] text-danger-500">{err}</p> : null}
     </div>
   );
 }

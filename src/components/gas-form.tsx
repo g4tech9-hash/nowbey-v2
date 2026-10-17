@@ -38,15 +38,15 @@ export function GasForm({ signedIn }: { signedIn: boolean }) {
         }
       }}
     >
-      <label className="block"><span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Station</span>
+      <label className="block"><span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Station</span>
         <input value={station} onChange={(e) => setStation(e.target.value)} placeholder="Shell, Prince George Wharf" className={input} /></label>
       <div className="grid grid-cols-2 gap-2">
-        <label className="block"><span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Island</span>
+        <label className="block"><span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Island</span>
           <select value={parish} onChange={(e) => setParish(e.target.value)} className={input}>{PARISHES.map((p) => <option key={p}>{p}</option>)}</select></label>
-        <label className="block"><span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Fuel</span>
+        <label className="block"><span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Fuel</span>
           <select value={fuel} onChange={(e) => setFuel(e.target.value)} className={input}><option value="regular">Regular</option><option value="premium">Premium</option><option value="diesel">Diesel</option></select></label>
       </div>
-      <label className="block"><span className="text-[11px] font-bold uppercase tracking-wide text-tide-400">Price per gallon (B$)</span>
+      <label className="block"><span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Price per gallon (B$)</span>
         <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" placeholder="5.49" className={input} /></label>
       <button disabled={busy} className="rounded-full bg-tide-400 px-4 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-60">{busy ? "Saving..." : "Report price"}</button>
       {msg ? <p className={`text-[12px] ${msg.ok ? "text-tide-300" : "text-red-300"}`}>{msg.text}</p> : null}

@@ -19,7 +19,7 @@ const date = (d: Date | null) => (d ? d.toLocaleString("en-US", { day: "numeric"
 function Fact({ k, children }: { k: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-[10.5px] font-bold uppercase tracking-wide text-[#6e97a0]">{k}</dt>
+      <dt className="text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">{k}</dt>
       <dd className="mt-0.5 text-[13px] text-sand-100">{children}</dd>
     </div>
   );
@@ -183,7 +183,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
             {notes.map((n) => (
               <li key={n.id} className="rounded-xl border hairline p-3">
                 <p className="text-[12.5px] leading-relaxed text-[#cfeee9]">{n.body}</p>
-                <p className="mt-1 text-[11px] text-[#6e97a0]">
+                <p className="mt-1 text-[11.5px] text-[#6e97a0]">
                   @{n.authorHandle} · {timeAgo(n.createdAt)}
                 </p>
               </li>
@@ -202,7 +202,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
               <li key={h.id} className="py-2">
                 <span className="font-mono text-[11.5px] text-tide-300">{h.action}</span> <span className="text-[#cfeee9]">by @{h.actorHandle}</span>
                 {h.detail ? <span className="text-[#8fb9b6]"> · {h.detail}</span> : null}
-                <span className="block text-[11px] text-[#6e97a0]">{timeAgo(h.createdAt)}</span>
+                <span className="block text-[11.5px] text-[#6e97a0]">{timeAgo(h.createdAt)}</span>
               </li>
             ))}
           </ul>

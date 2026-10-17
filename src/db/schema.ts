@@ -4,10 +4,12 @@ import {
   boolean,
   check,
   customType,
+  date,
   doublePrecision,
   index,
   integer,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -76,6 +78,8 @@ export const incidents = pgTable(
     userId: uuid("user_id"),
     authorHandle: text("author_handle"),
     anonymous: boolean("anonymous").notNull().default(false),
+    /** True once the stored pin has been moved a short distance from the spot the reporter chose (see location-privacy.ts). */
+    pinApproximated: boolean("pin_approximated").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
@@ -811,4 +815,15 @@ export const bannedDevices = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("banned_devices_user_idx").on(table.userId)],
+);
+
+/** Daily adoption counts (see src/lib/funnel.ts). No visitor identifiers are stored. */
+export const funnelDaily = pgTable(
+  "funnel_daily",
+  {
+    day: date("day").notNull(),
+    step: text("step").notNull(),
+    n: integer("n").notNull().default(0),
+  },
+  (table) => [primaryKey({ columns: [table.day, table.step] })],
 );

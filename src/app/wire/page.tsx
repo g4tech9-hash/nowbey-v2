@@ -60,7 +60,7 @@ export default async function WirePage() {
               const c = CATEGORIES[(n.category as CategoryKey) ?? "notice"] ?? CATEGORIES.notice;
               return (
                 <article key={n.id} className="nb-surface rounded-xl2 p-3.5 transition duration-200 ease-standard hover:border-tide-400/30 hover:shadow-l2">
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
+                  <div className="flex flex-wrap items-center gap-2 text-[11.5px] font-bold uppercase tracking-wide">
                     <span className="inline-flex items-center gap-1.5" style={{ color: c.color }}>
                       <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}80` }} />
                       {c.label}
@@ -71,13 +71,13 @@ export default async function WirePage() {
                     {n.parish ? (
                       <Link
                         href={`/map?parish=${encodeURIComponent(n.parish)}`}
-                        className="rounded-full bg-white/8 px-2 py-0.5 text-[10.5px] text-ink-200 normal-case tracking-normal hover:bg-white/16"
+                        className="rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] text-ink-200 normal-case tracking-normal hover:bg-white/16"
                       >
                         {n.parish}
                       </Link>
                     ) : null}
                     {i === 0 ? (
-                      <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-ok-500/15 px-2 py-0.5 text-[10px] font-bold text-ok-600 normal-case tracking-normal">
+                      <span className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-ok-500/15 px-2 py-0.5 text-[11.5px] font-bold text-ok-600 normal-case tracking-normal">
                         <span className="nb-live-dot" aria-hidden />
                         newest
                       </span>

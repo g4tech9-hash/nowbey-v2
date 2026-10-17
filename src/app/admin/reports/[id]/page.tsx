@@ -31,7 +31,7 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
 
       <div className="glass space-y-2 rounded-2xl p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[11px] font-extrabold uppercase tracking-wide" style={{ color: c.color }}>{c.label}</span>
+          <span className="text-[11.5px] font-extrabold uppercase tracking-wide" style={{ color: c.color }}>{c.label}</span>
           <Pill tone={r.status === "active" ? "sun" : r.status === "archived" ? "conch" : "slate"}>
             {r.status === "archived" ? "hidden" : r.status}
           </Pill>
@@ -43,7 +43,7 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
           {" "}· source: {r.sourceKind}
           {" "}· <Link href={`/incident/${r.id}`} className="font-bold text-tide-300 underline">public page</Link>
         </p>
-        <p className="font-mono text-[11px] text-[#6e97a0]">id: {r.id}</p>
+        <p className="font-mono text-[11.5px] text-[#6e97a0]">id: {r.id}</p>
         <div className="pt-1">
           <ReportActions id={r.id} status={r.status} canDelete={viewer.isAdmin} />
         </div>
