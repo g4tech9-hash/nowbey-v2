@@ -7,7 +7,10 @@ import { NowBeyMark } from "@/components/app-shell";
 import { getViewer } from "@/lib/viewer";
 import { BRAND } from "@/lib/brand";
 import { SUPPORT_EMAIL } from "@/lib/legal";
-import splashScene from "../../expo/assets/splash-scene.jpg";
+// The web app's own copy of the splash photo (expo/assets is excluded from Vercel by
+// .vercelignore, so importing it from there broke every deployment build with "module not
+// found"). Keep the two copies visually in sync if this photo ever changes.
+import splashScene from "../assets/splash-scene.jpg";
 import { Reveal } from "./landing-reveal";
 import styles from "./landing.module.css";
 
