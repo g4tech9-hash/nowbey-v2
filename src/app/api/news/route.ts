@@ -60,8 +60,16 @@ export async function POST(req: Request) {
   after(async () => {
     refreshThenEnrich(8);
     // Facebook pages the admin configured come along on every manual refresh too.
-    const { runFacebookIngest } = await import("@/lib/facebook-ingest");
-    await runFacebookIngest().catch(() => {});
+    try {
+      const { runFacebookIngest } = await import("@/lib/facebook-ingest");
+      const stats = await runFacebookIngest().catch((err: unknown) => {
+        console.error(`[fb] page ingest failed: ${err instanceof Error ? err.message : err}`);
+        return null;
+      });
+      if (stats) console.log(`[fb] refresh: ${stats.inserted} new post(s) across ${stats.pages.length} page(s)`);
+    } catch (err) {
+      console.error(`[fb] refresh crashed: ${err instanceof Error ? err.message : err}`);
+    }
   });
   return NextResponse.json({ stats });
 }

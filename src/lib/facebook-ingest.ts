@@ -57,10 +57,11 @@ export async function runFacebookIngest(opts: { limit?: number } = {}): Promise<
             .onConflictDoNothing()
             .returning({ id: newsItems.id });
           if (row) inserted += 1;
-        } catch {
-          /* one bad post never blocks the page's remaining posts */
+        } catch (err) {
+          console.error(`[fb] insert failed for @${page.username}: ${err instanceof Error ? err.message : err}`);
         }
       }
+      console.log(`[fb] @${page.username}: ${posts.length} found, ${inserted} inserted (${note})`);
       stats.pages.push({ username: page.username, pageName: page.pageName, found: posts.length, inserted, note });
       stats.inserted += inserted;
     }),
