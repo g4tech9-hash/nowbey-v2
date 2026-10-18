@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePrefStore } from "@/lib/pulse/store";
 import { Anchor, Bell, BookmarkPlus, Clock, Compass, Flame, LayoutList, Plus, Newspaper, Radio, Star, UserRound, WifiOff, X } from "lucide-react";
 import { FEATURES } from "@/lib/features";
 import { CatSwatch } from "@/ui/pulse/badge";
@@ -47,19 +48,17 @@ const isActive = (pathname: string, href: string) => (href === "/" ? pathname ==
  * between "nobody reported anything" and "my phone cannot reach the tower", and
  * it is stated in the accessible name so a screen reader gets it too.
  */
+function readOnline(): boolean | null {
+  return typeof navigator === "undefined" ? null : Boolean(navigator.onLine);
+}
+
 export function ConnectionFlag({ className = "" }: { className?: string }) {
-  const [online, setOnline] = useState(true);
-  useEffect(() => {
-    const up = () => setOnline(true);
-    const down = () => setOnline(false);
-    setOnline(navigator.onLine);
-    window.addEventListener("online", up);
-    window.addEventListener("offline", down);
-    return () => {
-      window.removeEventListener("online", up);
-      window.removeEventListener("offline", down);
-    };
-  }, []);
+  // `navigator.onLine` is browser state with events attached to it, which is
+  // what useSyncExternalStore exists for: a phone in a tunnel renders "offline"
+  // on the first frame instead of claiming to be live for a moment and correcting
+  // itself in front of the reader. The fallback is "online" because that is the
+  // claim the server render is allowed to make.
+  const online = usePrefStore(readOnline, true, ["online", "offline"]);
   return (
     <span
       className={`inline-flex items-center gap-1.5 text-[11.5px] font-bold ${online ? "text-success" : "text-danger"} ${className}`.trim()}

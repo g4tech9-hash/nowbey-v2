@@ -24,6 +24,17 @@ export const metadata = {
  * The contrast table at the bottom is *computed* from the authored values rather
  * than pasted in, so it cannot drift out of date the way a screenshot does.
  */
+/**
+ * Fixed samples, computed once at module load. A styleguide that calls `Date.now()`
+ * inside render is impure on purpose and answers differently on the server than on
+ * the client, which is a hydration mismatch nobody asked for in a demo.
+ */
+const DEMO_BASE = new Date();
+const isoAgo = (ms: number) => new Date(DEMO_BASE.getTime() - ms).toISOString();
+const DEMO_NOW = isoAgo(0);
+const DEMO_HOUR = isoAgo(5 * 3_600_000);
+const DEMO_DAY4 = isoAgo(4 * 86_400_000);
+
 export default async function DesignPage() {
   const theme = readTheme() ?? "dark";
   const pairs = [
@@ -191,9 +202,9 @@ export default async function DesignPage() {
           </Demo>
           <Demo name="FreshnessPill" token="--success · --warning · --text-tertiary">
             <div className="flex flex-wrap gap-2">
-              <FreshnessPill freshness="live" time={new Date().toISOString()} label="now" />
-              <FreshnessPill freshness="watching" time={new Date(Date.now() - 5e6).toISOString()} label="1h ago" />
-              <FreshnessPill freshness="stale" time={new Date(Date.now() - 4e8).toISOString()} label="4d ago" />
+              <FreshnessPill freshness="live" time={DEMO_NOW} label="now" />
+              <FreshnessPill freshness="watching" time={DEMO_HOUR} label="1h ago" />
+              <FreshnessPill freshness="stale" time={DEMO_DAY4} label="4d ago" />
             </div>
           </Demo>
           <Demo name="SeverityTag + meter" token="--sev-1…5 · category hue">

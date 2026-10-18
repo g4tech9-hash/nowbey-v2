@@ -83,6 +83,8 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: { open?: 
   /* --------------------------------------------------------- live search */
   useEffect(() => {
     if (!open) return;
+    /* eslint-disable react-hooks/set-state-in-effect -- The cancel branch: an emptied query has to drop the previous results in the same frame the user deletes
+    the second character, or a stale list sits under a blank field. */
     const q = query.trim();
     if (q.length < 2) {
       setHits([]);
@@ -108,14 +110,18 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: { open?: 
       alive = false;
       clearTimeout(id);
     };
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [query, open]);
 
   useEffect(() => {
     if (open) {
+    /* eslint-disable react-hooks/set-state-in-effect -- Each open is a fresh session with the palette — query, hits and cursor reset together, keyed on `open`.
+    Lifting that text into the parent would make it own characters the parent never saw. */
       setQuery("");
       setHits([]);
       setCursor(0);
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [open]);
 
   const entries = useMemo<Entry[]>(() => {

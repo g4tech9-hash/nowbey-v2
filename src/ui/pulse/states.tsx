@@ -198,11 +198,14 @@ export class ErrorBoundary extends Component<
 export function useTokensGuard(): boolean {
   const [ok, setOk] = useState(true);
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- Detecting a stylesheet that failed to load is only possible after the browser has tried to apply it.
+    There is no render-phase answer; on the server the probe has nothing to measure. */
     const probe = getComputedStyle(document.documentElement).getPropertyValue("--text-primary").trim();
     const ready = probe.length > 0;
     setOk(ready);
     if (!ready) document.documentElement.dataset.pulse = "off";
     else if (document.documentElement.dataset.pulse === "off") delete document.documentElement.dataset.pulse;
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
   return ok;
 }

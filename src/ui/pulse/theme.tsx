@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { usePrefStore } from "@/lib/pulse/store";
 import { Moon, Radio, Sun } from "lucide-react";
 import {
   applyContrast,
@@ -14,6 +15,7 @@ import {
   readTextSize,
   readTheme,
   toggleTheme,
+  PULSE_PREF_EVENT,
   PULSE_THEME_EVENT,
   type PulseContrast,
   type PulseMotion,
@@ -30,32 +32,19 @@ import { CatBadge } from "./badge";
  * `usePulseTheme` is the single hook every control uses, so the header toggle,
  * the Settings picker and the palette can never show different answers.
  */
-export function usePulseTheme() {
-  // The boot script in layout.tsx already set data-theme before paint, so the
-  // first client read is authoritative and there is no flash to correct.
-  const [theme, setTheme] = useState<PulseTheme>(() => readTheme() ?? "dark");
+export function usePulseTheme(fallback: PulseTheme = "dark") {
+  // Reading the applied value through the store means there is no "first render
+  // with the default, second render with the truth": a header toggle and the
+  // Settings picker show the same answer on the frame they mount. The writers in
+  // prefs.ts dispatch the event, so a change anywhere repaints everywhere.
+  const theme = usePrefStore(readTheme, fallback, [PULSE_THEME_EVENT, PULSE_PREF_EVENT]);
 
-  useEffect(() => {
-    const onTheme = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      if (detail === "dark" || detail === "light") setTheme(detail);
-    };
-    window.addEventListener(PULSE_THEME_EVENT, onTheme);
-    return () => window.removeEventListener(PULSE_THEME_EVENT, onTheme);
-  }, []);
+  // applyTheme already persists, repaints the root attribute and updates
+  // meta[name="theme-color"]; re-storing its result in local state was a third
+  // copy of the same fact, and the one that could drift.
+  const set = useCallback((next: PulseTheme) => applyTheme(next), []);
 
-  // Keep the attribute in sync if the server re-renders with a different default.
-  useEffect(() => {
-    const applied = readTheme();
-    if (applied && applied !== theme) setTheme(applied);
-  }, [theme]);
-
-  const set = useCallback((next: PulseTheme) => {
-    applyTheme(next);
-    setTheme(next);
-  }, []);
-
-  return { theme, setTheme: set, flip: () => setTheme(toggleTheme()) };
+  return { theme, setTheme: set, flip: () => toggleTheme() };
 }
 
 /** Sun/moon icon button for the header. Announces itself to a screen reader. */
@@ -124,16 +113,17 @@ export function ThemePicker() {
  * contract in src/lib/pulse/prefs.ts, so a change here is a change everywhere.
  */
 export function AccessibilityPicker() {
-  const [prefs, setPrefs] = useState({
-    motion: "full" as PulseMotion,
-    textSize: "default" as PulseTextSize,
-    contrast: "default" as PulseContrast,
-    lowData: false,
-  });
-
-  useEffect(() => {
-    setPrefs({ motion: readMotion(), textSize: readTextSize(), contrast: readContrast(), lowData: readLowData() });
-  }, []);
+  // Four primitives, not one object: useSyncExternalStore compares snapshots with
+  // Object.is, so a fresh `{…}` on every read would look like a change forever.
+  const motion = usePrefStore(readMotion, "full" as PulseMotion, [PULSE_PREF_EVENT]);
+  const textSize = usePrefStore(readTextSize, "default" as PulseTextSize, [PULSE_PREF_EVENT]);
+  const contrast = usePrefStore(readContrast, "default" as PulseContrast, [PULSE_PREF_EVENT]);
+  const lowData = usePrefStore(readLowData, false, [PULSE_PREF_EVENT]);
+  // The apply* calls below are the whole write path: they persist, repaint the
+  // root, and dispatch PULSE_PREF_EVENT, which is what makes these four reads
+  // current again. Holding a copy in state here would be a second answer to
+  // keep in sync — and the row objects still read `prefs`, so that is the name.
+  const prefs = { motion, textSize, contrast, lowData };
 
   const rows: { key: keyof typeof prefs; label: string; detail: string; type: "switch" | "select"; options?: { value: string; label: string }[] }[] = [
     { key: "motion", label: "Animations", detail: "Spring entrances, button presses and the ticker. Turn off for less motion.", type: "select", options: [{ value: "full", label: "Full" }, { value: "off", label: "Reduced" }] },
@@ -159,11 +149,7 @@ export function AccessibilityPicker() {
                 aria-checked={Boolean(value)}
                 aria-label={`${row.label} — ${row.detail}`}
                 className="nb-toggle"
-                onClick={() => {
-                  const next = !value;
-                  setPrefs((p) => ({ ...p, [row.key]: next }));
-                  applyLowData(Boolean(next));
-                }}
+                onClick={() => applyLowData(!value)}
               />
             ) : (
               <span className="pulse-seg" role="group" aria-label={row.label}>
@@ -173,7 +159,6 @@ export function AccessibilityPicker() {
                     type="button"
                     aria-pressed={value === o.value}
                     onClick={() => {
-                      setPrefs((p) => ({ ...p, [row.key]: o.value }));
                       if (row.key === "motion") applyMotion(o.value as PulseMotion);
                       if (row.key === "textSize") applyTextSize(o.value as PulseTextSize);
                       if (row.key === "contrast") applyContrast(o.value as PulseContrast);
@@ -198,26 +183,28 @@ export function AccessibilityPicker() {
  */
 export const LIVE_KEY = "nb_live";
 
+export const LIVE_EVENT = "nb:live";
+
 export function useLiveMode(fallback = true) {
-  const [live, setLive] = useState(fallback);
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(LIVE_KEY);
-      if (stored === "on" || stored === "off") setLive(stored === "on");
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  // "on"/"off" strings, not "true"/"false": the key predates Pulse and a member
+  // who set it in the console should still be honoured. Read through the store so
+  // the toggle reflects the saved value on the frame it appears, and the feed
+  // does not poll for a beat before it learns you turned it off.
+  const live = usePrefStore(readLive, fallback, [LIVE_EVENT, PULSE_PREF_EVENT]);
   const set = useCallback((next: boolean) => {
-    setLive(next);
     try {
       localStorage.setItem(LIVE_KEY, next ? "on" : "off");
     } catch {
-      /* ignore */
+      /* a device that will not store is a device that keeps polling this visit */
     }
-    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("nb:live", { detail: next }));
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(LIVE_EVENT, { detail: next }));
   }, []);
   return { live, setLive: set };
+}
+
+function readLive(): boolean | null {
+  const stored = localStorage.getItem(LIVE_KEY);
+  return stored === "on" ? true : stored === "off" ? false : null;
 }
 
 export function LiveModeToggle({ onAnnounce }: { onAnnounce?: (m: string) => void } = {}) {

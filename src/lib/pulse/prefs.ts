@@ -35,6 +35,16 @@ export const PULSE_META_COLOR: Record<PulseTheme, string> = {
 };
 
 export const PULSE_THEME_EVENT = "nb:theme";
+/**
+ * Emitted by every preference writer, not just the theme.
+ *
+ * A tab never receives its own `storage` events, so without this the motion,
+ * text-size, contrast and live-mode controls would only agree with each other
+ * across a reload — and `usePrefStore` in src/lib/pulse/store.ts listens for it
+ * so a change in the Settings picker repaints the header toggle in the same
+ * frame.
+ */
+export const PULSE_PREF_EVENT = "nb:prefs";
 
 function isTheme(v: unknown): v is PulseTheme {
   return v === "dark" || v === "light";
@@ -102,6 +112,12 @@ export function applyTheme(theme: PulseTheme, opts: { persist?: boolean } = {}) 
   window.dispatchEvent(new CustomEvent(PULSE_THEME_EVENT, { detail: theme }));
 }
 
+/** One line, so a writer never forgets that a second subscriber exists. */
+function notifyPrefs() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(PULSE_PREF_EVENT));
+}
+
 export function toggleTheme(): PulseTheme {
   const next: PulseTheme = readTheme() === "light" ? "dark" : "light";
   applyTheme(next);
@@ -112,6 +128,7 @@ export function toggleTheme(): PulseTheme {
 export function applyMotion(motion: PulseMotion) {
   setAttr("motion", motion === "off" ? "off" : null);
   persist(PULSE_KEYS.motion, motion === "off" ? "off" : null);
+  notifyPrefs();
 }
 
 export function readMotion(): PulseMotion {
@@ -133,6 +150,7 @@ export function applyTextSize(size: PulseTextSize) {
   setAttr("simple", size === "large" ? "true" : "false"); // legacy alias
   persist(PULSE_KEYS.textSize, size === "large" ? "large" : null);
   persist(PULSE_KEYS.simple, size === "large" ? "1" : "0");
+  notifyPrefs();
 }
 
 export function readTextSize(): PulseTextSize {
@@ -151,6 +169,7 @@ export function readTextSize(): PulseTextSize {
 export function applyContrast(contrast: PulseContrast) {
   setAttr("contrast", contrast === "more" ? "more" : null);
   persist(PULSE_KEYS.contrast, contrast === "more" ? "more" : null);
+  notifyPrefs();
 }
 
 export function readContrast(): PulseContrast {
@@ -167,6 +186,7 @@ export function readContrast(): PulseContrast {
 export function applyLowData(on: boolean) {
   setAttr("lowData", on ? "true" : "false");
   persist(PULSE_KEYS.lowData, on ? "1" : "0");
+  notifyPrefs();
 }
 
 export function readLowData(): boolean {

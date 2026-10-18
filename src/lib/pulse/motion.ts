@@ -13,7 +13,7 @@
  * `cubic-bezier(0.34, 1.56, 0.64, 1)` — so the springs live in CSS and JS only
  * does measurement. Layout animation costs one `transform`, not a reconciler.
  */
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export const SPRING = { type: "spring", stiffness: 140, damping: 22 } as const;
@@ -217,7 +217,13 @@ export function useListNav<T extends HTMLElement = HTMLElement>(opts: {
 }) {
   const { count, onActivate, onClose, idPrefix = "pulse-item" } = opts;
   const containerRef = useRef<T | null>(null);
-  const [index, setIndex] = useState(-1);
+  const [cursor, setCursor] = useState(-1);
+  // A filter change can shrink the list out from under the cursor. Clamping on
+  // read, instead of correcting it from an effect, means the frame that drops the
+  // rows is already the frame that moved the cursor — and a filter tap costs one
+  // render instead of two.
+  const index = cursor >= count ? (count > 0 ? count - 1 : -1) : cursor;
+  const setIndex = setCursor;
 
   const move = useCallback(
     (next: number) => {
@@ -228,7 +234,7 @@ export function useListNav<T extends HTMLElement = HTMLElement>(opts: {
       node?.focus({ preventScroll: false });
       node?.scrollIntoView({ block: "nearest", behavior: document.documentElement.dataset.motion === "off" ? "auto" : "smooth" });
     },
-    [count, idPrefix],
+    [count, idPrefix, setIndex],
   );
 
   const onKeyDown = useCallback(
@@ -268,10 +274,6 @@ export function useListNav<T extends HTMLElement = HTMLElement>(opts: {
     },
     [index, move, count, onActivate, onClose],
   );
-
-  useEffect(() => {
-    if (index >= count) setIndex(count > 0 ? count - 1 : -1);
-  }, [count, index]);
 
   return {
     containerRef,
@@ -355,21 +357,28 @@ export function useScrollLock(active: boolean) {
   }, [active]);
 }
 
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    let mq: MediaQueryList | null = null;
-    try {
-      mq = window.matchMedia(query);
-      setMatches(mq.matches);
-      const onChange = (e: MediaQueryListEvent) => setMatches(e.matches);
-      mq.addEventListener("change", onChange);
-      return () => mq?.removeEventListener("change", onChange);
-    } catch {
-      /* no matchMedia: assume the desktop layout, which degrades safely */
-    }
-  }, [query]);
-  return matches;
+export function useMediaQuery(query: string, serverMatches = false): boolean {
+  // One of the few hooks here that has a textbook answer: the browser owns the
+  // value, it can change without React doing anything, and it exists before
+  // paint. `useSyncExternalStore` covers all three, which is why a device that
+  // reports `(hover: hover)` is known on the first frame instead of after a
+  // flash of desktop affordances.
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      try {
+        const mq = window.matchMedia(query);
+        mq.addEventListener("change", onStoreChange);
+        return () => mq.removeEventListener("change", onStoreChange);
+      } catch {
+        // No matchMedia (an ancient engine, a locked-down webview): the caller's
+        // server answer stands, which degrades to the desktop layout safely.
+        return () => {};
+      }
+    },
+    [query],
+  );
+  const get = useCallback(() => window.matchMedia(query).matches, [query]);
+  return useSyncExternalStore(subscribe, get, () => serverMatches);
 }
 
 /** True on phones — the same `lg` boundary use-is-mobile.ts uses. */
@@ -431,7 +440,12 @@ export function replaceUrl(pathname: string, params: URLSearchParams | Record<st
 /** ⌘K / Ctrl-K, and `/` for search. Returns which one fired. */
 export function useHotkeys(handlers: Record<string, (e: KeyboardEvent) => void>) {
   const ref = useRef(handlers);
-  ref.current = handlers;
+  // Keep the latest handlers without mutating a ref during render. The only
+  // reader is a keydown, and an effect has run long before a key can be pressed,
+  // so this costs nothing and keeps render free of side effects.
+  useEffect(() => {
+    ref.current = handlers;
+  });
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;

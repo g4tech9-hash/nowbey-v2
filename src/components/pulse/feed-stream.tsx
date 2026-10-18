@@ -78,10 +78,14 @@ export function FeedStream({
   // current visit is stacked above them until the next server render folds it in.
   useEffect(() => {
     seenIds.current = new Set(rows.map((r) => r.id));
+    /* eslint-disable react-hooks/set-state-in-effect -- The server rows are the truth for this render; arrivals polled in during this visit stay stacked above
+    them until the next server render folds them in. That reconciliation cannot happen during render (it
+    would fight the incoming list) and cannot be a memo (the fold has to survive the next fetch). */
     setMerged((prev) => {
       const arrivals = prev.filter((r) => !rows.some((n) => n.id === r.id));
       return [...arrivals, ...rows];
     });
+    /* eslint-enable react-hooks/set-state-in-effect */
     setIncoming([]);
   }, [rows]);
 
@@ -120,9 +124,15 @@ export function FeedStream({
 
   // Deep link support: /feed?open=<id> opens that report's drawer on load.
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- One-time deep-link restore: `?open=<id>` may name a row that only exists once the stream has arrived,
+    so the open has to wait for `items`. The same reason the report draft is restored from sessionStorage in
+    an effect (src/app/report/page.tsx). */
     const want = sp.get("open");
     if (want && items.some((r) => r.id === want)) setOpenId(want);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    /* eslint-enable react-hooks/set-state-in-effect */
+  // length is the signal: the row the link names has either arrived or not, and
+  // re-running on identity would reopen a drawer the reader just closed.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
 
   // While the drawer is open, keep ↑/↓ in the stream in sync with it.
@@ -186,6 +196,8 @@ export function FeedStream({
 
   // A filter change re-runs the server query; show skeletons, never a blank page.
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- A filter change re-runs the server query and the skeleton band shows for one beat so the list never
+    blanks. The timing is the feature: a paint-synchronised affordance, not derived state. */
     const key = sp.toString();
     setRefreshing(true);
     const t = setTimeout(() => setRefreshing(false), 260);
@@ -193,8 +205,14 @@ export function FeedStream({
       clearTimeout(t);
       void key;
     };
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [sp]);
 
+  // Destructure what render touches. `ref={nav.containerRef}` is a perfectly
+  // ordinary ref in React, but reading it through the hook's returned object puts
+  // a property access in the middle of render, and the compiler is right to want
+  // the plain form: `containerRef` here is the same object, bound once.
+  const { containerRef, index: focused, setIndex: setFocus } = nav;
   const firstCritical = spotlight && items[0] ? (Number(items[0].severity) >= 4 || items[0].status === "active") && items[0].severity >= 3 : false;
   const jumpToTop = () => {
     setMerged((prev) => [...incoming, ...prev]);
@@ -246,7 +264,7 @@ export function FeedStream({
           can swipe a card right to confirm it is still there, or left for “saw it too”.
         </p>
         <ul
-          ref={nav.containerRef}
+          ref={containerRef}
           aria-describedby="feed-keys"
           className="pulse-stream-list"
           role="list"
@@ -266,7 +284,7 @@ export function FeedStream({
                 row={row}
                 index={i}
                 id={`feed-item-${i}`}
-                active={nav.index === i}
+                active={focused === i}
                 spotlight={spotlight && i === 0 && firstCritical}
                 handle={handle}
                 badge={badges[row.authorHandle ?? ""] ?? null}
@@ -274,7 +292,7 @@ export function FeedStream({
                 latest={latest[row.id] ?? null}
                 stub={stub}
                 onOpen={(r) => open(r, i)}
-                onFocusIndex={nav.setIndex}
+                onFocusIndex={setFocus}
               />
             </ErrorBoundary>
           ))}

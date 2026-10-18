@@ -58,6 +58,9 @@ export function IncidentDetailDrawer({
   // The timeline is the one thing a card cannot carry, so it is fetched on open
   // from the endpoint that already exists — /api/incidents/:id.
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- Opening a different report must not show the previous report's timeline for a frame, so the reset is
+    synchronous with the key change. Deriving it instead would mean caching per-row content in a component
+    that deliberately owns none. */
     if (!row || stub) {
       setUpdates(null);
       return;
@@ -72,6 +75,7 @@ export function IncidentDetailDrawer({
     return () => {
       live = false;
     };
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [row?.id, stub]);
 
   // ← / → move through the stream without closing the sheet.

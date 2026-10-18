@@ -16,10 +16,14 @@ export function ContrastRow({ label, fg, bg, min = 4.5 }: { label: string; fg: s
   const [ratio, setRatio] = useState<number | null>(null);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- The ratio is a measurement of a painted page: `getComputedStyle` does not exist on the server and
+    would be meaningless before the stylesheet is applied. The placeholder is the render; the number
+    arrives once, after mount. */
     const cs = getComputedStyle(document.documentElement);
     const f = resolve(cs, fg);
     const b = resolve(cs, bg);
     if (f && b) setRatio(contrast(f, b));
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [fg, bg]);
 
   const ok = ratio !== null && ratio >= min;

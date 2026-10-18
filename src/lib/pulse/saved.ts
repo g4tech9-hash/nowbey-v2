@@ -10,7 +10,8 @@
  * The shape is exactly the row an endpoint would return, so the day
  * `POST /api/incidents/:id/save` exists, only `persist()` below changes.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
+import { useStoredJson } from "./store";
 import type { CategoryKey } from "@/lib/geo";
 
 export const WATCH_KEY = "nb_saved";
@@ -74,43 +75,41 @@ export function toggleSaved(row: Omit<SavedIncident, "savedAt"> & { savedAt?: st
   return true;
 }
 
-/** Live view of the watch list. Every Save button and the /saved page share it. */
+/** An immutable empty list, so `Object.is` can tell "still nothing saved" apart
+ *  from "a new array of nothing saved". */
+const EMPTY_WATCH: SavedIncident[] = [];
+const decodeWatch = (raw: string): SavedIncident[] => {
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(isRow) : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Live view of the watch list. Every Save button and the /saved page share it.
+ *
+ * The list is read through the pref store rather than copied out of
+ * localStorage in an effect: a page that renders empty for a frame and then
+ * fills in makes "Saved" look broken, and the /saved page's empty state would
+ * briefly lie. Every writer here already dispatches WATCH_EVENT, so a tap in
+ * the header, one in a drawer and the /saved page agree without polling; the
+ * `storage` listener inside the store covers a second tab.
+ */
 export function useWatchList() {
-  const [rows, setRows] = useState<SavedIncident[]>([]);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    setRows(readWatchList());
-    setLoaded(true);
-    const onWatch = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      if (Array.isArray(detail)) setRows(detail.filter(isRow));
-    };
-    window.addEventListener(WATCH_EVENT, onWatch);
-    // Two tabs, one list: keep them in step.
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === WATCH_KEY) setRows(readWatchList());
-    };
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.removeEventListener(WATCH_EVENT, onWatch);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, []);
-
+  // decodeWatch is hoisted for the same reason as decodeSeen below: a snapshot
+  // reader that changes identity every render re-subscribes every render.
+  const rows = useStoredJson<SavedIncident[]>(WATCH_KEY, EMPTY_WATCH, decodeWatch, [WATCH_EVENT]);
   const ids = new Set(rows.map((r) => r.id));
-  const toggle = useCallback((row: Omit<SavedIncident, "savedAt">) => {
-    const nowSaved = toggleSaved(row);
-    setRows(readWatchList());
-    return nowSaved;
-  }, []);
 
-  const clear = useCallback(() => {
-    writeWatchList([]);
-    setRows([]);
-  }, []);
+  const toggle = useCallback((row: Omit<SavedIncident, "savedAt">) => toggleSaved(row), []);
+  const clear = useCallback(() => writeWatchList([]), []);
 
-  return { rows, ids, loaded, toggle, clear };
+  // `loaded` distinguishes "this device has nothing" from "we have not asked
+  // this device yet". With a synchronous store read they are the same moment, so
+  // the flag stays in the API for callers that branch on it.
+  return { rows, ids, loaded: true, toggle, clear };
 }
 
 /**
@@ -118,6 +117,8 @@ export function useWatchList() {
  * feed was instead of at the top. Capped, timestamped, and safe to lose.
  */
 const SEEN_KEY = "nb_seen";
+const SEEN_EVENT = "nb:seen";
+const EMPTY_SEEN: SeenRow[] = [];
 
 export function rememberSeen(id: string, title: string) {
   try {
@@ -125,13 +126,15 @@ export function rememberSeen(id: string, title: string) {
     const list: { id: string; title: string; at: string }[] = raw ? JSON.parse(raw) : [];
     const next = [{ id, title, at: new Date().toISOString() }, ...list.filter((r) => r.id !== id)].slice(0, 12);
     localStorage.setItem(SEEN_KEY, JSON.stringify(next));
-    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("nb:seen", { detail: next }));
+    if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(SEEN_EVENT, { detail: next }));
   } catch {
     /* ignore — this is a nicety */
   }
 }
 
-export function readSeen(): { id: string; title: string; at: string }[] {
+export type SeenRow = { id: string; title: string; at: string };
+
+export function readSeen(): SeenRow[] {
   if (typeof localStorage === "undefined") return [];
   try {
     const raw = localStorage.getItem(SEEN_KEY);
@@ -142,16 +145,20 @@ export function readSeen(): { id: string; title: string; at: string }[] {
   }
 }
 
+/**
+ * A module-level decoder, on purpose: `useSyncExternalStore` re-subscribes
+ * whenever `getSnapshot` changes identity, so an inline arrow would make every
+ * render look like a new store. Hoisted, it is stable for the life of the tab.
+ */
+const decodeSeen = (raw: string): SeenRow[] => {
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as SeenRow[]) : [];
+  } catch {
+    return [];
+  }
+};
+
 export function useRecentlySeen() {
-  const [rows, setRows] = useState<{ id: string; title: string; at: string }[]>([]);
-  useEffect(() => {
-    setRows(readSeen());
-    const onSeen = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      if (Array.isArray(detail)) setRows(detail);
-    };
-    window.addEventListener("nb:seen", onSeen);
-    return () => window.removeEventListener("nb:seen", onSeen);
-  }, []);
-  return rows;
+  return useStoredJson<SeenRow[]>(SEEN_KEY, EMPTY_SEEN, decodeSeen, [SEEN_EVENT]);
 }

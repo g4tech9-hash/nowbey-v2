@@ -67,6 +67,16 @@ old bookmarks and the admin appearance setting still work. Every setter updates
 block: if the token sheet is somehow missing (partial deploy, an ancient CDN entry, no `color-mix`),
 the page is still legible dark-on-black rather than unstyled.
 
+**Reading preferences back.** `src/lib/pulse/store.ts` is the only way a component reads
+browser state: `usePrefStore(read, fallback, events)` and `useStoredJson(key, …)` are
+`useSyncExternalStore` wrappers, because `localStorage`, `navigator.onLine`, `matchMedia` and the
+root dataset are external stores and copying them into `useState` inside an effect costs a render
+with the wrong value first (that is how a theme control flashes "Dark" before settling). Writers
+dispatch `nb:prefs` / `nb:theme` / `nb:saved` / `nb:live`, so a change in Settings repaints the header
+toggle in the same frame — a tab never receives its own `storage` event, which is why the emitter
+exists at all. Snapshot readers are hoisted to module scope for the same reason `Object.is` matters:
+an inline arrow would look like a new store on every render.
+
 **Compatibility.** The island/classic look moved to `data-look`; `html[data-theme="island"]` CSS and
 the `theme` field on the admin appearance API are unchanged, aliased through
 `src/styles/pulse/compat.css` (`--nb-*` aliases, `.nb-input`, `.nb-card-gold*`, `.marquee-track`,

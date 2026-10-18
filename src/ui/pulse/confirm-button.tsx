@@ -42,13 +42,19 @@ export function ConfirmButton({
 }) {
   const [burst, setBurst] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The displayed count is the parent's, plus whatever this device claimed since
+  // the last round trip. Re-deriving it during render when the prop moves —
+  // React's "adjust state on a prop change" pattern — keeps the number honest on
+  // the same frame the server sends a new one, instead of showing a stale count
+  // for a frame and then correcting it where the reader is looking.
   const [local, setLocal] = useState(count);
+  const [seenCount, setSeenCount] = useState(count);
+  if (seenCount !== count) {
+    setSeenCount(count);
+    setLocal(count);
+  }
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
-
-  useEffect(() => {
-    setLocal(count);
-  }, [count]);
 
   useEffect(
     () => () => {
