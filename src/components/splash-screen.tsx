@@ -19,7 +19,9 @@ export function SplashScreen({ tagline, promise }: { tagline: string; promise: s
       /* private mode: the splash simply shows again next time */
     }
     const skip = () => setPhase((p) => (p === "show" ? "leave" : p));
-    const done = window.setTimeout(() => setPhase("gone"), 3900);
+    // 1.6s, not 3.9s: enough for the mark to draw, short enough that nobody taps to skip. The fade-out
+    // (520ms) is separate, so the page is interactive again inside two seconds.
+    const done = window.setTimeout(() => setPhase("gone"), 1600);
     window.addEventListener("keydown", skip);
     return () => {
       window.clearTimeout(done);

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useEffect } from "react";
-import { ActivityIndicator, Alert, Linking, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform, ScrollView, Text, View } from "react-native";
 import { API_BASE, api, changeApiBase, errMsg } from "../../src/api";
 import { CATEGORIES, CATEGORY_KEYS, PARISHES, TIER_NAMES, type CategoryKey } from "../../src/geo";
 import { unblockUser, useBlocked } from "../../src/Safety";
@@ -32,11 +32,22 @@ export default function You() {
     );
   }
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: color.bg }} contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 40, gap: 14 }} keyboardShouldPersistTaps="handled">
-      {user ? <Account /> : <SignIn onSignIn={signIn} onSignUp={signUp} />}
-      {user ? <Btn label="Sign out" kind="ghost" onPress={() => void signOut()} /> : null}
-      <ServerBox />
-    </ScrollView>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: color.bg }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        style={{ flex: 1, backgroundColor: color.bg }}
+        contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 40, gap: 14 }}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+      >
+        {user ? <Account /> : <SignIn onSignIn={signIn} onSignUp={signUp} />}
+        {user ? <Btn label="Sign out" kind="ghost" onPress={() => void signOut()} /> : null}
+        {/* A free-text server address in a shipped consumer app is a phishing lever, not a feature. */}
+        {__DEV__ ? <ServerBox /> : null}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -67,7 +78,8 @@ function SignIn({
       else {
         if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email.trim())) throw new Error("Enter a valid email address. It is how we help you if you forget your password.");
         if (pw.length < 8) throw new Error("Use at least 8 characters for your password.");
-        await onSignUp({ handle: h, email: email.trim(), password: pw, displayName: name.trim() || undefined, parish });
+        if (!agreed) throw new Error("Tick the box to agree to the Terms and the Privacy Policy first.");
+        await onSignUp({ handle: h, email: email.trim(), password: pw, displayName: name.trim() || undefined, parish, termsAccepted: agreed });
       }
     } catch (e) {
       setError(errMsg(e));
@@ -394,11 +406,13 @@ function BlockedList() {
 }
 
 function DeleteAccount() {
-  const { signOut } = useSession();
+  const { user, signOut } = useSession();
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mailSent, setMailSent] = useState(false);
+  const hasPassword = user?.hasPassword !== false;
 
   function confirm() {
     Alert.alert("Delete your account?", "This cannot be undone. Your comments, posts and alert settings are deleted. Your reports stay for neighbours, with your name removed.", [
@@ -411,8 +425,21 @@ function DeleteAccount() {
     setBusy(true);
     setError(null);
     try {
-      await api.deleteAccount(password);
+      await api.deleteAccount({ password });
       await signOut();
+    } catch (e) {
+      setError(errMsg(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function emailLink() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api.requestDeletionLink();
+      setMailSent(true);
     } catch (e) {
       setError(errMsg(e));
     } finally {
@@ -424,10 +451,30 @@ function DeleteAccount() {
   return (
     <Card>
       <Text style={t.h3}>Delete my account</Text>
-      <Text style={[t.muted, { marginTop: 4 }]}>Enter your password to confirm. If you have a paid plan, cancel it first in the store or website you bought it from.</Text>
-      <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" />
-      {error ? <Text style={[t.error, { marginTop: 10 }]}>{error}</Text> : null}
-      <Btn label="Delete my account" busy={busy} disabled={password.length < 1} onPress={confirm} style={{ marginTop: 12 }} />
+      {hasPassword ? (
+        <>
+          <Text style={[t.muted, { marginTop: 4 }]}>Enter your password to confirm. If you have a paid plan, cancel it first in the store or website you bought it from.</Text>
+          <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" />
+          {error ? <Text style={[t.error, { marginTop: 10 }]}>{error}</Text> : null}
+          <Btn label="Delete my account" busy={busy} disabled={password.length < 1} onPress={confirm} style={{ marginTop: 12 }} />
+        </>
+      ) : (
+        <>
+          {/*
+            Accounts opened with Google have no password. Asking for one is a dead end that ends in a lockout,
+            so the proof is control of the verified email instead.
+          */}
+          <Text style={[t.muted, { marginTop: 4 }]}>
+            This account was opened with Google, so there is no password to type. We will email a one-time link to your
+            verified address. Open it on any device, then confirm there.
+          </Text>
+          {mailSent ? (
+            <Text style={[t.ok, { marginTop: 10 }]}>Check your email. The link works once and expires in 30 minutes.</Text>
+          ) : null}
+          {error ? <Text style={[t.error, { marginTop: 10 }]}>{error}</Text> : null}
+          <Btn label="Email me a confirmation link" busy={busy} disabled={mailSent} onPress={() => void emailLink()} style={{ marginTop: 12 }} />
+        </>
+      )}
       <Btn label="Cancel" kind="ghost" onPress={() => setOpen(false)} style={{ marginTop: 8 }} />
     </Card>
   );

@@ -6,6 +6,7 @@ import { users } from "@/db/schema";
 import { isNativeClient, issueToken, sendGoogleLinkedEmail, type TokenKind } from "@/lib/account";
 import { makeToken, readPayload, setSessionCookie } from "@/lib/auth";
 import { publicBase } from "@/lib/billing";
+import { TERMS_VERSION } from "@/lib/legal";
 import { envAdminHandles } from "@/lib/handles";
 import {
   OAUTH_COOKIE,
@@ -141,6 +142,15 @@ async function completeSignIn(opts: {
           googleSub: profile.sub,
           emailVerifiedAt: new Date(),
           lastLoginAt: new Date(),
+          /*
+           * Google shows the person our terms and privacy links on its own consent screen only if the OAuth
+           * client is configured for it; it does not tick a box for us. The sign-in page therefore states
+           * that continuing creates an account under these terms, and the record below makes that claim
+           * checkable. Without it, every Google member would be a member with no consent record at all —
+           * which is exactly the hole this closes.
+           */
+          termsVersion: TERMS_VERSION,
+          termsAcceptedAt: new Date(),
         })
         .returning();
       user = row;

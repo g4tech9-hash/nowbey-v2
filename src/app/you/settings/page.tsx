@@ -4,6 +4,7 @@ import { DeleteAccount, EmailForm, PasswordForm, ProfileForm, ResendVerification
 import { getViewer } from "@/lib/viewer";
 import { AccessibilityControls } from "@/components/accessibility-controls";
 import { ButtonLink, Eyebrow, Panel, PanelHead, TextLink } from "@/components/ui";
+import { ConsentCard } from "@/components/consent-card";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Account settings" };
@@ -62,6 +63,10 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           That confirmation link has expired or was already used. Send a new one below.
         </p>
       ) : null}
+
+      {/* Accounts made before consent was recorded, or before the wording changed, get asked once — on this
+          page, where the rest of their account lives, rather than in a blocking modal they would dismiss. */}
+      <ConsentCard acceptedVersion={viewer.termsVersion} />
 
       {/* Settings workspace: a sticky index on desktop, stacked panels below. */}
       <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
@@ -147,7 +152,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </Section>
 
           <Section id="delete" title="Delete account">
-            <DeleteAccount hasPaidPlan={viewer.hasSubscription} />
+            <DeleteAccount hasPaidPlan={viewer.hasSubscription} hasPassword={viewer.hasPassword} />
           </Section>
         </div>
       </div>

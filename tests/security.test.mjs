@@ -23,7 +23,7 @@ async function newMember(prefix = "sec") {
     method: "POST",
     ip: uniqueIp(),
     cookie,
-    body: { intent: "signup", handle, email, password, parish: "New Providence" },
+    body: { intent: "signup", termsAccepted: true, handle, email, password, parish: "New Providence" },
   });
   assert.equal(res.status, 200, JSON.stringify(res.json));
   return { cookie, handle, email, password };
@@ -156,7 +156,7 @@ test("a stranger cannot register a handle listed in ADMIN_HANDLES", async () => 
   const res = await api("/api/session", {
     method: "POST",
     ip: uniqueIp(),
-    body: { intent: "signup", handle: "eastsiderick", email: `intruder_${unique()}@evil.test`, password: strongPassword() },
+    body: { intent: "signup", termsAccepted: true, handle: "eastsiderick", email: `intruder_${unique()}@evil.test`, password: strongPassword() },
   });
   assert.equal(res.status, 400);
   assert.match(res.json.error, /reserved/);
@@ -171,7 +171,7 @@ test("an ADMIN_HANDLES account gets no admin rights until its email is confirmed
     method: "POST",
     ip: uniqueIp(),
     cookie,
-    body: { intent: "signup", handle: "eastsiderick", email: `rick_${unique()}@example.test`, password: strongPassword() },
+    body: { intent: "signup", termsAccepted: true, handle: "eastsiderick", email: `rick_${unique()}@example.test`, password: strongPassword() },
   });
   assert.equal(res.status, 200, res.text);
   let me = await api("/api/session", { cookie });

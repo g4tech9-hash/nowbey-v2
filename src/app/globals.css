@@ -5,10 +5,12 @@
   --font-display: var(--font-sora), "Segoe UI", ui-sans-serif, sans-serif;
   --font-sans: var(--font-manrope), "Segoe UI", ui-sans-serif, sans-serif;
   /* Technical numerics: timestamps, coordinates, counts, pin codes. */
-  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* No mono webfont is shipped: coordinates and timestamps use the platform's own mono, which is the
+     one every OS renders crisply and costs no bytes. (--font-plex-mono was referenced but never defined.) */
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   /* Fluid type scale — no breakpoint jumps. */
-  --text-2xs: clamp(0.625rem, 0.6rem + 0.15vw, 0.6875rem);
+  --text-2xs: clamp(0.6875rem, 0.66rem + 0.15vw, 0.75rem); /* 11-12px: was 10px */
   --text-xs: clamp(0.6875rem, 0.66rem + 0.2vw, 0.75rem);
   --text-sm: clamp(0.8125rem, 0.78rem + 0.25vw, 0.875rem);
   --text-base: clamp(0.9375rem, 0.9rem + 0.3vw, 1rem);
@@ -51,7 +53,7 @@
   --color-ok-600: #6fe3b6;
   --color-warn-500: #ffc531;
   --color-warn-600: #ffd766;
-  --color-danger-500: #f43f5e;
+  --color-danger-500: #ff7d8e; /* 7.7:1 on abyss-950 (AAA). Was #f43f5e at 5.1:1 — error text is not a place for AA. */
   --color-danger-400: #fb7185;
   --color-danger-600: #fb7185;
   --color-info-500: #7dd3fc;
@@ -85,11 +87,11 @@
   --color-cat-storm-t: #fbbf24;
   --color-cat-power-t: #facc15;
   --color-cat-water-t: #22d3ee;
-  --color-cat-crime-t: #fb7185;
-  --color-cat-road-t: #f97316;
+  --color-cat-crime-t: #ff8fa0; /* small caps labels: 8.7:1 */
+  --color-cat-road-t: #ffa066; /* 9.4:1 */
   --color-cat-marine-t: #2dd4bf;
   --color-cat-fire-t: #ef4444;
-  --color-cat-health-t: #a78bfa;
+  --color-cat-health-t: #c4a6ff; /* 9.2:1 */
   --color-cat-trash-t: #84cc16;
   --color-cat-event-t: #f472b6;
   --color-cat-notice-t: #94a3b8;
@@ -99,7 +101,7 @@
   --color-ink-100: #f7f1e7;
   --color-ink-200: #c8d7d4;
   --color-ink-300: #9cb5b8;
-  --color-ink-400: #718d95;
+  --color-ink-400: #8fabb1; /* 7.7:1 on abyss-950, 7.2:1 on the raised surface (AAA) */
 
   /* ---- Radii -------------------------------------------------------------- */
   --radius-xs: 8px;
@@ -187,7 +189,12 @@ main :is(.grid, .flex) > *,
 footer :is(.grid, .flex) > * {
   min-width: 0;
 }
-:is(h1, h2, h3, p, a, span) {
+:is(h1, h2, h3, p, li, dd, dt, figcaption, blockquote) {
+  overflow-wrap: break-word;
+}
+/* Only the few places that carry a URL, an email or a handle need to break mid-token. */
+a,
+.nb-break {
   overflow-wrap: anywhere;
 }
 img,
@@ -365,10 +372,10 @@ canvas {
 :root {
   --nb-safe-bottom: env(safe-area-inset-bottom, 0px);
   --nb-safe-top: env(safe-area-inset-top, 0px);
-  /* Chrome heights, excluding safe areas (added separately where needed).
-     --nb-header-h tracks the in-flow header (py-2.5 + ~36px row + border).
-     --nb-nav-h tracks the fixed bottom nav (48px targets + paddings + border). */
-  --nb-header-h: 58px;
+  /* Chrome heights, excluding safe areas (added separately where needed). These are only fallbacks:
+     useFillHeight() measures the real elements and sets --nb-fill-h. --nb-header-h was 58px while the
+     header renders at 76+1, which is exactly how the last pin row ended up under the bottom nav. */
+  --nb-header-h: 77px;
   --nb-nav-h: 70px;
 }
 
@@ -415,9 +422,13 @@ html {
   .nb-fill-view {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top) - var(--nb-nav-h) - var(--nb-safe-bottom));
-    height: calc(100svh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top) - var(--nb-nav-h) - var(--nb-safe-bottom));
-    height: calc(100dvh - var(--nb-header-h) - 12px - 24px - var(--nb-safe-top) - var(--nb-nav-h) - var(--nb-safe-bottom));
+    /*
+     * --nb-fill-h is measured in the browser by useFillHeight() (src/lib/fill-height.ts): it takes the
+     * real header height, the real main padding, and the real bottom-nav height, so no hard-coded
+     * constant can drift from the markup again. The calc fallback covers the first paint and
+     * reduced-motion/JS-off, and uses the *measured* values: 76+1 header, 20 top, 24 bottom, 70 nav.
+     */
+    height: var(--nb-fill-h, calc(100dvh - 191px));
     /* Below this the map + list would be unusable; let the page scroll instead. */
     min-height: 340px;
   }
@@ -431,9 +442,8 @@ html {
    workspace usable on short landscape windows, where the page may scroll. */
 @media (min-width: 1024px) {
   .nb-map-workspace {
-    height: calc(100vh - var(--nb-header-h) - 16px - 40px);
-    height: calc(100svh - var(--nb-header-h) - 16px - 40px);
-    height: calc(100dvh - var(--nb-header-h) - 16px - 40px);
+    /* Same measurement, no bottom nav on desktop: 76+1 header, sm:pt-7 (28), lg:pb-12 (48). */
+    height: var(--nb-fill-h, calc(100dvh - 153px));
     min-height: 540px;
   }
 }
@@ -449,17 +459,20 @@ html,
 body,
 .nb-no-scroll {
   overscroll-behavior-y: contain;
+}
+/* Only controls that suffer a 300ms tap delay opt out of double-tap zoom. The page keeps it, so a
+   resident can double-tap a 12px street label to read it. */
+button,
+[role="button"],
+.nb-btn,
+.nb-chip {
   touch-action: manipulation;
 }
 button,
 [role="button"] {
   -webkit-tap-highlight-color: transparent;
 }
-input,
-textarea,
-select {
-  font-size: 16px; /* iOS would otherwise zoom in on focus */
-}
+
 input[type="range"] {
   height: 36px;
 }
@@ -896,7 +909,9 @@ html[data-mode="light"] .nb-category-chip:hover {
   background: #edf4ef !important;
   filter: none;
 }
-/* Hardcoded dark-ink utilities need explicit light counterparts. */
+/* Light mode is handled by the token remap above. The old block that re-coloured eleven hardcoded
+   night hexes was deleted with them: every `text-[#…]` in src/ is now a token, so the next new component
+   inherits light mode for free instead of needing to be added to a list nobody remembers. */
 html[data-mode="light"] .text-sand-100 {
   color: var(--color-sand-100) !important;
 }
@@ -905,10 +920,6 @@ html[data-mode="light"] .text-tide-400 {
   color: var(--color-tide-300) !important;
 }
 html[data-mode="light"] .nb-tagline {
-  color: var(--color-ink-300) !important;
-}
-/* Muted body copy that was hardcoded for dark. */
-html[data-mode="light"] :is(.text-\[\#a9cdc9\], .text-\[\#8fb9b6\], .text-\[\#6e97a0\], .text-\[\#bfe4e0\], .text-\[\#cfeee9\], .text-\[\#d6f5f1\], .text-\[\#e8f6f4\]) {
   color: var(--color-ink-300) !important;
 }
 html[data-mode="light"] :focus-visible {
@@ -1691,5 +1702,38 @@ html[data-mode="light"] {
     font-size: inherit;
     line-height: inherit;
     box-shadow: none;
+  }
+}
+
+/* =====================================================================
+   PHONE ERGONOMICS — 2026-10-18
+   Measured, not assumed. The release audit used to read only inline
+   `min-h-[…]` utilities, so these stylesheet sizes were invisible to it
+   while being far below the 44px floor: .nb-chip rendered at 32px and
+   .nb-btn at 42px. That mattered most on /report, where the chip row is
+   the severity selector and the taps happen in the rain.
+   ===================================================================== */
+@media (max-width: 1023.98px) {
+  .nb-chip {
+    min-height: 44px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .nb-btn {
+    min-height: 46px;
+  }
+  .nb-btn-sm {
+    min-height: 44px;
+  }
+}
+
+/* iOS Safari zooms the page when a focused field is under 16px. Phones only: on a desktop the
+   design token (14px) is the right size, and the old global rule quietly overrode it everywhere. */
+@media (max-width: 639.98px) {
+  input,
+  textarea,
+  select,
+  .nb-field {
+    font-size: 16px;
   }
 }

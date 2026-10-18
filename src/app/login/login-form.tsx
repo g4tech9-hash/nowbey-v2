@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { PARISHES } from "@/lib/geo";
 import { checkPassword } from "@/lib/password";
 import { safeNext } from "@/lib/redirect";
+import { humanError } from "@/lib/error-copy";
 import { INPUT, LABEL, PasswordField } from "@/components/password-field";
 
 type HandleState = { kind: "idle" } | { kind: "checking" } | { kind: "ok" } | { kind: "bad"; reason: string };
@@ -39,6 +40,30 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [handleResult, setHandleResult] = useState<{ handle: string; state: HandleState } | null>(null);
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  // Consent is stored on the account (users.terms_version), so it is a real form field, not a footer note.
+  const [agreed, setAgreed] = useState(false);
+  const errorRef = useRef<HTMLParagraphElement | null>(null);
+  const fields = useRef<Record<string, HTMLInputElement | null>>({});
+  // Which control caused the error. Drives aria-invalid + aria-describedby and decides where focus lands:
+  // on the field itself, so the person can fix it, not just read about it.
+  const [errorField, setErrorField] = useState<string | null>(null);
+
+  /**
+   * Shows one message, marks the control it belongs to, and moves focus there.
+   *
+   * The message is `role="alert"`, so it is announced the moment it appears; focus goes to the *field* because
+   * the next thing the person wants to do is type. Before this, every message sat below the submit button with
+   * no programmatic link to any input, so a screen reader heard "Create my account" and nothing about what
+   * was wrong, and a sighted user on a 360px screen had to scroll to find it.
+   */
+  function fail(text: string, field: string | null = null) {
+    setError(text);
+    setErrorField(field);
+    window.requestAnimationFrame(() => {
+      const target = field ? fields.current[field] : null;
+      (target ?? errorRef.current)?.focus({ preventScroll: false });
+    });
+  }
 
   function destination(created: boolean): string {
     const next = new URLSearchParams(window.location.search).get("next");
@@ -122,11 +147,16 @@ export function LoginForm() {
     setError(null);
 
     if (mode === "signup") {
-      if (handleState.kind === "bad") return setError(handleState.reason);
-      if (!EMAIL_RE.test(email.trim())) return setError("Enter a valid email address. It is how we help you if you forget your password.");
+      if (handleState.kind === "bad") return fail(handleState.reason, "handle");
+      if (!EMAIL_RE.test(email.trim())) return fail("Enter a valid email address. It is how we help you if you forget your password.", "email");
       const problem = checkPassword(password, { handle, email });
-      if (problem) return setError(problem);
-      if (password !== confirm) return setError("The two passwords do not match.");
+      if (problem) return fail(problem, "password");
+      if (password !== confirm) return fail("The two passwords do not match.", "confirm");
+      if (!agreed)
+        return fail(
+          "Please tick the box to agree to the Terms and the Privacy Policy. Creating an account records the date and version you agreed to.",
+          "agree",
+        );
     }
 
     setBusy(true);
@@ -136,7 +166,7 @@ export function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           mode === "signup"
-            ? { intent: "signup", handle, email: email.trim(), displayName, parish, password }
+            ? { intent: "signup", handle, email: email.trim(), displayName, parish, password, termsAccepted: agreed }
             : { intent: "signin", handle: ident, password },
         ),
       });
@@ -146,7 +176,7 @@ export function LoginForm() {
       // (for example /you/settings -> /login) and loads the destination with the new session cookie.
       window.location.assign(destination(Boolean(data.created)));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      fail(humanError(err, "Could not sign you in. Check the signal and try again."), null);
       setBusy(false);
     }
   }
@@ -218,16 +248,21 @@ export function LoginForm() {
           </div>
         ) : null}
 
-        <div className="mb-4 flex gap-1.5 rounded-full border border-white/10 bg-white/[.04] p-1" role="tablist">
+        {/*
+          Two ways to use the same form. These were declared as a tablist without a tabpanel, which tells a
+          screen reader to expect something that does not exist (and arrow keys that do nothing). A pressed-state
+          group is the honest description: two choices, one of which is on.
+        */}
+        <div className="mb-4 flex gap-1.5 rounded-full border border-white/10 bg-white/[.04] p-1" role="group" aria-label="Sign up or sign in">
           {(["signup", "signin"] as const).map((v) => (
             <button
               key={v}
               type="button"
-              role="tab"
-              aria-selected={mode === v}
+              aria-pressed={mode === v}
               onClick={() => {
                 setMode(v);
                 setError(null);
+                setErrorField(null);
               }}
               className={`min-h-[40px] flex-1 rounded-full text-[12.5px] font-extrabold transition duration-200 ease-standard ${
                 mode === v ? "bg-tide-500 text-[#04202a] shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
@@ -253,8 +288,13 @@ export function LoginForm() {
             <label className="block">
               <span className={LABEL}>Handle or email</span>
               <input
+                ref={(el) => {
+                  fields.current.ident = el;
+                }}
                 value={ident}
                 onChange={(e) => setIdent(e.target.value)}
+                aria-invalid={errorField === "ident" ? true : undefined}
+                aria-describedby={errorField ? "login-error" : undefined}
                 autoComplete="username"
                 autoCapitalize="none"
                 placeholder="your_handle or you@example.com"
@@ -262,7 +302,13 @@ export function LoginForm() {
               />
             </label>
             <div className="mt-2.5">
-              <PasswordField label="Password" value={password} onChange={setPassword} autoComplete="current-password" />
+              <PasswordField
+                label="Password"
+                value={password}
+                onChange={setPassword}
+                autoComplete="current-password"
+                error={errorField === "password" ? error : null}
+              />
             </div>
             <p className="mt-2 text-right text-[12px]">
               <Link href="/forgot-password" className="font-bold text-tide-300 hover:underline">
@@ -277,8 +323,13 @@ export function LoginForm() {
               <div className="mt-1 flex items-center rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 focus-within:border-tide-400">
                 <span className="text-[13px] text-ink-400">@</span>
                 <input
+                  ref={(el) => {
+                    fields.current.handle = el;
+                  }}
                   value={handle}
                   onChange={(e) => setHandle(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").toLowerCase())}
+                  aria-invalid={errorField === "handle" || handleState.kind === "bad" ? true : undefined}
+                  aria-describedby={errorField === "handle" || handleState.kind === "bad" ? "login-error" : undefined}
                   autoComplete="username"
                   maxLength={18}
                   placeholder="village_road_jenny"
@@ -304,9 +355,14 @@ export function LoginForm() {
             <label className="mt-2 block">
               <span className={LABEL}>Email</span>
               <input
+                ref={(el) => {
+                  fields.current.email = el;
+                }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
+                aria-invalid={errorField === "email" ? true : undefined}
+                aria-describedby={errorField === "email" ? "login-error" : undefined}
                 autoComplete="email"
                 placeholder="you@example.com"
                 className={`${INPUT} mt-1`}
@@ -331,24 +387,82 @@ export function LoginForm() {
             </div>
 
             <div className="mt-2.5">
-              <PasswordField label="Password" value={password} onChange={setPassword} autoComplete="new-password" meter ctx={{ handle, email }} hint="At least 8 characters." />
+              <PasswordField
+                label="Password"
+                value={password}
+                onChange={setPassword}
+                autoComplete="new-password"
+                meter
+                ctx={{ handle, email }}
+                hint="At least 8 characters."
+                error={errorField === "password" ? error : null}
+              />
             </div>
             <div className="mt-2.5">
-              <PasswordField label="Confirm password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
-              {confirm && password !== confirm ? <p className="mt-1 text-[11.5px] text-danger-500">These do not match yet.</p> : null}
+              <PasswordField
+                label="Confirm password"
+                value={confirm}
+                onChange={setConfirm}
+                autoComplete="new-password"
+                error={errorField === "confirm" ? error : null}
+              />
+              {confirm && password !== confirm && errorField !== "confirm" ? (
+                <p className="mt-1 text-[11.5px] text-danger-500">These do not match yet.</p>
+              ) : null}
             </div>
           </>
         )}
 
+        {mode === "signup" ? (
+          <div className="mt-3.5 flex items-start gap-2.5 rounded-xl border hairline bg-white/[.03] px-3 py-2.5">
+            <input
+              ref={(el) => {
+                fields.current.agree = el;
+              }}
+              id="login-agree"
+              type="checkbox"
+              checked={agreed}
+              aria-invalid={errorField === "agree" ? true : undefined}
+              aria-describedby={errorField === "agree" ? "login-error" : undefined}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[#43e0cc]"
+            />
+            <label htmlFor="login-agree" className="text-[12px] leading-[1.6] text-ink-300">
+              I agree to the{" "}
+              <Link href="/terms" className="font-bold text-tide-300 underline">
+                Terms
+              </Link>{" "}
+              and the{" "}
+              <Link href="/privacy" className="font-bold text-tide-300 underline">
+                Privacy Policy
+              </Link>
+              . We record the date and version you agreed to.
+            </label>
+          </div>
+        ) : null}
+
         {error ? (
-          <p role="alert" className="mt-3 rounded-lg bg-danger-500/15 px-2.5 py-2 text-[12.5px] text-danger-500">
+          <p
+            ref={errorRef}
+            id="login-error"
+            role="alert"
+            tabIndex={-1}
+            className="mt-3 rounded-lg bg-danger-500/15 px-2.5 py-2 text-[12.5px] text-danger-500 outline-none focus-visible:ring-2 focus-visible:ring-danger-500/60"
+          >
             {error}
           </p>
         ) : null}
 
-        <button type="submit" disabled={busy} className="nb-btn nb-btn-primary mt-4 w-full">
+        <button
+          type="submit"
+          disabled={busy || (mode === "signup" && !agreed)}
+          className="nb-btn nb-btn-primary mt-4 w-full"
+        >
           {busy ? "Working…" : mode === "signup" ? "Create my account" : "Sign in"}
         </button>
+        {mode === "signup" && !agreed ? (
+          <p className="mt-1.5 text-[11.5px] text-ink-400">Tick the box above to switch the button on. Nothing is created until you do.</p>
+        ) : null}
         <p className="mt-2 text-[11.5px] text-ink-400">
           Just looking?{" "}
           <Link href="/map" className="font-bold text-tide-300 hover:underline">

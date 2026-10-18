@@ -349,3 +349,33 @@ Deny the permission → app must not crash (code returns "skipped").
 Accept → file a test report from another account on the same island →
 notification arrives → tap opens the report. Revoke in Android settings →
 re-register path still safe.
+
+## Tiles (map basemap) — licensed provider required before store submission
+
+- [ ] Buy a tile plan (MapTiler / Stadia / Mapbox / Esri) and set `NEXT_PUBLIC_TILE_*` on Vercel and
+      `EXPO_PUBLIC_TILE_*` in EAS. See `docs/TILES.md` for the exact names and an example.
+- [ ] Without this, production logs one warning on boot and the app is still serving OpenStreetMap's
+      community tiles, which their policy forbids for app distribution.
+
+## Legal & email — before the stores go live
+
+- [ ] Have a Bahamian lawyer read `src/app/terms/page.tsx` and `src/app/privacy/page.tsx`. They now describe
+      the product accurately (crash reports, funnel counters, US processors, retention); they still need a
+      local professional's read.
+- [ ] Set `SUPPORT_EMAIL` so the privacy page, the deletion screen and support can name an address instead of
+      pointing at an app-store listing.
+- [ ] Set `APP_URL`, `SMTP_*`/`RESEND_API_KEY` in production. Without them the new "email me a confirmation
+      link" deletion path cannot send, and Google-only accounts fall back to contacting support.
+- [ ] Confirm the Google OAuth consent screen links the Terms and Privacy policy (Google only shows them if
+      configured on the client).
+
+## Device checks that need a handset
+
+- [ ] C1 on a real Google account: delete → email arrives → link opens `/you/settings?delete=…` → red button
+      deletes → replay refused.
+- [ ] H1 on iPhone SE and a 360px Android: `/map` list's last row clears the tab bar; rotate and confirm it
+      re-measures.
+- [ ] A1/A2 with VoiceOver and TalkBack: focus enters the dialog, Tab/arrow stays inside, Escape/back closes,
+      focus returns to the button that opened it.
+- [ ] R2 (still open): the app has no offline read cache, draft or send queue. Decide whether v1 ships without
+      it or whether it is a store-review risk in a market with frequent outages.

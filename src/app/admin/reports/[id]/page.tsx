@@ -35,15 +35,15 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
           <Pill tone={r.status === "active" ? "sun" : r.status === "archived" ? "conch" : "slate"}>
             {r.status === "archived" ? "hidden" : r.status}
           </Pill>
-          <span className="text-[11.5px] text-[#6e97a0]">{timeAgo(r.createdAt)} · {r.confirmations} confirmed · {r.sightings} sightings</span>
+          <span className="text-[11.5px] text-ink-400">{timeAgo(r.createdAt)} · {r.confirmations} confirmed · {r.sightings} sightings</span>
         </div>
         <h2 className="display text-[clamp(1.3rem,3.4vw,1.8rem)] font-extrabold text-sand-100">{r.title}</h2>
-        <p className="text-[12.5px] text-[#8fb9b6]">
+        <p className="text-[12.5px] text-ink-300">
           {[r.street, r.address, r.parish].filter(Boolean).join(" · ") || "unmapped"} · by @{r.authorHandle ?? "someone"}
           {" "}· source: {r.sourceKind}
           {" "}· <Link href={`/incident/${r.id}`} className="font-bold text-tide-300 underline">public page</Link>
         </p>
-        <p className="font-mono text-[11.5px] text-[#6e97a0]">id: {r.id}</p>
+        <p className="font-mono text-[11.5px] text-ink-400">id: {r.id}</p>
         <div className="pt-1">
           <ReportActions id={r.id} status={r.status} canDelete={viewer.isAdmin} />
         </div>
@@ -56,7 +56,7 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
 
       <div className="glass rounded-2xl p-4">
         <h3 className="mb-1 text-[13px] font-extrabold uppercase tracking-wide text-sand-100">Merge a duplicate</h3>
-        <p className="mb-3 text-[12px] text-[#8fb9b6]">
+        <p className="mb-3 text-[12px] text-ink-300">
           Find the duplicate in the reports list, copy its id, and paste it here. This report survives.
         </p>
         <ReportMerge id={r.id} />
@@ -65,13 +65,13 @@ export default async function ReportDetailPage({ params }: { params: Promise<{ i
       <div className="glass rounded-2xl p-4">
         <h3 className="mb-2 text-[13px] font-extrabold uppercase tracking-wide text-sand-100">History</h3>
         {updates.length === 0 ? (
-          <p className="text-[12.5px] text-[#8fb9b6]">No updates yet.</p>
+          <p className="text-[12.5px] text-ink-300">No updates yet.</p>
         ) : (
           <ul className="space-y-1.5">
             {updates.map((u) => (
-              <li key={u.id} className="text-[12.5px] text-[#a9cdc9]">
+              <li key={u.id} className="text-[12.5px] text-ink-200">
                 <span className="font-bold text-sand-100">[{u.kind}]</span> {u.note ?? "—"}{" "}
-                <span className="text-[#6e97a0]">· {u.authorHandle ?? "someone"} · {timeAgo(u.createdAt)}</span>
+                <span className="text-ink-400">· {u.authorHandle ?? "someone"} · {timeAgo(u.createdAt)}</span>
               </li>
             ))}
           </ul>

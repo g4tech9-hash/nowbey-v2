@@ -50,12 +50,12 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
   return (
     <div>
-      <p className="mb-3 text-[12px] text-[#8fb9b6]">
+      <p className="mb-3 text-[12px] text-ink-300">
         Everything staff change on someone else&apos;s account, a report or a story, newest first. {n} {n === 1 ? "entry" : "entries"} so far.
       </p>
       <div className="glass nb-scroll overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[640px] text-left text-[12.5px]">
-          <thead className="text-[11.5px] uppercase tracking-wide text-[#6e97a0]">
+          <thead className="text-[11.5px] uppercase tracking-wide text-ink-400">
             <tr>
               <th className="px-3 py-2">When</th>
               <th className="px-2">Who</th>
@@ -67,18 +67,18 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           <tbody>
             {rows.map((r) => (
               <tr key={r.id} className="border-t hairline align-top">
-                <td className="whitespace-nowrap px-3 py-2 text-[#8fb9b6]">{timeAgo(r.createdAt)}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-ink-300">{timeAgo(r.createdAt)}</td>
                 <td className="px-2 py-2 font-bold text-sand-100">@{r.actorHandle}</td>
                 <td className="px-2 py-2">
                   <span className="font-mono text-[11.5px] text-tide-300">{r.action}</span>
                 </td>
                 <td className="max-w-[260px] truncate px-2 py-2">{target(r)}</td>
-                <td className="px-3 py-2 text-[#a9cdc9]">{r.detail ?? ""}</td>
+                <td className="px-3 py-2 text-ink-200">{r.detail ?? ""}</td>
               </tr>
             ))}
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-[#8fb9b6]">
+                <td colSpan={5} className="px-3 py-6 text-center text-ink-300">
                   Nothing has been logged yet.
                 </td>
               </tr>

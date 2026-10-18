@@ -5,8 +5,14 @@ import { accountTokens, emailLog } from "@/db/schema";
 import { makeToken, setSessionCookie } from "@/lib/auth";
 import { emailButton, emailLayout, escapeHtml, sendMail, type MailResult } from "@/lib/mail";
 
-/** verify_email / reset_password arrive by mail; native_handoff hands a signed-in app its token. */
-export type TokenKind = "verify_email" | "reset_password" | "native_handoff";
+/**
+ * verify_email / reset_password / delete_account arrive by mail; native_handoff hands a signed-in app its token.
+ *
+ * delete_account exists because an account opened with Google has no password to confirm with. Proving
+ * control of the verified address is the same proof, and it works when the person is on a phone they do
+ * not normally use.
+ */
+export type TokenKind = "verify_email" | "reset_password" | "native_handoff" | "delete_account";
 
 export const hashToken = (raw: string) => createHash("sha256").update(raw).digest("hex");
 
@@ -125,6 +131,37 @@ export async function sendGoogleLinkedEmail(user: Recipient, base: string | null
       "If this was not you, reset your password now and contact us — someone with access to that Gmail address may have signed in.",
     ),
     text: `Hi ${user.handle}, Google sign-in was added to your NowBey account. Your password still works. If this was not you, reset your password now${base ? `: ${base}/forgot-password` : ""}.`,
+  });
+  return res.status;
+}
+
+/**
+ * The link that lets someone without a password prove the account is theirs before deleting it.
+ *
+ * Accounts opened with Google have `password_hash = NULL` and `google_sub` set. They had no way to delete at
+ * all: the delete dialog demanded a password, the password check always failed, and after six tries the
+ * account was rate-limited. That is not just bad UX — App Store guideline 5.1.1(v) requires in-app account
+ * deletion for any app that lets you create one, and Google Play requires the same.
+ *
+ * The link is deliberately short-lived (30 minutes), single-use, and does not delete anything itself: it
+ * opens the settings page with a token, and the person still presses the red button. That keeps a link
+ * preview or a security scanner from deleting an account by visiting a URL.
+ */
+export async function sendDeletionEmail(user: Recipient, base: string | null): Promise<MailResult["status"]> {
+  const subject = "Confirm deleting your NowBey account";
+  if (!base) return skipped(user.email, subject, "account-delete", NO_BASE);
+  const raw = await issueToken(user.id, "delete_account", user.email, 30 * 60_000);
+  const link = `${base}/you/settings?delete=${encodeURIComponent(raw)}`;
+  const res = await sendMail({
+    to: user.email,
+    subject,
+    kind: "account-delete",
+    html: emailLayout(
+      "Confirm deleting your account",
+      `<p style="margin:0;font-size:14px;line-height:1.55;color:#cfeee9">Hi ${escapeHtml(user.handle)}, someone asked to delete this NowBey account. Open your settings with the button below and press the red button there. Nothing is deleted until you do.</p>${emailButton(link, "Open my account settings")}`,
+      "This link works once, for 30 minutes. If this was not you, ignore this email — the account stays as it is. If you keep getting these, change your Google password.",
+    ),
+    text: `Hi ${user.handle}, open your NowBey account settings to delete the account: ${link}\n\nNothing is deleted until you press the red button there. The link works once, for 30 minutes. If this was not you, ignore this email.`,
   });
   return res.status;
 }

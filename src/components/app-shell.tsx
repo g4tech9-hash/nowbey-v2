@@ -12,6 +12,8 @@ import { AccessibilityControls } from "./accessibility-controls";
 import { SimpleViewToggle } from "./simple-view-toggle";
 import { DisplayTip } from "./display-tip";
 import { ArrowIcon, PageIntro } from "./ui";
+import { useFillHeight } from "@/lib/use-fill-height";
+import { RouteAnnouncer } from "./route-announcer";
 
 export function NowBeyMark({ size = 30 }: { size?: number }) {
   const gradientId = `nbmark-${useId().replace(/:/g, "")}`;
@@ -56,9 +58,14 @@ export function AppShell({
   kicker?: ReactNode;
 }) {
   const isLanding = usePathname() === "/";
+  // Measures the real header and bottom nav so --nb-fill-h is never a stale constant. See src/lib/fill-height.ts.
+  useFillHeight();
+  // Publishes --nb-fill-h from live measurements (header, main padding, bottom nav). See src/lib/fill-height.ts.
 
   return (
     <div className="grain relative min-h-screen">
+      {/* Announces each in-app navigation; the shell swaps <main> without a page load. */}
+      <RouteAnnouncer />
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[800] focus:rounded-full focus:bg-tide-500 focus:px-4 focus:py-2 focus:text-[13px] focus:font-extrabold focus:text-[#04202a]"
@@ -160,6 +167,7 @@ export function AppShell({
                     ["/mobile", "Mobile app (developers)"],
                     ["/terms", "Terms"],
                     ["/privacy", "Privacy"],
+                    ["/cookies", "Cookies and storage"],
                     ["/credits", "Photo credits"],
                   ].map(([href, label]) => (
                     <li key={href}>

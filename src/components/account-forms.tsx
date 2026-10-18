@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PARISHES } from "@/lib/geo";
 import { checkPassword } from "@/lib/password";
 import { INPUT, LABEL, PasswordField } from "@/components/password-field";
 import { Modal } from "@/components/ui";
+import { humanError } from "@/lib/error-copy";
 
 type Msg = { ok: boolean; text: string } | null;
 
@@ -46,7 +47,7 @@ export function ProfileForm({ displayName, parish }: { displayName: string; pari
           setMsg({ ok: true, text: "Saved." });
           router.refresh();
         } catch (err) {
-          setMsg({ ok: false, text: err instanceof Error ? err.message : "Could not save." });
+          setMsg({ ok: false, text: humanError(err, "Could not save.") });
         } finally {
           setBusy(false);
         }
@@ -94,7 +95,7 @@ export function ResendVerification() {
             else if (data.mail === "sent") setMsg({ ok: true, text: "Sent. Check your inbox, and your spam folder." });
             else setMsg({ ok: false, text: "We could not send email from this server just now. Try again later, or ask a NowBey admin to confirm it." });
           } catch (err) {
-            setMsg({ ok: false, text: err instanceof Error ? err.message : "Could not send it." });
+            setMsg({ ok: false, text: humanError(err, "Could not send it.") });
           } finally {
             setBusy(false);
           }
@@ -132,7 +133,7 @@ export function EmailForm({ current, handle }: { current: string | null; handle:
           setPassword("");
           router.refresh();
         } catch (err) {
-          setMsg({ ok: false, text: err instanceof Error ? err.message : "Could not change it." });
+          setMsg({ ok: false, text: humanError(err, "Could not change it.") });
         } finally {
           setBusy(false);
         }
@@ -177,7 +178,7 @@ export function PasswordForm({ handle, email }: { handle: string; email: string 
           setNext("");
           setConfirm("");
         } catch (err) {
-          setMsg({ ok: false, text: err instanceof Error ? err.message : "Could not change it." });
+          setMsg({ ok: false, text: humanError(err, "Could not change it.") });
         } finally {
           setBusy(false);
         }
@@ -213,7 +214,7 @@ export function SignOutOthers() {
             await send("/api/account/sessions", "DELETE");
             setMsg({ ok: true, text: "Done. Every other phone and browser has been signed out." });
           } catch (err) {
-            setMsg({ ok: false, text: err instanceof Error ? err.message : "Could not do that." });
+            setMsg({ ok: false, text: humanError(err, "Could not do that.") });
           } finally {
             setBusy(false);
           }
@@ -227,11 +228,45 @@ export function SignOutOthers() {
   );
 }
 
-export function DeleteAccount({ hasPaidPlan }: { hasPaidPlan: boolean }) {
+export function DeleteAccount({ hasPaidPlan, hasPassword }: { hasPaidPlan: boolean; hasPassword: boolean }) {
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<Msg>(null);
+  // The emailed link lands on this page as /you/settings?delete=<token>. Reading it here (rather than with
+  // useSearchParams) keeps this component out of a Suspense requirement and works the same on any route.
+  const [token, setToken] = useState("");
+
+  useEffect(() => {
+    const value = new URLSearchParams(window.location.search).get("delete") ?? "";
+    if (!value) return;
+    /*
+     * The token is in the URL, which does not exist during server rendering, so it can only be read after
+     * mount. One read, one open — an external-system subscription in the sense the lint rule means.
+     */
+    /* eslint-disable react-hooks/set-state-in-effect -- one-time read of the one-time link after mount */
+    setToken(value);
+    setOpen(true);
+    // The token is single-use and lives in the URL; strip it so a refresh or a shared screenshot cannot replay it.
+    window.history.replaceState(null, "", window.location.pathname);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  /** Emails a one-time link. Used by every account, not only Google ones: a borrowed phone is a good reason. */
+  async function emailLink() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      await send("/api/account/deletion-link", "POST");
+      setMsg({ ok: true, text: "Check your email. The link works once and expires in 30 minutes." });
+    } catch (err) {
+      setMsg({ ok: false, text: humanError(err, "Could not send that email.") });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const canSubmit = Boolean(token) || Boolean(password);
 
   return (
     <>
@@ -241,18 +276,13 @@ export function DeleteAccount({ hasPaidPlan }: { hasPaidPlan: boolean }) {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="Delete your account?"
+        title={token ? "Confirm deletion" : "Delete your account?"}
         footer={
           <>
             <button type="button" onClick={() => setOpen(false)} className="nb-btn nb-btn-secondary">
               Keep it
             </button>
-            <button
-              type="submit"
-              form="nb-delete-account-form"
-              disabled={busy || !password}
-              className="nb-btn nb-btn-danger"
-            >
+            <button type="submit" form="nb-delete-account-form" disabled={busy || !canSubmit} className="nb-btn nb-btn-danger">
               {busy ? "Deleting…" : "Yes, delete my account"}
             </button>
           </>
@@ -266,10 +296,10 @@ export function DeleteAccount({ hasPaidPlan }: { hasPaidPlan: boolean }) {
             setBusy(true);
             setMsg(null);
             try {
-              await send("/api/account", "DELETE", { password });
+              await send("/api/account", "DELETE", token ? { token } : { password });
               window.location.assign(new URL("/", window.location.origin).href);
             } catch (err) {
-              setMsg({ ok: false, text: err instanceof Error ? err.message : "Could not delete it." });
+              setMsg({ ok: false, text: humanError(err, "Could not delete it.") });
               setBusy(false);
             }
           }}
@@ -281,9 +311,29 @@ export function DeleteAccount({ hasPaidPlan }: { hasPaidPlan: boolean }) {
             comment and reaction you have left, are deleted.
             {hasPaidPlan ? " Cancel your paid plan from Manage billing first." : ""}
           </p>
-          <div className="mt-3.5">
-            <PasswordField label="Type your password to confirm" value={password} onChange={setPassword} autoComplete="current-password" />
-          </div>
+
+          {token ? (
+            <p className="mt-3.5 rounded-lg border border-tide-500/30 bg-tide-500/10 px-3 py-2 text-[12.5px] text-tide-300">
+              Your email has been confirmed for this request. Press the red button below to finish deleting the account.
+            </p>
+          ) : hasPassword ? (
+            <div className="mt-3.5">
+              <PasswordField label="Type your password to confirm" value={password} onChange={setPassword} autoComplete="current-password" />
+              <button type="button" disabled={busy} onClick={() => void emailLink()} className="mt-2 text-[12px] font-bold text-tide-300 underline">
+                I do not have my password — email me a confirmation link instead
+              </button>
+            </div>
+          ) : (
+            <div className="mt-3.5 rounded-lg border hairline bg-white/[.03] px-3 py-2.5">
+              <p className="text-[12.5px] leading-relaxed text-ink-300">
+                This account was opened with Google, so there is no password to type. We will email a one-time confirmation
+                link to your verified address instead.
+              </p>
+              <button type="button" disabled={busy} onClick={() => void emailLink()} className="nb-btn nb-btn-secondary mt-2.5">
+                Email me a confirmation link
+              </button>
+            </div>
+          )}
           <Note msg={msg} />
         </form>
       </Modal>

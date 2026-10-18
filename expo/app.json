@@ -6,14 +6,12 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "app.nowbey.mobile",
       "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSLocationWhenInUseUsageDescription": "NowBey uses your location to drop a report pin on the right spot.",
-        "NSCameraUsageDescription": "NowBey needs camera access to attach photos to a report.",
-        "NSPhotoLibraryUsageDescription": "NowBey needs photo library access to attach photos to a report."
+        "NSLocationWhenInUseUsageDescription": "NowBey uses your location to drop a report pin on the right spot."
       }
     },
     "android": {

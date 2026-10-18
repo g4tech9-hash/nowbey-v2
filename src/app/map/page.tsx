@@ -7,6 +7,7 @@ import { MapPanel, type MapPin, type PickResult } from "@/components/map/map-pan
 import { useIsMobile } from "@/lib/use-is-mobile";
 import { EmergencyNotice } from "@/components/emergency-notice";
 import { trackFunnel } from "@/lib/funnel-client";
+import { humanError } from "@/lib/error-copy";
 import { CATEGORIES, PARISHES, timeAgo, type CategoryKey } from "@/lib/geo";
 
 type Row = {
@@ -90,6 +91,7 @@ export default function MapWorkspace() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState<{ id: string; title: string } | null>(null);
+  const [duplicate, setDuplicate] = useState<{ id: string; title: string } | null>(null);
   const [handle, setHandle] = useState<string | null>(null);
   const [focusNonce, setFocusNonce] = useState(0);
   const [mode, setMode] = useState<PhoneMode>("split");
@@ -121,7 +123,7 @@ export default function MapWorkspace() {
       setRows((a.incidents ?? []) as Row[]);
       setWire(((b.items ?? []) as WireRow[]).filter((n) => n.lat != null && n.lng != null));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load the map feed.");
+      setError(humanError(e, "Could not load the map feed."));
     } finally {
       setLoading(false);
     }
@@ -262,6 +264,21 @@ export default function MapWorkspace() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "The wire rejected that report.");
+      /*
+       * duplicate:true means the server created nothing — it found a nearby report of the same kind. The old
+       * code ignored the flag and said "On the map… is live at your pin" about a report this person did not
+       * write. That is a lie with a cost: they stop looking for their own text, and the map gains a confirm
+       * that should have been one. Say what happened and send them to the report that exists.
+       */
+      if (data.duplicate) {
+        setDuplicate({ id: data.incident.id, title: data.incident.title });
+        setPickMode(false);
+        setPick(null);
+        setStep("spot");
+        setForm(EMPTY_FORM);
+        await load();
+        return;
+      }
       setDone({ id: data.incident.id, title: data.incident.title });
       setPickMode(false);
       setPick(null);
@@ -270,7 +287,7 @@ export default function MapWorkspace() {
       setMode("split");
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not save that report.");
+      setError(humanError(e, "Could not save that report. Your words are still in the form."));
     } finally {
       setSaving(false);
     }
@@ -280,6 +297,7 @@ export default function MapWorkspace() {
     setPickMode(true);
     setStep("spot");
     setDone(null);
+    setDuplicate(null);
     // Pinning needs the map and its full chrome, whatever the list was showing.
     setMode((m) => (m === "list" ? "split" : m));
   }
@@ -779,6 +797,24 @@ export default function MapWorkspace() {
                 >
                   Show more pins ({visible.length - listLimit} left)
                 </button>
+              ) : null}
+
+              {duplicate ? (
+                <div className="mt-2.5 rounded-xl border border-sun-500/40 bg-sun-500/10 p-3 text-[12.5px]">
+                  <p className="font-bold text-sun-500">Someone already reported this.</p>
+                  <p className="mt-1 text-ink-200">
+                    A nearby report already covers this, so nothing new was published: “{duplicate.title}”. Confirming
+                    that one is more useful to neighbours than a second pin.
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Link href={`/incident/${duplicate.id}`} className="font-bold text-sun-500 underline">
+                      Open the existing report
+                    </Link>
+                    <button type="button" onClick={() => setDuplicate(null)} className="font-bold text-ink-300 underline">
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
               ) : null}
 
               {done ? (

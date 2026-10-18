@@ -56,7 +56,7 @@ test("the owner account exists locally and can be signed into with a freshly min
   const call = as(uniqueIp());
   const signup = await call("/api/session", {
     method: "POST",
-    body: { intent: "signup", handle: OWNER.handle, email: ownerEmail, password: strongPassword(), parish: "New Providence" },
+    body: { intent: "signup", termsAccepted: true, handle: OWNER.handle, email: ownerEmail, password: strongPassword(), parish: "New Providence" },
     cookie: ownerCookie,
   });
   assert.ok([200, 409].includes(signup.status), `unexpected sign-up answer ${signup.status}`);
@@ -88,7 +88,7 @@ test("the admin area opens for the owner and stays shut for a plain member", asy
   const helper = jar();
   const signedUp = await call("/api/session", {
     method: "POST",
-    body: { intent: "signup", handle: helperHandle, email: helperEmail, password: strongPassword(), parish: "New Providence" },
+    body: { intent: "signup", termsAccepted: true, handle: helperHandle, email: helperEmail, password: strongPassword(), parish: "New Providence" },
     cookie: helper,
   });
   assert.equal(signedUp.status, 200, JSON.stringify(signedUp.json));

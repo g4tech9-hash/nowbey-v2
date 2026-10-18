@@ -17,6 +17,7 @@ export function PasswordField({
   ctx,
   hint,
   placeholder,
+  error,
 }: {
   label: string;
   value: string;
@@ -27,9 +28,13 @@ export function PasswordField({
   ctx?: { handle?: string; email?: string };
   hint?: string;
   placeholder?: string;
+  /** A message tied to this field: sets aria-invalid and aria-describedby, so a screen reader hears why. */
+  error?: string | null;
 }) {
   const [show, setShow] = useState(false);
   const id = useId();
+  const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
   const s = meter ? passwordStrength(value, ctx) : null;
 
   return (
@@ -45,6 +50,8 @@ export function PasswordField({
           onChange={(e) => onChange(e.target.value)}
           autoComplete={autoComplete}
           placeholder={placeholder}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : hint ? hintId : undefined}
           className={`${INPUT} pr-16`}
         />
         <button
@@ -56,6 +63,11 @@ export function PasswordField({
           {show ? "Hide" : "Show"}
         </button>
       </div>
+      {error ? (
+        <p id={errorId} className="mt-1 text-[11.5px] font-semibold text-danger-500">
+          {error}
+        </p>
+      ) : null}
       {s && value ? (
         <div className="mt-1.5" aria-live="polite">
           <div className="flex gap-1">
@@ -66,7 +78,9 @@ export function PasswordField({
           <p className={`mt-1 text-[11.5px] ${s.problem ? "text-danger-500" : "text-ink-400"}`}>{s.problem ?? s.label}</p>
         </div>
       ) : hint ? (
-        <p className="mt-1 text-[11.5px] text-ink-400">{hint}</p>
+        <p id={hintId} className="mt-1 text-[11.5px] text-ink-400">
+          {hint}
+        </p>
       ) : null}
     </div>
   );

@@ -19,11 +19,14 @@ const css = read("src/app/globals.css");
 
 test("the desktop map workspace has a viewport-bounded height", () => {
   assert.ok(page.includes("nb-map-workspace"), "the /map grid must opt into the bounded workspace");
+  // Height now comes from --nb-fill-h, which the browser measures (header + main padding + nav) instead of a
+  // hand-maintained constant. The calc() fallback is still viewport-derived, so the original guarantee holds.
   assert.match(
     css,
-    /@media \(min-width: 1024px\)\s*\{\s*\.nb-map-workspace\s*\{[^}]*height: calc\(100dvh/,
-    "the workspace height must be derived from the viewport on desktop",
+    /@media \(min-width: 1024px\)\s*\{\s*\.nb-map-workspace\s*\{[^}]*height: var\(--nb-fill-h, calc\(100dvh/,
+    "the workspace height must be measured, with a viewport fallback on desktop",
   );
+  assert.match(css, /--nb-fill-h/, "the measurement variable must be documented in the stylesheet");
 });
 
 test("the pin list scrolls inside the rail on desktop, never in page flow", () => {
@@ -53,6 +56,7 @@ test("pin codes are unique per category, so a legend can decode them", () => {
 
 test("street tile configuration uses the canonical OSM endpoint with linked attribution", async () => {
   const { STREET_TILES, LAYERS } = await import("../src/lib/geo.ts");
+  // The URLs are env-overridable now (docs/TILES.md); with no env set, the development default stands.
   assert.equal(STREET_TILES.url, "https://tile.openstreetmap.org/{z}/{x}/{y}.png");
   assert.match(STREET_TILES.attribution, /https:\/\/www\.openstreetmap\.org\/copyright/);
   assert.equal(STREET_TILES.maxZoom, 19);

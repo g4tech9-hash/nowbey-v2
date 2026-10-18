@@ -60,16 +60,16 @@ export function ReportEditor({ report }: { report: ReportForEdit }) {
   return (
     <form onSubmit={onSubmit} className="space-y-3">
       <div>
-        <label htmlFor="rep-title" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Headline</label>
+        <label htmlFor="rep-title" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Headline</label>
         <input id="rep-title" name="title" defaultValue={report.title} maxLength={140} required className={INPUT} />
       </div>
       <div>
-        <label htmlFor="rep-details" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Details</label>
+        <label htmlFor="rep-details" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Details</label>
         <textarea id="rep-details" name="details" defaultValue={report.details ?? ""} rows={4} maxLength={2000} className={INPUT} />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label htmlFor="rep-category" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Category</label>
+          <label htmlFor="rep-category" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Category</label>
           <select id="rep-category" name="category" defaultValue={report.category} className={INPUT}>
             {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
               <option key={k} value={k}>{CATEGORIES[k].label}</option>
@@ -77,7 +77,7 @@ export function ReportEditor({ report }: { report: ReportForEdit }) {
           </select>
         </div>
         <div>
-          <label htmlFor="rep-severity" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Severity</label>
+          <label htmlFor="rep-severity" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Severity</label>
           <select id="rep-severity" name="severity" defaultValue={String(report.severity)} className={INPUT}>
             <option value="1">1 · Annoying (stays quiet)</option>
             <option value="2">2 · Blocking a lane</option>
@@ -86,11 +86,11 @@ export function ReportEditor({ report }: { report: ReportForEdit }) {
           </select>
         </div>
         <div>
-          <label htmlFor="rep-street" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Street / landmark</label>
+          <label htmlFor="rep-street" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Street / landmark</label>
           <input id="rep-street" name="street" defaultValue={report.street ?? ""} maxLength={160} className={INPUT} />
         </div>
         <div>
-          <label htmlFor="rep-parish" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Island</label>
+          <label htmlFor="rep-parish" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Island</label>
           <select id="rep-parish" name="parish" defaultValue={report.parish ?? ""} className={INPUT}>
             <option value="">—</option>
             {PARISHES.map((p) => (
@@ -137,7 +137,7 @@ export function ReportMerge({ id }: { id: string }) {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-2 sm:flex-row sm:items-end">
       <div className="flex-1">
-        <label htmlFor="merge-from" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">
+        <label htmlFor="merge-from" className="mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-ink-400">
           Merge another report into this one (paste its id)
         </label>
         <input id="merge-from" name="from" placeholder="e.g. 3f2c…" className={INPUT} />

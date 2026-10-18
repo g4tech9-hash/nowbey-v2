@@ -13,9 +13,8 @@ import { color } from "./theme";
  * Free public tile servers are fine for testing and small launches. Before a big public launch,
  * switch the tile addresses below to a provider you have an agreement with (MapTiler, Stadia, Mapbox...).
  */
-const IMAGERY = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-const LABELS = "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
-const STREETS = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+import { IMAGERY, LABELS, MAX_ZOOM, STREETS } from "./map-tiles";
+import { LEAFLET_CSS, LEAFLET_JS } from "./leaflet-assets";
 
 /** Phone-width latitude span in degrees -> web-map zoom level. */
 const zoomFor = (delta: number) => Math.max(3, Math.min(19, Math.round(Math.log2(540 / Math.max(delta, 0.0005)))));
@@ -24,7 +23,7 @@ const safe = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
 
 function buildHtml(initial: { lat: number; lng: number; zoom: number; pins: unknown; pick: unknown; pickable: boolean }): string {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>${LEAFLET_CSS}</style>
 <style>
 html,body,#map{height:100%;margin:0;background:#0b2230}
 .leaflet-container{font-family:-apple-system,Roboto,sans-serif}
@@ -35,7 +34,7 @@ html,body,#map{height:100%;margin:0;background:#0b2230}
 </style></head><body>
 <div id="map"></div><button id="mode" type="button">Street map</button><div id="credit"></div>
 <div id="msg">The map needs an internet connection.</div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>${LEAFLET_JS}</script>
 <script>
 (function(){
   function send(o){ try{ window.ReactNativeWebView.postMessage(JSON.stringify(o)); }catch(e){} }
@@ -47,11 +46,11 @@ html,body,#map{height:100%;margin:0;background:#0b2230}
   function setBase(a){
     aerial=a; layers.forEach(function(l){map.removeLayer(l)}); layers=[];
     if(a){
-      layers.push(L.tileLayer(${safe(IMAGERY)},{maxZoom:19,maxNativeZoom:18}).addTo(map));
-      layers.push(L.tileLayer(${safe(LABELS)},{maxZoom:19,subdomains:'abcd'}).addTo(map));
+      layers.push(L.tileLayer(${safe(IMAGERY)},{maxZoom:${MAX_ZOOM},maxNativeZoom:18}).addTo(map));
+      if (${safe(LABELS)}) layers.push(L.tileLayer(${safe(LABELS)},{maxZoom:${MAX_ZOOM},subdomains:'abcd'}).addTo(map));
       credit.textContent='Imagery Esri, Maxar, Earthstar Geographics. Labels Esri';
     } else {
-      layers.push(L.tileLayer(${safe(STREETS)},{maxZoom:19,subdomains:'abcd'}).addTo(map));
+      layers.push(L.tileLayer(${safe(STREETS)},{maxZoom:${MAX_ZOOM},subdomains:'abcd'}).addTo(map));
       credit.textContent='OpenStreetMap contributors';
     }
     document.getElementById('mode').textContent=a?'Street map':'Aerial';

@@ -2,11 +2,12 @@ import { isBlocked, useBlocked } from "../../src/Safety";
 import { useCallback, useState } from "react";
 import type { ReactNode } from "react";
 import { ActivityIndicator, FlatList, ImageBackground, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { api, errMsg, type Incident } from "../../src/api";
 import { CATEGORIES, CATEGORY_KEYS, PARISHES, categoryOf, timeAgo, type CategoryKey } from "../../src/geo";
 import { BRAND, THEME } from "../../src/brand";
 import { color } from "../../src/theme";
+import { useAutoRefresh } from "../../src/use-auto-refresh";
 import { BadgeMark, Btn, CategoryBadge, Card, Pill, t, useTopInset } from "../../src/ui";
 
 const SCENE = require("../../assets/splash-scene.jpg");
@@ -51,13 +52,9 @@ export default function Feed() {
     }
   }, [status, island]);
 
-  useFocusEffect(
-    useCallback(() => {
-      void load();
-      const interval = setInterval(load, 60000);
-      return () => clearInterval(interval);
-    }, [load]),
-  );
+  // Refreshes while this tab is open and the app is in the foreground; pauses in the background so the
+  // radio (and the reader's battery) get a rest.
+  useAutoRefresh(load, 60_000);
 
   useBlocked();
   const shown = (cat ? rows.filter((r) => r.category === cat) : rows).filter((r) => !isBlocked(r.authorHandle));

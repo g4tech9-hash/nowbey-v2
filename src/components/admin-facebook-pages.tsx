@@ -125,7 +125,7 @@ export function FacebookPagesAdmin({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="display text-[15px] font-bold text-sand-100">Facebook pages on the wire{pages.length ? ` (${pages.length})` : ""}</p>
-          <p className="mt-0.5 text-[12px] text-[#8fb9b6]">
+          <p className="mt-0.5 text-[12px] text-ink-300">
             Paste a public Facebook page link and its posts are converted to stories on the wire — same cards, categories and map pins as the news outlets.
           </p>
         </div>
@@ -134,7 +134,7 @@ export function FacebookPagesAdmin({
         </button>
       </div>
 
-      <p className="mt-2 rounded-xl border hairline bg-white/[0.03] px-3 py-2 text-[11.5px] leading-relaxed text-[#8fb9b6]">
+      <p className="mt-2 rounded-xl border hairline bg-white/[0.03] px-3 py-2 text-[11.5px] leading-relaxed text-ink-300">
         Facebook shows a login wall to servers, so a page with <b>no bridge</b> usually finds no posts — the feed below stays empty and the note says why. A bridge feed (the RSS address rss.app, fetchrss or an RSS-Bridge gives you for the page) always works and is used first. Saving one here takes effect on the next refresh; no redeploy.
       </p>
 
@@ -156,7 +156,7 @@ export function FacebookPagesAdmin({
                     >
                       facebook.com/{p.username}
                     </a>
-                    <p className="mt-0.5 text-[11.5px] text-[#6e97a0]">
+                    <p className="mt-0.5 text-[11.5px] text-ink-400">
                       {bridge ? `Bridge: ${hostOf(bridge)}` : "No bridge — Facebook blocks server-side reads for this page."}
                     </p>
                   </div>
@@ -179,7 +179,7 @@ export function FacebookPagesAdmin({
                   </button>
                 </div>
 
-                <p className="mt-1.5 text-[11.5px] text-[#6e97a0]">
+                <p className="mt-1.5 text-[11.5px] text-ink-400">
                   {run ? (
                     <>
                       Last check {when(run.at ?? status?.ranAt ?? "")}: {run.found} found, {run.inserted} new — {run.note}
@@ -193,7 +193,7 @@ export function FacebookPagesAdmin({
           })}
         </ul>
       ) : (
-        <p className="mt-2 text-[12.5px] text-[#6e97a0]">No pages yet — the wire currently follows Bahamas Power and Light (@mybpl242) by default.</p>
+        <p className="mt-2 text-[12.5px] text-ink-400">No pages yet — the wire currently follows Bahamas Power and Light (@mybpl242) by default.</p>
       )}
 
       <div className="mt-3 flex flex-col gap-2 border-t border-white/5 pt-3 sm:flex-row">

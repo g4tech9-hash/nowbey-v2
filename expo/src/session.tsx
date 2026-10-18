@@ -8,7 +8,7 @@ type SessionValue = {
   loading: boolean;
   refresh: () => Promise<void>;
   signIn: (handle: string, password: string) => Promise<void>;
-  signUp: (body: { handle: string; email: string; password: string; displayName?: string; parish?: string }) => Promise<void>;
+  signUp: (body: { handle: string; email: string; password: string; displayName?: string; parish?: string; termsAccepted: boolean }) => Promise<void>;
   /** Finishes a Google sign-in that happened in the browser, from the code in the deep link. */
   signInWithGoogleCode: (code: string) => Promise<void>;
   signOut: () => Promise<void>;

@@ -47,6 +47,13 @@ export const users = pgTable(
   suspendedAt: timestamp("suspended_at", { withTimezone: true }),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
+  /**
+   * The consent record: which version of the Terms and Privacy Policy this member accepted, and when.
+   * Null on rows created before consent was collected, which is why the account page asks those members
+   * once (see /you/settings) instead of pretending the record exists.
+   */
+  termsVersion: text("terms_version"),
+  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   // Emails are stored in lower case, so one plain unique index stops two accounts sharing an address.

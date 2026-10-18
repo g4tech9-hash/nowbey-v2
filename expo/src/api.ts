@@ -201,6 +201,9 @@ export type SessionUser = {
   isAdmin: boolean;
   isStaff?: boolean;
   verified: boolean;
+  /** False for an account opened with Google; the delete screen must not ask for a password. */
+  hasPassword?: boolean;
+  termsVersion?: string | null;
   plan: Plan;
 };
 export type Place = { street?: string | null; address?: string | null; parish?: string | null };
@@ -227,8 +230,17 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * The same rule as the website's src/lib/error-copy.ts: never show "Network request failed", because it says
+ * nothing about whether the person's report survived. On a phone in a storm that is the only question.
+ */
 export function errMsg(e: unknown): string {
-  return e instanceof Error ? e.message : "Something went wrong. Please try again.";
+  const raw = e instanceof Error ? e.message : typeof e === "string" ? e : "";
+  if (/network request failed|failed to fetch|load failed/i.test(raw)) {
+    return "Your phone cannot reach NowBey right now. The signal may have dropped. Nothing has been sent — try again when you have a bar.";
+  }
+  if (/abort/i.test(raw)) return "NowBey took too long to answer. The signal may be poor. Try again in a moment.";
+  return raw || "Something went wrong. Please try again.";
 }
 
 async function call<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
@@ -291,7 +303,8 @@ export const api = {
     parish?: string | null;
     photoNote?: string;
     anonymous?: boolean;
-  }) => call<{ incident: Incident }>("/api/incidents", { method: "POST", body }),
+  }) =>
+    call<{ incident: Incident; duplicate?: boolean; message?: string }>("/api/incidents", { method: "POST", body }),
   updateIncident: (id: string, kind: "confirm" | "photo" | "clear" | "escalate") =>
     call<{ incident: Incident; message?: string }>(`/api/incidents/${id}/updates`, { method: "POST", body: { kind } }),
   /** Intake copilot: advisory suggestions + near-duplicate warning. Creates nothing. */
@@ -333,12 +346,15 @@ export const api = {
   session: () => call<{ user: SessionUser | null }>("/api/session"),
   signIn: (handle: string, password: string) =>
     call<{ token?: string }>("/api/session", { method: "POST", body: { intent: "signin", handle, password } }),
-  signUp: (body: { handle: string; email: string; password: string; displayName?: string; parish?: string }) =>
+  signUp: (body: { handle: string; email: string; password: string; displayName?: string; parish?: string; termsAccepted: boolean }) =>
     call<{ token?: string }>("/api/session", { method: "POST", body: { intent: "signup", ...body } }),
   signOut: () => call<{ ok: boolean }>("/api/session", { method: "DELETE" }),
   /** Trades the one-time code from the Google deep link for this app's own bearer token. */
   googleExchange: (code: string) => call<{ token?: string }>("/api/auth/google/native", { method: "POST", body: { code } }),
-  deleteAccount: (password: string) => call<{ ok: boolean }>("/api/account", { method: "DELETE", body: { password } }),
+  deleteAccount: (body: { password: string } | { token: string }) =>
+    call<{ ok: boolean }>("/api/account", { method: "DELETE", body }),
+  /** Emails a one-time link for accounts that have no password to type. */
+  requestDeletionLink: () => call<{ ok: boolean }>("/api/account/deletion-link", { method: "POST" }),
   flagPost: (id: string, reason: string) => call<{ ok: boolean; already?: boolean }>(`/api/life/${id}/flag`, { method: "POST", body: { reason } }),
   flagIncident: (id: string, reason: string) => call<{ ok: boolean }>(`/api/incidents/${id}/updates`, { method: "POST", body: { kind: "flag", reason } }),
   subscribeAlert: (body: { target: string; parishes: string[]; categories: CategoryKey[] }) =>

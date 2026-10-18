@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ScrollView, Switch, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, Switch, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { api, errMsg, type Incident, type Place, type ReportAssist } from "../../src/api";
@@ -32,6 +32,9 @@ export default function Report() {
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Incident | null>(null);
+  // The server answers duplicate:true when a nearby report already covers this. Nothing was created, so the
+  // form must stay filled and the person must be told — "It is on the map" would be a lie.
+  const [duplicate, setDuplicate] = useState<Incident | null>(null);
 
   // Look up the street for the pin so the report names a real place.
   useEffect(() => {
@@ -56,7 +59,12 @@ export default function Report() {
         setError("Allow location access, or tap the map to place the pin.");
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      // The published pin is deliberately offset by 30-60m (src/lib/location-privacy.ts), so centimetre
+      // accuracy buys nothing but battery. Balanced also returns faster indoors.
+      const pos = await Promise.race([
+        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("location timeout")), 12_000)),
+      ]);
       const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       if (!inBahamas(p.lat, p.lng)) {
         setError("You do not seem to be in The Bahamas. Tap the map to place the pin instead.");
@@ -116,6 +124,10 @@ export default function Report() {
         photoNote: photoNote.trim(),
         anonymous,
       });
+      if (res.duplicate) {
+        setDuplicate(res.incident);
+        return;
+      }
       setDone(res.incident);
     } catch (e) {
       setError(errMsg(e));
@@ -136,6 +148,19 @@ export default function Report() {
     setError(null);
   }
 
+  if (duplicate) {
+    return (
+      <View style={{ flex: 1, backgroundColor: color.bg, padding: 20, paddingTop: top + 40 }}>
+        <Text style={t.h1}>Someone already reported this</Text>
+        <Text style={[t.muted, { marginTop: 8 }]}>
+          {`A nearby report already covers this ${CATEGORIES[duplicate.category as CategoryKey]?.label?.toLowerCase() ?? "event"}. Nothing new was published, so your words are still here — open the existing report to confirm it, or change what you wrote.`}
+        </Text>
+        <Btn label="Open the existing report" onPress={() => router.replace(`/incident/${duplicate.id}`)} style={{ marginTop: 20 }} />
+        <Btn label="Back to my report" kind="ghost" onPress={() => setDuplicate(null)} style={{ marginTop: 10 }} />
+      </View>
+    );
+  }
+
   if (done) {
     return (
       <View style={{ flex: 1, backgroundColor: color.bg, padding: 20, paddingTop: top + 40, alignItems: "center" }}>
@@ -151,10 +176,12 @@ export default function Report() {
   }
 
   return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
     <ScrollView
       style={{ flex: 1, backgroundColor: color.bg }}
       contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 40 }}
       keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
     >
       <Text style={t.h1}>Report a spot</Text>
       <View style={{ backgroundColor: color.conch, padding: 8, borderRadius: 8, marginTop: 8 }}>
@@ -302,5 +329,6 @@ export default function Report() {
         </View>
       ) : null}
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

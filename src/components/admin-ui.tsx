@@ -6,7 +6,7 @@ const TONES: Record<string, string> = {
   sun: "bg-sun-500/15 text-sun-600",
   conch: "bg-danger-500/15 text-danger-500",
   slate: "bg-white/10 text-ink-200",
-  violet: "bg-[#a78bfa]/18 text-[#c4b5fd]",
+  violet: "bg-[#a78bfa]/18 text-cat-health-t",
 };
 
 export function Pill({ tone = "slate", children }: { tone?: keyof typeof TONES; children: ReactNode }) {

@@ -104,7 +104,13 @@ export function Btn({
         style,
       ]}
     >
-      {busy ? <ActivityIndicator color={fg} /> : <Text style={{ color: fg, fontWeight: "800", fontSize: 14 }}>{label}</Text>}
+      {busy ? (
+        <ActivityIndicator color={fg} />
+      ) : (
+        <Text maxFontSizeMultiplier={1.4} style={{ color: fg, fontWeight: "800", fontSize: 14 }}>
+          {label}
+        </Text>
+      )}
     </Pressable>
   );
 }
@@ -130,8 +136,10 @@ export function Pill({
       onPress={onPress}
       disabled={disabled}
       style={{
-        paddingHorizontal: 11,
-        paddingVertical: 7,
+        paddingHorizontal: 13,
+        paddingVertical: 10,
+        minHeight: 44,
+        justifyContent: "center",
         borderRadius: radius.pill,
         backgroundColor: active ? `${c}33` : "rgba(255,255,255,0.06)",
         borderWidth: 1,
@@ -143,7 +151,9 @@ export function Pill({
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
         {tint ? <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c }} /> : null}
-        <Text style={{ color: active ? c : color.muted, fontSize: 12, fontWeight: "700" }}>{label}</Text>
+        <Text maxFontSizeMultiplier={1.4} style={{ color: active ? c : color.muted, fontSize: 12.5, fontWeight: "700" }}>
+          {label}
+        </Text>
       </View>
     </Pressable>
   );
@@ -155,6 +165,7 @@ export function Field({ label, style, ...rest }: { label: string } & TextInputPr
     <View style={{ marginTop: 10 }}>
       <Text style={t.label}>{label}</Text>
       <TextInput
+        accessibilityLabel={rest.accessibilityLabel ?? label}
         placeholderTextColor={color.subtle}
         autoCapitalize="none"
         onFocus={(e) => {
@@ -191,8 +202,14 @@ export function CategoryBadge({ category, severity }: { category: string; severi
   const meta = categoryOf(category);
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      <View style={{ backgroundColor: `${meta.color}26`, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
-        <Text style={{ color: meta.color, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.6 }}>{meta.label.toUpperCase()}</Text>
+      <View
+        accessible
+        accessibilityLabel={`Category: ${meta.label}`}
+        style={{ backgroundColor: `${meta.color}26`, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}
+      >
+        <Text maxFontSizeMultiplier={1.3} style={{ color: meta.color, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.6 }}>
+          {meta.label.toUpperCase()}
+        </Text>
       </View>
       {severity ? (
         <View style={{ flexDirection: "row", gap: 2 }} accessibilityLabel={`Severity ${Math.min(Math.max(severity, 1), 5)} of 5`}>

@@ -91,7 +91,7 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
   return (
     <article className="nb-surface rounded-xl2 p-4">
       <div className="flex flex-wrap items-start gap-2">
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase ${group.kind === "server" ? "bg-danger-500/20 text-danger-500" : group.kind === "app" ? "bg-[#a78bfa]/18 text-[#c4b5fd]" : "bg-tide-500/18 text-tide-300"}`}>
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase ${group.kind === "server" ? "bg-danger-500/20 text-danger-500" : group.kind === "app" ? "bg-[#a78bfa]/18 text-cat-health-t" : "bg-tide-500/18 text-tide-300"}`}>
           {group.kind} · {group.platform}
         </span>
         {a && a.status !== "unavailable" ? (

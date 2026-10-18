@@ -25,7 +25,7 @@ export default async function AlertsAdmin() {
 
   return (
     <div className="space-y-4">
-      <p className="text-[12px] text-[#8fb9b6]">
+      <p className="text-[12px] text-ink-300">
         A manual blast emails confirmed subscribers inside the circle (plus island-wide subscribers of that island) and
         pushes the island. Limited to 5 per hour, 5,000 recipients per blast, and every send is written to the activity log.
       </p>

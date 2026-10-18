@@ -197,7 +197,7 @@ test("an existing password account is linked, told about it by email, and other 
     method: "POST",
     ip,
     cookie: owner,
-    body: { intent: "signup", handle, email, password: `Rum-Cake_${unique()}-Conch42`, parish: "New Providence" },
+    body: { intent: "signup", termsAccepted: true, handle, email, password: `Rum-Cake_${unique()}-Conch42`, parish: "New Providence" },
   });
   assert.equal(signedUp.status, 200, JSON.stringify(signedUp.json));
   assert.equal((await api("/api/session", { cookie: owner, ip })).json.user.emailVerified, false);

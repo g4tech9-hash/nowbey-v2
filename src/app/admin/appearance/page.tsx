@@ -17,7 +17,7 @@ export default async function AppearancePage() {
     <div className="max-w-[820px] space-y-5">
       <section className="glass rounded-2xl p-4 sm:p-5">
         <p className="display text-[16px] font-extrabold text-sand-100">Look and feel</p>
-        <p className="mt-0.5 text-[12.5px] leading-relaxed text-[#8fb9b6]">
+        <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-300">
           Switch between the new Island look and the original Classic design at any time. It takes effect for everyone straight away, and nothing is lost either way.
         </p>
         <div className="mt-4">
@@ -25,7 +25,7 @@ export default async function AppearancePage() {
         </div>
       </section>
 
-      <section className="glass rounded-2xl p-4 text-[12.5px] leading-relaxed text-[#a9cdc9]">
+      <section className="glass rounded-2xl p-4 text-[12.5px] leading-relaxed text-ink-200">
         <p className="display text-[14.5px] font-bold text-sand-100">Good to know</p>
         <ul className="mt-1.5 list-disc space-y-1.5 pl-4">
           <li>

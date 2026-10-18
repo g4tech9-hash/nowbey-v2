@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { FEATURES } from "@/lib/features";
+import { Scrim, useDialog } from "./ui/use-dialog";
 
 // Client bundles inline these NEXT_PUBLIC_ values at build time.
 const SHOW_LIFE = FEATURES.islandLife;
@@ -93,7 +94,7 @@ function TopLink({ href, label, active }: { href: string; label: string; active:
       href={href}
       aria-current={active ? "page" : undefined}
       className={`rounded-full px-3 py-2 text-[13px] font-bold transition duration-200 ease-standard ${
-        active ? "bg-tide-500/12 text-tide-300" : "text-[#b5c9ca] hover:text-tide-300"
+        active ? "bg-tide-500/12 text-tide-300" : "text-ink-200 hover:text-tide-300"
       }`}
     >
       {label}
@@ -105,6 +106,9 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
   const pathname = usePathname();
   const [online, setOnline] = useState(true);
   const [sheet, setSheet] = useState(false);
+  const moreButton = useRef<HTMLButtonElement | null>(null);
+  // Focus trap, initial focus, restore-to-trigger, Escape and page scroll lock — the same helper the Modal uses.
+  const sheetRef = useDialog(sheet, () => setSheet(false));
 
   useEffect(() => {
     const up = () => setOnline(true);
@@ -123,15 +127,36 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
     return (
       <>
         {sheet ? (
-          <div className="fixed inset-0 z-[690] lg:hidden">
-            <button
-              type="button"
-              aria-label="Close menu"
-              onClick={() => setSheet(false)}
-              className="absolute inset-0 h-full w-full bg-[rgba(4,14,21,0.72)] backdrop-blur-sm"
-            />
-            <div className="glass-strong nb-pad-bottom absolute inset-x-0 bottom-0 rounded-t-[24px] p-4 pb-5 shadow-l4">
-              <p className="nb-eyebrow">More</p>
+          /*
+            This was an overlay with no dialog semantics: no role, no name, no Escape, no focus trap, and the
+            backdrop was a full-size <button aria-label="Close menu"> that came *before* the sheet in the tab
+            order. It now uses the same contract as Modal — measured, not asserted.
+          */
+          <div className="fixed inset-0 z-[690] lg:hidden" data-nb-dialog-root>
+            <Scrim onClose={() => setSheet(false)} />
+            <div
+              ref={sheetRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="nb-more-title"
+              tabIndex={-1}
+              className="glass-strong nb-pad-bottom absolute inset-x-0 bottom-0 rounded-t-[24px] p-4 pb-5 shadow-l4 outline-none"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h2 id="nb-more-title" className="nb-eyebrow">
+                  More
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setSheet(false)}
+                  aria-label="Close menu"
+                  className="grid h-11 w-11 place-items-center rounded-full text-ink-300 hover:bg-white/8"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="m6 6 12 12M18 6 6 18" />
+                  </svg>
+                </button>
+              </div>
               <ul className="mt-3 grid grid-cols-2 gap-2">
                 {SECONDARY.map((l) => (
                   <li key={l.href}>
@@ -150,7 +175,11 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
             </div>
           </div>
         ) : null}
-        <nav className="glass-strong nb-pad-bottom fixed inset-x-0 bottom-0 z-[700] border-t hairline lg:hidden" aria-label="Primary">
+        <nav
+          data-nb-bottom-nav
+          className="glass-strong nb-pad-bottom fixed inset-x-0 bottom-0 z-[700] border-t hairline lg:hidden"
+          aria-label="Primary"
+        >
           <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
             {PRIMARY.map((l) => {
               const active = isActive(l.href);
@@ -185,8 +214,10 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
             <li className="flex-1">
               <button
                 type="button"
+                ref={moreButton}
                 onClick={() => setSheet(true)}
                 aria-expanded={sheet}
+                aria-haspopup="dialog"
                 className="flex min-h-[48px] w-full flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[11.5px] font-bold text-ink-300 transition duration-200 ease-standard hover:bg-white/8 active:scale-[0.97]"
               >
                 <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden fill="none" stroke="#c8d7d4" strokeWidth="1.9" strokeLinecap="round">
@@ -255,7 +286,7 @@ function MoreMenu({ active, pathname }: { active: boolean; pathname: string }) {
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
         className={`flex items-center gap-1 rounded-full px-3 py-2 text-[13px] font-bold transition duration-200 ease-standard ${
-          active ? "bg-tide-500/12 text-tide-300" : "text-[#b5c9ca] hover:text-tide-300"
+          active ? "bg-tide-500/12 text-tide-300" : "text-ink-200 hover:text-tide-300"
         }`}
       >
         Plans
@@ -302,7 +333,7 @@ export function SessionChip({ handle }: { handle: string | null }) {
   ) : (
     <Link
       href="/login?mode=signin"
-      className="flex min-h-[42px] items-center rounded-full border border-[rgba(185,226,220,0.2)] px-3.5 text-[12px] font-bold text-[#d4e6e5] transition duration-200 ease-standard hover:border-[rgba(185,226,220,0.38)] hover:bg-white/6 hover:text-white"
+      className="flex min-h-[42px] items-center rounded-full border border-[rgba(185,226,220,0.2)] px-3.5 text-[12px] font-bold text-ink-200 transition duration-200 ease-standard hover:border-[rgba(185,226,220,0.38)] hover:bg-white/6 hover:text-white"
     >
       Sign in
     </Link>

@@ -131,7 +131,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           </div>
         )}
         <Pager page={currentPage} pages={pages} path="/life/places" params={params} />
-        <p className="text-center text-[11.5px] text-[#7fa6a2]">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
+        <p className="text-center text-[11.5px] text-ink-400">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
       </div>
     </div>
   );

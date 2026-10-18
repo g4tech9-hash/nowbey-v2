@@ -546,7 +546,7 @@ export default function NowBeyMap({
                   <Popup>
                     <div className="space-y-1">
                       <p className="font-semibold leading-snug">{group.pins.length} reports near here</p>
-                      <p className="text-[12px] text-[#9fc4c9]">Tap the badge to zoom in and separate them.</p>
+                      <p className="text-[12px] text-ink-300">Tap the badge to zoom in and separate them.</p>
                     </div>
                   </Popup>
                 </Marker>
@@ -570,8 +570,8 @@ export default function NowBeyMap({
                       {pin.label ?? CATEGORIES[pin.category]?.label ?? pin.category}
                     </p>
                     <p className="font-semibold leading-snug">{pin.title}</p>
-                    {pin.meta ? <p className="text-[12px] text-[#9fc4c9]">{pin.meta}</p> : null}
-                    <p className="text-[11.5px] text-[#7fa7a9]">
+                    {pin.meta ? <p className="text-[12px] text-ink-300">{pin.meta}</p> : null}
+                    <p className="text-[11.5px] text-ink-400">
                       {formatCoord(pin.lat, "lat")} · {formatCoord(pin.lng, "lng")}
                     </p>
                     {pin.href ? (
@@ -744,7 +744,7 @@ export default function NowBeyMap({
           </button>
         </div>
 
-        <div className="glass hidden rounded-xl px-2.5 py-1.5 text-[11.5px] font-semibold text-[#9fc4c9] sm:block">
+        <div className="glass hidden rounded-xl px-2.5 py-1.5 text-[11.5px] font-semibold text-ink-300 sm:block">
           zoom {zoomNow} · {precisionLabel(zoomNow, centerPt[0])} on screen · {mPerPx.toFixed(2)} m/px
         </div>
       </div>
@@ -956,7 +956,7 @@ export default function NowBeyMap({
                   >
                     Open street level in Google Maps
                   </a>
-                  <p className="text-[11.5px] text-[#7fa7a9]">
+                  <p className="text-[11.5px] text-ink-400">
                     This opens Google Maps in a new tab.
                   </p>
                 </div>

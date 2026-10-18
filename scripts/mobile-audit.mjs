@@ -32,6 +32,7 @@
 import { JSDOM } from "jsdom";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import { classMinHeights } from "./lib/min-heights.mjs";
 
 const BASE = (process.env.BASE ?? "http://localhost:3000").replace(/\/+$/, "");
 const JSON_OUT = process.argv.includes("--json");
@@ -97,6 +98,18 @@ const px = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
+/**
+ * Reads min-height off the stylesheet for a class the markup uses (H2).
+ *
+ * The audit used to see only inline `min-h-[Npx]` utilities. The project's own components — `.nb-chip`
+ * (32px), `.nb-btn` (42px), `.nb-btn-sm` (38px) — set their size in globals.css, so every one of them was
+ * invisible to W4 and the gate said "0 findings" while the severity selector on /report was 12px under the
+ * thumb minimum. This resolves the class.
+ *
+ * Only rules that can apply at a phone width count: base rules plus `@media (max-width: …)` blocks that
+ * include 320–412px. `min-width` blocks (desktop) are ignored, because a 48px desktop rule must not excuse a
+ * 32px phone control.
+ */
 /** min-width / width declarations in the compiled CSS, keyed by nothing — used for class-level checks. */
 function fixedWidthsIn(css) {
   const out = [];
@@ -149,8 +162,9 @@ function checkPage(route, status, html, css) {
   else if (/user-scalable\s*=\s*no|maximum-scale\s*=\s*1/.test(viewport.getAttribute("content") ?? ""))
     add(route, "W0", "medium", "meta[viewport]", "zoom is disabled — a WCAG 1.4.4 failure on a map app");
 
-  // ---- eslint-disable-next-line no-script-url
+  // ---- controls
   const interactive = [...document.querySelectorAll("a[href], button, [role=button], input, select, textarea")];
+  const cssMinHeights = classMinHeights(css);
 
   for (const el of interactive) {
     const cls = el.getAttribute("class") ?? "";
@@ -162,7 +176,12 @@ function checkPage(route, status, html, css) {
     // W4 — tap targets. WCAG 2.2 asks for 24px; 40px is the workable thumb minimum on a phone.
     const minH = cls.match(/min-h-\[(\d+)px\]/)?.[1] ?? style.match(/min-height:\s*(\d+)px/)?.[1];
     const h = cls.match(/\bh-(\d+)\b/)?.[1];
-    const declared = minH ? Number(minH) : h ? Number(h) * 4 : null;
+    // The class's own stylesheet rule, when the markup does not carry an inline minimum.
+    const fromCss = cls
+      .split(/\s+/)
+      .map((name) => cssMinHeights.get(name))
+      .find((v) => typeof v === "number" && Number.isFinite(v));
+    const declared = minH ? Number(minH) : h ? Number(h) * 4 : (fromCss ?? null);
     if (declared !== null && declared < 40 && (tag === "button" || tag === "a" || el.getAttribute("role") === "button")) {
       // icon-sized controls are the ones that matter; a text link inside a paragraph is fine
       const iconOnly = !label && !aria ? false : label.length <= 3;

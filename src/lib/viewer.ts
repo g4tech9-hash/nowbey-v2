@@ -23,6 +23,11 @@ export type Viewer = {
   renewsAt: Date | null;
   adFree: boolean;
   verified: boolean;
+  /** False for an account opened with Google and never given a password. Deletion must not ask for one. */
+  hasPassword: boolean;
+  /** The consent record, or null for accounts created before consent was collected. */
+  termsAcceptedAt: Date | null;
+  termsVersion: string | null;
   /** Can manage members and settings. */
   isAdmin: boolean;
   /** Can moderate reports and the news wire. Every admin is also an editor. */
@@ -46,6 +51,9 @@ export const ANON: Viewer = {
   renewsAt: null,
   adFree: false,
   verified: false,
+  hasPassword: false,
+  termsAcceptedAt: null,
+  termsVersion: null,
   isAdmin: false,
   isEditor: false,
   hasSubscription: false,
@@ -96,6 +104,9 @@ export async function getViewer(): Promise<Viewer> {
     renewsAt: u.planRenewsAt,
     adFree: tier !== null,
     verified: tier === "admiral",
+    hasPassword: Boolean(u.passwordHash),
+    termsAcceptedAt: u.termsAcceptedAt ?? null,
+    termsVersion: u.termsVersion ?? null,
     isAdmin,
     isEditor: isAdmin || u.role === "editor",
     hasSubscription: Boolean(u.stripeSubscriptionId),

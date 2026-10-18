@@ -8,16 +8,21 @@ import { EmergencyNotice } from "@/components/emergency-notice";
 import { ReportAssist } from "@/components/report-assist";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
 import { trackFunnel } from "@/lib/funnel-client";
+import { humanError } from "@/lib/error-copy";
 
 const STEPS = ["What is it?", "Where is it?", "Tell neighbours"] as const;
 const SEVERITY_LABELS = ["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"] as const;
 const prefillAllowed = process.env.NEXT_PUBLIC_PREFILL_AREA !== "0";
 /** A report in progress survives a refresh, a dropped signal or a trip to the map. Cleared once it is published. */
 const DRAFT_KEY = "nb_report_draft_v1";
+/** How long a draft survives. A hazard from yesterday is not a hazard now, so a stale draft is not restored. */
+const DRAFT_TTL_MS = 24 * 60 * 60_000;
 /** Outages and water problems are often at someone's home, so they default to posting without a name. */
 const PRIVATE_BY_DEFAULT = new Set<CategoryKey>(["flood", "water", "power"]);
 
 type Draft = {
+  /** When the draft was last written (ms). Used to expire it; absent on drafts written by the old build. */
+  savedAt?: number;
   step: number;
   category: CategoryKey;
   severity: number;
@@ -30,10 +35,29 @@ type Draft = {
   anonymous: boolean;
 };
 
+/**
+ * Drafts live in localStorage, not sessionStorage.
+ *
+ * The landing page and /offline both promise that what you were writing is "saved on this device". A
+ * sessionStorage value is destroyed when the tab closes — and a phone browser closes tabs without asking,
+ * which is exactly the moment (a storm, a battery saver, the app being backgrounded) a half-written hazard
+ * report matters most. There is also no timeout, so a draft from last month would reappear as if it were
+ * today's. Both are fixed here: a 24-hour expiry and storage that survives the tab.
+ *
+ * Only the person's own words and their pin are stored, on their own device, and the draft is deleted the
+ * moment the report is published.
+ */
 function readDraft(): Draft | null {
   try {
-    const raw = sessionStorage.getItem(DRAFT_KEY);
-    return raw ? (JSON.parse(raw) as Draft) : null;
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw) as Draft;
+    // Old drafts have no savedAt. Treat them as expired rather than resurrecting a stale scene.
+    if (!d.savedAt || Date.now() - d.savedAt > DRAFT_TTL_MS) {
+      localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    return d;
   } catch {
     return null;
   }
@@ -41,7 +65,7 @@ function readDraft(): Draft | null {
 
 function writeDraft(d: Draft) {
   try {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...d, savedAt: Date.now() }));
   } catch {
     /* private mode or full storage: the report still works, it just is not remembered */
   }
@@ -49,7 +73,7 @@ function writeDraft(d: Draft) {
 
 function clearDraft() {
   try {
-    sessionStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(DRAFT_KEY);
   } catch {
     /* nothing to clear */
   }
@@ -75,15 +99,25 @@ export default function ReportWizard() {
   // Set when the server says a nearby report already covers this event. Nothing was published, so the draft stays.
   const [duplicate, setDuplicate] = useState<{ id: string; message: string } | null>(null);
   const [restored, setRestored] = useState(false);
+  /** True when a saved draft was found on arrival. Drives the "we kept your words" card. */
+  const [resumed, setResumed] = useState(false);
   // Once the person touches the anonymous box, their choice wins over the category default.
   const [anonTouched, setAnonTouched] = useState(false);
   const startedRef = useRef(false);
 
-  // Restore a draft once, after mount (sessionStorage is not available during server rendering).
+  // Restore a draft once, after mount (localStorage is not available during server rendering).
+  // The render that follows is told *whether* something was restored, so the promise the landing page makes
+  // ("your draft is saved") is answered on screen instead of leaving a silently re-filled form.
   useEffect(() => {
     const d = readDraft();
     if (d) {
-      /* eslint-disable react-hooks/set-state-in-effect -- one-time restore from sessionStorage after mount */
+      /*
+       * One-time restore from localStorage. This is the "subscribe to an external system" case the rule
+       * describes: the server cannot read device storage, so the fields can only be filled after mount.
+       * It runs once and is guarded by `restored`, so it cannot cascade.
+       */
+      /* eslint-disable react-hooks/set-state-in-effect -- one-time read of localStorage after mount */
+      setResumed(true);
       setStep(d.step ?? 0);
       setCategory(d.category ?? "flood");
       setSeverity(d.severity ?? 2);
@@ -193,7 +227,7 @@ export default function ReportWizard() {
       setMadeId(data.incident.id);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not publish that.");
+      setError(humanError(e, "Could not publish that. Your text is still here — try again."));
     } finally {
       setSaving(false);
     }
@@ -286,6 +320,35 @@ export default function ReportWizard() {
       <h1 className="display mt-2.5 text-[clamp(1.75rem,4.6vw,2.55rem)] font-extrabold leading-[1.04] tracking-[-0.055em] text-sand-100">
         Three steps, <em className="text-tide-500 not-italic">twenty seconds</em>
       </h1>
+
+      {resumed ? (
+        <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-tide-500/30 bg-tide-500/[.08] px-3.5 py-3">
+          <p className="min-w-0 flex-1 text-[12.5px] leading-relaxed text-ink-200">
+            <span className="font-bold text-tide-300">We kept your words.</span> This report was saved on this device, so
+            it is back where you left it. It is deleted the moment you publish, and forgotten after 24 hours.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              clearDraft();
+              setResumed(false);
+              setStep(0);
+              setCategory("flood");
+              setSeverity(2);
+              setPick(null);
+              setArea("");
+              setTitle("");
+              setDetails("");
+              setPhotoNote("");
+              setAnonymous(false);
+              setAnonTouched(false);
+            }}
+            className="nb-btn nb-btn-secondary nb-btn-sm"
+          >
+            Start fresh
+          </button>
+        </div>
+      ) : null}
 
       <ol className="mt-5 flex flex-wrap gap-2">
         {STEPS.map((label, i) => (
@@ -466,9 +529,12 @@ export default function ReportWizard() {
             <label className="block">
               <span className="nb-field-label">Headline</span>
               <input
+                id="report-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Knee-deep water across Bay Street at the bus stand"
+                aria-invalid={title.trim().length > 0 && title.trim().length < 5 ? true : undefined}
+                aria-describedby={publishBlocker ? "publish-blocker" : undefined}
                 className="nb-field font-semibold"
               />
             </label>
@@ -511,7 +577,16 @@ export default function ReportWizard() {
               onHeadline={setTitle}
               onMovePin={handlePick}
             />
-            {error ? <p className="rounded-[12px] border border-conch-500/40 bg-conch-500/12 px-3.5 py-2.5 text-[12.5px] text-conch-500">{error}</p> : null}
+            {error ? (
+              <p
+                id="report-error"
+                role="alert"
+                tabIndex={-1}
+                className="rounded-[12px] border border-conch-500/40 bg-conch-500/12 px-3.5 py-2.5 text-[12.5px] text-conch-500"
+              >
+                {error}
+              </p>
+            ) : null}
             <div className="flex gap-2">
               <button
                 type="button"

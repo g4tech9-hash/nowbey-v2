@@ -147,7 +147,7 @@ async function signIn() {
   const res = await fetch(`${BASE}/api/session`, {
     method: "POST",
     headers: { "content-type": "application/json", origin: BASE, "x-forwarded-for": `10.250.${Math.floor(Math.random() * 250)}.1` },
-    body: JSON.stringify({ intent: "signup", handle, email: `${handle}@example.test`, password: `Junk-Request_Conch9-${Math.random().toString(36).slice(2, 10)}` }),
+    body: JSON.stringify({ intent: "signup", termsAccepted: true, handle, email: `${handle}@example.test`, password: `Junk-Request_Conch9-${Math.random().toString(36).slice(2, 10)}` }),
   });
   const cookie = (res.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
   return res.ok ? cookie : null;

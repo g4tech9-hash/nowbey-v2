@@ -41,7 +41,7 @@ test("a weak password is refused, with the reason", async () => {
   ]) {
     const res = await api("/api/session", {
       method: "POST",
-      body: { intent: "signup", handle: `${handle}x`, email: `${handle}x@example.test`, password: pw },
+      body: { intent: "signup", termsAccepted: true, handle: `${handle}x`, email: `${handle}x@example.test`, password: pw },
     });
     assert.equal(res.status, 400, `${pw} should be refused`);
     assert.match(res.json.error, expect);
@@ -53,7 +53,7 @@ test("a password built from the handle or the email is refused", async () => {
     ["mario242", "owner@example.test", "mario242password"],
     ["somebody", "nowbey_local@example.test", "Nowbey_local77"],
   ]) {
-    const res = await api("/api/session", { method: "POST", body: { intent: "signup", handle: h, email: e, password: pw } });
+    const res = await api("/api/session", { method: "POST", body: { intent: "signup", termsAccepted: true, handle: h, email: e, password: pw } });
     assert.equal(res.status, 400, `${pw} should be refused`);
     assert.match(res.json.error, /handle|email/i);
   }
@@ -62,7 +62,7 @@ test("a password built from the handle or the email is refused", async () => {
 test("sign-up creates the account and a session", async () => {
   const res = await api("/api/session", {
     method: "POST",
-    body: { intent: "signup", handle, email, password, parish: "New Providence" },
+    body: { intent: "signup", termsAccepted: true, handle, email, password, parish: "New Providence" },
     cookie,
   });
   assert.equal(res.status, 200, JSON.stringify(res.json));
@@ -91,12 +91,12 @@ test("sign-up creates the account and a session", async () => {
 test("a second account cannot take the same handle or email", async () => {
   const sameHandle = await api("/api/session", {
     method: "POST",
-    body: { intent: "signup", handle, email: `other-${email}`, password: strongPassword() },
+    body: { intent: "signup", termsAccepted: true, handle, email: `other-${email}`, password: strongPassword() },
   });
   assert.equal(sameHandle.status, 409);
   const sameEmail = await api("/api/session", {
     method: "POST",
-    body: { intent: "signup", handle: `${handle}b`, email, password: strongPassword() },
+    body: { intent: "signup", termsAccepted: true, handle: `${handle}b`, email, password: strongPassword() },
   });
   assert.equal(sameEmail.status, 409);
 });
@@ -166,4 +166,36 @@ test("sign-out ends the session", async () => {
   const out = await api("/api/session", { method: "DELETE", cookie: mine });
   assert.equal(out.status, 200);
   assert.equal((await api("/api/session", { cookie: mine })).json.user, null);
+});
+
+test("sign-up without agreeing to the terms is refused, and nothing is created", async () => {
+  const h = `c_${unique()}`;
+  const e = `${h}@example.test`;
+  const res = await api("/api/session", {
+    method: "POST",
+    body: { intent: "signup", handle: h, email: e, password: strongPassword() },
+  });
+  assert.equal(res.status, 400, "the API, not just the form, enforces consent");
+  assert.match(res.json.error, /agree/i);
+  const [row] = await query("select count(*)::int as n from users where handle = $1", [h]);
+  assert.equal(row.n, 0, "no half-made account without a consent record");
+});
+
+test("a new account records which terms version it agreed to, and when", async () => {
+  const h = `v_${unique()}`;
+  const e = `${h}@example.test`;
+  const mine = jar();
+  const res = await api("/api/session", {
+    method: "POST",
+    body: { intent: "signup", termsAccepted: true, handle: h, email: e, password: strongPassword(), parish: "New Providence" },
+    cookie: mine,
+  });
+  assert.equal(res.status, 200, JSON.stringify(res.json));
+  const [row] = await query("select terms_version, terms_accepted_at from users where handle = $1", [h]);
+  assert.ok(row.terms_version, "users.terms_version is written — the record the privacy policy promises");
+  assert.ok(row.terms_accepted_at, "users.terms_accepted_at is written");
+  // The session exposes the same record so settings can ask an older member to agree once, and so the
+  // consent card knows not to appear for someone who already agreed.
+  const me = await api("/api/session", { cookie: mine });
+  assert.equal(me.json.user.termsVersion, row.terms_version);
 });

@@ -66,7 +66,7 @@ test("a new member is sent a verification email", async () => {
   const mark = await since();
   const res = await call("/api/session", {
     method: "POST",
-    body: { intent: "signup", handle, email, password: strongPassword(), parish: "New Providence" },
+    body: { intent: "signup", termsAccepted: true, handle, email, password: strongPassword(), parish: "New Providence" },
     cookie,
   });
   assert.equal(res.status, 200, JSON.stringify(res.json));

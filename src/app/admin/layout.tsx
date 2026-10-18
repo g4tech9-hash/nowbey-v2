@@ -47,7 +47,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div>
       <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h1 className="display text-[clamp(1.5rem,4vw,2rem)] font-extrabold text-sand-100">{viewer.isAdmin ? "Admin" : "Moderation"}</h1>
-        <p className="text-[12px] text-[#8fb9b6]">
+        <p className="text-[12px] text-ink-300">
           Signed in as @{viewer.handle} · {viewer.isAdmin ? "admin" : "editor"}
         </p>
       </div>

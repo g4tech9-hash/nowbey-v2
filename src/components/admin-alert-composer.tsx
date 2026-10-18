@@ -6,12 +6,12 @@ import type { GeofenceIncident } from "./admin-geofence-map";
 
 const GeofenceMap = dynamic(() => import("./admin-geofence-map"), {
   ssr: false,
-  loading: () => <div className="grid h-full min-h-[320px] place-items-center text-[12px] text-[#8fb9b6]">Loading map…</div>,
+  loading: () => <div className="grid h-full min-h-[320px] place-items-center text-[12px] text-ink-300">Loading map…</div>,
 });
 
 const BTN = "rounded-full px-4 py-2 text-[13px] font-bold disabled:opacity-50";
 const INPUT = "w-full rounded-xl border hairline bg-abyss-900/60 px-3 py-2 text-[13px] text-sand-100 outline-none focus:border-tide-400";
-const LABEL = "mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]";
+const LABEL = "mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-ink-400";
 
 /**
  * Custom Geofenced Push composer.
@@ -98,7 +98,7 @@ export function AlertComposer({ incidents, defaultLat, defaultLng }: { incidents
             }}
           />
         </div>
-        <p className="p-3 text-[11.5px] text-[#6e97a0]">Click the map to move the centre. Yellow dots are active reports.</p>
+        <p className="p-3 text-[11.5px] text-ink-400">Click the map to move the centre. Yellow dots are active reports.</p>
       </div>
 
       <div className="glass space-y-3 rounded-2xl p-4">
@@ -124,7 +124,7 @@ export function AlertComposer({ incidents, defaultLat, defaultLng }: { incidents
             <input id="alert-radius" value={radius} onChange={(e) => setRadius(e.target.value)} inputMode="decimal" className={INPUT} />
           </div>
         </div>
-        <div className="rounded-xl bg-white/[.04] p-3 text-[12.5px] text-[#a9cdc9]">
+        <div className="rounded-xl bg-white/[.04] p-3 text-[12.5px] text-ink-200">
           {audience.n === null ? (
             "Enter a point inside The Bahamas to preview the audience."
           ) : (

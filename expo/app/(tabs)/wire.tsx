@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Alert, FlatList, Linking, Pressable, RefreshControl, Text, View } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useAutoRefresh } from "../../src/use-auto-refresh";
 import { API_BASE, api, errMsg, type NewsItem } from "../../src/api";
 import { categoryOf, timeAgo } from "../../src/geo";
 import { sanitizeArticleContent } from "../../src/sanitize";
@@ -30,13 +30,7 @@ export default function Wire() {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      void load();
-      const interval = setInterval(load, 60000);
-      return () => clearInterval(interval);
-    }, [load]),
-  );
+  useAutoRefresh(load, 60_000);
 
   async function refreshStories() {
     setChecking(true);

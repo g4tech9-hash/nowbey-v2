@@ -13,6 +13,7 @@ import { MAX_PASSWORD, checkPassword } from "@/lib/password";
 import { sendVerificationEmail } from "@/lib/account";
 import { publicBase } from "@/lib/billing";
 import { mailConfigured } from "@/lib/mail";
+import { TERMS_VERSION } from "@/lib/legal";
 
 
 
@@ -32,6 +33,11 @@ function publicUser(v: Viewer) {
     isAdmin: v.isAdmin,
     isStaff: v.isEditor,
     verified: v.verified,
+    // The app and the account page need these to offer the right deletion path (password vs emailed link)
+    // and to ask pre-consent members to agree once.
+    hasPassword: v.hasPassword,
+    termsVersion: v.termsVersion,
+    termsAcceptedAt: v.termsAcceptedAt,
     plan: { tier: v.tier, interval: v.interval, status: v.status, renewsAt: v.renewsAt },
   };
 }
@@ -85,6 +91,11 @@ export async function POST(req: Request) {
     }
     const passwordIssue = checkPassword(password, { handle, email });
     if (passwordIssue) return NextResponse.json({ error: passwordIssue }, { status: 400 });
+    // Consent is a record, not a checkbox we hope was ticked. The API refuses a sign-up without it, so no
+    // client — web, app, or a script — can create an account that has no terms_version behind it.
+    if (body.termsAccepted !== true) {
+      return NextResponse.json({ error: "Please agree to the Terms and the Privacy Policy to create an account." }, { status: 400 });
+    }
 
     const gate = await sharedHit(`signup:${ip}`, 10, 60 * 60_000);
     if (!gate.ok) return tooMany(gate.retryAfter, "sign-ups");
@@ -104,6 +115,8 @@ export async function POST(req: Request) {
           parish: (PARISHES as readonly string[]).includes(parishIn) ? parishIn : null,
           passwordHash: await hashPassword(password),
           lastLoginAt: new Date(),
+          termsVersion: TERMS_VERSION,
+          termsAcceptedAt: new Date(),
         })
         .returning();
     } catch (e) {
@@ -172,11 +185,16 @@ export async function POST(req: Request) {
     if (!existing || !ok) {
       await Promise.all([sharedRecord(ipKey, FAIL_WINDOW), sharedRecord(pairKey, FAIL_WINDOW)]);
       // Handles are public (they appear on reports), so it is fine to say which part was wrong. Email logins stay vague.
-      const message = byEmail
-        ? "Email and password do not match. If you forgot your password, use the reset link."
-        : !existing
-          ? `No account has the handle @${ident}. Check the spelling, or tap Create account.`
-          : "That password is not right. If you forgot it, use the reset link.";
+      // An account opened with Google has no password at all. Saying "wrong password" there sends the person
+      // round a loop they cannot exit; name the door that actually opens.
+      const message =
+        existing && !existing.passwordHash
+          ? "That account was opened with Google, so it has no password. Tap Sign in with Google — or use Forgot your password to add one."
+          : byEmail
+            ? "Email and password do not match. If you forgot your password, use the reset link."
+            : !existing
+              ? `No account has the handle @${ident}. Check the spelling, or tap Create account.`
+              : "That password is not right. If you forgot it, use the reset link.";
       return NextResponse.json({ error: message }, { status: 401 });
     }
     await sharedForget(pairKey);

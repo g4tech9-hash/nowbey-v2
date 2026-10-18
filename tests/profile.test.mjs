@@ -40,7 +40,7 @@ test("the new profile tables exist and start empty for a fresh member", async ()
   const call = as(uniqueIp());
   const signup = await call("/api/session", {
     method: "POST",
-    body: { intent: "signup", handle: memberHandle, email: memberEmail, password: strongPassword(), parish: "New Providence" },
+    body: { intent: "signup", termsAccepted: true, handle: memberHandle, email: memberEmail, password: strongPassword(), parish: "New Providence" },
     cookie: memberCookie,
   });
   assert.equal(signup.status, 200, JSON.stringify(signup.json));
@@ -188,7 +188,7 @@ test("a member cannot hide someone else's report, and anonymous reports are neve
   const stranger = jar();
   const signedUp = await call("/api/session", {
     method: "POST",
-    body: { intent: "signup", handle: otherHandle, email: `${otherHandle}@example.test`, password: strongPassword(), parish: "New Providence" },
+    body: { intent: "signup", termsAccepted: true, handle: otherHandle, email: `${otherHandle}@example.test`, password: strongPassword(), parish: "New Providence" },
     cookie: stranger,
   });
   assert.equal(signedUp.status, 200, JSON.stringify(signedUp.json));

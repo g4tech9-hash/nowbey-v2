@@ -1,10 +1,15 @@
 import { PageHead } from "@/components/app-shell";
-import { LEGAL_UPDATED, SUPPORT_EMAIL } from "@/lib/legal";
+import { LEGAL_LINKS, LEGAL_UPDATED, SUPPORT_EMAIL, TERMS_VERSION } from "@/lib/legal";
 import { EmergencyNotice } from "@/components/emergency-notice";
 
 export const metadata = { title: "Terms of use" };
 
-// TEMPLATE: written to match how NowBey works today. Have a Bahamian lawyer review it before you publish the apps.
+/*
+ * Written to match how NowBey works today. A Bahamian lawyer should still read it before the app stores go
+ * live: this is the document the App Store guideline 1.2 (user-generated content) and the consumer-protection
+ * rules rest on. The placeholder marker was removed on purpose — a live site should not tell a reader the
+ * contract they are agreeing to is a placeholder.
+ */
 const SECTIONS: { h: string; p: string[] }[] = [
   {
     h: "1. What NowBey is",
@@ -52,7 +57,7 @@ const SECTIONS: { h: string; p: string[] }[] = [
   {
     h: "7. Changes and contact",
     p: [
-      "We may update these terms. Continuing to use NowBey after a change means you accept it.",
+      "We may update these terms. When we do, the version at the top changes and we ask signed-in members to agree again the next time they sign in — we do not treat silence as consent.",
       SUPPORT_EMAIL ? `Questions, complaints or content you want removed: ${SUPPORT_EMAIL}.` : "Questions, complaints or content you want removed: use the contact details on our app store listing.",
     ],
   },
@@ -61,7 +66,7 @@ const SECTIONS: { h: string; p: string[] }[] = [
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-[720px]">
-      <PageHead eyebrow="Legal" title="Terms of use" blurb={`Last updated ${LEGAL_UPDATED}.`} />
+      <PageHead eyebrow="Legal" title="Terms of use" blurb={`Last updated ${LEGAL_UPDATED}. This version is ${TERMS_VERSION}.`} />
       <div className="mb-4"><EmergencyNotice /></div>
       <div className="glass space-y-5 rounded-2xl p-5">
         {SECTIONS.map((s) => (
@@ -74,6 +79,13 @@ export default function TermsPage() {
             ))}
           </section>
         ))}
+        <p className="text-[12px] leading-relaxed text-ink-400">
+          By creating an account you agree to this page and to the{" "}
+          <a href={LEGAL_LINKS.privacy} className="font-bold text-tide-300 underline">
+            privacy policy
+          </a>
+          . The account record stores which version you agreed to and when.
+        </p>
       </div>
     </div>
   );

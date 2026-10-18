@@ -1,3 +1,5 @@
+import { IMAGERY_URL, LABELS_URL, STREET_URL, TILE_ATTRIBUTION, TILE_MAX_ZOOM } from "./tiles.ts";
+
 export type LayerKey = "hybrid" | "satellite" | "road" | "streets";
 
 export type LayerDef = {
@@ -14,14 +16,15 @@ export type LayerDef = {
   overlayAttribution?: string;
 };
 
-/** Shared street tiles: use the canonical OSM endpoint, with visible attribution.
- * Browser requests retain the site's referrer; do not proxy, bulk-download or prefetch tiles.
- * For sustained high traffic, move to a contracted tile provider per OSM's tile usage policy.
+/**
+ * Basemap sources live in src/lib/tiles.ts, where they can be replaced by environment variables without a
+ * code change. The defaults are the community OSM server (fine for development, forbidden for app
+ * distribution) and Esri's keyless imagery (fine while evaluating). See docs/TILES.md.
  */
 export const STREET_TILES = {
-  url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  maxZoom: 19,
+  url: STREET_URL,
+  attribution: TILE_ATTRIBUTION,
+  maxZoom: TILE_MAX_ZOOM,
 };
 
 /**
@@ -34,21 +37,20 @@ export const LAYERS: Record<LayerKey, LayerDef> = {
     label: "Hybrid",
     short: "Hybrid",
     hint: "Aerial imagery with street names",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    url: IMAGERY_URL,
     attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics",
-    maxZoom: 19,
-    overlay:
-      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-    overlayAttribution: "Labels &copy; Esri",
+    maxZoom: TILE_MAX_ZOOM,
+    overlay: LABELS_URL || undefined,
+    overlayAttribution: LABELS_URL ? "Labels &copy; Esri" : undefined,
   },
   satellite: {
     key: "satellite",
     label: "Satellite",
     short: "Sat",
     hint: "Clean aerial imagery, no labels",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    url: IMAGERY_URL,
     attribution: "Imagery &copy; Esri, Maxar, Earthstar Geographics",
-    maxZoom: 19,
+    maxZoom: TILE_MAX_ZOOM,
   },
   road: {
     key: "road",
