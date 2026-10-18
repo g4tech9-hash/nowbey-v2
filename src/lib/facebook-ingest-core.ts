@@ -34,3 +34,45 @@ export function fbPostToNewsRow(post: FbPost, pageName: string) {
     review: "approved",
   };
 }
+
+/** What one page's last refresh did — the note is the converter's own diagnosis, verbatim. */
+export type FbIngestPageResult = {
+  username: string;
+  pageName?: string;
+  found: number;
+  inserted: number;
+  note: string;
+  /** When this page's result was produced (one-page checks leave the others untouched). */
+  at?: string;
+};
+
+export type FbIngestStatus = {
+  ranAt: string;
+  inserted: number;
+  pages: FbIngestPageResult[];
+};
+
+/**
+ * Parse the saved last-run blob defensively. A corrupt or half-written value must never break the
+ * admin page that explains why the wire has no Facebook posts.
+ */
+export function parseFbIngestStatus(raw: string): FbIngestStatus | null {
+  if (!raw) return null;
+  try {
+    const value = JSON.parse(raw) as Partial<FbIngestStatus>;
+    if (!value || typeof value.ranAt !== "string" || !Array.isArray(value.pages)) return null;
+    const pages = value.pages
+      .filter((p): p is FbIngestPageResult => Boolean(p) && typeof p.username === "string" && typeof p.note === "string")
+      .map((p) => ({
+        username: p.username,
+        pageName: typeof p.pageName === "string" ? p.pageName : undefined,
+        found: Number(p.found) || 0,
+        inserted: Number(p.inserted) || 0,
+        note: p.note,
+        at: typeof p.at === "string" ? p.at : undefined,
+      }));
+    return { ranAt: value.ranAt, inserted: Number(value.inserted) || 0, pages };
+  } catch {
+    return null;
+  }
+}

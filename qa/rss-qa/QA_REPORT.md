@@ -2,11 +2,17 @@
 
 **Target Facebook page:** https://www.facebook.com/mybpl242/ (Bahamas Power and Light — verified live)
 **Endpoint under test:** `/api/rss/facebook?url=https://www.facebook.com/mybpl242/`
-**Report date:** 2026-10-17 · **Harness:** `qa/rss-qa/validate.mjs` (node v22.22.3)
+**Report date:** 2026-10-17 · **Updated:** 2026-10-18 (production supply re-tested) · **Harness:** `qa/rss-qa/validate.mjs` (node v22.22.3)
 
 ---
 
-## OVERALL STATUS: ✔ **PASS** (with one environmental caveat, see §5)
+## OVERALL STATUS: converter ✔ **PASS** · live production supply ✖ **BLOCKED — no bridge configured** (see §5)
+
+> **Read this first.** The converter is correct: given posts, it emits strict RSS 2.0 that
+> NowBey's own ingest accepts (harness PASS, 3/3 items). But production cannot *obtain* mybpl242's
+> posts: Facebook answers hosting IPs with 403 / a login page, and no bridge feed is configured
+> yet. An empty-but-valid feed in production is the designed degradation, not a converter bug.
+> §5 records the 2026-10-18 re-test and the two changes that close the gap.
 
 The converter was built, wired to the Wire page, and audited end-to-end with the
 project's own RSS 2.0 QA harness — including a live HTTP run of the endpoint inside a
@@ -50,11 +56,12 @@ always available at `/api/rss/facebook`.
 | Piece | File | Purpose |
 |---|---|---|
 | Converter library | `src/lib/facebook.ts` | Pure logic: page-link parsing (any shape: `www/m/mbasic/fb.com`, bare usernames, `profile.php?id=`), source resolution, mbasic-HTML post parser, sloppy-upstream normalizer, strict RSS 2.0 serializer (escaped entities, CDATA policy, RFC-822 dates, `<enclosure url length type>` in the attribute order NowBey's ingest regex expects), admin page-list parser. |
-| Admin page management | `src/app/api/admin/facebook-pages/route.ts` + `src/components/admin-facebook-pages.tsx` | Admins add/remove page links on **/admin/wire** (stored in `site_settings.fb_pages`, `requireStaff("admin")` + audit log, deduped, SSRF-validated). |
+| Admin page management | `src/app/api/admin/facebook-pages/route.ts` + `src/components/admin-facebook-pages.tsx` | Admins add/remove page links on **/admin/wire** (stored in `site_settings.fb_pages`, `requireStaff("admin")` + audit log, deduped, SSRF-validated). A **bridge feed** can be pasted per page in the same panel (`site_settings.fb_bridges`, wins over `FB_RSS_BRIDGES`, applies on the next refresh with no redeploy). The panel also shows the last check's found/new counts and the converter's own note, with a **Check now** button that runs the ingest immediately. |
 | Wire ingest | `src/lib/facebook-ingest.ts` (+ `-core.ts`, pure & unit-tested) | Every refresh (`refreshIfStale`, manual "Refresh stories"), each configured page's posts are inserted into **`news_items`** — the same table as the newspaper feeds — so Facebook posts render **inline on the wire** as normal stories: categorised, alert-levelled, cheap-geocoded, deduped by normalized URL. |
 | HTTP endpoint | `src/app/api/rss/facebook/route.ts` | `GET ?url=<page link>` (or `?page=<username>`, or no params → first admin page) → `application/rss+xml; charset=utf-8`, cache-friendly, 400 + readable JSON for non-Facebook links. |
 | Ingest core split | `src/lib/ingest-core.ts` | The pure classification/parsing half of `ingest.ts` (categorize, alertLevelFor, normalizeUrl, parseFeed, placeFromText), alias-free and re-exported so the wire conversion is unit-testable. |
-| Tests | `tests/facebook-rss.test.mjs` | 15 hermetic tests, wired into `npm test`. The serializer's output is machine-validated by the QA harness itself. |
+| BPL's own feed | `src/lib/ingest-core.ts` (`KNOWN_OUTLETS`) | `https://www.bplco.com/feed/` is a built-in outlet, so BPL press releases and outage updates reach the wire from hosting IPs without any Facebook access. |
+| Tests | `tests/facebook-rss.test.mjs` | 20 hermetic tests, wired into `npm test` (converter, bridge precedence/parsing, status parsing, BPL feed + power categorisation). The serializer's output is machine-validated by the QA harness itself. |
 
 ## 2. Verification evidence
 
@@ -76,11 +83,14 @@ https://<your-deployment>/api/rss/facebook?page=mybpl242
 node qa/rss-qa/validate.mjs --url "https://nowbey-v2.vercel.app/api/rss/facebook?url=https%3A%2F%2Fwww.facebook.com%2Fmybpl242%2F"
 ```
 
-Env (documented in `.env.example`): `FB_WIRE_PAGE` (Wire panel target, default `mybpl242`),
-`FB_RSS_BRIDGES="mybpl242|https://rss.app/feeds/xxxx.xml"` (recommended for guaranteed supply).
-The panel lives on `/wire` in the right rail; the feed is also usable in any RSS reader
-or via `NEWS_FEEDS="Bahamas Power and Light|https://…/api/rss/facebook?url=…"` for the
-full news pipeline (categories + map pins).
+Env (documented in `.env.example`): `FB_WIRE_PAGE` (the page followed when no admin has
+configured one, default `mybpl242`) and `FB_RSS_BRIDGES="mybpl242|https://rss.app/feeds/xxxx.xml"`
+(server-level fallback). The supported way to add a bridge is the **/admin/wire** panel,
+which stores it in the database and takes effect on the next refresh without a redeploy.
+Posts appear inline on `/wire` (no separate rail panel); the feed is also usable in any RSS
+reader or via `NEWS_FEEDS="Bahamas Power and Light|https://…/api/rss/facebook?url=…"` for the
+full news pipeline (categories + map pins). BPL's own `bplco.com/feed` is already ingested
+as a normal outlet.
 
 ## 4. Test-plan coverage (original checklist)
 
@@ -93,20 +103,50 @@ full news pipeline (categories + map pins).
 - [x] Data proof: newest post title/date/link extracted and shown
 - [x] NowBey pipeline compatibility: `parseFeed()` accepts 3/3 items, no silent drops or date clamps
 
-## 5. Production-preview result (observed 2026-10-17, PR #37 Vercel preview)
+## 5. Production-preview result — re-tested 2026-10-18
 
 The endpoint was exercised on the live Vercel preview deployment
-(`nowbey-v2-git-arena-63af1168-nowbey-v2-now-bey.vercel.app`). Observed:
+(`nowbey-v2-git-arena-63af1168-nowbey-v2-now-bey.vercel.app`) on 2026-10-17, then the
+question "why are there no BPL posts?" was re-tested against production on 2026-10-18.
+
+Observed:
 
 - ✔ Endpoint live on Vercel, answers the conversion request, correct channel metadata
   (title/link bound to the BPL page, fresh `lastBuildDate`, generator tag).
-- ✔ Graceful degradation confirmed in production: with **no bridge configured**,
-  Facebook did not serve the direct mbasic path to Vercel's datacenter IPs, and the
-  endpoint returned the **valid empty feed** (channel intact, zero items, no error
-  page, no crash) — exactly the designed behaviour.
-- ▶ To light the posts up: set `FB_RSS_BRIDGES="mybpl242|https://rss.app/feeds/xxxx.xml"`
-  in Vercel (Project → Settings → Environment Variables) and redeploy. rss.app already
-  bridges other Bahamian FB pages in this project (see `.env.example` / `NEWS_FEEDS`).
+- ✔ Graceful degradation confirmed in production: with **no bridge configured**, Facebook
+  did not serve the direct mbasic path to Vercel's datacenter IPs, and the endpoint returned
+  the **valid empty feed** (channel intact, zero items, no error page, no crash) — exactly
+  the designed behaviour.
+- ✖ **The missing posts are a supply problem, not a converter problem.** Re-tested from two
+  independent datacenter networks on 2026-10-18:
+  - `https://www.facebook.com/mybpl242` → **HTTP 403**
+  - `https://m.facebook.com/mybpl242` → **HTTP 403**
+  - `https://mbasic.facebook.com/mybpl242` → **HTTP 403**
+  - `https://www.facebook.com/plugins/page.php?…` → **HTTP 403**
+  - a third-party rendering proxy (`r.jina.ai`) → **login page**, not posts
+  - public RSSHub (`rsshub.app`, `rsshub.rssforever.com`) → **rate-limited / route not found**
+  - public RSS-Bridge (`rss-bridge.org/bridge01`) → **rejects the page id**
+  - Wayback's newest snapshot of the page → **2022** (not current posts)
+  No User-Agent, host, or public proxy tested gets the page's posts from a server. A bridge
+  feed is the only supported source, and production has none.
+
+### What changed to close the gap (2026-10-18)
+
+1. **BPL's official announcements are now a built-in source.** `https://www.bplco.com/feed/`
+   is in `KNOWN_OUTLETS`; its press releases and outage updates flow through the normal
+   ingest (categorised **power**, deduped by URL) and appear on `/wire` on the next refresh.
+   This is BPL's own publishing, reachable from hosting IPs — no Facebook access involved.
+2. **Bridges are now admin-editable, with visible results.** Paste a bridge feed per page on
+   **/admin/wire** (stored in the database, wins over `FB_RSS_BRIDGES`, no redeploy) and press
+   **Check now** to see *found / new / note* for that page immediately. The last run's status
+   is persisted, so "no posts" is never silent again — the panel shows the login-wall note
+   and what to do about it.
+
+The remaining manual step is creating the bridge itself (rss.app / fetchrss / RSS-Bridge for
+`facebook.com/mybpl242`) — see `TODO_HUMAN.md` § 0. That is an account action this codebase
+cannot perform on the owner's behalf, and it is the only way to display the page's actual
+Facebook posts.
+
 - ▶ Final machine verdict from any machine that can reach Vercel:
   `node qa/rss-qa/validate.mjs --url "https://<deployment>/api/rss/facebook?url=https%3A%2F%2Fwww.facebook.com%2Fmybpl242%2F"`
   Post permalinks stay login-walled to bots, so a human click-through remains the last

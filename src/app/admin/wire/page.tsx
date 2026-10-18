@@ -6,13 +6,14 @@ import { RemoveStoryButton, ReviewButtons, SendAlertButton } from "@/components/
 import { FacebookPagesAdmin } from "@/components/admin-facebook-pages";
 import { Pill } from "@/components/admin-ui";
 import { getAuxSetting } from "@/lib/settings";
-import { fbPagesFromValue } from "@/lib/facebook";
+import { fbBridgesFromValue, fbPagesFromValue } from "@/lib/facebook";
+import { parseFbIngestStatus } from "@/lib/facebook-ingest-core";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Wire" };
 
 export default async function WireAdmin() {
-  const [pending, live, candidates, fbPagesRaw] = await Promise.all([
+  const [pending, live, candidates, fbPagesRaw, fbBridgesRaw, fbStatusRaw] = await Promise.all([
     db.select().from(newsItems).where(eq(newsItems.review, "pending")).orderBy(desc(newsItems.publishedAt)).limit(50),
     db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(30),
     db
@@ -22,13 +23,19 @@ export default async function WireAdmin() {
       .orderBy(desc(newsItems.publishedAt))
       .limit(20),
     getAuxSetting("fb_pages"),
+    getAuxSetting("fb_bridges"),
+    getAuxSetting("fb_ingest_status"),
   ]);
   // "high" first, then "watch", newest first within each.
   candidates.sort((a, b) => (a.alertLevel === b.alertLevel ? 0 : a.alertLevel === "high" ? -1 : 1));
 
   return (
     <div className="space-y-6">
-      <FacebookPagesAdmin pages={fbPagesFromValue(fbPagesRaw)} />
+      <FacebookPagesAdmin
+        pages={fbPagesFromValue(fbPagesRaw)}
+        bridges={fbBridgesFromValue(fbBridgesRaw)}
+        status={parseFbIngestStatus(fbStatusRaw)}
+      />
 
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">Possible alerts{candidates.length ? ` (${candidates.length})` : ""}</p>

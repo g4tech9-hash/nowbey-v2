@@ -1,5 +1,36 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
+## 0. Facebook posts on the wire — one pasted bridge feed (2026-10-18)
+
+**What already works, no step needed:** BPL's own announcements feed (`bplco.com/feed`) is
+built into the wire, so press releases and outage updates reach `/wire` on the next refresh
+(and are categorised as **Power**). This is the reliable source; it is not the Facebook page.
+
+**Why Facebook posts are still missing:** Facebook answers servers with a login wall. On
+2026-10-18, `www.facebook.com/mybpl242`, `m.facebook.com/mybpl242` and
+`mbasic.facebook.com/mybpl242` all returned **403 / a login page** from hosting IPs; a
+rendering proxy saw the same login page, and the public RSSHub/RSS-Bridge instances either
+rate-limit or reject the page. No code change can scrape past that — a bridge feed is the
+supported path, and it is the only one that yields the page's actual posts.
+
+**The one-time step (about two minutes).**
+
+1. Create a feed for `https://www.facebook.com/mybpl242/` at rss.app or fetchrss.com
+   (both have free tiers), and copy the RSS address it gives you.
+2. Open **/admin/wire → Facebook pages on the wire**, paste that address into the page's
+   **Bridge feed URL** box, press **Save bridge**.
+3. Press **Check now**. The panel reports, per page, how many posts were found, how many
+   were new, and the converter's own note — so you can see it working before you close the
+   tab. No redeploy is involved; the bridge is stored in the database.
+
+Server-level alternative (takes a redeploy): set
+`FB_RSS_BRIDGES="mybpl242|https://rss.app/feeds/xxxx.xml"` in Vercel → Settings →
+Environment Variables → Production. An admin-saved bridge wins over this env value.
+
+If a bridge later breaks, `/admin/wire` shows the failure note from the last check instead
+of failing silently, and the converter keeps serving a valid (possibly empty) RSS feed at
+`/api/rss/facebook`.
+
 ## 0. Switch on Incident Command extras (2026-10-16) — one SQL step
 
 The deploy carries four staff upgrades: report editing + merging + "unfounded" status

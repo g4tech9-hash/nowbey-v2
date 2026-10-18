@@ -5,6 +5,53 @@
  */
 import { GAZETTEER, PARISHES, type CategoryKey } from "./geo.ts";
 
+export type Feed = { name: string; url: string; /** Used to find the outlet through Google News if its own feed does not answer. */ domain?: string };
+
+/*
+ * Bahamian outlets. Each is tried through its own feed first. If that feed is down or blocks us, the same
+ * outlet is found through Google News (a "site:" search), so one broken feed does not silence a newspaper.
+ * Anything that still fails is listed in the ingest stats, never hidden.
+ */
+export const KNOWN_OUTLETS: Feed[] = [
+  { name: "Eyewitness News", url: "https://ewnews.com/feed", domain: "ewnews.com" },
+  { name: "Tribune 242", url: "https://www.tribune242.com/feed", domain: "tribune242.com" },
+  { name: "The Nassau Guardian", url: "https://thenassauguardian.com/feed", domain: "thenassauguardian.com" },
+  { name: "Our News", url: "https://ournews.bs/feed", domain: "ournews.bs" },
+  { name: "Bahamas Press", url: "https://www.bahamaspress.com/feed", domain: "bahamaspress.com" },
+  { name: "Bahamas Weekly", url: "https://www.thebahamasweekly.com/feed", domain: "thebahamasweekly.com" },
+  { name: "Loop Bahamas", url: "https://loopnews.com/bahamas/feed", domain: "loopnews.com" },
+  { name: "ZNS Bahamas", url: "https://znsbahamas.com/feed", domain: "znsbahamas.com" },
+  { name: "Bahamas Information Services", url: "https://www.bahamas.gov.bs/feed", domain: "bahamas.gov.bs" },
+  { name: "Bahamas Investor", url: "https://www.bahamasinvestor.com/feed", domain: "bahamasinvestor.com" },
+  { name: "Bahamas Local", url: "https://bahamaslocal.com/feed", domain: "bahamaslocal.com" },
+  // BPL's own announcements (press releases, outage and restoration updates). Its WordPress feed is
+  // reachable from hosting IPs, unlike the Facebook page, so BPL news reaches the wire even when
+  // Facebook serves a login wall to the server.
+  { name: "Bahamas Power and Light", url: "https://www.bplco.com/feed/", domain: "bplco.com" },
+];
+
+/**
+ * All feeds in use: the outlets above plus anything in NEWS_FEEDS. Facebook pages (242 In The Know, The Bahamas
+ * Times) cannot be read directly, since Facebook blocks it; give a page's RSS address from a service such as
+ * rss.app or fetchrss.com instead:
+ *   NEWS_FEEDS="242 In The Know|https://rss.app/feeds/xxxx.xml,The Bahamas Times|https://rss.app/feeds/yyyy.xml"
+ */
+export function configuredFeeds(): Feed[] {
+  const raw = process.env.NEWS_FEEDS ?? "";
+  const extra = raw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const i = entry.indexOf("|");
+      return { name: (i < 0 ? "" : entry.slice(0, i)).trim(), url: (i < 0 ? entry : entry.slice(i + 1)).trim() };
+    })
+    .filter((f) => f.url.startsWith("http"))
+    .map((f) => ({ ...f, name: f.name || new URL(f.url).hostname }));
+  const have = new Set(extra.map((f) => f.url));
+  return [...KNOWN_OUTLETS.filter((f) => !have.has(f.url)), ...extra];
+}
+
 /** The same story reached by two links (tracking tags, trailing slash, http/https) must be stored once. */
 export function normalizeUrl(raw: string): string {
   try {
@@ -26,7 +73,7 @@ export function normalizeUrl(raw: string): string {
 const CATEGORY_RULES: [CategoryKey, RegExp][] = [
   ["storm", /\b(?:hurricane|tropical (?:storm|depression)|storm surge|nor.?easter|cyclone|squall)\b/i],
   ["flood", /\b(?:flood(?:s|ed|ing)?|high water|drainage|washover|standing water)\b/i],
-  ["power", /\b(?:outages?|blackouts?|power (?:cut|failure|line|outage)s?|electricity|generators?|load shed(?:ding)?)\b/i],
+  ["power", /\b(?:outages?|blackouts?|power (?:cut|failure|line|outage|supply|grid)s?|subsea cables?|transformers?|feeders?|electricity|generators?|load shed(?:ding)?)\b/i],
   ["water", /\b(?:potable|water (?:main|supply|shortage)|boil (?:water )?notice)\b/i],
   ["crime", /\b(?:murder(?:ed)?|shoot(?:ing|out)?|shot|guns?|gunmen|gunman|robber(?:y|ies)|burglar(?:y|ies|s)?|theft|stolen|assault(?:ed)?|armed|carjack(?:ing|ed)?)\b/i],
   ["marine", /\b(?:vessel|boat|capsiz(?:ed|ing)|grounding|coast guard|marina|shipwreck|ferry|ferries)\b/i],

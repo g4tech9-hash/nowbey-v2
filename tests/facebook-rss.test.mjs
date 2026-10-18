@@ -11,6 +11,9 @@ import {
   fbUsernameFromUrl,
   fbPageName,
   fbBridgeUrl,
+  fbBridgesFromValue,
+  fbBridgesToValue,
+  isPrivateHostname,
   parseFacebookHtml,
   parseBridgeFeed,
   postsToRssXml,
@@ -254,7 +257,8 @@ test("CDATA edge: post text containing ']]>' cannot break the feed", () => {
 /* ───────────────────────── admin-managed page list + wire ingest core ───────────────────────── */
 
 import { fbPagesFromValue } from "../src/lib/facebook.ts";
-import { DEFAULT_FB_PAGE, fbPostToNewsRow } from "../src/lib/facebook-ingest-core.ts";
+import { DEFAULT_FB_PAGE, fbPostToNewsRow, parseFbIngestStatus } from "../src/lib/facebook-ingest-core.ts";
+import { categorize, configuredFeeds } from "../src/lib/ingest-core.ts";
 
 test("the admin page list parser accepts links, names and bare handles, dedupes and drops junk", () => {
   const env = { FB_PAGES: "" };
@@ -305,4 +309,65 @@ test("FB posts become regular wire rows: categorised, alert-levelled, dedup-keye
 
 test("the default page when no admin has configured anything is BPL", () => {
   assert.equal(DEFAULT_FB_PAGE, "mybpl242");
+});
+
+
+test("a bridge saved by an admin wins over the env, and only for its own page", () => {
+  const env = { FB_RSS_BRIDGES: "mybpl242|https://env.example/feed.xml" };
+  const admin = fbBridgesFromValue("mybpl242|https://rss.app/feeds/abc.xml");
+  assert.equal(fbBridgeUrl("mybpl242", env, admin), "https://rss.app/feeds/abc.xml");
+  assert.equal(fbBridgeUrl("otherpage", env, admin), null, "an admin bridge never leaks to another page");
+  assert.equal(fbBridgeUrl("mybpl242", env, {}), "https://env.example/feed.xml", "env remains the fallback");
+  assert.equal(fbBridgeUrl("mybpl242", {}, admin), "https://rss.app/feeds/abc.xml", "an admin bridge works with no env at all");
+});
+
+test("the admin bridge list accepts http(s) only, keeps the last entry, and round-trips", () => {
+  const parsed = fbBridgesFromValue(
+    "mybpl242|https://rss.app/feeds/a.xml, bad|javascript:alert(1), |https://x, nobody, mybpl242|https://rss.app/feeds/b.xml, sp ace|https://x/y.xml",
+  );
+  assert.deepEqual(parsed, { mybpl242: "https://rss.app/feeds/b.xml" });
+  assert.equal(fbBridgesToValue({ mybpl242: "https://rss.app/feeds/b.xml", broken: "not a url" }), "mybpl242|https://rss.app/feeds/b.xml");
+  assert.deepEqual(fbBridgesFromValue(""), {});
+  assert.equal(fbBridgesToValue({}), "");
+});
+
+test("the saved last-run status is parsed defensively (a bad blob never breaks the admin page)", () => {
+  const good = parseFbIngestStatus(
+    JSON.stringify({
+      ranAt: "2026-10-18T01:00:00.000Z",
+      inserted: 2,
+      pages: [{ username: "mybpl242", pageName: "Bahamas Power and Light", found: 8, inserted: 2, note: "bridge: 8 posts" }],
+    }),
+  );
+  assert.equal(good?.inserted, 2);
+  assert.equal(good?.pages.length, 1);
+  assert.equal(good?.pages[0].note, "bridge: 8 posts");
+  assert.equal(parseFbIngestStatus(""), null);
+  assert.equal(parseFbIngestStatus("not json"), null);
+  assert.equal(parseFbIngestStatus('{"ranAt":1}'), null);
+  const partial = parseFbIngestStatus(JSON.stringify({ ranAt: "2026-10-18T01:00:00.000Z", pages: [{ username: "x" }, null] }));
+  assert.deepEqual(partial?.pages, [], "entries without a note are dropped, not rendered as undefined");
+});
+
+test("BPL's official feed is a built-in outlet (the source that works from hosting IPs)", () => {
+  const feeds = configuredFeeds();
+  assert.ok(
+    feeds.some((f) => f.url === "https://www.bplco.com/feed/" && f.name === "Bahamas Power and Light"),
+    "BPL announcements must reach the wire without a Facebook bridge",
+  );
+});
+
+test("BPL-style releases classify as power, so outage updates land in the right filter", () => {
+  assert.equal(categorize("BPL Provides Update on Great Guana Cay Power Supply and Subsea Cable Replacement"), "power");
+  assert.equal(categorize("Planned outage for parts of eastern New Providence on Tuesday"), "power");
+  assert.equal(categorize("Crews restored supply after a transformer failure"), "power");
+});
+
+test("bridge addresses that point inside the network are refused (no SSRF from a pasted URL)", () => {
+  for (const host of ["localhost", "fb.localhost", "rss.internal", "127.0.0.1", "10.1.2.3", "192.168.0.10", "172.16.5.4", "172.31.255.1", "169.254.1.1", "::1", "[::1]", "fd00::1", "fe80::1"]) {
+    assert.equal(isPrivateHostname(host), true, `${host} must be private`);
+  }
+  for (const host of ["rss.app", "fetchrss.com", "8.8.8.8", "172.32.0.1", "fcbarcelona.com", "fe80notanip.example"]) {
+    assert.equal(isPrivateHostname(host), false, `${host} must be allowed`);
+  }
 });
