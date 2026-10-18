@@ -120,6 +120,9 @@ const NAMED: Record<string, string> = {
 export function decode(input: string): string {
   return input
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    // Some WordPress feeds (BPL's press releases among them) put a whole stylesheet in
+    // content:encoded. Stripping tags alone would leave the CSS as the story's summary.
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => safeChar(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, n) => safeChar(Number(n)))

@@ -258,7 +258,7 @@ test("CDATA edge: post text containing ']]>' cannot break the feed", () => {
 
 import { fbPagesFromValue } from "../src/lib/facebook.ts";
 import { DEFAULT_FB_PAGE, fbPostToNewsRow, parseFbIngestStatus } from "../src/lib/facebook-ingest-core.ts";
-import { categorize, configuredFeeds } from "../src/lib/ingest-core.ts";
+import { categorize, configuredFeeds, decode } from "../src/lib/ingest-core.ts";
 
 test("the admin page list parser accepts links, names and bare handles, dedupes and drops junk", () => {
   const env = { FB_PAGES: "" };
@@ -370,4 +370,16 @@ test("bridge addresses that point inside the network are refused (no SSRF from a
   for (const host of ["rss.app", "fetchrss.com", "8.8.8.8", "172.32.0.1", "fcbarcelona.com", "fe80notanip.example"]) {
     assert.equal(isPrivateHostname(host), false, `${host} must be allowed`);
   }
+});
+
+test("inline stylesheets never become story summaries (BPL's press-release template)", () => {
+  const html =
+    '<style>.press-release{max-width:860px;margin:0 auto;color:#0f172a} h1{font-size:2.25rem}</style>' +
+    '<script>window.__x={a:1}</script><p>FOR IMMEDIATE RELEASE</p><p>BPL restored supply to Guana Cay at 12:50 p.m.</p>';
+  const text = decode(html);
+  assert.equal(text.includes("press-release"), false, "CSS must not leak into the summary");
+  assert.equal(text.includes("max-width"), false);
+  assert.equal(text.includes("window.__x"), false, "scripts are dropped too");
+  assert.equal(text.includes("FOR IMMEDIATE RELEASE"), true);
+  assert.equal(text.includes("restored supply"), true);
 });

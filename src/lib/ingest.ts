@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { desc } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { newsItems } from "@/db/schema";
 import { categorize, alertLevelFor, decode, normalizeUrl, parseFeed, placeFromText, configuredFeeds, type ParsedItem } from "./ingest-core";
 
@@ -108,6 +108,7 @@ export async function runIngest(opts: { limit?: number } = {}): Promise<IngestSt
     }
   }
 
+  const stillStale: ParsedItem[] = [];
   for (const item of pool.values()) {
     const text = `${item.title} ${item.summary}`;
     const place = placeFromText(text);
@@ -133,10 +134,33 @@ export async function runIngest(opts: { limit?: number } = {}): Promise<IngestSt
       .returning({ id: newsItems.id });
     if (!row) {
       stats.skipped += 1;
+      stillStale.push(item);
       continue;
     }
     stats.inserted += 1;
     if (place) stats.geocoded += 1;
+  }
+
+  // Stories stored before decode() learned to drop inline <style> blocks can still carry raw
+  // CSS as their summary (BPL's press releases did). Repair only those, in one batched query.
+  const looksLikeCss = (value: string | null) => Boolean(value) && /[{}]/.test(value as string) && /:\s*[^,.;]+;/.test(value as string);
+  if (stillStale.length) {
+    try {
+      const existing = await db
+        .select({ id: newsItems.id, url: newsItems.url, summary: newsItems.summary })
+        .from(newsItems)
+        .where(inArray(newsItems.url, stillStale.map((item) => item.url)));
+      for (const row of existing) {
+        const fresh = stillStale.find((item) => item.url === row.url);
+        if (!fresh || !looksLikeCss(row.summary) || looksLikeCss(fresh.summary)) continue;
+        await db
+          .update(newsItems)
+          .set({ summary: fresh.summary, imageUrl: fresh.imageUrl ?? undefined })
+          .where(eq(newsItems.id, row.id));
+      }
+    } catch {
+      /* a repair that cannot run leaves the story exactly as it was */
+    }
   }
   return stats;
 }
