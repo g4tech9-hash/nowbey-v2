@@ -15,12 +15,6 @@ import "./globals.css";
 
 const sora = localFont({ src: "./fonts/sora-latin.woff2", weight: "100 800", variable: "--font-sora", display: "swap" });
 const manrope = localFont({ src: "./fonts/manrope-latin.woff2", weight: "200 800", variable: "--font-manrope", display: "swap" });
-/**
- * The claim voice. One job only: the single sentence per screen that states the situation. Never body copy,
- * never a row, never a button — see REGISTERS.md. Variable weight, so the claim can be 420 in rest and 500 in
- * storm without shipping a second file.
- */
-const newsreader = localFont({ src: "./fonts/newsreader-latin.woff2", weight: "200 800", variable: "--font-newsreader", display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -79,7 +73,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const initialPath = h.get("x-nowbey-pathname");
 
   return (
-    <html lang="en" className={`${sora.variable} ${manrope.variable} ${newsreader.variable}`} data-theme={settings.theme} data-mode={settings.mode} suppressHydrationWarning>
+    <html lang="en" className={`${sora.variable} ${manrope.variable}`} data-theme={settings.theme} data-mode={settings.mode} suppressHydrationWarning>
       <head>
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: MODE_BOOT.replace("__SITE_MODE__", settings.mode) }} />
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: PREFS_BOOT }} />
