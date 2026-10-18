@@ -27,21 +27,19 @@ was the least resilient.
 5. **Bounded retry.** 2 s, 8 s, 30 s, 2 min, 5 min; after that `failed`, visible, and one tap from trying again.
 6. **The queue is visible.** A silent retry queue is indistinguishable from a lost report.
 
-## Known follow-up — server-side idempotency
+## Server-side idempotency (shipped)
 
-`clientKey` is sent today and **the server does not yet store it**. In practice the existing duplicate rule
-(180 m / 90 min) catches the common case: a retry after a lost response is refused as a duplicate, and the queue
-treats that as sent. The gap is narrow but real — a send whose response was lost, retried *after* the duplicate
-window, could make a second pin.
+`clientKey` is stored and checked. `POST /api/incidents` looks up the key **before** the 180 m / 90 min
+neighbour-duplicate rule, so a retry is recognised as itself rather than refused as somebody else's duplicate,
+and the insert is protected by a partial unique index for the race where two attempts overlap.
 
-To close it:
-
-1. Add `client_key text` to `incidents` with a unique index (`src/db/add-client-key.sql`).
-2. In `POST /api/incidents`, look up `client_key` first and return the existing row (`duplicate: true`) — before
-   the proximity check, so a retried report is recognised as itself rather than refused as a neighbour.
-3. Add a test: the same key posted twice returns one incident.
-
-Until that lands, the window is documented rather than hidden.
+- Column + index: `src/db/add-client-key.sql` (run **before** deploying the schema that reads it).
+- Validation: `src/lib/idempotency.ts` — the app's key shape only, and an invalid or absent key is ignored
+  rather than rejected, because every client that predates the queue still has to report.
+- Privacy: the key is stripped by `publicIncident()`. It is a stable per-device identifier; publishing it would
+  let anyone group every report sent from one phone, which is exactly the correlation the blurred pin prevents.
+- Degrades safely: if the migration has not been run, the lookup notices the missing column and the route
+  behaves exactly as it did before (just without idempotency) — it does not 500.
 
 ## Deliberately not done
 

@@ -37,6 +37,11 @@ export function publicAddress(address?: string | null): string | null {
 
 type Incidentish = {
   userId?: string | null;
+  /**
+   * The device's idempotency key. Publishing it would let anyone group reports by the phone that sent them —
+   * exactly the correlation the blurred pin exists to prevent.
+   */
+  clientKey?: string | null;
   address?: string | null;
   street?: string | null;
 };
@@ -48,6 +53,7 @@ type Incidentish = {
 export function publicIncident<T extends Incidentish>(row: T): Omit<T, "userId"> {
   const copy: Record<string, unknown> = { ...row };
   delete copy.userId;
+  delete copy.clientKey;
 
   if ("address" in row || "street" in row) {
     // Keep the key (the UI reads it) but never the doorway.

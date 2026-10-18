@@ -1,5 +1,27 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
+## 0. Run one SQL step BEFORE the next deploy — offline queue idempotency (2026-10-18)
+
+**Do this first, then deploy.** `src/db/add-client-key.sql` adds `incidents.client_key` and a partial unique
+index. The app now sends a key with every queued report so a retry cannot become a second pin.
+
+The order matters: the schema reads `client_key` on every incident query, so a deploy that lands before the
+column exists would fail reads as well as writes. Open the Neon SQL editor, paste the file, run it. It is safe
+to run twice.
+
+Verification returns one column and one index:
+
+```sql
+SELECT column_name FROM information_schema.columns
+ WHERE table_name = 'incidents' AND column_name = 'client_key';
+
+SELECT indexname FROM pg_indexes
+ WHERE tablename = 'incidents' AND indexname = 'incidents_client_key_idx';
+```
+
+Nothing else to switch on: reports without a key (the website, older app builds, `curl`) behave exactly as
+before, and a database without the column degrades to non-idempotent reporting rather than erroring.
+
 ## 0. Facebook posts on the wire — one pasted bridge feed (2026-10-18)
 
 **What already works, no step needed:** BPL's own announcements feed (`bplco.com/feed`) is

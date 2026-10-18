@@ -83,6 +83,12 @@ export const incidents = pgTable(
     sourceUrl: text("source_url"),
     photoNote: text("photo_note"),
     userId: uuid("user_id"),
+    /**
+     * Set by the offline queue (expo/src/outbox.ts). A retry carrying the same key is the same report, so a send
+     * whose answer was never seen cannot become a second pin. Null for anything that did not send one.
+     * Run src/db/add-client-key.sql before deploying this schema: the column is read by every select.
+     */
+    clientKey: text("client_key"),
     authorHandle: text("author_handle"),
     anonymous: boolean("anonymous").notNull().default(false),
     /** True once the stored pin has been moved a short distance from the spot the reporter chose (see location-privacy.ts). */
@@ -98,6 +104,9 @@ export const incidents = pgTable(
     // Declared here because src/db/add-profiles.sql creates it: a member's profile reads their own
     // reports by user id, and a schema that did not know about the index would have drizzle-kit drop it.
     index("incidents_user_idx").on(table.userId),
+    // Partial: a report without a key is not a duplicate of anything, and Postgres treats NULLs as distinct
+    // anyway. This states the intent and keeps the index small.
+    uniqueIndex("incidents_client_key_idx").on(table.clientKey).where(sql`${table.clientKey} is not null`),
   ],
 );
 

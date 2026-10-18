@@ -11,6 +11,7 @@ import { autoFlagIncident } from "@/lib/moderation";
 import { refreshOfficialIfStale } from "@/lib/official";
 import { dispatchIncidentPush } from "@/lib/push";
 import { publicIncident } from "@/lib/public";
+import { isUndefinedColumn, isUniqueViolation, normaliseClientKey } from "@/lib/idempotency";
 import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo";
 import { isLikelyDuplicateIncident } from "@/lib/collect";
 import { clientIp, sharedHit, tooMany } from "@/lib/ratelimit";
@@ -107,6 +108,27 @@ export async function POST(req: Request) {
   const accuracy = Number(body.accuracyMeters);
   const anonymous = body.anonymous === true;
 
+  // The offline queue retries a report whose answer it never saw. The key is created on the phone at compose
+  // time, so a second attempt with the same key is the same report — not a neighbour's, and not a duplicate of
+  // anything else. Checked before the proximity rule on purpose: a retry must not be refused as a duplicate of
+  // itself, and must not create a second pin a few minutes apart.
+  const clientKey = normaliseClientKey(body.clientKey);
+  if (clientKey) {
+    try {
+      const [existing] = await db.select().from(incidents).where(eq(incidents.clientKey, clientKey)).limit(1);
+      if (existing) {
+        return NextResponse.json({
+          incident: publicIncident(existing),
+          duplicate: true,
+          message: "This report already reached us. We opened it instead of posting it twice.",
+        });
+      }
+    } catch (e) {
+      // The migration has not been run. Reporting still has to work; it just is not idempotent yet.
+      if (!isUndefinedColumn(e)) throw e;
+    }
+  }
+
   // Keep one live incident per event instead of sending neighbours five alerts for the same flooded road.
   // The tight distance/time/category rules intentionally favour separate reports when there is any doubt.
   const recentCandidates = await db
@@ -138,7 +160,9 @@ export async function POST(req: Request) {
   const viewer = await getViewer();
   const handle = anonymous ? "someone" : (viewer.handle ?? "neighbour");
 
-  const [row] = await db
+  let row: typeof incidents.$inferSelect;
+  try {
+    [row] = await db
     .insert(incidents)
     .values({
       title,
@@ -160,8 +184,24 @@ export async function POST(req: Request) {
       sourceKind: "resident",
       photoNote: text(body.photoNote, 300) || null,
       confirmations: 1,
+      clientKey,
     })
     .returning();
+  } catch (e) {
+    // Two attempts raced past the lookup above (a phone retrying while the first request was still open).
+    // The unique index is what makes this safe: the loser reads the winner's row instead of failing.
+    if (clientKey && isUniqueViolation(e)) {
+      const [existing] = await db.select().from(incidents).where(eq(incidents.clientKey, clientKey)).limit(1);
+      if (existing) {
+        return NextResponse.json({
+          incident: publicIncident(existing),
+          duplicate: true,
+          message: "This report already reached us. We opened it instead of posting it twice.",
+        });
+      }
+    }
+    throw e;
+  }
 
   const base = publicBase(req);
   if (base) {
