@@ -33,7 +33,7 @@ export default async function StreamsAdmin() {
 
   if (missingTable) {
     return (
-      <div className="glass rounded-2xl p-5 text-[13px] text-[#a9cdc9]">
+      <div className="glass rounded-2xl p-5 text-[13px] text-secondary">
         Live broadcasts are not switched on yet. Run <span className="font-mono text-sand-100">add-live-streams.sql</span> on the
         database first (see TODO_HUMAN.md), then reload this page.
       </div>
@@ -42,15 +42,15 @@ export default async function StreamsAdmin() {
 
   return (
     <div className="space-y-4">
-      <Link href="/broadcast" className="inline-block rounded-full bg-tide-500 px-4 py-2 font-bold text-abyss-950">Open broadcast studio / viewer</Link>
-      <p className="text-[12px] text-[#8fb9b6]">
+      <Link href="/broadcast" className="inline-block rounded-full bg-tide-500 px-4 py-2 font-bold text-on-accent">Open broadcast studio / viewer</Link>
+      <p className="text-[12px] text-secondary">
         {live.length} {live.length === 1 ? "broadcast" : "broadcasts"} live now. Killing a broadcast cuts viewers off immediately and
         records who stopped it and why. Going live is limited to members with the broadcaster badge — grant it on a{" "}
         <Link href="/admin/users" className="font-bold text-tide-300 underline">member page</Link>.
       </p>
 
       {live.length === 0 ? (
-        <div className="glass rounded-2xl p-5 text-center text-[13px] text-[#8fb9b6]">Nobody is live right now.</div>
+        <div className="glass rounded-2xl p-5 text-center text-[13px] text-secondary">Nobody is live right now.</div>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {live.map((s) => (
@@ -59,17 +59,17 @@ export default async function StreamsAdmin() {
                 {s.playbackUrl ? (
                   <video key={s.playbackUrl} src={s.playbackUrl} controls playsInline className="aspect-video w-full" />
                 ) : (
-                  <div className="flex aspect-video w-full items-center justify-center text-[12px] text-[#6e97a0]">
+                  <div className="flex aspect-video w-full items-center justify-center text-[12px] text-tertiary">
                     LiveKit broadcast — open the viewer to watch
                   </div>
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Pill tone="conch">● live</Pill>
-                <span className="text-[11.5px] text-[#6e97a0]">{timeAgo(s.startedAt)}</span>
+                <span className="text-[11.5px] text-tertiary">{timeAgo(s.startedAt)}</span>
               </div>
               <p className="text-[14px] font-bold text-sand-100">{s.title}</p>
-              <p className="text-[12px] text-[#8fb9b6]">
+              <p className="text-[12px] text-secondary">
                 by @{s.authorHandle}
                 {s.incidentId ? (
                   <>
@@ -89,9 +89,9 @@ export default async function StreamsAdmin() {
           <h3 className="mb-2 text-[13px] font-extrabold uppercase tracking-wide text-sand-100">Recently killed</h3>
           <ul className="space-y-1.5">
             {recent.map((s) => (
-              <li key={s.id} className="text-[12.5px] text-[#a9cdc9]">
+              <li key={s.id} className="text-[12.5px] text-secondary">
                 “{s.title}” by @{s.authorHandle} — stopped by @{s.killedBy ?? "staff"} ({s.killReason ?? "no reason given"}){" "}
-                <span className="text-[#6e97a0]">· {s.endedAt ? timeAgo(s.endedAt) : ""}</span>
+                <span className="text-tertiary">· {s.endedAt ? timeAgo(s.endedAt) : ""}</span>
               </li>
             ))}
           </ul>

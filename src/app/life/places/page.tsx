@@ -31,7 +31,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
         title="Places"
         blurb="Restaurants, bars, beaches, events and things to do, listed by the members who have been there. Ratings and prices come only from NowBey members."
         actions={
-          <Link href="/life/new" className="rounded-full bg-sun-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
+          <Link href="/life/new" className="rounded-full bg-sun-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
             Review a place
           </Link>
         }
@@ -131,7 +131,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           </div>
         )}
         <Pager page={currentPage} pages={pages} path="/life/places" params={params} />
-        <p className="text-center text-[11.5px] text-[#7fa6a2]">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
+        <p className="text-center text-[11.5px] text-tertiary">Place names and locations: {"© OpenStreetMap contributors"}. Ratings, menus and photos come from NowBey members.</p>
       </div>
     </div>
   );

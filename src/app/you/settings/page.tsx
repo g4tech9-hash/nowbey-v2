@@ -4,6 +4,7 @@ import { DeleteAccount, EmailForm, PasswordForm, ProfileForm, ResendVerification
 import { getViewer } from "@/lib/viewer";
 import { AccessibilityControls } from "@/components/accessibility-controls";
 import { ButtonLink, Eyebrow, Panel, PanelHead, TextLink } from "@/components/ui";
+import { AccessibilityPicker, LiveModeToggle, ThemePicker } from "@/ui/pulse/theme";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Account settings" };
@@ -11,6 +12,7 @@ export const metadata = { title: "Account settings" };
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
 const SECTIONS = [
+  { id: "appearance", label: "Theme & motion" },
   { id: "easier", label: "Make NowBey easier to use" },
   { id: "profile", label: "Profile" },
   { id: "email", label: "Email" },
@@ -39,9 +41,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     <div className="mx-auto max-w-[1000px]">
       <div className="mb-7">
         <Eyebrow>@{viewer.handle}</Eyebrow>
-        <h1 className="display mt-2.5 text-[clamp(1.75rem,4.6vw,2.55rem)] font-extrabold leading-[1.04] tracking-[-0.055em] text-sand-100">
-          Account settings
-        </h1>
+        <h1 className="pulse-intro-heading mt-2.5">Account settings</h1>
         <div className="mt-3 flex flex-wrap gap-2">
           <ButtonLink href="/you" variant="ghost" size="sm">
             ← Back to your account
@@ -53,12 +53,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       </div>
 
       {verified === "1" ? (
-        <p className="mb-4 rounded-[14px] border border-ok-500/40 bg-ok-500/10 px-4 py-3 text-[12.5px] text-ok-600">
+        <p className="pulse-callout mb-4" data-tone="success">
           Email confirmed. Thank you.
         </p>
       ) : null}
       {verified === "0" ? (
-        <p className="mb-4 rounded-[14px] border border-conch-500/40 bg-conch-500/10 px-4 py-3 text-[12.5px] text-conch-500">
+        <p className="pulse-callout mb-4" data-tone="warning">
           That confirmation link has expired or was already used. Send a new one below.
         </p>
       ) : null}
@@ -73,6 +73,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 <a
                   href={`#${s.id}`}
                   className="nb-chip whitespace-nowrap lg:w-full lg:justify-start lg:rounded-[12px]"
+                  aria-label={`Jump to ${s.label}`}
                 >
                   {s.label}
                 </a>
@@ -82,6 +83,36 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         </nav>
 
         <div className="min-w-0 space-y-4">
+          <Section
+            id="appearance"
+            title="Theme, motion and live updates"
+            blurb="Brightness is not a colour flip: the dark theme is true black with glowing teal and coral, the light theme is warm sand with its own per-category hues. Both are authored for contrast, and both are the same app."
+          >
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div>
+                <ThemePicker />
+              </div>
+              <div>
+                <AccessibilityPicker />
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-default bg-hover px-3.5 py-3">
+              <div>
+                <p className="text-[13px] font-bold text-primary">Live mode</p>
+                <p className="nb-hint">
+                  When the feed moves by itself. Off means you refresh when you want to.
+                </p>
+              </div>
+              <LiveModeToggle />
+            </div>
+            <p className="nb-hint mt-3">
+              Nothing here is uploaded. The choices are written to this browser, they are read again before the page paints
+              (so there is no flash of the wrong theme), and they survive signing in and out. Press{" "}
+              <kbd className="pulse-kbd">⌘</kbd> <kbd className="pulse-kbd">K</kbd> anywhere to jump between islands,
+              categories and these settings.
+            </p>
+          </Section>
+
           <Section
             id="easier"
             title="Make NowBey easier to use"

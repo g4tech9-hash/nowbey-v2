@@ -153,7 +153,7 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
               type="button"
               onClick={generate}
               disabled={busy !== null}
-              className="mt-4 w-full rounded-full bg-tide-500 px-3 py-2 text-[13px] font-extrabold text-abyss-950 hover:bg-tide-400 disabled:opacity-50"
+              className="mt-4 w-full rounded-full bg-tide-500 px-3 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50"
             >
               {busy === "generate" ? "Drafting…" : "Draft this week's digest"}
             </button>
@@ -195,7 +195,7 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
               type="button"
               onClick={send}
               disabled={busy !== null || !open || open.status === "sent" || recipientCount === 0}
-              className="mt-3 w-full rounded-full bg-sun-500 px-3 py-2 text-[13px] font-extrabold text-abyss-950 hover:bg-sun-400 disabled:opacity-40"
+              className="mt-3 w-full rounded-full bg-sun-500 px-3 py-2 text-[13px] font-extrabold text-on-accent hover:bg-sun-400 disabled:opacity-40"
             >
               {busy === "send" ? "Sending…" : open?.status === "sent" ? "Already sent" : `Send to ${recipientCount || "—"} address${recipientCount === 1 ? "" : "es"}`}
             </button>
@@ -236,7 +236,7 @@ export function DigestAdmin({ initialDrafts, partners, aiOn, mailOn, parishes, c
             <div className="nb-surface rounded-xl2 p-4">
               <p className="text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Preview — exactly what lands in the inbox</p>
               <div
-                className="mt-2 overflow-hidden rounded-xl border hairline bg-[#03121b] [&_a]:pointer-events-none"
+                className="mt-2 overflow-hidden rounded-xl border hairline bg-sunken [&_a]:pointer-events-none"
                 // Every variable inside was escaped by the generator; links are ours from the database.
                 dangerouslySetInnerHTML={{ __html: open.bodyHtml }}
               />

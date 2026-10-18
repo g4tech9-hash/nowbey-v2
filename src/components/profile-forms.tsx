@@ -6,7 +6,7 @@ import { INPUT, LABEL } from "@/components/password-field";
 
 type Msg = { ok: boolean; text: string } | null;
 
-const SAVE = "rounded-xl bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-50";
+const SAVE = "rounded-xl bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-50";
 const BIO_MAX = 200;
 
 function Note({ msg }: { msg: Msg }) {
@@ -142,7 +142,7 @@ export function HideReportButton({ incidentId, hidden, title }: { incidentId: st
           }
         }}
         className={`rounded-full border hairline px-3 py-1.5 text-[11.5px] font-bold ${
-          hidden ? "bg-sand-100 text-abyss-950 hover:bg-white" : "text-sand-100 hover:bg-white/8"
+          hidden ? "bg-sand-100 text-on-accent hover:bg-white" : "text-sand-100 hover:bg-white/8"
         } disabled:opacity-50`}
       >
         {busy ? "Saving…" : hidden ? "Show on profile" : "Hide from profile"}

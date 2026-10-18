@@ -64,7 +64,7 @@ export default async function ReportsAdmin({ searchParams }: { searchParams: Pro
           ]}
         />
       </div>
-      <p className="text-[12px] text-[#8fb9b6]">
+      <p className="text-[12px] text-secondary">
         {n} {n === 1 ? "report" : "reports"}. Hiding removes a report from every public page and the map, and you can restore it.
       </p>
 
@@ -79,12 +79,12 @@ export default async function ReportsAdmin({ searchParams }: { searchParams: Pro
                     {c.label}
                   </span>
                   <Pill tone={r.status === "active" ? "sun" : r.status === "archived" ? "conch" : "slate"}>{r.status === "archived" ? "hidden" : r.status}</Pill>
-                  <span className="text-[11.5px] text-[#6e97a0]">{timeAgo(r.createdAt)}</span>
+                  <span className="text-[11.5px] text-tertiary">{timeAgo(r.createdAt)}</span>
                 </div>
                 <Link href={`/incident/${r.id}`} className="mt-1 block text-[14.5px] font-bold text-sand-100 hover:text-tide-300">
                   {r.title}
                 </Link>
-                <p className="mt-0.5 text-[12px] text-[#8fb9b6]">
+                <p className="mt-0.5 text-[12px] text-secondary">
                   {r.street ?? "unmapped"} · {r.parish ?? "Bahamas"} · by @{r.authorHandle ?? "someone"}
                   {r.userId ? "" : " (no account)"} · {r.confirmations} confirmed
                 </p>
@@ -93,7 +93,7 @@ export default async function ReportsAdmin({ searchParams }: { searchParams: Pro
             </li>
           );
         })}
-        {rows.length === 0 ? <li className="glass rounded-2xl p-5 text-center text-[13px] text-[#8fb9b6]">Nothing here.</li> : null}
+        {rows.length === 0 ? <li className="glass rounded-2xl p-5 text-center text-[13px] text-secondary">Nothing here.</li> : null}
       </ul>
       <Pager page={Math.min(page, pages)} pages={pages} path="/admin/reports" params={params} />
     </div>

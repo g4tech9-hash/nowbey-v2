@@ -95,7 +95,7 @@ export function PostActions({ id, title, isOwner, canDelete }: { id: string; tit
             </select>
           </label>
           <div className="mt-2.5 flex gap-2">
-            <button type="button" disabled={busy !== null} onClick={report} className="rounded-lg bg-conch-500 px-3.5 py-2 text-[12.5px] font-extrabold text-abyss-950 disabled:opacity-50">
+            <button type="button" disabled={busy !== null} onClick={report} className="rounded-lg bg-conch-500 px-3.5 py-2 text-[12.5px] font-extrabold text-on-accent disabled:opacity-50">
               {busy === "report" ? "Sending…" : "Send report"}
             </button>
             <button type="button" onClick={() => setReporting(false)} className="rounded-lg border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8">

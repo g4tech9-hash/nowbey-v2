@@ -1,4 +1,8 @@
-Copyright 2019 The Sora Project Authors (https://github.com/sora-xor/sora-font)
+Font: bricolage-grotesque (latin subset, variable weight axis)
+Source: @fontsource-variable/bricolage-grotesque
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+
+Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

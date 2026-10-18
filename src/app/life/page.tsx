@@ -100,7 +100,7 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
             <span className="shrink-0 text-[11.5px] font-bold uppercase tracking-wide text-ink-400">Island</span>
             <Link
               href={href(params, { parish: undefined, page: undefined })}
-              className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${!parish ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"}`}
+              className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${!parish ? "bg-tide-500 text-on-accent" : "bg-white/6 text-ink-300 hover:bg-white/12"}`}
             >
               All
             </Link>
@@ -108,7 +108,7 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
               <Link
                 key={p}
                 href={href(params, { parish: p, page: undefined })}
-                className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${parish === p ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"}`}
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold ${parish === p ? "bg-tide-500 text-on-accent" : "bg-white/6 text-ink-300 hover:bg-white/12"}`}
               >
                 {p}
               </Link>
@@ -133,7 +133,7 @@ export default async function LifePage({ searchParams }: { searchParams: Promise
               <p className="mx-auto mt-1.5 max-w-[44ch] text-[13px] leading-relaxed text-ink-300">
                 {kind || parish ? "Try a different filter, or be the first to share something here." : "Be the first to share a favourite spot, a great meal or how an event went."}
               </p>
-              <Link href="/life/new" className="mt-3 inline-block rounded-full bg-sun-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
+              <Link href="/life/new" className="mt-3 inline-block rounded-full bg-sun-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
                 Share an experience
               </Link>
             </div>

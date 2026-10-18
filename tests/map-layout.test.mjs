@@ -99,24 +99,60 @@ test("member role display distinguishes effective access from the stored databas
 });
 
 
-test("the top navigation scrolls with the document, while mobile navigation remains fixed", () => {
+test("the header sticks to the Pulse rail while mobile navigation stays fixed and reachable", () => {
   const shell = read("src/components/app-shell.tsx");
   const header = shell.match(/<header className="([^"]+)"/);
   assert.ok(header, "site header exists");
-  assert.doesNotMatch(header[1], /\b(sticky|fixed)\b/,
-    "top navigation must not cover page content while scrolling");
-  assert.match(header[1], /\brelative\b/, "keep header dropdown stacking above map controls");
-  assert.match(read("src/components/nav-links.tsx"), /fixed inset-x-0 bottom-0/,
-    "mobile bottom navigation stays reachable");
+  assert.match(header[1], /\bpulse-topbar\b/, "the header is the sticky rail");
+  assert.match(header[1], /\bz-\[650\]/, "and stacks below the scrim, drawer and palette");
+  // The stacking ladder is declared once, in the component layer. The numbers
+  // are the contract: rail chrome below the scrim, the scrim below the drawer,
+  // the drawer below the command palette. A page that invents its own z-index
+  // is how a modal ends up under a sticky header.
+  const comps = read("src/styles/pulse/components.css");
+  for (const n of [620, 640, 680, 700, 720, 900, 950, 1000]) {
+    assert.ok(comps.includes(`z-index: ${n};`), `the ladder declares ${n}`);
+  }
+  assert.match(comps, /\.pulse-nav-rail \{[\s\S]{0,160}?position: sticky;[\s\S]{0,200}?top: calc\(var\(--pulse-header-h\)/,
+    "the rail hangs below the header band instead of under it");
+  const headerZ = Number(header[1].match(/z-\[(\d+)\]/)[1]);
+  assert.ok(headerZ > 640 && headerZ < 900, "the header outranks the island but never the scrim");
+  assert.ok(headerZ < 700, "on a phone the bottom nav is the last thing under the thumb");
+  const base = read("src/styles/pulse/base.css");
+  assert.match(base, /\.pulse-topbar\s*\{[^}]*position: sticky;[^}]*top: 0;/,
+    "the rail pins to the viewport top instead of covering content");
+  assert.match(base, /\.pulse-topbar\s*\{[^}]*padding-top: var\(--pulse-safe-top\);/,
+    "and clears the notch");
+
+  const links = read("src/components/nav-links.tsx");
+  assert.match(links, /className="pulse-bottom-nav"/, "mobile navigation is the fixed bar");
+  assert.match(comps, /\.pulse-bottom-nav\s*\{[^}]*position: fixed;[^}]*inset: auto 0 0 0;/,
+    "pinned to the bottom edge so it stays reachable");
+  assert.match(comps, /\.pulse-bottom-nav\s*\{[\s\S]*?padding-bottom:[\s\S]*?safe-area-inset-bottom/,
+    "and sits above the home indicator");
+  assert.match(comps, /@media \(min-width: 1024px\) \{\s*\.pulse-bottom-nav \{\s*display: none;/,
+    "and steps aside on desktop, where the rail owns navigation");
 });
 
-test("light mode supplies readable surfaces, header and category chips", () => {
-  for (const selector of [".glass-strong", ".nb-surface", ".nb-category-chip"]) {
-    assert.ok(css.includes(`html[data-mode="light"] ${selector} {`), `missing light treatment for ${selector}`);
-  }
-  assert.ok(css.includes('html[data-mode="light"] :is(.bg-tide-500, .bg-tide-400).text-abyss-950'));
-  assert.ok(read("src/app/feed/page.tsx").includes("--category-text"));
-  assert.ok(read("src/app/feed/page.tsx").includes("nb-category-chip"));
+test("light mode supplies readable surfaces and category hues from tokens", () => {
+  // The dual theme is not an override per class: light mode rebinds the semantic
+  // layer, so every surface — including the ones the old app patched by hand —
+  // inherits a readable pair. These are the pairs that used to need special
+  // treatment, asserted where they now live.
+  const pulse = read("src/styles/pulse/tokens.css");
+  const comps = read("src/styles/pulse/components.css");
+  assert.match(pulse, /:root\[data-theme="light"\] \{/, "light mode is a semantic block, not a class patch");
+  assert.match(pulse, /--bg-base: #f7f3ec;/, "on bespoke warm sand, not inverted black");
+  assert.match(pulse, /--cat-flooding: #0a5f8c;/, "with its own darker category hues");
+  assert.match(comps, /:root\[data-theme="light"\] \.glass,\s*\n:root\[data-theme="light"\] \.glass-strong/,
+    "and a glass treatment of its own, because frosted white on paper is invisible");
+  assert.match(read("src/lib/pulse/prefs.ts"), /meta\[name="theme-color"\]/, "the browser chrome follows the theme");
+
+  // Category colour is still routed through the Pulse map on the public surfaces.
+  const controls = read("src/components/pulse/feed-controls.tsx");
+  assert.match(controls, /hue: pulseCategoryMeta\(key\)\.token/, "filter chips take their hue from the category map");
+  assert.match(read("src/ui/pulse/pill-row.tsx"), /"--category-text" as string\]: o\.hue/,
+    "and pass it down as a token reference, never a literal");
 });
 
 test("daylight action and chip text have WCAG AA normal-text contrast", () => {

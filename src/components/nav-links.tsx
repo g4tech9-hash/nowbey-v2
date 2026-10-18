@@ -2,309 +2,303 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
-
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { usePrefStore } from "@/lib/pulse/store";
+import { Anchor, Bell, BookmarkPlus, Clock, Compass, Flame, LayoutList, Plus, Newspaper, Radio, Star, UserRound, WifiOff, X } from "lucide-react";
 import { FEATURES } from "@/lib/features";
+import { CatSwatch } from "@/ui/pulse/badge";
 
 // Client bundles inline these NEXT_PUBLIC_ values at build time.
 const SHOW_LIFE = FEATURES.islandLife;
 const SHOW_GAS = FEATURES.gasTracker;
 
-/** Primary destinations live in the header and the phone tab bar. */
-const PRIMARY = [
-  { href: "/feed", label: "Feed", short: "Feed", icon: "feed" },
-  { href: "/map", label: "Map", short: "Map", icon: "map" },
-  { href: "/wire", label: "News wire", short: "Wire", icon: "wire" },
-  { href: "/alerts", label: "Alerts", short: "Alerts", icon: "bell" },
-] as const;
+/* =============================================================================
+   PULSE NAVIGATION
+   One source of destination truth, three renderings, because the responsive
+   contract is the layout — not the list:
+     ≥1024  a sticky left rail (icons + labels)
+     640–1024  a row of pills in the top bar
+     <640   a bottom nav: 4 destinations, the centre slot is the Report FAB,
+            and the fifth slot opens the "more" sheet
+   ============================================================================= */
 
-/** Everything else gathers under one honest label instead of cramming the bar. */
-const SECONDARY = [
-  ...(SHOW_LIFE ? [{ href: "/life", label: "Island Life", short: "Life", icon: "life" }] : []),
-  { href: "/open-now", label: "What is open now", short: "Open", icon: "clock" },
-  ...(SHOW_GAS ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" }] : []),
-  { href: "/support", label: "Plans", short: "Plans", icon: "heart" },
-  { href: "/you", label: "Your account", short: "You", icon: "heart" },
-] as const;
+export type PulseNavEntry = { href: string; label: string; short: string; icon: ReactNode; hint?: string };
 
-function Glyph({ name, active }: { name: string; active: boolean }) {
-  const stroke = active ? "#04202a" : "#c8d7d4";
-  const common = { fill: "none", stroke, strokeWidth: 1.9, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  switch (name) {
-    case "feed":
-      return (
-        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
-          <path d="M4 6h16M4 12h11M4 18h7" />
-        </svg>
-      );
-    case "map":
-      return (
-        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
-          <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z" />
-          <circle cx="12" cy="10" r="2.4" />
-        </svg>
-      );
-    case "report":
-      return (
-        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-      );
-    case "wire":
-      return (
-        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
-          <path d="M3 8h11v9H3zM14 11h4l3 3v3h-7z" />
-          <path d="M6 19v2M18 19v2" />
-        </svg>
-      );
-    case "bell":
-      return (
-        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
-          <path d="M6 16V10a6 6 0 1 1 12 0v6l2 3H4z" />
-          <path d="M10 22h4" />
-        </svg>
-      );
-    case "clock":
-      return (
-        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
-          <circle cx="12" cy="12" r="8.5" />
-          <path d="M12 7.5V12l3 2" />
-        </svg>
-      );
-    case "life":
-      return (
-        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
-          <path d="M12 3l2.2 4.8 5.2.6-3.9 3.5 1.1 5.1-4.6-2.6-4.6 2.6 1.1-5.1-3.9-3.5 5.2-.6z" />
-        </svg>
-      );
-    default:
-      return (
-        <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden {...common}>
-          <path d="M12 20s-7-4.4-7-9.3A4.1 4.1 0 0 1 12 8a4.1 4.1 0 0 1 7 2.7C19 15.6 12 20 12 20Z" />
-        </svg>
-      );
-  }
+/** The four places a person actually goes during an event, plus Report. */
+export const PRIMARY_NAV: PulseNavEntry[] = [
+  { href: "/feed", label: "Community feed", short: "Feed", icon: <LayoutList size={19} aria-hidden />, hint: "What neighbours are reporting right now" },
+  { href: "/map", label: "Map", short: "Map", icon: <Compass size={19} aria-hidden />, hint: "Every pin on the island" },
+  { href: "/wire", label: "News wire", short: "Wire", icon: <Newspaper size={19} aria-hidden />, hint: "Verified notices and local news" },
+  { href: "/alerts", label: "Alerts", short: "Alerts", icon: <Bell size={19} aria-hidden />, hint: "Email alerts for your island" },
+];
+
+export const SECONDARY_NAV: PulseNavEntry[] = [
+  { href: "/saved", label: "Watch list", short: "Saved", icon: <BookmarkPlus size={19} aria-hidden />, hint: "Signals you are following" },
+  ...(SHOW_LIFE ? [{ href: "/life", label: "Island Life", short: "Life", icon: <Star size={19} aria-hidden /> }] : []),
+  { href: "/open-now", label: "What is open now", short: "Open", icon: <Clock size={19} aria-hidden /> },
+  ...(SHOW_GAS ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: <Anchor size={19} aria-hidden /> }] : []),
+  { href: "/support", label: "Plans", short: "Plans", icon: <Flame size={19} aria-hidden /> },
+  { href: "/you", label: "Your account", short: "You", icon: <UserRound size={19} aria-hidden /> },
+];
+
+const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
+
+/**
+ * Live / offline status. Not decoration: during a storm it is the difference
+ * between "nobody reported anything" and "my phone cannot reach the tower", and
+ * it is stated in the accessible name so a screen reader gets it too.
+ */
+function readOnline(): boolean | null {
+  return typeof navigator === "undefined" ? null : Boolean(navigator.onLine);
 }
 
-/** Landing nav DNA: quiet 13px/700 links that warm to tide in 180ms. */
-function TopLink({ href, label, active }: { href: string; label: string; active: boolean }) {
+export function ConnectionFlag({ className = "" }: { className?: string }) {
+  // `navigator.onLine` is browser state with events attached to it, which is
+  // what useSyncExternalStore exists for: a phone in a tunnel renders "offline"
+  // on the first frame instead of claiming to be live for a moment and correcting
+  // itself in front of the reader. The fallback is "online" because that is the
+  // claim the server render is allowed to make.
+  const online = usePrefStore(readOnline, true, ["online", "offline"]);
   return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={`rounded-full px-3 py-2 text-[13px] font-bold transition duration-200 ease-standard ${
-        active ? "bg-tide-500/12 text-tide-300" : "text-[#b5c9ca] hover:text-tide-300"
-      }`}
+    <span
+      className={`inline-flex items-center gap-1.5 text-[11.5px] font-bold ${online ? "text-success" : "text-danger"} ${className}`.trim()}
+      title={online ? "This device is online — the feed updates as neighbours file." : "This device is offline — you are reading the last saved feed."}
     >
-      {label}
+      {online ? <Radio size={12} aria-hidden /> : <WifiOff size={12} aria-hidden />}
+      <span className="sr-only">{online ? "Online" : "Offline"}</span>
+      <span aria-hidden>{online ? "live" : "offline"}</span>
+    </span>
+  );
+}
+
+/** Desktop ≥1024: the sticky rail. */
+export function PulseNavRail({ badge }: { badge?: Record<string, number> }) {
+  const pathname = usePathname();
+  return (
+    <nav className="pulse-nav-rail" aria-label="Primary">
+      <ul className="grid gap-1">
+        {PRIMARY_NAV.map((item) => {
+          const on = isActive(pathname, item.href);
+          return (
+            <li key={item.href}>
+              <Link href={item.href} aria-current={on ? "page" : undefined} className="pulse-nav-item" title={item.hint}>
+                <span className={on ? "text-accent" : "text-tertiary"} aria-hidden>
+                  {item.icon}
+                </span>
+                <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                {badge?.[item.href] ? (
+                  <span className="font-mono text-[11.5px] font-bold tabular-nums text-accent">{badge[item.href]}</span>
+                ) : null}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <hr className="nb-divider" />
+      <ul className="grid gap-1">
+        {SECONDARY_NAV.map((item) => (
+          <li key={item.href}>
+            <Link href={item.href} aria-current={isActive(pathname, item.href) ? "page" : undefined} className="pulse-nav-item">
+              <span className="text-tertiary" aria-hidden>
+                {item.icon}
+              </span>
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <hr className="nb-divider" />
+      <div className="px-3 pb-1">
+        <ConnectionFlag />
+      </div>
+    </nav>
+  );
+}
+
+/** 640–1024: the same destinations as pills in the top bar. */
+export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" | "rail" }) {
+  const pathname = usePathname();
+  if (variant === "rail") return <PulseNavRail />;
+  if (variant === "bar") return <PulseTabBar />;
+  return (
+    <div className="pulse-pill-row items-center">
+      {PRIMARY_NAV.map((item) => {
+        const on = isActive(pathname, item.href);
+        return (
+          <Link key={item.href} href={item.href} aria-current={on ? "page" : undefined} className="nb-chip" data-on={on ? "true" : undefined}>
+            <span aria-hidden style={{ display: "inline-flex" }}>
+              {item.icon}
+            </span>
+            {item.short}
+          </Link>
+        );
+      })}
+      <MoreSheetLink pathname={pathname} />
+      <span className="ml-2 hidden xl:inline-flex">
+        <ConnectionFlag />
+      </span>
+    </div>
+  );
+}
+
+function MoreSheetLink({ pathname }: { pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+  const items = SECONDARY_NAV;
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        className="nb-chip"
+        aria-expanded={open}
+        aria-controls="pulse-more-menu"
+        onClick={() => setOpen((v) => !v)}
+      >
+        More
+        <span aria-hidden>▾</span>
+      </button>
+      {open ? (
+        <>
+          <button type="button" aria-label="Close menu" className="fixed inset-0 z-[655] cursor-default" onClick={() => setOpen(false)} />
+          <div id="pulse-more-menu" className="pulse-glass-strong absolute right-0 top-full z-[660] mt-2 w-[min(280px,calc(100vw-24px))] p-1.5">
+            <ul className="grid gap-1">
+              {items.map((c) => (
+                <li key={c.href}>
+                  <Link
+                    href={c.href}
+                    onClick={() => setOpen(false)}
+                    aria-current={isActive(pathname, c.href) ? "page" : undefined}
+                    className="pulse-nav-item"
+                  >
+                    <span className="text-tertiary" aria-hidden>
+                      {c.icon}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{c.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * The Report action. On a phone it is the raised centre slot of the bottom nav;
+ * from 1024px up it is the fixed bottom-right FAB. Same href, same label, so a
+ * person switching devices finds it where they left it.
+ */
+export function ReportFab({ variant = "fab" }: { variant?: "fab" | "tab" }) {
+  const pathname = usePathname();
+  const on = isActive(pathname, "/report");
+  if (variant === "tab") {
+    return (
+      <Link
+        href="/report"
+        aria-current={on ? "page" : undefined}
+        aria-label="Report a hazard — the main action"
+        className="pulse-navtab-fab"
+      >
+        <Plus size={22} strokeWidth={2.6} aria-hidden />
+      </Link>
+    );
+  }
+  return (
+    <Link href="/report" className="pulse-fab" aria-label="Report a hazard" title="Report a hazard — about twenty seconds">
+      <Plus size={24} strokeWidth={2.6} aria-hidden />
     </Link>
   );
 }
 
-export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
+/** Phone/tablet bottom nav: 4 destinations + the centre Report action + More. */
+export function PulseTabBar() {
   const pathname = usePathname();
-  const [online, setOnline] = useState(true);
   const [sheet, setSheet] = useState(false);
+  const slots = [...PRIMARY_NAV.slice(0, 2), null, ...PRIMARY_NAV.slice(2, 4)] as (PulseNavEntry | null)[];
 
-  useEffect(() => {
-    const up = () => setOnline(true);
-    const down = () => setOnline(false);
-    window.addEventListener("online", up);
-    window.addEventListener("offline", down);
-    return () => {
-      window.removeEventListener("online", up);
-      window.removeEventListener("offline", down);
-    };
-  }, []);
-
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-
-  if (variant === "bar") {
-    return (
-      <>
-        {sheet ? (
-          <div className="fixed inset-0 z-[690] lg:hidden">
-            <button
-              type="button"
-              aria-label="Close menu"
-              onClick={() => setSheet(false)}
-              className="absolute inset-0 h-full w-full bg-[rgba(4,14,21,0.72)] backdrop-blur-sm"
-            />
-            <div className="glass-strong nb-pad-bottom absolute inset-x-0 bottom-0 rounded-t-[24px] p-4 pb-5 shadow-l4">
-              <p className="nb-eyebrow">More</p>
-              <ul className="mt-3 grid grid-cols-2 gap-2">
-                {SECONDARY.map((l) => (
-                  <li key={l.href}>
-                    <Link
-                      href={l.href}
-                      onClick={() => setSheet(false)}
-                      className="nb-surface nb-card-link flex min-h-[48px] items-center gap-2.5 rounded-2xl px-3 text-[13px] font-bold text-ink-200"
-                    >
-                      <Glyph name={l.icon} active={false} />
-                      {l.label}
+  return (
+    <>
+      {sheet ? (
+        <div className="fixed inset-0 z-[690] lg:hidden">
+          <button type="button" aria-label="Close menu" className="pulse-sheet-scrim" onClick={() => setSheet(false)} />
+          <div className="pulse-drawer" role="dialog" aria-modal="true" aria-label="More places">
+            <div className="pulse-sheet-grab" aria-hidden />
+            <header className="flex items-center justify-between gap-3 px-4 pb-2 pt-3">
+              <p className="nb-eyebrow">Everything else</p>
+              <button type="button" className="nb-btn nb-btn-ghost nb-btn-sm pulse-tight" onClick={() => setSheet(false)} aria-label="Close menu">
+                <X size={14} aria-hidden /> Close
+              </button>
+            </header>
+            <div className="pulse-drawer-body">
+              <ul className="grid gap-1.5">
+                {SECONDARY_NAV.map((c) => (
+                  <li key={c.href}>
+                    <Link href={c.href} onClick={() => setSheet(false)} className="pulse-nav-item">
+                      <span className="text-tertiary" aria-hidden>
+                        {c.icon}
+                      </span>
+                      <span className="min-w-0 flex-1">{c.label}</span>
+                      {isActive(pathname, c.href) ? <CatSwatch category="notice" /> : null}
                     </Link>
                   </li>
                 ))}
               </ul>
-              <ButtonishClose onClick={() => setSheet(false)} />
             </div>
           </div>
-        ) : null}
-        <nav className="glass-strong nb-pad-bottom fixed inset-x-0 bottom-0 z-[700] border-t hairline lg:hidden" aria-label="Primary">
-          <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
-            {PRIMARY.map((l) => {
-              const active = isActive(l.href);
-              return (
-                <li key={l.href} className="flex-1">
-                  <Link
-                    href={l.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[11.5px] font-bold transition duration-200 ease-standard active:scale-[0.97] ${
-                      active ? "bg-tide-500 text-[#04202a] shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
-                    }`}
-                  >
-                    <Glyph name={l.icon} active={active} />
-                    {l.short}
-                  </Link>
-                </li>
-              );
-            })}
-            <li className="flex-1">
-              {/* Report is the one loud action — a tide pill in the middle of the thumb zone. */}
-              <Link
-                href="/report"
-                aria-current={isActive("/report") ? "page" : undefined}
-                className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[11.5px] font-extrabold transition duration-200 ease-standard active:scale-[0.97] ${
-                  isActive("/report") ? "bg-tide-400 text-[#04202a] shadow-glow-tide" : "bg-tide-500/18 text-tide-300 ring-1 ring-tide-400/40"
-                }`}
-              >
-                <Glyph name="report" active={isActive("/report")} />
-                Report
-              </Link>
-            </li>
-            <li className="flex-1">
-              <button
-                type="button"
-                onClick={() => setSheet(true)}
-                aria-expanded={sheet}
-                className="flex min-h-[48px] w-full flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[11.5px] font-bold text-ink-300 transition duration-200 ease-standard hover:bg-white/8 active:scale-[0.97]"
-              >
-                <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden fill="none" stroke="#c8d7d4" strokeWidth="1.9" strokeLinecap="round">
-                  <path d="M5 7h14M5 12h14M5 17h14" />
-                </svg>
-                More
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </>
+        </div>
+      ) : null}
+
+      <nav className="pulse-bottom-nav" aria-label="Primary">
+        {slots.map((item, i) =>
+          item === null ? (
+            <div key="fab" className="flex items-start justify-center">
+              <ReportFab variant="tab" />
+            </div>
+          ) : (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive(pathname, item.href) ? "page" : undefined}
+              className="pulse-navtab"
+            >
+              <span aria-hidden>{item.icon}</span>
+              {item.short}
+            </Link>
+          ),
+        )}
+        <button type="button" className="pulse-navtab" aria-expanded={sheet} aria-label="More places">
+          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
+            <path d="M5 7h14M5 12h14M5 17h14" />
+          </svg>
+          More
+        </button>
+      </nav>
+    </>
+  );
+}
+
+/** Header account chip. Signed in: your handle. Not: one honest "Sign in". */
+export function SessionChip({ handle }: { handle: string | null }) {
+  if (!handle) {
+    return (
+      <Link href="/login?mode=signin" className="nb-btn nb-btn-primary nb-btn-sm">
+        Sign in
+      </Link>
     );
   }
-
   return (
-    <div className="flex items-center gap-1">
-      {PRIMARY.map((l) => (
-        <TopLink key={l.href} href={l.href} label={l.label} active={isActive(l.href)} />
-      ))}
-      {SHOW_LIFE ? <TopLink href="/life" label="Island Life" active={isActive("/life")} /> : null}
-      <MoreMenu active={isActive("/support") || isActive("/open-now") || (SHOW_GAS && isActive("/gas"))} pathname={pathname} />
+    <Link href="/you" className="nb-btn nb-btn-ghost nb-btn-sm" aria-label={`Your account, @${handle}`}>
       <span
-        title={
-          online
-            ? "Browser is online"
-            : "Browser is offline — you can still read the last saved feed; new reports wait until you are back online"
-        }
-        className={`ml-2 hidden items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-bold lg:inline-flex ${
-          online ? "bg-ok-500/15 text-ok-600" : "bg-danger-500/15 text-danger-500"
-        }`}
+        className="grid place-items-center rounded-full font-extrabold"
+        style={{ width: 22, height: 22, background: "var(--accent)", color: "var(--text-on-accent)", fontSize: 11 }}
+        aria-hidden
       >
-        {online ? <span className="nb-live-dot" aria-hidden /> : <span className="h-1.5 w-1.5 rounded-full bg-danger-500" aria-hidden />}
-        {online ? "live" : "offline"}
-      </span>
-    </div>
-  );
-}
-
-function ButtonishClose({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="nb-btn nb-btn-secondary mt-3 w-full"
-    >
-      Close
-    </button>
-  );
-}
-
-/** Plans + extras open on hover and on tap/keyboard, Escape closes. */
-function MoreMenu({ active, pathname }: { active: boolean; pathname: string }) {
-  const [open, setOpen] = useState(false);
-  const items = [{ href: "/support", label: "Plans" }, ...SECONDARY.filter((s) => s.href !== "/support" && s.href !== "/you")];
-  const menuId = "more-menu";
-  return (
-    <div
-      className="group relative"
-      onKeyDown={(e) => {
-        if (e.key === "Escape") setOpen(false);
-      }}
-    >
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={menuId}
-        onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1 rounded-full px-3 py-2 text-[13px] font-bold transition duration-200 ease-standard ${
-          active ? "bg-tide-500/12 text-tide-300" : "text-[#b5c9ca] hover:text-tide-300"
-        }`}
-      >
-        Plans
-        <span aria-hidden className="text-[10px] opacity-70">
-          ▾
-        </span>
-      </button>
-      <div
-        id={menuId}
-        className={`absolute right-0 top-full z-[660] w-52 pt-2 transition group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 ${
-          open ? "visible opacity-100" : "invisible opacity-0"
-        }`}
-      >
-        <div className="glass overflow-hidden rounded-2xl p-1.5">
-          {items.map((c) => (
-            <Link
-              key={c.href}
-              href={c.href}
-              aria-current={pathname.startsWith(c.href) ? "page" : undefined}
-              className={`block rounded-xl px-3 py-2.5 text-[13px] font-bold transition duration-200 ease-standard ${
-                pathname.startsWith(c.href) ? "bg-tide-500/14 text-tide-300" : "text-ink-200 hover:bg-white/6 hover:text-sand-100"
-              }`}
-            >
-              {c.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function SessionChip({ handle }: { handle: string | null }) {
-  return handle ? (
-    <Link
-      href="/you"
-      className="flex min-h-[42px] items-center gap-2 rounded-full border border-[rgba(185,226,220,0.2)] px-3 py-1.5 text-[12.5px] font-bold text-sand-100 transition duration-200 ease-standard hover:border-[rgba(185,226,220,0.38)] hover:bg-white/6"
-    >
-      <span className="grid h-6 w-6 place-items-center rounded-full bg-conch-500 text-[12px] font-extrabold text-[#04202a]">
         {handle.charAt(0).toUpperCase()}
       </span>
       @{handle}
-    </Link>
-  ) : (
-    <Link
-      href="/login?mode=signin"
-      className="flex min-h-[42px] items-center rounded-full border border-[rgba(185,226,220,0.2)] px-3.5 text-[12px] font-bold text-[#d4e6e5] transition duration-200 ease-standard hover:border-[rgba(185,226,220,0.38)] hover:bg-white/6 hover:text-white"
-    >
-      Sign in
     </Link>
   );
 }

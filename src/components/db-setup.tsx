@@ -20,7 +20,7 @@ export function DatabaseSetup({ eyebrow, title, blurb }: { eyebrow: string; titl
         <p className="mt-2 max-w-[60ch] text-[14px] leading-relaxed text-ink-300">{blurb}</p>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <Link href="/" className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 hover:bg-tide-400">
+          <Link href="/" className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400">
             Back to the homepage
           </Link>
           <Link href="/map" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold text-ink-200 hover:bg-white/5">

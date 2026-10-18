@@ -29,7 +29,7 @@ export default async function AdminAccessPage() {
   const access = adminAccess(u);
   const row = (k: string, v: React.ReactNode, warn = false) => (
     <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/5 py-2 last:border-0">
-      <dt className="text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">{k}</dt>
+      <dt className="text-[11.5px] font-bold uppercase tracking-wide text-tertiary">{k}</dt>
       <dd className={`text-right text-[13px] ${warn ? "font-bold text-sun-400" : "text-sand-100"}`}>{v}</dd>
     </div>
   );
@@ -58,7 +58,7 @@ export default async function AdminAccessPage() {
         {access.isAdmin ? (
           <Link
             href="/admin"
-            className="mt-3 inline-block rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 hover:bg-tide-400"
+            className="mt-3 inline-block rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400"
           >
             Open the admin area
           </Link>

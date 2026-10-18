@@ -48,7 +48,7 @@ export function GasForm({ signedIn }: { signedIn: boolean }) {
       </div>
       <label className="block"><span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Price per gallon (B$)</span>
         <input value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" placeholder="5.49" className={input} /></label>
-      <button disabled={busy} className="rounded-full bg-tide-400 px-4 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-60">{busy ? "Saving..." : "Report price"}</button>
+      <button disabled={busy} className="rounded-full bg-tide-400 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-60">{busy ? "Saving..." : "Report price"}</button>
       {msg ? <p className={`text-[12px] ${msg.ok ? "text-tide-300" : "text-red-300"}`}>{msg.text}</p> : null}
     </form>
   );

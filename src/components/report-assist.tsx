@@ -80,10 +80,10 @@ export function ReportAssist({
   const placeDiff =
     data?.place && pick && Math.abs(data.place.lat - pick.lat) + Math.abs(data.place.lng - pick.lng) > 0.002 ? data.place : null;
 
-  const applyBtn = "rounded-full bg-tide-500 px-2.5 py-1 text-[11.5px] font-extrabold text-abyss-950";
+  const applyBtn = "rounded-full bg-tide-500 px-2.5 py-1 text-[11.5px] font-extrabold text-on-accent";
 
   return (
-    <div className="rounded-2xl border border-[#a78bfa]/30 bg-[#a78bfa]/8 p-3.5">
+    <div className="rounded-2xl border border-violet/30 bg-violet/10 p-3.5">
       <div className="flex flex-wrap items-center gap-2">
         <p className="display text-[13.5px] font-bold text-sand-100">✨ Check my report</p>
         <span className="text-[11.5px] text-ink-400">optional — 5 seconds</span>
@@ -91,7 +91,7 @@ export function ReportAssist({
           type="button"
           onClick={check}
           disabled={busy || title.trim().length < 5}
-          className="ml-auto rounded-full bg-[#a78bfa] px-3.5 py-1.5 text-[12px] font-extrabold text-abyss-950 disabled:opacity-45"
+          className="ml-auto rounded-full bg-violet px-3.5 py-1.5 text-[12px] font-extrabold text-on-accent disabled:opacity-45"
         >
           {busy ? "Checking…" : data ? "Check again" : "Check it"}
         </button>

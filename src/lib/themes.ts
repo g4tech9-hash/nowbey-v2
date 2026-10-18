@@ -1,8 +1,22 @@
 /**
- * Looks the app can wear. "classic" is exactly how NowBey looked before photos and the splash
- * screen were added, so switching back is always one click (Admin, Appearance) or one setting
- * (NOWBEY_THEME=classic in the server settings).
+ * LOOKS — the axis ORTHOGONAL to brightness. "classic" is exactly how NowBey
+ * looked before photos and the splash screen were added, so switching back is
+ * always one click (Admin → Appearance) or one setting (NOWBEY_THEME=classic).
+ *
+ * 2026-10-18 (Pulse): these used to be rendered as `<html data-theme="…">`.
+ * The Pulse design language owns `data-theme` for its own dark|light axis, so
+ * a look now renders as `<html data-look="island|flat">`. The stored key stays
+ * `theme` and the values stay `island|classic` — the API contract, the admin
+ * form and site_settings are untouched; only the attribute they paint with moved.
+ * See src/styles/pulse/tokens.css (Layer 2) and src/app/globals.css (Island look).
  */
+
+export type ThemeKey = keyof typeof THEMES;
+
+export const LOOK_ATTR = "data-look" as const;
+export function lookAttr(theme: ThemeKey): "island" | "flat" {
+  return theme === "island" ? "island" : "flat";
+}
 export const THEMES = {
   island: {
     label: "Island",
@@ -13,8 +27,6 @@ export const THEMES = {
     blurb: "The original deep-teal look. No photos and no splash screen.",
   },
 } as const;
-
-export type ThemeKey = keyof typeof THEMES;
 export const THEME_KEYS = Object.keys(THEMES) as ThemeKey[];
 export const DEFAULT_THEME: ThemeKey = "island";
 

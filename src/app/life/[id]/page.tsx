@@ -193,7 +193,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           ) : (
             <p className="mt-1.5 text-[12.5px] text-ink-400">This is the first one in this section.</p>
           )}
-          <Link href="/life/new" className="mt-3 inline-block rounded-full bg-sun-500 px-3.5 py-1.5 text-[12.5px] font-extrabold text-abyss-950">
+          <Link href="/life/new" className="mt-3 inline-block rounded-full bg-sun-500 px-3.5 py-1.5 text-[12.5px] font-extrabold text-on-accent">
             Share your own
           </Link>
         </div>

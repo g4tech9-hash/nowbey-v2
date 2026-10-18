@@ -1,5 +1,10 @@
 # NowBey Design System — extracted from reference set (2026-10-17)
 
+> **Superseded on 2026-10-18 by [NowBey Pulse](./PULSE.md).** This file stays as the provenance of the
+> island palette — the record of where each hue was sampled from — and no longer as the contract.
+> Where the two disagree, Pulse wins; the values below now arrive through `src/styles/pulse/compat.css`
+> as aliases, so nothing that referenced them broke.
+
 Source of truth: `1002177501.jpg` (hero), `1002177500.jpg` (Email alerts), `1002177499.jpg` (News wire),
 `1002177491.jpg` (Report a hazard). Every value below was pixel-sampled from those files.
 

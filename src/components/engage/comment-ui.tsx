@@ -82,7 +82,7 @@ export function CommentComposer({
         />
       </label>
       <div className="mt-2 flex items-center gap-3">
-        <button type="submit" disabled={busy || body.trim().length < 1} className="rounded-xl bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-50">
+        <button type="submit" disabled={busy || body.trim().length < 1} className="rounded-xl bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-50">
           {busy ? "Posting…" : parentId ? "Reply" : "Post comment"}
         </button>
         {onDone ? (
@@ -216,7 +216,7 @@ export function CommentTools({
               type="button"
               disabled={busy !== null}
               onClick={() => void call("report", `/api/comments/${commentId}/flag`, { method: "POST", body: JSON.stringify({ reason }) }, "Thank you. Our team will take a look.")}
-              className="rounded-lg bg-conch-500 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950 disabled:opacity-50"
+              className="rounded-lg bg-conch-500 px-3 py-1.5 text-[12px] font-extrabold text-on-accent disabled:opacity-50"
             >
               {busy === "report" ? "Sending…" : "Send report"}
             </button>

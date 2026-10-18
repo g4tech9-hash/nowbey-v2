@@ -39,7 +39,7 @@ const PAYMENT = ["unpaid", "paid", "comp"] as const;
 
 const FIELD =
   "mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2 text-[13px] outline-none focus:border-tide-400";
-const LABEL = "block text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]";
+const LABEL = "block text-[11.5px] font-bold uppercase tracking-wide text-tertiary";
 
 const blank = {
   organisation: "",
@@ -144,7 +144,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
             type="button"
             onClick={() => setAdding((v) => !v)}
             aria-expanded={adding}
-            className="rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-abyss-950 hover:bg-tide-400"
+            className="rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-on-accent hover:bg-tide-400"
           >
             {adding ? "Cancel" : "+ Add Partner"}
           </button>
@@ -212,7 +212,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                 type="button"
                 onClick={() => void create()}
                 disabled={busy !== null}
-                className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 hover:bg-tide-400 disabled:opacity-50"
+                className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50"
               >
                 {busy === "create" ? "Saving…" : "Save partner"}
               </button>
@@ -250,7 +250,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                     <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-sand-100">
                       {p.organisation}
                     </span>
-                    <span className="text-[12px] text-[#a9cdc9]">{p.parish}</span>
+                    <span className="text-[12px] text-secondary">{p.parish}</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11.5px] font-bold ${
                         p.paymentStatus === "paid"
@@ -266,31 +266,31 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
 
                   <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px] sm:grid-cols-4">
                     <div>
-                      <dt className="text-[#6e97a0]">Contact</dt>
+                      <dt className="text-tertiary">Contact</dt>
                       <dd className="text-sand-100">{p.contactName}</dd>
                     </div>
                     <div className="col-span-2 min-w-0">
-                      <dt className="text-[#6e97a0]">Email</dt>
+                      <dt className="text-tertiary">Email</dt>
                       <dd className="truncate font-mono text-sand-100">{p.email}</dd>
                     </div>
                     <div>
-                      <dt className="text-[#6e97a0]">Plan</dt>
+                      <dt className="text-tertiary">Plan</dt>
                       <dd className="text-sand-100">{p.planInterval}ly</dd>
                     </div>
                     <div>
-                      <dt className="text-[#6e97a0]">Last payment</dt>
+                      <dt className="text-tertiary">Last payment</dt>
                       <dd className="text-sand-100">
                         {p.lastPaymentAt ? new Date(p.lastPaymentAt).toLocaleDateString() : "never"}
                       </dd>
                     </div>
                     <div className="col-span-3">
-                      <dt className="text-[#6e97a0]">Categories</dt>
+                      <dt className="text-tertiary">Categories</dt>
                       <dd className="text-sand-100">{p.categories || "everything"}</dd>
                     </div>
                   </dl>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 border-t hairline pt-3">
-                    <span className="text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Payment</span>
+                    <span className="text-[11.5px] font-bold uppercase tracking-wide text-tertiary">Payment</span>
                     {PAYMENT.map((s) => (
                       <button
                         key={s}
@@ -300,7 +300,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                         aria-pressed={p.paymentStatus === s}
                         className={`rounded-full px-2.5 py-1 text-[11.5px] font-bold transition disabled:opacity-50 ${
                           p.paymentStatus === s
-                            ? "bg-tide-500 text-abyss-950"
+                            ? "bg-tide-500 text-on-accent"
                             : "border hairline text-ink-300 hover:bg-white/8"
                         }`}
                       >
@@ -331,7 +331,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
           ))}
         </ul>
       ) : (
-        <p className="glass rounded-2xl px-4 py-10 text-center text-[13px] text-[#a9cdc9]">
+        <p className="glass rounded-2xl px-4 py-10 text-center text-[13px] text-secondary">
           No partners registered yet. Add one above, then approve a weekly draft on the Digest page to email them.
         </p>
       )}
@@ -416,7 +416,7 @@ function EditRow({
           type="button"
           onClick={() => onSave(form)}
           disabled={busy}
-          className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 hover:bg-tide-400 disabled:opacity-50"
+          className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50"
         >
           {busy ? "Saving…" : "Save changes"}
         </button>

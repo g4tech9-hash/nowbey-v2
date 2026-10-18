@@ -85,7 +85,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
           href={story.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-block rounded-full bg-sand-100 px-4 py-2 text-[13px] font-extrabold text-abyss-950 hover:bg-white"
+          className="mt-4 inline-block rounded-full bg-sand-100 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-white"
         >
           Read the full story at {host} ↗
         </a>
