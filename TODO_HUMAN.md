@@ -1,5 +1,34 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
+## 0y. News quarantine and story placement — one SQL step (2026-10-18)
+
+Phase 1 of the trust work stopped the wire publishing junk (gambling pages,
+directory profiles, "e-Edition" cutouts) and stopped the map drawing an
+island's centre of mass as if it were a street. Two things need the production
+database before that is true there:
+
+1. **Run `src/db/add-news-quarantine.sql`** (paste into the Neon SQL editor and
+   press Run). It creates the `news_quarantine` holding pen, adds the
+   `placement` column to `news_items`, and quarantines the junk that is
+   already in the table — without deleting it, so the admin queue can still
+   find every story that was held.
+   To confirm it landed:
+   `select count(*) from information_schema.tables where table_name = 'news_quarantine';` — expect 1
+   `select count(*) from news_items where review = 'quarantined';` — expect the number of junk rows found.
+
+2. **Check the drizzle migrations are current.** `drizzle/0001_brave_power_pack.sql`
+   is the same change in drizzle's own format (the embedded development
+   database applies it automatically; Neon does not). If you push the schema
+   with `drizzle-kit push` instead of the SQL file, that is the file it will
+   read.
+
+**After that, one thing to look at by hand:** the admin page for the wire
+should show the held stories with their reasons. Any story that was held and
+should NOT have been — a real headline from a small Bahamian outlet we do not
+have on the allowlist yet — should be added to `PUBLISHER_ALLOWLIST` in
+`src/lib/news-filter.ts` and released. The allowlist is in one file on
+purpose, so widening it is a one-line change.
+
 ## 0z. Terms of Use and Privacy Notice — fill the blanks before the app ships (2026-10-18)
 
 The two legal pages were rewritten to carry the Bahamian protections: governing law and

@@ -51,6 +51,12 @@ export type MapPin = {
   /** Overrides the category colour and label, for pins that are not reports. */
   color?: string;
   label?: string;
+  /**
+   * The pin could only be placed at the middle of an island, so it is not a
+   * street. It is drawn hollow and larger, and says so, rather than pretending
+   * to a precision it does not have.
+   */
+  approximate?: boolean;
 };
 
 export type PickResult = {
@@ -89,6 +95,33 @@ type Props = {
 
 const PIN_PX = 30;
 
+/**
+ * The glyph on a map pin. The two-letter codes that used to be here read as
+ * alphabet soup on a busy map — "S" was Storm or Safety, "F" was Flooding or
+ * Fire — so each category now draws the same icon the badge and the legend
+ * use, and the code survives only as the accessible name.
+ */
+const PIN_GLYPHS: Record<string, string> = {
+  flood: "M12 3.2c3 3.4 5 6 5 8.9a5 5 0 0 1-10 0c0-2.9 2-5.5 5-8.9Z",
+  storm: "M7 18h9.2a3.8 3.8 0 0 0 .4-7.6 5.4 5.4 0 0 0-10.3 1.6A3.3 3.3 0 0 0 7 18Z",
+  power: "M13 2.5 4.5 14H10l-1 7.5L17.5 10H12l1-7.5Z",
+  water: "M3 8.5c2.4-2 4.4-2 6.8 0s4.4 2 6.8 0 3-1.4 4.4-1.4M3 14c2.4-2 4.4-2 6.8 0s4.4 2 6.8 0 3-1.4 4.4-1.4",
+  crime: "M12 3.2 19 6v5.3c0 4.3-2.9 8.1-7 9.5-4.1-1.4-7-5.2-7-9.5V6l7-2.8ZM12 8.5v4M12 15.6h.01",
+  road: "M12 3 6.5 20h11L12 3ZM9.4 13h5.2M10.4 17h3.2",
+  marine: "M12 8.5v12M12 8.5a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8ZM5 13.5a7 7 0 0 0 14 0M3 13.5h4M17 13.5h4",
+  fire: "M12 3c2.9 3.4 4.8 5.6 4.8 8.3a4.8 4.8 0 0 1-9.6 0c0-1.6.8-2.9 1.9-4.1 0 1.5.8 2.3 1.5 2.3 1 0 1.4-1 1.4-2.3 0-1.4-.4-2.7 0-4.2Z",
+  health: "M9.2 3.5h5.6v5.7h5.7v5.6h-5.7v5.7H9.2v-5.7H3.5V9.2h5.7V3.5Z",
+  trash: "M4.5 7h15M9.5 7V4.2h5V7M6.4 7l.9 13h9.4l.9-13M10.2 11v5.6M13.8 11v5.6",
+  event: "M12 3.4l2.7 5.4 6 .9-4.3 4.2 1 5.9-5.4-2.8-5.4 2.8 1-5.9L3.3 9.7l6-.9L12 3.4Z",
+  notice: "M12 3.2a8.8 8.8 0 1 0 0 17.6 8.8 8.8 0 0 0 0-17.6ZM12 11v5.6M12 7.6h.01",
+  accident: "M4.5 16.5h15M4 12l1.6-4.4A2 2 0 0 1 7.4 6.3h9.2a2 2 0 0 1 1.8 1.3L20 12v4.5H4ZM7 12.5h2.2M14.8 12.5H17M7 16.5v2M17 16.5v2",
+};
+
+function pinGlyph(category: string): string {
+  const d = PIN_GLYPHS[category] ?? PIN_GLYPHS.notice;
+  return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+}
+
 function pinHtml(pin: MapPin, selected: boolean) {
   // The hue is a token, not the hex in CATEGORIES: a pin on warm sand has to be
   // dark enough to see against paper, and the same pin on true black has to glow.
@@ -97,12 +130,21 @@ function pinHtml(pin: MapPin, selected: boolean) {
   // Two-letter codes, unique per category. A single letter was ambiguous on the
   // live map (S = Storm or Safety, F = Flooding or Fire, N = anything), so the
   // circles in Nassau read as alphabet soup with no legend able to save them.
-  const raw = pin.label ?? CATEGORIES[pin.category]?.pin ?? "NT";
-  const code = raw.length <= 2 ? raw.toUpperCase() : raw.split(/\s+/).map((w) => w.charAt(0)).slice(0, 2).join("").toUpperCase();
-  const size = code.length > 1 ? 9.5 : 13;
-  return `<div class="nb-pin ${pin.live ? "nb-pin-live" : ""}" style="background:${c};color:${c};${
+  const raw = pin.label ?? CATEGORIES[pin.category]?.label ?? "Notice";
+  const code = raw.length <= 2 ? raw.toUpperCase() : raw;
+  // An island-level pin is hollow: it says "somewhere on this island", and it
+  // is drawn bigger so it is not mistaken for a street dot.
+  const skin = pin.approximate
+    ? `background:transparent;color:${c};border:2.5px solid ${c};`
+    : `background:${c};color:${c};`;
+  return `<div class="nb-pin ${pin.live ? "nb-pin-live" : ""} ${pin.approximate ? "nb-pin-approx" : ""}" style="${skin}${
     selected ? "outline:3px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 6px var(--accent-muted);" : ""
-  }"><span style="font-size:${size}px">${code}</span></div>`;
+  }"><span class="nb-pin-glyph" title="${escapeAttr(code)}">${pinGlyph(pin.category)}</span></div>`;
+}
+
+/** Escapes a value that goes into an HTML attribute. */
+function escapeAttr(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function makeClusterIcon(count: number) {
@@ -115,12 +157,15 @@ function makeClusterIcon(count: number) {
 }
 
 function makePinIcon(pin: MapPin, selected: boolean) {
+  // An island-level pin is drawn larger, because it covers more ground than
+  // a street dot does.
+  const size = pin.approximate ? PIN_PX + 8 : PIN_PX;
   return L.divIcon({
     className: "",
     html: pinHtml(pin, selected),
-    iconSize: [PIN_PX, PIN_PX],
-    iconAnchor: [PIN_PX / 2, PIN_PX / 2],
-    popupAnchor: [0, -PIN_PX / 2],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2],
   });
 }
 
@@ -141,7 +186,7 @@ function makePickIcon(zoomed: boolean) {
 // look like instead of being rebuilt on every render. Only a handful of combinations exist, so the cache stays small.
 const ICON_CACHE = new Map<string, L.DivIcon>();
 function iconFor(pin: MapPin, selectedNow: boolean): L.DivIcon {
-  const key = `${pin.category}|${pin.color ?? ""}|${pin.label ?? ""}|${pin.live ? 1 : 0}|${selectedNow ? 1 : 0}`;
+  const key = `${pin.category}|${pin.color ?? ""}|${pin.label ?? ""}|${pin.live ? 1 : 0}|${pin.approximate ? 1 : 0}|${selectedNow ? 1 : 0}`;
   let icon = ICON_CACHE.get(key);
   if (!icon) {
     icon = makePinIcon(pin, selectedNow);

@@ -129,6 +129,13 @@ export const newsItems = pgTable(
     lng: doublePrecision("lng"),
     geocoded: boolean("geocoded").notNull().default(false),
     category: text("category").notNull().default("news"),
+    /**
+     * How exactly the story was placed: "street" (a named place), "island" (only
+     * the island could be worked out) or "none". An island-level pin is the
+     * middle of the island, so it is shown hollow and labelled "approximate" —
+     * never as if it were a street.
+     */
+    placement: text("placement").notNull().default("none"),
     publishedAt: timestamp("published_at", { withTimezone: true }).defaultNow().notNull(),
     ingestedAt: timestamp("ingested_at", { withTimezone: true }).defaultNow().notNull(),
     /** approved stories show publicly; reader tips start as "pending" until an admin approves them. */
@@ -143,6 +150,33 @@ export const newsItems = pgTable(
     aiAt: timestamp("ai_at", { withTimezone: true }),
   },
   (table) => [index("news_published_idx").on(table.publishedAt.desc())],
+);
+
+/**
+ * Stories the filter held back instead of publishing them. Nothing here is
+ * deleted: a human looks at the queue and either approves the story or lets
+ * it go. Created by src/db/add-news-quarantine.sql.
+ */
+export const newsQuarantine = pgTable(
+  "news_quarantine",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("title").notNull(),
+    url: text("url").notNull(),
+    sourceName: text("source_name").notNull().default(""),
+    /** Why it was held: junk-title | too-short | gambling | cutout | no-publisher | publisher-unknown | duplicate. */
+    reason: text("reason").notNull(),
+    /** The thing that tripped the filter — the matched title or the publisher name. */
+    detail: text("detail"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    quarantinedAt: timestamp("quarantined_at", { withTimezone: true }).defaultNow().notNull(),
+    /** held | approved | rejected. Only a human moves a row out of "held". */
+    review: text("review").notNull().default("held"),
+  },
+  (table) => [
+    index("news_quarantine_review_idx").on(table.review),
+    uniqueIndex("news_quarantine_url_idx").on(table.url),
+  ],
 );
 
 export const alertSubscriptions = pgTable(

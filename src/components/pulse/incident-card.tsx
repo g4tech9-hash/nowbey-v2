@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Bookmark, Eye, MapPin, MessageSquare } from "lucide-react";
+import { Bookmark, Eye, MapPin, MessageSquare, Users } from "lucide-react";
 import type { Badge } from "@/lib/badges";
 import type { Engagement } from "@/lib/engage-kinds";
 import { UPDATE_LABELS } from "@/components/incident-card";
-import { formatCoord, timeAgo, type CategoryKey } from "@/lib/geo";
+import { timeAgo, type CategoryKey } from "@/lib/geo";
 import { useSwipe } from "@/lib/pulse/motion";
 import {
   ActionBar,
@@ -60,6 +60,18 @@ export type PulseCardRow = {
   anonymous?: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
+  /**
+   * THE ONE TIME LINE. Computed on the server so the card and the server agree
+   * to the second: "Filed 6d ago · last confirmed 20h ago". Two unlabelled
+   * timestamps on a card is how "Live" ended up next to a week-old report.
+   */
+  timeLine?: string;
+  /** The freshness band, computed on the server: live | recent | aging | stale. */
+  freshnessBand?: "live" | "recent" | "aging" | "stale";
+  /** How many neighbours filed this same thing. 1 means just this report. */
+  clusterCount?: number;
+  /** The photo note is a template that appears on unrelated reports. */
+  photoNoteCanned?: boolean;
 };
 
 export function PulseIncidentCard({
@@ -169,7 +181,7 @@ export function PulseIncidentCard({
               <CatBadge category={row.category} />
               <SeverityTag severity={row.severity} category={row.category} />
               <FreshnessPill
-                freshness={row.status === "resolved" ? "stale" : "live"}
+                freshness={row.status === "resolved" ? "stale" : (row.freshnessBand ?? "live")}
                 time={row.updatedAt}
                 label={timeAgo(row.updatedAt)}
               />
@@ -185,9 +197,6 @@ export function PulseIncidentCard({
               ) : row.sourceKind === "news" ? (
                 <span className="pulse-chip" data-tone="neutral">from the wire</span>
               ) : null}
-              <span className="pulse-fresh ml-auto" data-freshness={row.status === "resolved" ? "stale" : "live"}>
-                <time dateTime={String(row.createdAt)}>{timeAgo(row.createdAt)}</time>
-              </span>
             </div>
 
             <h3
@@ -205,7 +214,13 @@ export function PulseIncidentCard({
               <p className="mt-2.5 flex items-start gap-2 text-[12.5px] text-secondary">
                 <Eye size={14} strokeWidth={2.2} aria-hidden style={{ color: "var(--text-accent)", marginTop: 3 }} />
                 <span>
-                  <span className="font-bold text-primary">Photo note</span> — {row.photoNote}
+                  <span className="font-bold text-primary">{row.photoNoteCanned ? "Standard note" : "Photo note"}</span> — {row.photoNote}
+                  {row.photoNoteCanned ? (
+                    <span className="mt-0.5 block text-[11.5px] text-tertiary">
+                      This same note appears on unrelated reports, so it is a template rather than one person&rsquo;s
+                      observation.
+                    </span>
+                  ) : null}
                 </span>
               </p>
             ) : null}
@@ -216,18 +231,26 @@ export function PulseIncidentCard({
                 {row.street ?? "Unmapped spot"}
               </span>
               {row.parish ? <span>· {row.parish}</span> : null}
-              <span className="font-mono tabular-nums">
-                {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
-              </span>
-              {row.accuracyMeters ? (
-                <span className="pulse-chip" data-tone="neutral" title="How close the reporter's pin is to the real spot">
-                  ± {Math.round(row.accuracyMeters)} m
-                </span>
-              ) : null}
               <Link href={`/map?focus=${row.id}`} className="pulse-mini-link ml-auto" onClick={(e) => e.stopPropagation()}>
                 On map
               </Link>
             </p>
+
+            {/* The coordinates and the accuracy live on the detail page. On a card
+                they were four more numbers nobody could use, and the accuracy
+                chip read like a precision the pin does not have. */}
+            {row.timeLine ? (
+              <p className="mt-1.5 font-mono text-[11.5px] tabular-nums text-tertiary">
+                <time dateTime={String(row.createdAt)}>{row.timeLine}</time>
+              </p>
+            ) : null}
+
+            {row.clusterCount && row.clusterCount > 1 ? (
+              <p className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-default bg-hover px-2.5 py-1 text-[12px] font-bold text-secondary">
+                <Users size={13} strokeWidth={2.4} aria-hidden />
+                {row.clusterCount} neighbours reported this
+              </p>
+            ) : null}
 
             {latest ? (
               <p className="mt-2.5 text-[12.5px] text-secondary">

@@ -21,6 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { CategoryKey } from "@/lib/geo";
+import { CATEGORY_DEFS, CATEGORY_KEYS } from "@/lib/categories";
 
 export type PulseCategoryMeta = {
   label: string;
@@ -36,21 +37,52 @@ export type PulseCategoryMeta = {
  * `CATEGORIES[key].color` had to duplicate the light-mode fix, and several
  * places forgot to. Reading the semantic token makes the theme a given.
  */
-export const PULSE_CATEGORIES: Record<CategoryKey, PulseCategoryMeta> = {
-  flood: { label: "Flooding", icon: Droplets, token: "var(--cat-flooding)", signal: "flooding" },
-  storm: { label: "Storm", icon: CloudLightning, token: "var(--cat-storm)", signal: "flooding" },
-  power: { label: "Power", icon: Zap, token: "var(--cat-power)", signal: "power" },
-  water: { label: "Water", icon: Waves, token: "var(--cat-water)", signal: "water" },
-  crime: { label: "Safety", icon: ShieldAlert, token: "var(--cat-safety)", signal: "safety" },
-  road: { label: "Road", icon: TrafficCone, token: "var(--cat-road)", signal: "road" },
-  marine: { label: "Marine", icon: Anchor, token: "var(--cat-marine)", signal: "marine" },
-  fire: { label: "Fire", icon: Flame, token: "var(--cat-fire)", signal: "safety" },
-  health: { label: "Health", icon: Cross, token: "var(--cat-health)", signal: "health" },
-  trash: { label: "Sanitation", icon: Trash2, token: "var(--cat-sanitation)", signal: "sanitation" },
-  event: { label: "Community", icon: Star, token: "var(--cat-community)", signal: "safety" },
-  notice: { label: "Notice", icon: Info, token: "var(--cat-notice)", signal: "safety" },
-  accident: { label: "Car accident", icon: Car, token: "var(--cat-accident)", signal: "road" },
+/** The icon for each category. The icon is the only thing that lives here: the
+ *  label, the token and the description all come from src/lib/categories.ts. */
+const ICONS: Record<CategoryKey, LucideIcon> = {
+  flood: Droplets,
+  storm: CloudLightning,
+  power: Zap,
+  water: Waves,
+  crime: ShieldAlert,
+  road: TrafficCone,
+  marine: Anchor,
+  fire: Flame,
+  health: Cross,
+  trash: Trash2,
+  event: Star,
+  notice: Info,
+  accident: Car,
 };
+
+/** The Layer 1 signal family each category belongs to, for the legends. */
+const SIGNALS: Record<CategoryKey, string> = {
+  flood: "flooding",
+  storm: "flooding",
+  power: "power",
+  water: "water",
+  crime: "safety",
+  road: "road",
+  marine: "marine",
+  fire: "safety",
+  health: "health",
+  trash: "sanitation",
+  event: "safety",
+  notice: "safety",
+  accident: "road",
+};
+
+export const PULSE_CATEGORIES: Record<CategoryKey, PulseCategoryMeta> = Object.fromEntries(
+  CATEGORY_KEYS.map((k) => [
+    k,
+    {
+      label: CATEGORY_DEFS[k].label,
+      icon: ICONS[k],
+      token: CATEGORY_DEFS[k].token,
+      signal: SIGNALS[k],
+    },
+  ]),
+) as Record<CategoryKey, PulseCategoryMeta>;
 
 export const PULSE_CATEGORY_KEYS = Object.keys(PULSE_CATEGORIES) as CategoryKey[];
 

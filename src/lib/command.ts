@@ -55,7 +55,7 @@ export function isReportStatus(v: unknown): v is ReportStatus {
 }
 
 /** Statuses the public never sees on the map or in feeds (staff can still open them). Mutable array: drizzle's notInArray requires one. */
-export const HIDDEN_STATUSES: string[] = ["archived", "unfounded"];
+export const HIDDEN_STATUSES: string[] = ["archived", "unfounded", "held"];
 
 export function isHiddenStatus(status: string): boolean {
   return HIDDEN_STATUSES.includes(status);

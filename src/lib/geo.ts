@@ -90,41 +90,26 @@ export const PARISHES = [
   "Cay Sal Bank",
 ] as const;
 
-export type CategoryKey =
-  | "flood"
-  | "storm"
-  | "power"
-  | "water"
-  | "crime"
-  | "road"
-  | "marine"
-  | "fire"
-  | "health"
-  | "trash"
-  | "event"
-  | "notice"
-  | "accident";
+/**
+ * The category list lives in `src/lib/categories.ts` — one file, one list.
+ * This is the same data in the shape the older call sites expect, so nothing
+ * had to change to read it. `CATEGORY_DEFS` is the source; this is a view of
+ * it, not a second copy.
+ */
+export type { CategoryKey } from "./categories.ts";
+import { CATEGORY_DEFS, CATEGORY_KEYS, type CategoryKey } from "./categories.ts";
 
 export const CATEGORIES: Record<
   CategoryKey,
   { label: string; color: string; glyph: string; blurb: string; pin: string }
-> = {
-  flood: { label: "Flooding", color: "#38bdf8", glyph: "wave", pin: "FL", blurb: "Standing water, washover, flash flood" },
-  storm: { label: "Storm", color: "#fbbf24", glyph: "cloud", pin: "ST", blurb: "Squall, surge, hurricane watch" },
-  power: { label: "Power", color: "#facc15", glyph: "bolt", pin: "PW", blurb: "Outage, lines down, generator" },
-  water: { label: "Water", color: "#22d3ee", glyph: "drop", pin: "WA", blurb: "No water, main break, boil notice" },
-  crime: { label: "Safety", color: "#fb7185", glyph: "shield", pin: "SF", blurb: "Theft, break-in, suspicious" },
-  road: { label: "Road", color: "#f97316", glyph: "cone", pin: "RD", blurb: "Pothole, blockage, closure" },
-  marine: { label: "Marine", color: "#2dd4bf", glyph: "anchor", pin: "MR", blurb: "Debris, grounding, sea state" },
-  fire: { label: "Fire", color: "#ef4444", glyph: "flame", pin: "FR", blurb: "Brush or structure fire, smoke" },
-  health: { label: "Health", color: "#a78bfa", glyph: "cross", pin: "HL", blurb: "Assistance, medical, rescue" },
-  trash: { label: "Sanitation", color: "#84cc16", glyph: "bin", pin: "TR", blurb: "Missed pickup, dumping" },
-  event: { label: "Community", color: "#f472b6", glyph: "star", pin: "EV", blurb: "Junkanoo, regatta, fundraiser" },
-  notice: { label: "Notice", color: "#94a3b8", glyph: "info", pin: "NT", blurb: "General heads-up" },
-  accident: { label: "Car Accident", color: "#ef4444", glyph: "car", pin: "AC", blurb: "Traffic accident, road blockage, or vehicle hazard" },
-};
+> = Object.fromEntries(
+  CATEGORY_KEYS.map((k) => {
+    const d = CATEGORY_DEFS[k];
+    return [k, { label: d.label, color: d.color, glyph: d.glyph, blurb: d.description, pin: d.pin }];
+  }),
+) as Record<CategoryKey, { label: string; color: string; glyph: string; blurb: string; pin: string }>;
 
-export const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];
+export { CATEGORY_KEYS };
 
 /** Metres represented by one screen pixel at a given zoom / latitude. */
 export function metersPerPixel(zoom: number, lat: number): number {

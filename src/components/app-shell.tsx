@@ -160,7 +160,7 @@ export function AppShell({
                     ["/report", "Report a hazard"],
                     ["/wire", "News wire"],
                     ["/saved", "Watch list"],
-                    ["/alerts", "Alerts"],
+                    ["/alerts", "Email alerts"],
                   ].map(([href, label]) => (
                     <li key={href}>
                       <Link href={href} className="nb-textlink">

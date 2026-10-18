@@ -15,6 +15,7 @@ import { CATEGORY_KEYS, inBahamas, knownParish, resolveParish } from "@/lib/geo"
 import { isLikelyDuplicateIncident } from "@/lib/collect";
 import { clientIp, sharedHit, tooMany } from "@/lib/ratelimit";
 import { pinPrivacyMeters, storedPinFor } from "@/lib/location-privacy";
+import { holdIfMismatched } from "@/lib/report-hold";
 import { badOrigin, dbNotConfigured, hasBadOrigin } from "@/lib/http";
 import { clampInt, likeEscape, text, readJson, param } from "@/lib/validate";
 
@@ -162,6 +163,27 @@ export async function POST(req: Request) {
       confirmations: 1,
     })
     .returning();
+
+  // A report that does not look like the thing it was filed as is held for a
+  // human, before it can reach the map or anybody's alerts.
+  if (row) {
+    await holdIfMismatched({
+      id: row.id,
+      title: row.title,
+      details: row.details,
+      category: row.category,
+      lat: row.lat,
+      lng: row.lng,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      confirmations: row.confirmations,
+      sightings: row.sightings,
+      sourceKind: row.sourceKind,
+      status: row.status,
+      photoNote: row.photoNote,
+      severity: row.severity,
+    });
+  }
 
   const base = publicBase(req);
   if (base) {

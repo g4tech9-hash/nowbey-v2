@@ -7,6 +7,7 @@ import { CATEGORIES, timeAgo, type CategoryKey } from "@/lib/geo";
 import { PageHead } from "@/components/app-shell";
 import { useRecentlySeen, useWatchList, type SavedIncident } from "@/lib/pulse/saved";
 import { trustFor } from "@/lib/pulse/trust";
+import { getFreshness } from "@/lib/freshness";
 import { AriaAnnouncer, CatBadge, CardLayered, FreshnessPill, SeverityTag, Skeleton, TrustMeter } from "@/ui/pulse";
 import { useAnnouncer } from "@/lib/pulse/motion";
 
@@ -159,7 +160,7 @@ function WatchRow({ row, now, onRemove }: { row: SavedIncident; now: number; onR
         <div className="flex flex-wrap items-center gap-2">
           <CatBadge category={row.category} size="sm" />
           <SeverityTag severity={row.severity} category={row.category} />
-          <FreshnessPill freshness="watching" time={row.savedAt} />
+          <FreshnessPill freshness={getFreshness(row.createdAt, "report").band} time={row.createdAt} />
           <Link href={`/incident/${row.id}`} className="pulse-mini-link ml-auto">
             <ExternalLink size={13} strokeWidth={2.4} aria-hidden />
             Open

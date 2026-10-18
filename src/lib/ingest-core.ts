@@ -155,6 +155,8 @@ export type ParsedItem = {
   publishedAt: Date;
   sourceName: string;
   imageUrl: string | null;
+  /** The publisher's own domain, when the feed named one (Google News puts it on <source url>). */
+  publisherHost: string | null;
 };
 
 export function parseFeed(xml: string, sourceName: string): ParsedItem[] {
@@ -171,7 +173,11 @@ export function parseFeed(xml: string, sourceName: string): ParsedItem[] {
       chunk.match(/<link[^>]*href="([^"]+)"/i)?.[1] ||
       grab("guid") ||
       "";
-    if (!title || isJunkTitle(title) || !/^https?:\/\//.test(link)) continue;
+    // A headline of one or two words is a section label, not a story. The longer
+    // junk patterns are NOT dropped here: they are passed on so the filter can
+    // hold them and a human can see what was held.
+    if (!title || title.replace(/[^a-z0-9]+/gi, " ").trim().split(/\s+/).filter(Boolean).length < 2) continue;
+    if (!/^https?:\/\//.test(link)) continue;
     const dateRaw = grab("pubDate") || grab("dc:date") || grab("published") || grab("updated");
     let publishedAt = dateRaw ? new Date(dateRaw) : new Date();
     // A missing or nonsense date, or one in the future, would pin a story to the top forever.
@@ -185,16 +191,33 @@ export function parseFeed(xml: string, sourceName: string): ParsedItem[] {
       bodyHtml.match(/<img[^>]*\ssrc=["']([^"']+)["']/i)?.[1] ??
       null;
     const gSource = grab("source");
+    // Google News names the publisher on <source url="…"> and wraps the real
+    // link in a redirect. The description usually carries the publisher's own
+    // address, so we take that and keep the real article link, not the wrapper.
+    const publisherHost = chunk.match(/<source[^>]*url="([^"]+)"/i)?.[1] ?? null;
+    const viaGoogle = /(^|\.)news\.google\./i.test(link);
+    const realFromBody = viaGoogle ? (bodyHtml.match(/<a[^>]+href=["'](https?:\/\/[^"']+)["']/i)?.[1] ?? null) : null;
+    const resolved = realFromBody && !/(^|\.)news\.google\./i.test(realFromBody) ? realFromBody : null;
     out.push({
       title: title.replace(gSource ? new RegExp(`\\s+[-\u2013|]\\s+${escapeRe(gSource)}$`) : /$^/, "").slice(0, 300),
-      url: link.slice(0, 600),
+      url: resolved ?? link,
       summary: decode(bodyHtml).slice(0, 480),
       publishedAt,
-      sourceName: gSource && /news\.google\.com/.test(link) ? gSource : sourceName,
+      sourceName: viaGoogle ? gSource : sourceName,
       imageUrl: imageMatch && /^https?:\/\//.test(imageMatch) ? imageMatch : null,
+      publisherHost: publisherHost ? safeHost(publisherHost) : null,
     });
   }
   return out;
+}
+
+/** The host of a publisher URL, without the "www." and without a path. */
+function safeHost(raw: string): string | null {
+  try {
+    return new URL(raw).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return null;
+  }
 }
 
 function escapeRe(s: string): string {
@@ -222,8 +245,15 @@ function termsFor(place: Place): string[] {
   return terms;
 }
 
-/** Cheap, offline geocoding: match street / island names inside the headline text. */
-export function placeFromText(input: string): { lat: number; lng: number; parish: string; street: string } | null {
+/**
+ * Cheap, offline geocoding: match street / island names inside the headline
+ * text.
+ *
+ * `precise` says whether a named place was found (a street, a landmark) or
+ * only the island was. An island-only match lands on the middle of the island,
+ * and the wire has to say so rather than draw a dot that looks like a street.
+ */
+export function placeFromText(input: string): { lat: number; lng: number; parish: string; street: string; precise: boolean } | null {
   const hay = input.toLowerCase();
   let best: { lat: number; lng: number; parish: string; street: string; score: number } | null = null;
   for (const place of GAZETTEER) {
@@ -239,12 +269,14 @@ export function placeFromText(input: string): { lat: number; lng: number; parish
   if (best) {
     const { score, ...rest } = best;
     void score;
-    return rest;
+    return { ...rest, precise: true };
   }
   for (const parish of PARISHES) {
     if (hasWord(hay, parish.toLowerCase())) {
       const anchor = GAZETTEER.find((g) => g.parish === parish);
-      if (anchor) return { lat: anchor.lat, lng: anchor.lng, parish: anchor.parish, street: anchor.parish };
+      // The island's middle. Precise enough to say "this happened in Grand
+      // Bahama", not precise enough to say where.
+      if (anchor) return { lat: anchor.lat, lng: anchor.lng, parish: anchor.parish, street: anchor.parish, precise: false };
     }
   }
   return null;

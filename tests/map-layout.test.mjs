@@ -43,9 +43,12 @@ test("the rail renders a page of rows at a time, with a way to grow it", () => {
   assert.ok(page.includes("Show more pins"), "the rest of the list stays one tap away");
 });
 
-test("pin codes are unique per category, so a legend can decode them", () => {
-  const geo = read("src/lib/geo.ts");
-  const codes = [...geo.matchAll(/pin: "([A-Z]{2})"/g)].map((m) => m[1]);
+test("every category has a unique accessible name, so a legend can decode it", () => {
+  // The pin itself now draws the category glyph, not a two-letter code. The
+  // code survives as the pin's accessible name, and it still has to be unique
+  // or a screen reader cannot tell two pins apart.
+  const categories = read("src/lib/categories.ts");
+  const codes = [...categories.matchAll(/pin: "([A-Z]{2})"/g)].map((m) => m[1]);
   assert.ok(codes.length >= 13, "every category needs a pin code");
   assert.equal(new Set(codes).size, codes.length, `pin codes must be unique, got: ${codes.join(",")}`);
   assert.ok(page.includes("What the pins mean"), "the map page must ship the legend");

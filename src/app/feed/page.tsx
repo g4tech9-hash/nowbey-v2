@@ -8,6 +8,9 @@ import { AdSlot } from "@/components/ad-slot";
 import { EmergencyNotice } from "@/components/emergency-notice";
 import { OfficialSources } from "@/components/official-sources";
 import { CATEGORIES, GAZETTEER, knownParish, nowMs, timeAgo, type CategoryKey } from "@/lib/geo";
+import { clusterReports, collapseBody, findCannedNotes } from "@/lib/report-check";
+import { getFreshness, reportTimeLine } from "@/lib/freshness";
+import { CTA_REPORT, NAME_FEED, showingCountInline } from "@/lib/copy";
 import { HIDDEN_STATUSES } from "@/lib/command";
 import { clampInt, likeEscape, param } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
@@ -73,8 +76,10 @@ async function loadHomeData(f: HomeQuery) {
   const where = filters.length ? and(...filters) : undefined;
 
   const dayAgo = new Date(nowMs() - 864e5);
-  const [rows, recent, wire, totals, wireTotal, categoryCounts] = await Promise.all([
-    db.select().from(incidents).where(where).orderBy(desc(incidents.createdAt)).limit(24),
+  const [rows, recent, wire, totals, wireTotal, categoryCounts, matching] = await Promise.all([
+    // Sixty rows, folded into clusters below, so the first screen is twenty
+    // DISTINCT reports rather than twenty rows that might be the same flood.
+    db.select().from(incidents).where(where).orderBy(desc(incidents.createdAt)).limit(60),
     db.select().from(incidents).where(notInArray(incidents.status, HIDDEN_STATUSES)).orderBy(desc(incidents.createdAt)).limit(40),
     db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(6),
     // Home stats are counted in the database. Counting the 40-row feed slice made them lie once the feed was busy.
@@ -96,6 +101,9 @@ async function loadHomeData(f: HomeQuery) {
       .from(incidents)
       .where(eq(incidents.status, "active"))
       .groupBy(incidents.category),
+    // How many reports this filter really matches. The feed says "showing 24 of
+    // 388" rather than pretending the slice is the whole island.
+    db.select({ n: sql<number>`count(*)::int` }).from(incidents).where(where).then((r) => r[0]),
   ]);
 
   // The newest timeline entry per report, for the card's "Latest" line. Flag entries are staff-only and are left out.
@@ -117,7 +125,7 @@ async function loadHomeData(f: HomeQuery) {
   for (const c of categoryCounts) counts[c.category] = Number(c.n);
   counts.__active = Number(totals?.active ?? 0);
 
-  return { rows, recent, wire, totals, wireTotal, latest, counts };
+  return { rows, recent, wire, totals, wireTotal, latest, counts, matching: Number(matching?.n ?? 0) };
 }
 
 const loadHomeCached = unstable_cache(loadHomeData, ["home-feed-v2"], { revalidate: 30 });
@@ -170,7 +178,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   // Search text is not cached: free text would make an unbounded number of cache entries.
   const loadHome = q ? loadHomeData : loadHomeCached;
   const [home, viewer] = await Promise.all([loadHome(query), getViewer()]);
-  const { rows, recent, wire, totals, wireTotal, latest, counts } = home;
+  const { rows, recent, wire, totals, wireTotal, latest, counts, matching } = home;
   const emergencyUp = Number(totals?.activeSevere ?? 0) > 0;
   const adFree = viewer.adFree;
   const handle = viewer.handle;
@@ -178,30 +186,88 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const engMap = await engagementFor("incident", rows.map((r) => r.id), viewer.userId);
 
   const sorted = sort === "recent" ? rows : sortRows(rows, sort);
-  const stream: FeedRow[] = sorted.map((r) => ({
-    id: r.id,
-    title: r.title,
-    details: r.details,
-    category: r.category,
-    severity: r.severity,
-    lat: r.lat,
-    lng: r.lng,
-    accuracyMeters: r.accuracyMeters,
-    address: r.address,
-    street: r.street,
-    parish: r.parish,
-    status: r.status,
-    confirmations: r.confirmations,
-    sightings: r.sightings,
-    sourceKind: r.sourceKind,
-    sourceName: r.sourceName,
-    sourceUrl: r.sourceUrl,
-    photoNote: r.photoNote,
-    authorHandle: r.anonymous ? null : r.authorHandle,
-    anonymous: r.anonymous,
-    createdAt: r.createdAt,
-    updatedAt: r.updatedAt,
-  }));
+
+  /**
+   * FOLD THE DUPLICATES.
+   *
+   * Five neighbours reporting the same flooded junction is one report with
+   * five pieces of evidence, not five pins. The cluster keeps the report that
+   * was filed first — the one people replied to — and counts the rest.
+   */
+  const clusters = clusterReports(
+    sorted.map((r) => ({
+      id: r.id,
+      title: r.title,
+      details: r.details,
+      category: r.category,
+      lat: r.lat,
+      lng: r.lng,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      confirmations: r.confirmations,
+      sightings: r.sightings,
+      sourceKind: r.sourceKind,
+      status: r.status,
+      photoNote: r.photoNote,
+      severity: r.severity,
+    })),
+  );
+  const clusterById = new Map(clusters.map((c) => [c.primary.id, c]));
+
+  /** The same note on unrelated reports is a template, and the card has to say so. */
+  const cannedNotes = findCannedNotes(
+    sorted.map((r) => ({
+      id: r.id,
+      title: r.title,
+      details: r.details,
+      category: r.category,
+      lat: r.lat,
+      lng: r.lng,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      confirmations: r.confirmations,
+      sightings: r.sightings,
+      sourceKind: r.sourceKind,
+      status: r.status,
+      photoNote: r.photoNote,
+      severity: r.severity,
+    })),
+  );
+
+  const now = nowMs();
+  const stream: FeedRow[] = sorted.map((r) => {
+    const cluster = clusterById.get(r.id);
+    const fresh = getFreshness(cluster?.lastConfirmedAt ?? r.updatedAt, "report", now);
+    return {
+      id: r.id,
+      title: r.title,
+      // A body that only repeats the headline is not a second line of anything.
+      details: collapseBody(r.title, r.details),
+      category: r.category,
+      severity: r.severity,
+      lat: r.lat,
+      lng: r.lng,
+      accuracyMeters: r.accuracyMeters,
+      address: r.address,
+      street: r.street,
+      parish: r.parish,
+      status: r.status,
+      confirmations: r.confirmations,
+      sightings: r.sightings,
+      sourceKind: r.sourceKind,
+      sourceName: r.sourceName,
+      sourceUrl: r.sourceUrl,
+      photoNote: r.photoNote,
+      authorHandle: r.anonymous ? null : r.authorHandle,
+      anonymous: r.anonymous,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      timeLine: reportTimeLine({ createdAt: r.createdAt, lastConfirmedAt: cluster?.lastConfirmedAt ?? r.updatedAt }, now),
+      freshnessBand: fresh.band,
+      clusterCount: cluster?.count ?? 1,
+      photoNoteCanned: r.photoNote ? cannedNotes.has(r.photoNote.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()) : false,
+    };
+  });
   // The card components want plain objects keyed by id / handle — a Map cannot
   // cross the server → client boundary.
   const badges: Record<string, Badge | null> = {};
@@ -242,13 +308,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
         actions={
           <>
             <span className="nb-num" aria-hidden>
-              {activeCount}
+              {stream.length}
             </span>
             <span className="text-[12.5px] font-bold uppercase tracking-[0.14em] text-tertiary">
-              live report{activeCount === 1 ? "" : "s"} · {Number(wireTotal?.n ?? 0)} on the wire
+              {showingCountInline(stream.length, matching)} · {Number(wireTotal?.n ?? 0)} on the wire
             </span>
             <ButtonLink href="/report" variant="primary" size="sm">
-              Drop a pin
+              {CTA_REPORT}
             </ButtonLink>
           </>
         }
@@ -283,7 +349,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             emptyActions={
               <>
                 <ButtonLink href="/report" variant="primary" size="sm">
-                  Report a spot
+                  {CTA_REPORT}
                 </ButtonLink>
                 <Link href={feedHref({ category: "", island: "", q: "", status: "" })} className="nb-btn nb-btn-secondary nb-btn-sm">
                   Clear filters

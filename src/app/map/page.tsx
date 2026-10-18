@@ -38,6 +38,8 @@ type WireRow = {
   lng: number | null;
   publishedAt: string;
   category: CategoryKey;
+  /** "street" (a named place), "island" (only the island) or "none". */
+  placement?: string;
 };
 
 export const dynamic = "force-dynamic";
@@ -74,6 +76,10 @@ export default function MapWorkspace() {
   const [wire, setWire] = useState<WireRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // The moment the pins were last fetched and confirmed. It is only set on a
+  // successful load, so "last checked 21:40" always means a real answer came
+  // back at 21:40 — never "we asked and got nothing".
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
   // The category filter lives in the URL (?category=) so a filtered view can be shared, reloaded or bookmarked.
   const [filter, setFilter] = useState<CategoryKey | "all">(() => {
     const c = params.get("category");
@@ -119,6 +125,7 @@ export default function MapWorkspace() {
       // (with a retry) instead of "No pins match those filters."
       if (a?.error) throw new Error(a.error);
       setError(null);
+      setLastChecked(new Date());
       setRows((a.incidents ?? []) as Row[]);
       setWire(((b.items ?? []) as WireRow[]).filter((n) => n.lat != null && n.lng != null));
     } catch (e) {
@@ -218,6 +225,9 @@ export default function MapWorkspace() {
             meta: `${n.sourceName} · ${timeAgo(n.publishedAt)}`,
             href: `/wire/${n.id}`,
             hrefLabel: "Read and discuss",
+            // A story placed at the middle of an island is not a street. It is
+            // drawn hollow so nobody reads it as one.
+            approximate: n.placement === "island",
           }))
         : [],
     [wire, showWire],
@@ -407,7 +417,7 @@ export default function MapWorkspace() {
         <div className="nb-pin-rail-scroll nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3 lg:pr-1.5" tabIndex={0} aria-label="Pin filters and reports">
         <details className="px-3 lg:px-0">
           <summary className="min-h-[44px] lg:min-h-[36px] cursor-pointer py-2 text-[11.5px] font-bold text-ink-400 hover:text-tide-300">
-            Island activity · {pulse.open} open pins
+            {loading ? "Island activity · checking…" : error ? "Island activity · could not load" : `Island activity · ${pulse.open} open pin${pulse.open === 1 ? "" : "s"}`}
           </summary>
         {/* Tideglass bento: island pulse (2/3) + open/confirmed tiles (1/3). */}
         <div className="grid flex-none grid-cols-3 gap-2 px-3 pt-2 lg:px-0">
@@ -434,8 +444,15 @@ export default function MapWorkspace() {
                   </li>
                 ))}
               </ul>
+            ) : loading ? (
+              <p className="py-2 text-[11.5px] text-ink-400">Checking the island…</p>
+            ) : error ? (
+              <p className="py-2 text-[11.5px] text-ink-400">Could not load the island&rsquo;s reports. Try again.</p>
             ) : (
-              <p className="py-2 text-[11.5px] text-ink-400">The island is quiet — no open pins.</p>
+              <p className="py-2 text-[11.5px] text-ink-400">
+                No open reports on this island right now.
+                {lastChecked ? ` Last checked ${clockTime(lastChecked)}.` : null}
+              </p>
             )}
           </section>
           <div className="flex flex-col gap-2">
@@ -756,6 +773,9 @@ export default function MapWorkspace() {
                 ) : error ? null : (
                   <li className="px-1 py-2 text-[12.5px] text-ink-400">
                     <p>No pins match those filters.</p>
+                    {lastChecked ? (
+                      <p className="mt-0.5 text-[11.5px]">Last checked {clockTime(lastChecked)}.</p>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => {
@@ -795,6 +815,9 @@ export default function MapWorkspace() {
               {error ? (
                 <div role="alert" className="mt-2.5 rounded-xl bg-danger-500/12 px-3 py-2.5 text-[12px] text-danger-500">
                   <p>Could not load the map feed. {error}</p>
+                {lastChecked ? (
+                  <p className="mt-0.5 opacity-80">Last successful check {clockTime(lastChecked)}.</p>
+                ) : null}
                   <button
                     type="button"
                     onClick={() => {
@@ -855,4 +878,9 @@ function FilterChip({
       </span>
     </button>
   );
+}
+
+/** "21:40" — the time a check came back, in the reader's own clock. */
+function clockTime(when: Date): string {
+  return when.toLocaleTimeString("en-BS", { hour: "2-digit", minute: "2-digit", hour12: false });
 }

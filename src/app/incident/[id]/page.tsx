@@ -28,7 +28,9 @@ import {
   TrustMeter,
 } from "@/ui/pulse";
 import { pulseCategoryMeta } from "@/ui/pulse/glyph";
-import { trustFor } from "@/lib/pulse/trust";
+import { trustFor, VERIFY_BEFORE_YOU_ACT } from "@/lib/pulse/trust";
+import { getFreshness, reportTimeLine } from "@/lib/freshness";
+import { EmergencyNotice } from "@/components/emergency-notice";
 import { Chip, Eyebrow } from "@/components/ui";
 
 /**
@@ -116,6 +118,12 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
   return (
     <div className="pulse-grid-3">
       <article className="pulse-detail min-w-0">
+        {/* The same strip as the map, the report form and the terms. One
+            component, one sentence, everywhere it could save somebody a
+            detour to a phone. */}
+        <div className="mb-3">
+          <EmergencyNotice />
+        </div>
         <p className="flex flex-wrap items-center gap-2">
           <Link href="/map" className="nb-btn nb-btn-ghost nb-btn-sm">
             <span aria-hidden>←</span>
@@ -131,7 +139,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
             <CatBadge category={row.category} />
             <SeverityTag severity={row.severity} category={row.category} />
             <FreshnessPill
-              freshness={row.status === "resolved" ? "stale" : "live"}
+              freshness={row.status === "resolved" ? "stale" : getFreshness(row.updatedAt, "report").band}
               time={row.updatedAt}
               label={timeAgo(row.updatedAt)}
             />
@@ -243,6 +251,9 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
           <div className="mt-2 flex items-center gap-3">
             <TrustMeter value={trust.value} tier={trust.tier} label={`Trust ${trust.value} of 100`} />
           </div>
+          <p className="mt-2 text-[13px] leading-[1.7] text-secondary">
+            <span className="font-bold text-primary">{trust.lead}.</span> {VERIFY_BEFORE_YOU_ACT}
+          </p>
           <div className="mt-3">
             <TrustCard
               trust={trust}

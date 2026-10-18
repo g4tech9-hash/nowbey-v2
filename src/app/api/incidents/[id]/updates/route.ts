@@ -10,6 +10,7 @@ import { serverSecret } from "@/lib/auth";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { text, UUID_RE, readJson, isGone } from "@/lib/validate";
 import { isFlagReason } from "@/lib/life-kinds";
+import { recheckAfterVote } from "@/lib/report-hold";
 
 
 const KINDS = new Set(["confirm", "photo", "note", "clear", "escalate", "flag"]);
@@ -118,6 +119,29 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     .returning();
 
   const pending = kind === "clear" && !clears;
+
+  // A neighbour backing a report is also a chance to re-check it. A sale
+  // notice with a "saw it too" under it is a false hazard, and it goes to the
+  // staff queue before it reaches the map.
+  if (row && (kind === "confirm" || kind === "photo")) {
+    await recheckAfterVote({
+      id: row.id,
+      title: row.title,
+      details: row.details,
+      category: row.category,
+      lat: row.lat,
+      lng: row.lng,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      confirmations: row.confirmations,
+      sightings: row.sightings,
+      sourceKind: row.sourceKind,
+      status: row.status,
+      photoNote: row.photoNote,
+      severity: row.severity,
+    });
+  }
+
   return NextResponse.json(
     {
       update,

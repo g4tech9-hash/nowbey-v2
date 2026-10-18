@@ -308,10 +308,10 @@ export function FeedStream({
               className="nb-btn nb-btn-secondary nb-btn-sm pulse-press"
               onClick={() => {
                 router.refresh();
-                announce("Re-checked the wire.");
+                announce("Re-checked the feed.");
               }}
             >
-              Re-check the wire
+              Re-check the feed
             </button>
           </div>
         </EndOfStream>

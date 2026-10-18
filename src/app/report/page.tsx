@@ -9,11 +9,19 @@ import { ReportAssist } from "@/components/report-assist";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
 import { trackFunnel } from "@/lib/funnel-client";
 import { AriaAnnouncer, CatBadge, MetaChip, SeverityTag } from "@/ui/pulse";
+import { SEVERITY_LEVELS } from "@/lib/severity";
+import { categoryDef } from "@/lib/categories";
 import { useAnnouncer } from "@/lib/pulse/motion";
 import { pulseCategoryMeta } from "@/ui/pulse/glyph";
 
 const STEPS = ["What is it?", "Where is it?", "Tell neighbours", "Check and send"] as const;
-const SEVERITY_LABELS = ["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"] as const;
+/**
+ * The severity scale, from the one place it is defined (src/lib/severity.ts).
+ * "Annoying" is gone: it was the only word in the app nobody could read the
+ * same way twice, and a resident who thinks a report is "annoying" and one who
+ * thinks it is "minor" are not saying the same thing.
+ */
+const SEVERITY_LABELS = SEVERITY_LEVELS.map((s) => s.label);
 const prefillAllowed = process.env.NEXT_PUBLIC_PREFILL_AREA !== "0";
 /** A report in progress survives a refresh, a dropped signal or a trip to the map. Cleared once it is published. */
 const DRAFT_KEY = "nb_report_draft_v1";
@@ -64,6 +72,8 @@ export default function ReportWizard() {
   const [step, setStep] = useState(0);
   const [category, setCategory] = useState<CategoryKey>("flood");
   const [severity, setSeverity] = useState(2);
+  // True once the resident has picked a severity themselves.
+  const [severityTouched, setSeverityTouched] = useState(false);
   const [pick, setPick] = useState<PickResult | null>(null);
   const [area, setArea] = useState("");
   const [prefillOn, setPrefillOn] = useState(prefillAllowed);
@@ -113,6 +123,10 @@ export default function ReportWizard() {
   function chooseCategory(k: CategoryKey) {
     setCategory(k);
     if (!anonTouched && PRIVATE_BY_DEFAULT.has(k)) setAnonymous(true);
+    // Each kind of report starts at the severity that usually fits it (a car
+    // accident is not "minor" by default). The resident can change it, and
+    // once they have, changing the category leaves their choice alone.
+    if (!severityTouched) setSeverity(categoryDef(k).defaultSeverity);
   }
 
   // Why Publish is off. Shown as text so a disabled button is never a mystery.
@@ -367,16 +381,20 @@ export default function ReportWizard() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="nb-label" id="severity-label">Severity</span>
             <div className="flex flex-wrap gap-1.5">
-              {["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"].map((label, i) => (
+              {SEVERITY_LEVELS.map((level) => (
                 <button
-                  key={label}
+                  key={level.level}
                   type="button"
-                  onClick={() => setSeverity(i + 1)}
-                  aria-pressed={severity === i + 1}
-                  data-on={severity === i + 1 ? "true" : undefined}
+                  onClick={() => {
+                    setSeverity(level.level);
+                    setSeverityTouched(true);
+                  }}
+                  aria-pressed={severity === level.level}
+                  data-on={severity === level.level ? "true" : undefined}
+                  title={level.blurb}
                   className="nb-chip"
                 >
-                  {label}
+                  {level.label}
                 </button>
               ))}
             </div>

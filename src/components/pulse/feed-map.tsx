@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { MapPanel, type MapPin } from "@/components/map/map-panel";
 import { GAZETTEER, timeAgo, type CategoryKey } from "@/lib/geo";
 import { CATEGORIES, nowMs } from "@/lib/geo";
-import { freshnessFor } from "@/lib/freshness";
+import { getFreshness } from "@/lib/freshness";
 import { CatBadge, Lift } from "@/ui/pulse";
 import type { FeedRow } from "./feed-stream";
 
@@ -43,7 +43,7 @@ export function FeedMap({
         status: r.status,
         href: `/incident/${r.id}`,
         // A pulse on the marker means "someone could still act on this".
-        live: r.status === "active" && r.severity >= 3 && freshnessFor(r.category, r.updatedAt, nowMs()).level === "current",
+        live: r.status === "active" && r.severity >= 3 && getFreshness(r.updatedAt, "report", nowMs()).band === "live",
       })),
     [rows],
   );

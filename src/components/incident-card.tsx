@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CATEGORIES, type CategoryKey, formatCoord, nowMs, timeAgo } from "@/lib/geo";
-import { ageLabel, freshnessFor } from "@/lib/freshness";
+import { ageLabel, getFreshness } from "@/lib/freshness";
 import { IncidentActions } from "./incident-actions";
 import { BadgeMark } from "./verified-badge";
 import { EngagementSummary } from "@/components/engage/summary";
@@ -73,9 +73,9 @@ export function IncidentCard({
   latest?: { kind: string; note: string | null; createdAt: string | Date } | null;
 }) {
   const meta = CATEGORIES[row.category as CategoryKey] ?? CATEGORIES.notice;
-  // Freshness is per category (see src/lib/freshness.ts). Old reports are labelled, never hidden.
-  const fresh = freshnessFor(row.category, row.updatedAt, nowMs());
-  const stale = fresh.level !== "current";
+  // One freshness rule for the whole app (src/lib/freshness.ts). Old reports are labelled, never hidden.
+  const fresh = getFreshness(row.updatedAt, "report", nowMs());
+  const stale = fresh.band !== "live";
 
   return (
     <article
@@ -95,7 +95,7 @@ export function IncidentCard({
           <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-ink-300">{row.status}</span>
         ) : stale ? (
           <span className="rounded-full border border-sun-500/30 bg-sun-500/12 px-2.5 py-1 text-[11.5px] text-sun-600">
-            {fresh.level === "stale" ? "may be out of date" : "needs a re-check"} · {ageLabel(fresh.hoursAgo)}
+            {fresh.band === "stale" ? "may be out of date" : "needs a re-check"} · {ageLabel(fresh.hoursAgo)}
           </span>
         ) : null}
         {row.sourceKind === "news" ? (

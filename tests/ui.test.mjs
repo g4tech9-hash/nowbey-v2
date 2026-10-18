@@ -58,10 +58,19 @@ test("the alerts page is the Nassau MVP form", async () => {
     "Email address",
     "New Providence",
     "Other islands",
-    "Leave everything unselected to hear about every report",
   ]) {
     assert.ok(html.includes(phrase), `the alert form should say: ${phrase}`);
   }
+  // "All reports" is an explicit default now, not the absence of a choice, and
+  // the thirteen kinds are grouped into families a person can scan.
+  assert.ok(html.includes("All reports"), "the category picker must offer an explicit All reports default");
+  for (const group of ["Hazards", "Utilities", "Community"]) {
+    assert.ok(html.includes(`>${group}<`) || html.includes(group), `the category picker must group the kinds: ${group}`);
+  }
+  assert.ok(
+    !html.includes("Leave everything unselected to hear about every report"),
+    "the old 'leave everything unselected' wording must be gone",
+  );
   assert.ok(html.includes("Text messages are not available yet"), "text alerts must be labelled as unavailable");
   assert.ok(html.includes("Storm reports for your islands always reach you"), "storm cover must be stated, and it is free for everyone");
   assert.ok(!/Storm.*(Conch|Rock Sound|Admiral)/s.test(html), "storm warnings must not be sold as a paid perk");

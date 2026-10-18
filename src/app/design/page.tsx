@@ -34,6 +34,7 @@ const isoAgo = (ms: number) => new Date(DEMO_BASE.getTime() - ms).toISOString();
 const DEMO_NOW = isoAgo(0);
 const DEMO_HOUR = isoAgo(5 * 3_600_000);
 const DEMO_DAY4 = isoAgo(4 * 86_400_000);
+const DEMO_DAY9 = isoAgo(9 * 86_400_000);
 
 export default async function DesignPage() {
   const theme = readTheme() ?? "dark";
@@ -200,11 +201,12 @@ export default async function DesignPage() {
               <CatBadge category="marine" />
             </div>
           </Demo>
-          <Demo name="FreshnessPill" token="--success · --warning · --text-tertiary">
+          <Demo name="FreshnessPill" token="--success · --info · --warning · --text-tertiary">
             <div className="flex flex-wrap gap-2">
               <FreshnessPill freshness="live" time={DEMO_NOW} label="now" />
-              <FreshnessPill freshness="watching" time={DEMO_HOUR} label="1h ago" />
-              <FreshnessPill freshness="stale" time={DEMO_DAY4} label="4d ago" />
+              <FreshnessPill freshness="recent" time={DEMO_HOUR} label="1h ago" />
+              <FreshnessPill freshness="aging" time={DEMO_DAY4} label="4d ago" />
+              <FreshnessPill freshness="stale" time={DEMO_DAY9} label="9d ago" />
             </div>
           </Demo>
           <Demo name="SeverityTag + meter" token="--sev-1…5 · category hue">

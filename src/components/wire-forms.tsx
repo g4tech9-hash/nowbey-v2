@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
+import { CATEGORY_GROUPS, categoriesInGroup, type CategoryGroup } from "@/lib/categories";
 import { trackFunnel } from "@/lib/funnel-client";
 import type { TierKey } from "@/lib/tiers";
 import { Toggle } from "@/ui/kit";
@@ -101,6 +102,11 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
   const [target, setTarget] = useState(defaultEmail);
   const [islands, setIslands] = useState<string[]>([LAUNCH_ISLAND]);
   const [cats, setCats] = useState<CategoryKey[]>(DEFAULT_CATS);
+  // Which family of reports the picker is showing. "all" is the default and it
+  // is an explicit choice, not the absence of one: "leave everything
+  // unselected to hear about everything" is a sentence nobody has to read twice
+  // to understand.
+  const [group, setGroup] = useState<CategoryGroup | "all">("all");
   const [radiusKm, setRadiusKm] = useState(12);
   const [centre, setCentre] = useState<{ lat: number; lng: number } | null>(null);
   const [locBusy, setLocBusy] = useState(false);
@@ -251,26 +257,74 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
         ) : null}
       </div>
 
-      {/* 3 · What is worth waking you up — one toggle row per report type. */}
+      {/* 3 · What is worth waking you up — grouped chips, with "All reports" as
+          a real, visible default rather than the absence of a choice. */}
       <div className="nb-card-inner" style={{ padding: "6px 18px" }}>
         <div className="py-3.5">
           <span className="nb-label">Kinds of report</span>
         </div>
-        {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
-          <div key={k}>
-            <hr className="nb-divider" />
-            <div className="flex items-center justify-between gap-3 py-3">
-              <span className="flex items-center gap-2.5 text-[15px] font-semibold" style={{ color: "var(--nb-text)" }}>
-                <span className="nb-dot" style={{ background: CATEGORIES[k].color }} aria-hidden />
-                {CATEGORIES[k].label}
-              </span>
-              <Toggle on={cats.includes(k)} onClick={() => toggleCat(k)} label={CATEGORIES[k].label} />
+
+        <div className="flex flex-wrap gap-1.5 pb-3">
+          <button
+            type="button"
+            onClick={() => {
+              setGroup("all");
+              setCats(DEFAULT_CATS);
+            }}
+            aria-pressed={group === "all"}
+            className="nb-chip"
+            style={group === "all" ? { background: "var(--nb-mint)", borderColor: "var(--nb-mint)", color: "var(--nb-mint-ink)" } : undefined}
+          >
+            All reports
+          </button>
+          {CATEGORY_GROUPS.map((g) => (
+            <button
+              key={g.key}
+              type="button"
+              onClick={() => setGroup(g.key)}
+              aria-pressed={group === g.key}
+              title={g.blurb}
+              className="nb-chip"
+              style={group === g.key ? { background: "var(--nb-mint)", borderColor: "var(--nb-mint)", color: "var(--nb-mint-ink)" } : undefined}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
+
+        {group === "all" ? (
+          <p className="nb-hint pb-2">
+            You will hear about every kind of report. Pick a family above to narrow it down. Reports rated &ldquo;annoying&rdquo;
+            never trigger an email.
+          </p>
+        ) : (
+          <>
+            <p className="nb-hint pb-2">{CATEGORY_GROUPS.find((g) => g.key === group)?.blurb}.</p>
+            <div className="flex flex-wrap gap-1.5 pb-3">
+              {categoriesInGroup(group).map((c) => {
+                const on = cats.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => toggleCat(c.id)}
+                    aria-pressed={on}
+                    className="nb-chip"
+                    style={on ? { background: "var(--nb-mint)", borderColor: "var(--nb-mint)", color: "var(--nb-mint-ink)" } : undefined}
+                  >
+                    <span className="nb-dot" style={{ background: c.color }} aria-hidden />
+                    {c.label}
+                  </button>
+                );
+              })}
             </div>
-          </div>
-        ))}
-        <p className="nb-hint" style={{ paddingBottom: 14 }}>
-          Leave everything unselected to hear about every report. Reports rated “annoying” never trigger an email.
-        </p>
+            <p className="nb-hint" style={{ paddingBottom: 14 }}>
+              {cats.length
+                ? `You will hear about ${cats.length} ${cats.length === 1 ? "kind" : "kinds"} of report.`
+                : "Nothing selected means every report in this family."}
+            </p>
+          </>
+        )}
       </div>
 
       {/* 4 · The optional extras, folded away. */}

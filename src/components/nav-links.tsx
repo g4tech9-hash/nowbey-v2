@@ -29,8 +29,8 @@ export type PulseNavEntry = { href: string; label: string; short: string; icon: 
 export const PRIMARY_NAV: PulseNavEntry[] = [
   { href: "/feed", label: "Community feed", short: "Feed", icon: <LayoutList size={19} aria-hidden />, hint: "What neighbours are reporting right now" },
   { href: "/map", label: "Map", short: "Map", icon: <Compass size={19} aria-hidden />, hint: "Every pin on the island" },
-  { href: "/wire", label: "News wire", short: "Wire", icon: <Newspaper size={19} aria-hidden />, hint: "Verified notices and local news" },
-  { href: "/alerts", label: "Alerts", short: "Alerts", icon: <Bell size={19} aria-hidden />, hint: "Email alerts for your island" },
+  { href: "/wire", label: "News wire", short: "News", icon: <Newspaper size={19} aria-hidden />, hint: "Verified notices and local news" },
+  { href: "/alerts", label: "Email alerts", short: "Alerts", icon: <Bell size={19} aria-hidden />, hint: "Email alerts for your island" },
 ];
 
 export const SECONDARY_NAV: PulseNavEntry[] = [

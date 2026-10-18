@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ShieldCheck, Sparkles } from "lucide-react";
-import { TRUST_BLURB, TRUST_LABEL, TRUST_TOKEN, type TrustScore } from "@/lib/pulse/trust";
+import { TRUST_BLURB, TRUST_LABEL, TRUST_TOKEN, VERIFY_BEFORE_YOU_ACT, type TrustScore } from "@/lib/pulse/trust";
 import { CatBadge, MetaChip } from "./badge";
 
 /**
@@ -24,6 +24,7 @@ export function TrustMeter({
 }) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
   const tone = tier ? TRUST_TOKEN[tier] : clamped >= 75 ? "var(--success)" : clamped >= 50 ? "var(--info)" : clamped >= 25 ? "var(--warning)" : "var(--danger)";
+
 
   return (
     <div className="pulse-trust" data-compact={compact ? "true" : undefined}>
@@ -76,13 +77,15 @@ export function TrustCard({
     <CardLayeredSection label="Why you can believe this" icon={<ShieldCheck size={14} aria-hidden />}>
       <div className="flex flex-wrap items-center gap-2">
         <TrustMeter value={trust.value} tier={trust.tier} label={TRUST_LABEL[trust.tier]} />
-        <MetaChip tone={trust.tier === "verified" ? "success" : trust.tier === "solid" ? "info" : trust.tier === "shaky" ? "warning" : "danger"}>
+        <MetaChip tone={trust.tier === "well" ? "success" : trust.tier === "partial" ? "info" : trust.tier === "recheck" ? "warning" : "danger"}>
           {TRUST_LABEL[trust.tier]}
         </MetaChip>
         {sourceKind === "official" ? <MetaChip tone="accent">Official source</MetaChip> : null}
         {sourceKind === "news" ? <MetaChip tone="info">From the wire</MetaChip> : null}
       </div>
-      <p className="mt-2 text-[13px] leading-[1.7] text-secondary">{TRUST_BLURB[trust.tier]}</p>
+      <p className="mt-2 text-[13px] leading-[1.7] text-secondary">
+        <span className="font-bold text-primary">{trust.lead}.</span> {TRUST_BLURB[trust.tier]}
+      </p>
       {trust.reasons.length ? (
         <ul className="mt-2.5 grid gap-1.5">
           {trust.reasons.map((r) => (
@@ -107,7 +110,7 @@ export function TrustCard({
           </>
         ) : (
           <>
-            Community information can be incomplete or wrong.{" "}
+            Community information can be incomplete or wrong. {VERIFY_BEFORE_YOU_ACT}{" "}
             {href ? (
               <Link href={href} className="nb-textlink">
                 Read the whole thread

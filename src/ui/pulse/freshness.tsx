@@ -1,25 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, History, Radio } from "lucide-react";
+import { Clock, Eye, History, Radio } from "lucide-react";
 
 /**
  * FreshnessPill — is this report still true?
  *
- * Three states, and only one of them pulses: `live` is a signal nobody has
- * disproved recently, `watching` means it needs a re-check, `stale` means an
- * old report that is labelled, never hidden (the product's promise).
+ * Four bands, and only one of them pulses. `live` is a report somebody
+ * confirmed in the last two hours. `recent` is within a day. `aging` means
+ * nobody has looked at it in a few days and it wants a recheck. `stale` is
+ * older than that: muted, labelled, never hidden (the product's promise).
+ *
+ * Every band carries a word, an icon AND a colour. Colour alone would leave
+ * the badge unreadable to a colour-blind reader, and the word is the part
+ * that carries the meaning for everyone else.
  *
  * The age label arrives from the server so first paint is correct — a client
  * `timeAgo(now)` would disagree with the render and shift the layout. After
  * mount the pill refreshes it on its own clock, so an open feed does not go
  * quietly stale on the screen.
  */
-export type PulseFreshness = "live" | "watching" | "stale";
+export type PulseFreshness = "live" | "recent" | "aging" | "stale";
 
 const COPY: Record<PulseFreshness, { label: string; icon: typeof Radio; blurb: string }> = {
-  live: { label: "Live", icon: Radio, blurb: "Confirmed in the last few hours" },
-  watching: { label: "Watching", icon: Eye, blurb: "Nobody has checked it recently" },
+  live: { label: "Live", icon: Radio, blurb: "Confirmed in the last two hours" },
+  recent: { label: "Recent", icon: Clock, blurb: "Confirmed within the last day" },
+  aging: { label: "Needs a recheck", icon: Eye, blurb: "Nobody has confirmed this in a few days" },
   stale: { label: "Stale", icon: History, blurb: "Old enough to verify before you act on it" },
 };
 
@@ -36,9 +42,16 @@ function ageText(iso: string, now: number): string {
   return `${Math.round(h / 24)} days ago`;
 }
 
-/** Maps the app's own freshness model (src/lib/freshness.ts) onto Pulse's three states. */
-export function freshnessLevel(level: "current" | "aging" | "stale"): PulseFreshness {
-  return level === "current" ? "live" : level === "aging" ? "watching" : "stale";
+/**
+ * The app's own freshness model (src/lib/freshness.ts) speaks in the same four
+ * bands, so this maps one to one. Kept as a function so a caller holding an
+ * older band name still lands on the right one.
+ */
+export function freshnessLevel(level: "current" | "aging" | "stale" | PulseFreshness): PulseFreshness {
+  if (level === "current") return "live";
+  if (level === "aging") return "aging";
+  if (level === "stale") return "stale";
+  return level;
 }
 
 export function FreshnessPill({
@@ -54,7 +67,7 @@ export function FreshnessPill({
   label?: string;
   className?: string;
 }) {
-  const level: PulseFreshness = freshness === "current" || freshness === "aging" || freshness === "stale" ? freshnessLevel(freshness) : freshness;
+  const level: PulseFreshness = freshnessLevel(freshness);
   const iso = typeof time === "string" ? time : time.toISOString();
   const { icon: Icon, blurb } = COPY[level];
   const [text, setText] = useState(label ?? "");
@@ -76,9 +89,11 @@ export function FreshnessPill({
     <span className={`pulse-fresh ${className}`} data-freshness={level} title={text ? `${blurb} · ${text}` : blurb}>
       {level === "live" ? <span className="pulse-live-dot" aria-hidden /> : <Icon size={12} strokeWidth={2.4} aria-hidden />}
       <span className="font-mono">{COPY[level].label}</span>
-      {text ? <time dateTime={iso} className="font-mono opacity-80">
-        {text}
-      </time> : null}
+      {text ? (
+        <time dateTime={iso} className="font-mono opacity-80">
+          {text}
+        </time>
+      ) : null}
       <span className="sr-only">
         {COPY[level].label}: {COPY[level].blurb}.
       </span>

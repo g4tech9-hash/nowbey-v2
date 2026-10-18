@@ -4,6 +4,7 @@ import { db, hasDatabase } from "@/db";
 import { DatabaseSetup } from "@/components/db-setup";
 import { alertSubscriptions } from "@/db/schema";
 import { EmergencyNotice } from "@/components/emergency-notice";
+import { CoverageBadge } from "@/components/coverage-badge";
 import { AlertForm, StopAlertButton } from "@/components/wire-forms";
 import { PushToggle } from "@/components/push-toggle";
 import { CATEGORIES, timeAgo } from "@/lib/geo";
@@ -13,7 +14,7 @@ import { text } from "@/lib/validate";
 import { ButtonLink, Chip, Eyebrow, Panel, PanelHead, SectionTitle, StepRow } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Alerts" };
+export const metadata = { title: "Email alerts" };
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
@@ -24,8 +25,8 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
   if (!hasDatabase()) {
     return (
       <DatabaseSetup
-        eyebrow="Alerts"
-        title="Alerts start once the database is connected"
+        eyebrow="Email alerts"
+        title="Email alerts start once the database is connected"
         blurb="Parish and category alerts are stored in the database, so this deployment needs its DATABASE_URL before anyone can subscribe."
       />
     );
@@ -50,15 +51,17 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
     <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0 space-y-5">
         <EmergencyNotice />
+        <CoverageBadge tone="strong" />
 
         <div>
-          <Eyebrow>Alerts</Eyebrow>
+          <Eyebrow>Email alerts</Eyebrow>
           <h1 className="display mt-2.5 text-[clamp(1.75rem,4.6vw,2.55rem)] font-extrabold leading-[1.04] tracking-[-0.055em] text-sand-100">
             Only the ones that affect <em className="text-tide-500 not-italic">your shore</em>
           </h1>
           <p className="mt-2.5 max-w-[62ch] text-[13.5px] leading-[1.75] text-ink-300">
             Nassau first: alerts cover New Providence at launch, and when a neighbour files a matching report we email you a
-            link straight to it. Two fields decide everything — your email address and the kinds of report you care about.
+            link straight to it. Three things decide everything — your email address, your island, and the kinds of report you
+            care about.
           </p>
         </div>
 

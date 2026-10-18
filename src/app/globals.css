@@ -295,6 +295,26 @@
   color: var(--text-on-accent);
   font-weight: 800;
 }
+/* The pin now draws the category glyph rather than a two-letter code. The code
+   survives as the pin's accessible name, in the title attribute. */
+.nb-pin .nb-pin-glyph {
+  display: grid;
+  place-items: center;
+  color: var(--text-on-accent);
+}
+.nb-pin .nb-pin-glyph svg {
+  display: block;
+}
+/* An island-level pin is hollow: it says "somewhere on this island", and a
+   filled dot would pretend to a street it cannot name. */
+.nb-pin.nb-pin-approx {
+  border-style: solid;
+  border-width: 2.5px;
+  background: transparent !important;
+}
+.nb-pin.nb-pin-approx .nb-pin-glyph {
+  color: inherit;
+}
 .nb-cluster {
   width: 40px;
   height: 40px;
