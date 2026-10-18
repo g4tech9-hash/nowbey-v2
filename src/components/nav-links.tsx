@@ -224,12 +224,16 @@ export function PulseTabBar() {
   // drawer, so the bottom sheet is not a cheaper version of it: focus moves
   // in on open, Tab cannot escape to the page behind, Escape closes, and
   // focus returns to the More tab on dismiss.
+  // The sheet stacks at 760: above the bottom nav (700) and the desktop FAB
+  // (720) it is modal over, below the command palette (1000). It shipped at
+  // 690, which left its last rows behind the nav -- readable through the
+  // bar's blur, but untappable.
   const trapRef = useFocusTrap(sheet, closeSheet);
 
   return (
     <>
       {sheet ? (
-        <div className="fixed inset-0 z-[690] lg:hidden">
+        <div className="fixed inset-0 z-[760] lg:hidden">
           <button type="button" aria-label="Close menu" className="pulse-sheet-scrim" onClick={() => setSheet(false)} />
           <div
             ref={trapRef}

@@ -132,6 +132,13 @@ test("the header sticks to the Pulse rail while mobile navigation stays fixed an
     "and sits above the home indicator");
   assert.match(comps, /@media \(min-width: 1024px\) \{\s*\.pulse-bottom-nav \{\s*display: none;/,
     "and steps aside on desktop, where the rail owns navigation");
+  // The bar renders six children (4 destinations + centre Report + More), so
+  // the grid owes it six columns. At five, More wrapped onto a second row and
+  // the bar stood ~2x --pulse-navbar-h while the shell cleared for one row.
+  assert.match(comps, /\.pulse-bottom-nav\s*\{[\s\S]*?grid-template-columns: repeat\(6, 1fr\);/,
+    "the bar has a column for every slot it renders, More included");
+  assert.match(links, /className="fixed inset-0 z-\[760\] lg:hidden"/,
+    "and the More sheet stacks above the bar (700) it is modal over, so its last rows stay tappable");
 });
 
 test("light mode supplies readable surfaces and category hues from tokens", () => {
