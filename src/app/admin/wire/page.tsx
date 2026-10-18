@@ -3,13 +3,16 @@ import { db } from "@/db";
 import { newsItems } from "@/db/schema";
 import { timeAgo } from "@/lib/geo";
 import { RemoveStoryButton, ReviewButtons, SendAlertButton } from "@/components/admin-actions";
+import { FacebookPagesAdmin } from "@/components/admin-facebook-pages";
 import { Pill } from "@/components/admin-ui";
+import { getAuxSetting } from "@/lib/settings";
+import { fbPagesFromValue } from "@/lib/facebook";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Wire" };
 
 export default async function WireAdmin() {
-  const [pending, live, candidates] = await Promise.all([
+  const [pending, live, candidates, fbPagesRaw] = await Promise.all([
     db.select().from(newsItems).where(eq(newsItems.review, "pending")).orderBy(desc(newsItems.publishedAt)).limit(50),
     db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(30),
     db
@@ -18,12 +21,15 @@ export default async function WireAdmin() {
       .where(and(eq(newsItems.review, "approved"), isNull(newsItems.alertedAt), inArray(newsItems.alertLevel, ["high", "watch"])))
       .orderBy(desc(newsItems.publishedAt))
       .limit(20),
+    getAuxSetting("fb_pages"),
   ]);
   // "high" first, then "watch", newest first within each.
   candidates.sort((a, b) => (a.alertLevel === b.alertLevel ? 0 : a.alertLevel === "high" ? -1 : 1));
 
   return (
     <div className="space-y-6">
+      <FacebookPagesAdmin pages={fbPagesFromValue(fbPagesRaw)} />
+
       <section className="glass rounded-2xl p-4">
         <p className="display text-[15px] font-bold text-sand-100">Possible alerts{candidates.length ? ` (${candidates.length})` : ""}</p>
         <p className="mt-0.5 text-[12px] text-[#8fb9b6]">

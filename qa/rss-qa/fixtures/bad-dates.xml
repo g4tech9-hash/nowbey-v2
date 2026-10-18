@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Bahamas Power and Light</title>
+    <link>https://www.facebook.com/mybpl242/</link>
+    <description>Posts by BPL</description>
+    <item>
+      <title>ISO-style timestamp instead of RFC-822</title>
+      <link>https://www.facebook.com/mybpl242/posts/1205834411022</link>
+      <pubDate>2026-10-15T14:30:00Z</pubDate>
+      <description>Planned maintenance notice for Tuesday.</description>
+    </item>
+    <item>
+      <title>Timestamp printed from the wrong clock (in the future)</title>
+      <link>https://www.facebook.com/mybpl242/posts/1204678301001</link>
+      <pubDate>Wed, 01 Jul 2027 10:00:00 +0000</pubDate>
+      <description>Crews restored supply this morning.</description>
+    </item>
+    <item>
+      <title>No timestamp at all on this post</title>
+      <link>https://www.facebook.com/mybpl242/posts/1203344955110</link>
+      <description>Solar signing ceremony remarks.</description>
+    </item>
+  </channel>
+</rss>

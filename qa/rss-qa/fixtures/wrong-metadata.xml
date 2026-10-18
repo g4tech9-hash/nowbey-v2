@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>My Facebook Feed</title>
+    <link>https://example.com/facebook</link>
+    <description>Auto-generated feed</description>
+    <item>
+      <title>Storm restoration update for Eleuthera</title>
+      <link>https://www.facebook.com/mybpl242/posts/1204678301001</link>
+      <pubDate>Wed, 14 Oct 2026 09:15:00 +0000</pubDate>
+      <description>Crews restored supply this morning.</description>
+    </item>
+  </channel>
+</rss>

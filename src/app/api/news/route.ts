@@ -57,6 +57,19 @@ export async function POST(req: Request) {
   if (!gate.ok) return tooMany(gate.retryAfter, "refreshes");
   const body = await readJson(req);
   const stats = await runIngest({ limit: clampInt(String(body?.limit ?? ""), 12, 1, 40) });
-  after(() => refreshThenEnrich(8));
+  after(async () => {
+    refreshThenEnrich(8);
+    // Facebook pages the admin configured come along on every manual refresh too.
+    try {
+      const { runFacebookIngest } = await import("@/lib/facebook-ingest");
+      const stats = await runFacebookIngest().catch((err: unknown) => {
+        console.error(`[fb] page ingest failed: ${err instanceof Error ? err.message : err}`);
+        return null;
+      });
+      if (stats) console.log(`[fb] refresh: ${stats.inserted} new post(s) across ${stats.pages.length} page(s)`);
+    } catch (err) {
+      console.error(`[fb] refresh crashed: ${err instanceof Error ? err.message : err}`);
+    }
+  });
   return NextResponse.json({ stats });
 }
