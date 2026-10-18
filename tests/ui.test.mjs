@@ -18,52 +18,46 @@ const PHONE_UA =
 const phone = (path, opts = {}) => api(path, { ...opts, headers: { "user-agent": PHONE_UA, ...(opts.headers ?? {}) } });
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("the phone map is short and the pin list sits under it", async () => {
+test("the phone radar stacks canvas over inspector and the report rail", async () => {
   const res = await phone("/map");
   assert.equal(res.status, 200);
   const html = res.text;
-  const css = read("src/app/globals.css");
 
-  // One control switches between a short map and the list, which is the phone layout.
-  for (const label of ["What to show on this screen", ">Map<", ">Both<", ">List<"]) {
-    assert.ok(html.includes(label), `the phone map switch should offer ${label}`);
+  // The radar, its legend and the report rail are the phone layout: canvas first,
+  // inspector directly under it, then the windowed report list.
+  for (const label of ["Bahamas Marine", "What the pins mean", "Island activity", "All hazards", "Showing"]) {
+    assert.ok(html.includes(label), `the radar should render ${label}`);
   }
-  assert.ok(html.includes("nb-map-split"), "the map must carry the reduced-height class on phones");
-  assert.ok(html.includes("+ Report a hazard") || html.includes("Report a hazard"), "there should be a one-tap way to report a hazard");
+  assert.ok(html.includes("Post Incident"), "there should be a one-tap way to report a hazard");
 
-  // The rule itself keeps the phone map between ~124px and ~260px, never the whole screen.
-  assert.match(css, /\.nb-map-split\s*\{\s*height:\s*150px/, "the base phone map height must be small");
-  assert.match(css, /@supports \(height: 1dvh\)[\s\S]{0,300}clamp\(132px,\s*23dvh,\s*260px\)/, "the dynamic phone map height must stay capped");
-  assert.match(css, /@media \(max-width: 359\.98px\)[\s\S]{0,200}clamp\(124px,\s*21dvh,\s*200px\)/, "a 320px phone needs its own smaller cap");
-  const splitRules = css.match(/\.nb-map-split\s*\{[^}]*\}/g) ?? [];
-  assert.ok(!splitRules.some((r) => /(?:^|[^\d])100v[hs]|\b1[0-9]vh\b/.test(r)), "the phone map must never take the whole viewport");
-
-  // The pin list itself is filled in the browser from /api/incidents, so its order is checked in the
-  // source: the map block comes first, the list second. The capped height above is what makes that
-  // list start above the fold.
   const source = read("src/app/map/page.tsx");
-  const mapAt = source.indexOf("<MapPanel");
-  const listAt = source.indexOf('<ul className="space-y-1.5">');
-  assert.ok(mapAt > -1, "the phone layout must render the map");
-  assert.ok(listAt > mapAt, "the pin list must be built after the map, so it sits under it");
-  assert.match(source, /the pin list under it \(the phone default, so the list is above the fold\)/, "the phone default must stay the split layout");
+  const canvasAt = source.indexOf("<RadarCanvas");
+  const inspectorAt = source.indexOf("<InspectorPanel");
+  const listAt = source.indexOf("visible.slice(0, listLimit).map(");
+  assert.ok(canvasAt > -1 && inspectorAt > canvasAt && listAt > inspectorAt,
+    "canvas -> inspector -> list is the stacking contract on phones");
+
+  // The canvas is capped on phones and fills its column on desktop — never the whole screen.
+  const radar = read("src/components/now/radar-canvas.tsx");
+  assert.match(radar, /h-\[320px\]/, "the phone radar height must be capped");
+  assert.ok(radar.includes("lg:h-full"), "the desktop radar fills the workspace");
 });
 
-test("the alerts page is the Nassau MVP form", async () => {
+test("the alerts page is the free island alerts form", async () => {
   const res = await phone("/alerts");
   assert.equal(res.status, 200);
   const html = res.text;
   for (const phrase of [
-    "Nassau first",
+    "Free Life-Safety Service",
+    "No Paywalls",
     "Email address",
+    "Primary island",
     "New Providence",
-    "Other islands",
-    "Leave everything unselected to hear about every report",
+    "Storm warnings are always sent immediately at zero cost.",
+    "Text messages are not available yet",
   ]) {
     assert.ok(html.includes(phrase), `the alert form should say: ${phrase}`);
   }
-  assert.ok(html.includes("Text messages are not available yet"), "text alerts must be labelled as unavailable");
-  assert.ok(html.includes("Storm reports for your islands always reach you"), "storm cover must be stated, and it is free for everyone");
   assert.ok(!/Storm.*(Conch|Rock Sound|Admiral)/s.test(html), "storm warnings must not be sold as a paid perk");
 });
 

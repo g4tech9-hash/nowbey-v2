@@ -38,6 +38,7 @@ export async function GET() {
 
   return Response.json(
     {
+      success: true,
       ok: database,
       status: database ? (checks.mail && checks.appUrl ? "ready" : "degraded") : "unavailable",
       checks,

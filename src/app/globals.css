@@ -366,9 +366,9 @@ canvas {
   --nb-safe-bottom: env(safe-area-inset-bottom, 0px);
   --nb-safe-top: env(safe-area-inset-top, 0px);
   /* Chrome heights, excluding safe areas (added separately where needed).
-     --nb-header-h tracks the in-flow header (py-2.5 + ~36px row + border).
+     --nb-header-h tracks the sticky chrome (6px flag ribbon + 72px header).
      --nb-nav-h tracks the fixed bottom nav (48px targets + paddings + border). */
-  --nb-header-h: 58px;
+  --nb-header-h: 78px;
   --nb-nav-h: 70px;
 }
 
@@ -1413,7 +1413,7 @@ html[data-mode="light"] {
     /* ---- Buttons -------------------------------------------------------- */
     .nb-btn-outline {
       background: rgba(12, 34, 45, 0.6);
-      border-color: var(--nb-stroke-btn);
+      border-color: #2a4552;
       color: var(--nb-cream);
     }
     .nb-btn-outline:hover {
@@ -1533,7 +1533,7 @@ html[data-mode="light"] {
     .nb-input:hover,
     .nb-select:hover,
     .nb-textarea:hover {
-      border-color: #2a4552;
+      border-color: var(--nb-stroke-btn);
     }
     .nb-input:focus,
     .nb-select:focus,
@@ -1571,7 +1571,7 @@ html[data-mode="light"] {
       place-items: center;
       flex: none;
       margin-top: 1px;
-      background: rgba(67, 224, 203, 0.08);
+      background: color-mix(in srgb, var(--nb-mint) 8%, transparent);
     }
     .nb-num {
       width: 26px;
@@ -1585,7 +1585,7 @@ html[data-mode="light"] {
       font-variant-numeric: tabular-nums;
       border: 1.5px solid var(--nb-mint);
       color: var(--nb-mint);
-      background: rgba(67, 224, 203, 0.08);
+      background: color-mix(in srgb, var(--nb-mint) 8%, transparent);
     }
     .nb-num-off {
       border-color: var(--nb-stroke);
@@ -1691,5 +1691,671 @@ html[data-mode="light"] {
     font-size: inherit;
     line-height: inherit;
     box-shadow: none;
+  }
+}
+
+/* =====================================================================
+   NOWBEY MASTER BUILD — SECTION 3 DESIGN TOKENS (single source of truth)
+   ---------------------------------------------------------------------
+   Strict mode: every colour below is one of the sanctioned hexes
+   (brand / semantic hazard / slate neutrals). The only non-hex values are
+   the three sanctioned gradients and white-opacity borders (8–12% dark).
+   Hazard chromatic elements (icon, dot, fill, border) are identical in
+   both modes; only the small-label TEXT tier re-points per mode so the
+   Section 16 contrast gate (>= 4.5:1 body/small text) holds everywhere.
+   ===================================================================== */
+:root {
+  /* ---- BRAND -------------------------------------------------------- */
+  --nb-aqua: #00a3ad;          /* Aquamarine Sea — primary */
+  --nb-aqua-bright: #00d2d3;   /* Aquamarine Bright — glow/highlights */
+  --nb-trench: #002b49;        /* Deep Ocean Trench */
+  --nb-trench-deep: #001e36;   /* Deep Trench Darker */
+  --nb-gold: #ffc72c;          /* Sunburst Bahamas Gold — one accent per view */
+  --nb-gold-pressed: #e6b325;  /* Gold Pressed */
+
+  /* ---- SEMANTIC HAZARDS (identical in both modes) ------------------- */
+  --nb-flood: #3b82f6;
+  --nb-power: #f59e0b;
+  --nb-road: #f43f5e;
+  --nb-storm: #14b8a6;
+  --nb-fire: #f97316;
+  --nb-advisory: #6366f1;
+  --nb-ok: #10b981;
+  --nb-critical: #ef4444;
+
+  /* ---- NEUTRALS — dark "night watch" (default) ---------------------- */
+  --nb-canvas: #040810;
+  --nb-canvas-2: #050b14;
+  --nb-surface: #0b1220;
+  --nb-field: #020617;                       /* inputs — slate-950 */
+  --nb-border: rgba(255, 255, 255, 0.1);     /* white 8–12% */
+  --nb-field-border: #334155;                /* slate-700 */
+  --nb-ink: #f1f5f9;                         /* slate-100 */
+  --nb-ink-2: #94a3b8;                       /* slate-400 */
+  --nb-ink-3: #64748b;                       /* slate-500 */
+  --nb-glass: rgba(11, 18, 32, 0.82);
+  --nb-radar: #021220;                       /* radar canvas deepest */
+  --nb-radar-ink: #cbd5e1;
+  --nb-focus: #00d2d3;
+
+  /* small-label text tier (dark: the spec hexes where they clear 4.5:1) */
+  --nb-flood-text: #3b82f6;
+  --nb-power-text: #f59e0b;
+  --nb-road-text: #f43f5e;
+  --nb-storm-text: #14b8a6;
+  --nb-fire-text: #f97316;
+  --nb-advisory-text: #818cf8;   /* indigo-500 is 3.7:1 on night — lift for labels */
+  --nb-ok-text: #10b981;
+  --nb-critical-text: #f87171;   /* red-500 is 4.1:1 on night — lift for labels */
+
+  /* ---- THE THREE SANCTIONED GRADIENTS (nowhere else) ---------------- */
+  --nb-grad-hero: linear-gradient(135deg, #002b49 0%, #091e2f 55%, #001322 100%);
+  --nb-grad-primary: linear-gradient(135deg, #00a3ad 0%, #00818b 100%);
+  --nb-grad-flag: linear-gradient(90deg, #00a3ad 0%, #ffc72c 50%, #002b49 100%);
+}
+
+html[data-mode="light"] {
+  /* "daylight on the dock" */
+  --nb-canvas: #f8fafc;
+  --nb-canvas-2: #f1f5f9;
+  --nb-surface: #ffffff;
+  --nb-field: #ffffff;
+  --nb-border: #e2e8f0;                      /* slate-200 */
+  --nb-field-border: #e2e8f0;
+  --nb-ink: #0f172a;                         /* slate-900 */
+  --nb-ink-2: #475569;                       /* slate-600 */
+  --nb-ink-3: #64748b;                       /* slate-500 */
+  --nb-glass: rgba(255, 255, 255, 0.82);
+  --nb-radar: #f8fafc;
+  --nb-radar-ink: #002b49;
+  --nb-focus: #00a3ad;                       /* cyan that reads on porcelain */
+
+  /* text tier re-points to >=4.5:1 siblings of the SAME hue */
+  --nb-flood-text: #2563eb;
+  --nb-power-text: #b45309;
+  --nb-road-text: #be123c;
+  --nb-storm-text: #0f766e;
+  --nb-fire-text: #c2410c;
+  --nb-advisory-text: #4338ca;
+  --nb-ok-text: #047857;
+  --nb-critical-text: #b91c1c;
+}
+
+@theme {
+  /* brand + semantic (static) */
+  --color-aqua: #00a3ad;
+  --color-aqua-bright: #00d2d3;
+  --color-trench: #002b49;
+  --color-trench-deep: #001e36;
+  --color-gold: #ffc72c;
+  --color-gold-pressed: #e6b325;
+  --color-hz-flood: #3b82f6;
+  --color-hz-power: #f59e0b;
+  --color-hz-road: #f43f5e;
+  --color-hz-storm: #14b8a6;
+  --color-hz-fire: #f97316;
+  --color-hz-advisory: #6366f1;
+  --color-hz-ok: #10b981;
+  --color-hz-critical: #ef4444;
+
+  /* mode-flipping surfaces */
+  --color-canvas: var(--nb-canvas);
+  --color-canvas-2: var(--nb-canvas-2);
+  --color-surface: var(--nb-surface);
+  --color-field: var(--nb-field);
+  --color-edge: var(--nb-border);
+  --color-ink: var(--nb-ink);
+  --color-ink-2: var(--nb-ink-2);
+  --color-ink-3: var(--nb-ink-3);
+  --color-radar: var(--nb-radar);
+  --color-radar-ink: var(--nb-radar-ink);
+
+  /* Inter when the device has it, otherwise the system sans. Never decorative. */
+  --font-nbsans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* soft, low elevation */
+  --shadow-nb-card: 0 1px 2px rgba(0, 43, 73, 0.08);
+  --shadow-nb-hover: 0 8px 32px -8px rgba(0, 210, 211, 0.08);
+  --shadow-nb-lift: 0 18px 48px -12px rgba(0, 210, 211, 0.1);
+  --shadow-nb-gold: 0 8px 24px -6px rgba(255, 199, 44, 0.2);
+  --shadow-nb-critical: 0 8px 24px -6px rgba(239, 68, 68, 0.2);
+}
+
+/* Visible focus ring (cyan, 2px) on every interactive element, both modes. */
+*:focus-visible {
+  outline: 2px solid var(--nb-focus);
+  outline-offset: 2px;
+}
+html[data-mode="light"] :focus-visible {
+  outline: 2px solid var(--nb-focus);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* ---- typography helpers ------------------------------------------ */
+  .nbx-type {
+    font-family: var(--font-nbsans);
+  }
+  .nbx-display {
+    font-family: var(--font-nbsans);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    font-size: clamp(2.5rem, 1.7rem + 3.6vw, 3.75rem); /* 40–60px */
+  }
+  .nbx-h2 {
+    font-family: var(--font-nbsans);
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    font-size: clamp(1.5rem, 1.32rem + 0.9vw, 1.875rem); /* 24–30px */
+  }
+  .nbx-h3 {
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    line-height: 1.3;
+    font-size: 1.125rem; /* 18px */
+  }
+  .nbx-body {
+    font-family: var(--font-nbsans);
+    font-weight: 450;
+    line-height: 1.6;
+    font-size: 0.9375rem; /* 15px */
+  }
+  .nbx-label {
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    font-size: 0.75rem; /* 12px */
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .nbx-label-xs {
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    font-size: 0.6875rem; /* 11px — short strings only */
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .nbx-num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    letter-spacing: -0.01em;
+  }
+
+  /* ---- the sanctioned gradients ------------------------------------ */
+  .nbx-grad-hero {
+    background-image: var(--nb-grad-hero);
+  }
+  .nbx-grad-primary {
+    background-image: var(--nb-grad-primary);
+  }
+  .nbx-grad-flag {
+    background-image: var(--nb-grad-flag);
+  }
+  /* Gradient text ONLY on the brand wordmark and the H1 highlight line. */
+  .nbx-grad-text {
+    background-image: linear-gradient(90deg, #00d2d3 0%, #00a3ad 45%, #ffc72c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* ---- glass (dark 78–85% + blur 16–20 + 1px white 10%; light white 82%) */
+  .nbx-glass {
+    background: var(--nb-glass);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--nb-border);
+  }
+
+  /* ---- buttons ------------------------------------------------------
+     default / hover (+4% light) / active (scale .98) / disabled (50%) /
+     loading (spinner, label stays). Touch target >= 44px. -------------- */
+  .nbx-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 1.25rem;
+    border-radius: 12px; /* buttons 12–16px */
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+      transform 200ms ease-out,
+      box-shadow 250ms ease-out,
+      background-color 200ms ease-out,
+      border-color 200ms ease-out,
+      opacity 200ms ease-out;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nbx-btn:hover {
+    transform: scale(1.02);
+  }
+  .nbx-btn:active {
+    transform: scale(0.98);
+  }
+  .nbx-btn[disabled],
+  .nbx-btn[aria-disabled="true"] {
+    opacity: 0.5;
+    pointer-events: none;
+    transform: none;
+  }
+
+  .nbx-btn-primary {
+    background-image: var(--nb-grad-primary);
+    color: #ffffff;
+    box-shadow: var(--shadow-nb-card);
+  }
+  .nbx-btn-primary:hover {
+    box-shadow: var(--shadow-nb-hover);
+  }
+
+  .nbx-btn-gold {
+    background: var(--nb-gold);
+    color: var(--nb-trench);
+    box-shadow: var(--shadow-nb-gold);
+  }
+  .nbx-btn-gold:hover {
+    background: var(--nb-gold-pressed);
+    background-image: none;
+  }
+  .nbx-btn-gold:active {
+    background: var(--nb-gold-pressed);
+    background-image: none;
+  }
+
+  .nbx-btn-ghost {
+    background: transparent;
+    color: var(--nb-ink);
+    border: 1px solid var(--nb-border);
+  }
+  .nbx-btn-ghost:hover {
+    border-color: var(--nb-aqua);
+    background: rgba(0, 163, 173, 0.08);
+  }
+
+  .nbx-btn-danger {
+    background: var(--nb-critical);
+    color: #ffffff;
+  }
+  .nbx-btn-danger:hover {
+    box-shadow: var(--shadow-nb-critical);
+  }
+
+  .nbx-spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    animation: nbx-spin 0.8s linear infinite;
+    flex: none;
+  }
+
+  /* ---- cards -------------------------------------------------------- */
+  .nbx-card {
+    background: var(--nb-surface);
+    border: 1px solid var(--nb-border);
+    border-radius: 24px; /* cards 24px */
+    box-shadow: var(--shadow-nb-card);
+    transition:
+      transform 250ms ease-out,
+      box-shadow 250ms ease-out,
+      border-color 250ms ease-out;
+  }
+  .nbx-card-interactive:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-nb-hover);
+    border-color: rgba(0, 163, 173, 0.35);
+  }
+
+  /* ---- hazard chip: tint 15% bg + 30% border + icon + bold 11px ----- */
+  .nbx-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border-radius: 999px;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid;
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    line-height: 1.35;
+  }
+  .nbx-chip-hz {
+    background: color-mix(in srgb, var(--nb-chip-color) 15%, transparent);
+    border-color: color-mix(in srgb, var(--nb-chip-color) 30%, transparent);
+    color: var(--nb-chip-text);
+  }
+
+  /* ---- fields (labels always visible, 11px uppercase bold) ---------- */
+  .nbx-field {
+    width: 100%;
+    min-height: 44px;
+    background: var(--nb-field);
+    border: 1px solid var(--nb-field-border);
+    border-radius: 12px;
+    padding: 0.625rem 0.875rem;
+    color: var(--nb-ink);
+    font-family: var(--font-nbsans);
+    font-size: 1rem; /* 16px — never zoom on iOS */
+    line-height: 1.5;
+    transition: border-color 200ms ease-out, box-shadow 200ms ease-out;
+  }
+  .nbx-field::placeholder {
+    color: var(--nb-ink-3);
+  }
+  .nbx-field:focus {
+    border-color: var(--nb-aqua);
+    box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.18);
+    outline: none;
+  }
+  .nbx-field[aria-invalid="true"] {
+    border-color: var(--nb-critical);
+  }
+  .nbx-field[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* ---- segmented control (severity) -------------------------------- */
+  .nbx-seg {
+    min-height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--nb-border);
+    background: transparent;
+    color: var(--nb-ink-2);
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: all 200ms ease-out;
+  }
+  .nbx-seg:hover {
+    color: var(--nb-ink);
+    border-color: var(--nb-aqua);
+  }
+  .nbx-seg[aria-pressed="true"] {
+    background: var(--nb-gold);
+    border-color: var(--nb-gold);
+    color: var(--nb-trench);
+    box-shadow: var(--shadow-nb-gold);
+  }
+
+  /* ---- selectable tiles (hazard type / alert type) ------------------ */
+  .nbx-tile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 64px;
+    padding: 0.75rem 0.875rem;
+    border-radius: 16px; /* inputs/tiles 12–16px */
+    border: 1px solid var(--nb-border);
+    background: var(--nb-surface);
+    color: var(--nb-ink);
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 200ms ease-out;
+  }
+  .nbx-tile:hover {
+    border-color: var(--nb-aqua);
+    box-shadow: var(--shadow-nb-hover);
+  }
+  .nbx-tile[aria-pressed="true"],
+  .nbx-tile[data-on="true"] {
+    border-color: var(--nb-aqua-bright);
+    box-shadow: 0 0 0 2px var(--nb-aqua-bright), var(--shadow-nb-hover);
+    background: rgba(0, 163, 173, 0.1);
+  }
+
+  /* ---- island sector card ------------------------------------------ */
+  .nbx-sector {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 1rem;
+    border-radius: 24px;
+    border: 1px solid var(--nb-border);
+    background: var(--nb-surface);
+    color: var(--nb-ink);
+    text-align: left;
+    cursor: pointer;
+    transition: all 250ms ease-out;
+  }
+  .nbx-sector:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-nb-hover);
+    border-color: rgba(0, 163, 173, 0.35);
+  }
+  .nbx-sector[aria-current="true"] {
+    border-color: var(--nb-aqua);
+    background: rgba(0, 163, 173, 0.1);
+    box-shadow: 0 0 0 1px var(--nb-aqua), var(--shadow-nb-hover);
+  }
+
+  /* ---- live ping dots (only where data is genuinely live) ----------- */
+  .nbx-pulse-dot {
+    position: relative;
+    display: inline-flex;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--nb-ok);
+  }
+  .nbx-pulse-dot::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 999px;
+    border: 2px solid currentColor;
+    color: var(--nb-ok);
+    animation: nbx-ping 2s ease-out infinite;
+  }
+  .nbx-pulse-rose {
+    background: var(--nb-road);
+  }
+  .nbx-pulse-rose::after {
+    color: var(--nb-road);
+  }
+
+  /* ---- radar canvas ------------------------------------------------- */
+  .nbx-radar {
+    position: relative;
+    background: var(--nb-radar);
+    border-radius: 24px;
+    overflow: hidden;
+    /* topo grid: 32px lines, aquamarine 8% */
+    background-image:
+      linear-gradient(to right, rgba(0, 163, 173, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 163, 173, 0.08) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* ---- map pin pill ------------------------------------------------- */
+  .nbx-pin {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    border: 1px solid var(--nb-border);
+    background: var(--nb-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--nb-ink);
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    font-size: 0.6875rem;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .nbx-pin:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+    z-index: 3;
+  }
+  .nbx-pin[aria-current="true"] {
+    background: #ffffff;
+    color: var(--nb-trench-deep);
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--nb-aqua-bright), 0 8px 24px -8px rgba(0, 210, 211, 0.35);
+    z-index: 4;
+  }
+  .nbx-pin-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    flex: none;
+    position: relative;
+  }
+  .nbx-pin-dot::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 999px;
+    border: 2px solid var(--nb-pin-color);
+    animation: nbx-ping 2s ease-out infinite;
+    opacity: 0.7;
+  }
+
+  /* ---- tabs / nav pills --------------------------------------------- */
+  .nbx-navpill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 0.875rem;
+    border-radius: 999px;
+    font-family: var(--font-nbsans);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    color: var(--nb-ink-2);
+    transition: all 200ms ease-out;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .nbx-navpill:hover {
+    color: var(--nb-ink);
+    background: rgba(0, 163, 173, 0.08);
+  }
+  .nbx-navpill[aria-current="page"] {
+    background-image: var(--nb-grad-primary);
+    color: #ffffff;
+    box-shadow: var(--shadow-nb-hover);
+  }
+
+  /* ---- switches ------------------------------------------------------ */
+  .nbx-switch {
+    position: relative;
+    width: 52px;
+    height: 32px;
+    flex: none;
+    border-radius: 999px;
+    border: 1px solid var(--nb-field-border);
+    background: var(--nb-field);
+    cursor: pointer;
+    transition: all 200ms ease-out;
+  }
+  .nbx-switch[aria-checked="true"] {
+    background: var(--nb-aqua);
+    border-color: var(--nb-aqua);
+  }
+  .nbx-switch-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: var(--nb-ink);
+    transition: transform 200ms ease-out;
+  }
+  .nbx-switch[aria-checked="true"] .nbx-switch-knob {
+    transform: translateX(20px);
+    background: #ffffff;
+  }
+
+  /* ---- skeletons ----------------------------------------------------- */
+  .nbx-skeleton {
+    border-radius: 12px;
+    background: linear-gradient(90deg, var(--nb-border) 25%, transparent 50%, var(--nb-border) 75%);
+    background-size: 200% 100%;
+    animation: nbx-shimmer 1.4s ease-in-out infinite;
+    min-height: 1rem;
+  }
+}
+
+@keyframes nbx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes nbx-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  80%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+@keyframes nbx-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nbx-pulse-dot::after,
+  .nbx-pin-dot::after,
+  .nbx-skeleton,
+  .nbx-spinner {
+    animation: none !important;
+  }
+  .nbx-btn:hover,
+  .nbx-card-interactive:hover,
+  .nbx-sector:hover,
+  .nbx-pin:hover {
+    transform: none;
+  }
+}
+
+/* Hazard-chip pressed state (radar category filters, alert tiles). */
+.nbx-chip-hz[aria-pressed="true"],
+.nbx-chip-hz[data-on="true"] {
+  border-color: var(--nb-chip-color);
+  background: color-mix(in srgb, var(--nb-chip-color) 25%, transparent);
+}
+
+/* Mode transitions (Section 4: 300ms). Element-selector + :where keeps
+   specificity at zero so component transitions still win where they exist. */
+@media (prefers-reduced-motion: no-preference) {
+  html,
+  body {
+    transition: background-color 300ms ease-out;
+  }
+  body :where(div, span, p, a, button, input, select, textarea, li, article, section, header, footer, aside, summary) {
+    transition: background-color 300ms ease-out, border-color 300ms ease-out, color 300ms ease-out;
   }
 }

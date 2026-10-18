@@ -44,6 +44,7 @@ const ROUTES = [
   "/map",
   "/wire",
   "/report",
+  "/prompt",
   "/open-now",
   "/alerts",
   "/you",

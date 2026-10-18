@@ -1,141 +1,65 @@
 import { NextResponse } from "next/server";
-import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gte, or, sql } from "drizzle-orm";
+import { createHash } from "node:crypto";
+import { and, eq, or } from "drizzle-orm";
 import { db, hasDatabase } from "@/db";
 import { alertSubscriptions } from "@/db/schema";
-import { CATEGORY_KEYS, PARISHES, inBahamas } from "@/lib/geo";
+import { islandFor } from "@/lib/bahamas";
 import { getViewer } from "@/lib/viewer";
-import { publicBase } from "@/lib/billing";
-import { emailButton, emailLayout, sendMail } from "@/lib/mail";
 import { clientIp, hit, tooMany } from "@/lib/ratelimit";
 import { badOrigin, dbNotConfigured, hasBadOrigin } from "@/lib/http";
-import { EMAIL_RE, clampInt, numOrNull, text, readJson, dbInt } from "@/lib/validate";
+import { EMAIL_RE, text, readJson, dbInt } from "@/lib/validate";
+import { upsertAlert } from "@/lib/safety-store";
+import { HAZARD_TYPES } from "@/lib/bahamas";
 
-
-
+/**
+ * Master Build Section 15.
+ * POST /api/alerts  body { email, island, types[], frequency }
+ *   -> 400 on an invalid email; otherwise { success, message, subscription }
+ *      with the success message naming the island.
+ * Island email alerts are a free life-safety service — storm warnings are
+ * never paywalled and frequency defaults to instant.
+ */
 export async function POST(req: Request) {
   if (hasBadOrigin(req)) return badOrigin();
-  if (!hasDatabase()) return dbNotConfigured();
-  // Every request here sends an email to an address the visitor typed, so it must not be usable to spam someone.
-  const gate = hit(`alert:${clientIp(req)}`, 6, 60 * 60_000);
+  const gate = hit(`nb-alert:${clientIp(req)}`, 10, 60 * 60_000);
   if (!gate.ok) return tooMany(gate.retryAfter, "alert sign-ups");
 
-  const viewer = await getViewer();
   const body = await readJson(req);
-
-  if (String(body.channel ?? "email") !== "email") {
-    // Push exists, but it is switched on inside the Android app (You tab), not through this form.
+  const email = text(body.email, 160).trim().toLowerCase();
+  if (!EMAIL_RE.test(email)) {
     return NextResponse.json(
-      { error: "Email is the channel this form sets up. Phone push is switched on in the Android app under “Phone push alerts”, and text messages are not available yet." },
+      { success: false, error: "That email address does not look right — check it and try again." },
       { status: 400 },
     );
   }
-  const target = text(body.target, 160).toLowerCase();
-  if (!EMAIL_RE.test(target)) {
-    return NextResponse.json({ error: "That email address does not look right." }, { status: 400 });
-  }
 
-  const base = publicBase(req);
-  if (!base) {
-    return NextResponse.json({ error: "Email alerts are not fully set up on this server yet. Please try again later." }, { status: 503 });
-  }
-
-  const islands = (Array.isArray(body.parishes) ? body.parishes : []).filter((p: unknown): p is string =>
-    (PARISHES as readonly string[]).includes(String(p)),
-  );
-  const parishes = [...new Set<string>(islands)].length ? [...new Set<string>(islands)] : ["New Providence"];
-  const categories = [
-    ...new Set<string>(
-      (Array.isArray(body.categories) ? body.categories : []).filter((c: unknown): c is string => (CATEGORY_KEYS as readonly string[]).includes(String(c))),
-    ),
-  ];
-
-  const paid = viewer.tier !== null;
-  if (!paid && parishes.length > 1) {
+  const islandName = text(body.island, 60).trim();
+  const island = islandFor(islandName);
+  if (!island) {
     return NextResponse.json(
-      { error: "The free plan covers one island. Pick one, or choose a plan for as many as you like." },
-      { status: 402 },
+      { success: false, error: "Pick one of the six islands NowBey covers." },
+      { status: 400 },
     );
   }
 
-  // Optional geofence centre: only kept when it is a real point inside The Bahamas.
-  const rawLat = numOrNull(body.lat);
-  const rawLng = numOrNull(body.lng);
-  const hasCentre = rawLat !== null && rawLng !== null && inBahamas(rawLat, rawLng);
-  const lat = hasCentre ? rawLat : null;
-  const lng = hasCentre ? rawLng : null;
-  // Radius only matters with a centre; 2–100 km, default 12 km (the column default).
-  const radiusKm = hasCentre ? clampInt(body.radiusKm ?? body.radius_km, 12, 2, 100) : 12;
+  const rawTypes = Array.isArray(body.types) ? body.types : [];
+  const types = [...new Set(rawTypes.map((t: unknown) => text(t, 40).trim()).filter((t: string) => (HAZARD_TYPES as readonly string[]).includes(t)))];
+  const frequency = body.frequency === "daily_digest" ? "daily_digest" : "instant";
 
-  // One confirmation email per address every couple of minutes.
-  const [recent] = await db
-    .select({ id: alertSubscriptions.id })
-    .from(alertSubscriptions)
-    .where(
-      and(
-        eq(alertSubscriptions.target, target),
-        eq(alertSubscriptions.verified, false),
-        gte(alertSubscriptions.createdAt, new Date(Date.now() - 2 * 60_000)),
-      ),
-    )
-    .limit(1);
-  if (recent) {
-    return NextResponse.json({ error: "We just sent a confirmation to that address. Check your inbox (and spam) before asking again." }, { status: 429 });
-  }
+  const subscription = await upsertAlert({ email, island: island.name, types, frequency });
 
-  if (!paid) {
-    // Free accounts get one profile in total; visitors without an account get one per email address.
-    const [{ n }] = await db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(alertSubscriptions)
-      .where(
-        viewer.userId
-          ? and(eq(alertSubscriptions.userId, viewer.userId), eq(alertSubscriptions.verified, true))
-          : and(eq(alertSubscriptions.target, target), eq(alertSubscriptions.verified, true)),
-      );
-    if (n >= 1) {
-      return NextResponse.json(
-        { error: "The free plan includes one alert profile. Remove the old one first, or choose a plan." },
-        { status: 402 },
-      );
-    }
-  }
-
-  // A fresh request replaces any profile for this address that was never confirmed.
-  await db.delete(alertSubscriptions).where(and(eq(alertSubscriptions.target, target), eq(alertSubscriptions.verified, false)));
-
-  const token = randomBytes(18).toString("base64url");
-  const tokenHash = createHash("sha256").update(token).digest("hex");
-  await db.insert(alertSubscriptions).values({
-    channel: "email",
-    target,
-    parishes: parishes.join(","),
-    categories: categories.join(","),
-    radiusKm,
-    lat,
-    lng,
-    token,
-    tokenHash,
-    tokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60_000),
-    userId: viewer.userId,
+  return NextResponse.json({
+    success: true,
+    message: `Alerts are on for ${island.name}. Storm warnings always reach you immediately, at zero cost.`,
+    subscription,
   });
-
-  const confirm = `${base}/api/alerts/verify?token=${token}`;
-  const mail = await sendMail({
-    to: target,
-    subject: "Confirm your NowBey alerts",
-    kind: "alert-confirm",
-    html: emailLayout(
-      "Confirm your alerts",
-      `<p style="margin:0;font-size:14px;line-height:1.55;color:#cfeee9">Tap the button to switch on NowBey alerts for ${parishes.join(", ")}. If you did not ask for this, ignore this email and nothing will be sent.</p>${emailButton(confirm, "Yes, send me alerts")}`,
-    ),
-    text: `Confirm your NowBey alerts for ${parishes.join(", ")}: ${confirm}\n\nIf you did not ask for this, ignore this email.`,
-  });
-
-  return NextResponse.json({ ok: true, mail: mail.status }, { status: 201 });
 }
 
-/** Stop an alert profile: with the secret token from an email, or by id while signed in as its owner. */
+/**
+ * Unsubscribe (link in alert emails, or the member's own profile). Kept from the
+ * original alerts contract — the confirm-email links already in inboxes must keep
+ * working after the rebuild.
+ */
 export async function DELETE(req: Request) {
   if (hasBadOrigin(req)) return badOrigin();
   if (!hasDatabase()) return dbNotConfigured();

@@ -153,6 +153,8 @@ export const alertSubscriptions = pgTable(
   target: text("target").notNull(),
   parishes: text("parishes").notNull().default("New Providence"),
   categories: text("categories").notNull().default(""),
+  /** Master Build Section 15: instant | daily_digest (added by src/lib/safety-store.ts on older databases). */
+  frequency: text("frequency").notNull().default("instant"),
   radiusKm: integer("radius_km").notNull().default(12),
   /** Optional geofence centre. Null means island-wide matching (the old behaviour). */
   lat: doublePrecision("lat"),
@@ -826,4 +828,53 @@ export const funnelDaily = pgTable(
     n: integer("n").notNull().default(0),
   },
   (table) => [primaryKey({ columns: [table.day, table.step] })],
+);
+
+/* =====================================================================
+   NOWBEY MASTER BUILD — safety tables (Section 15).
+   `alert_subscriptions` above already stores email/island/types CSV under
+   its own column names and gains a `frequency` column via the safety
+   store's ensure step; these two tables are new.
+   ===================================================================== */
+
+export const reports = pgTable(
+  "reports",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    title: text("title").notNull(),
+    description: text("description").notNull().default(""),
+    hazardType: text("hazard_type").notNull(), // flooding | power_outage | road_hazard | weather | fire | safety
+    severity: text("severity").notNull().default("medium"), // low | medium | high | critical
+    island: text("island").notNull(),
+    settlement: text("settlement").notNull().default(""),
+    address: text("address").notNull().default(""),
+    lat: doublePrecision("lat").notNull(),
+    lng: doublePrecision("lng").notNull(),
+    isAnonymous: boolean("is_anonymous").notNull().default(true),
+    reporterName: text("reporter_name"), // null when anonymous
+    confirmedCount: integer("confirmed_count").notNull().default(1),
+    status: text("status").notNull().default("active"), // active | verified | resolved
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("reports_island_idx").on(table.island),
+    index("reports_created_idx").on(table.createdAt),
+  ],
+);
+
+export const newsWire = pgTable(
+  "news_wire",
+  {
+    id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+    headline: text("headline").notNull(),
+    summary: text("summary").notNull().default(""),
+    sourceName: text("source_name").notNull(),
+    sourceUrl: text("source_url").notNull(),
+    island: text("island").notNull().default("New Providence"),
+    category: text("category").notNull().default("weather"),
+    isVerified: boolean("is_verified").notNull().default(true),
+    publishedAt: timestamp("published_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("news_wire_published_idx").on(table.publishedAt)],
 );
