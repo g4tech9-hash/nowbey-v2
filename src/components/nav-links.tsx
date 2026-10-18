@@ -201,15 +201,7 @@ export function ReportFab({ variant = "fab" }: { variant?: "fab" | "tab" }) {
         href="/report"
         aria-current={on ? "page" : undefined}
         aria-label="Report a hazard — the main action"
-        className="mx-auto -mt-5 grid place-items-center rounded-full border-2"
-        style={{
-          width: 52,
-          height: 52,
-          borderColor: "var(--bg-base)",
-          background: "var(--btn-primary-bg)",
-          color: "var(--btn-primary-text)",
-          boxShadow: "var(--pulse-glow-teal)",
-        }}
+        className="pulse-navtab-fab"
       >
         <Plus size={22} strokeWidth={2.6} aria-hidden />
       </Link>

@@ -489,16 +489,9 @@ canvas {
 .pulse-bottom-nav {
   padding-bottom: var(--pulse-safe-bottom);
 }
-.pulse-fab {
-  bottom: calc(var(--pulse-navbar-h) + var(--pulse-safe-bottom) + var(--pulse-space-5));
-  right: calc(var(--pulse-space-4) + var(--pulse-safe-right));
-}
-@media (min-width: 1024px) {
-  .pulse-fab {
-    bottom: calc(var(--pulse-space-8) + var(--pulse-safe-bottom));
-    right: calc(var(--pulse-space-8));
-  }
-}
+/* Where the floating Report button lives, and when it exists at all, is decided
+   in components.css next to the component itself — a layer-1 rule would lose to
+   the component block that follows it in the cascade. */
 
 /* Page flow must clear the fixed bottom nav on phones/tablets, and the
    dynamic header on every size. */
@@ -511,13 +504,19 @@ canvas {
   }
 }
 
-/* Legacy alias kept for the pages that still carry it. */
+/* Page flow must clear the fixed bottom nav — declared once, and carried by the
+   shell wrapper so no page has to remember it. `.nb-clear-nav` is the same rule
+   under the old name, for pages that still carry it. */
+.pulse-clear-nav {
+  padding-bottom: 0;
+}
 .nb-clear-nav {
   padding-bottom: 0;
 }
 @media (max-width: 1023.98px) {
+  .pulse-clear-nav,
   .nb-clear-nav {
-    padding-bottom: calc(var(--pulse-navbar-h) + var(--pulse-safe-bottom) + 24px);
+    padding-bottom: calc(var(--pulse-navbar-h) + var(--pulse-safe-bottom) + var(--pulse-space-6));
   }
 }
 
@@ -570,8 +569,37 @@ canvas {
     padding: var(--pulse-space-6) var(--pulse-space-8);
   }
 }
-.pulse-intro h1 {
+.pulse-intro-copy {
+  min-width: 0;
+}
+.pulse-intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pulse-space-2) var(--pulse-space-3);
+  min-width: 0;
+}
+@media (min-width: 1024px) {
+  .pulse-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--pulse-space-8);
+  }
+  .pulse-intro-actions {
+    justify-content: flex-end;
+  }
+}
+/* One type scale for every page title in the app, so "the intro band" cannot
+   mean four different sizes depending on which page was written last. */
+.pulse-intro h1,
+.pulse-intro h2 {
   font-size: var(--pulse-text-3xl);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  text-wrap: balance;
 }
 .pulse-kicker {
   display: inline-flex;
@@ -584,7 +612,10 @@ canvas {
   text-transform: uppercase;
 }
 .pulse-lede {
-  max-width: 64ch;
+  /* 52ch is the widest comfortable measure for this size; below the tablet
+     breakpoint the grid makes it narrower than that on its own. */
+  max-width: 52ch;
+  text-wrap: pretty;
   color: var(--text-secondary);
   font-size: var(--pulse-text-sm);
   line-height: 1.75;

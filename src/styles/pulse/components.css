@@ -1012,10 +1012,14 @@ kbd {
   color: var(--text-accent);
   background: var(--nav-active);
 }
+/* One primary action per screen. On a phone or tablet the Report action already
+   owns the raised centre slot of the bottom nav, so a second floating "+" in the
+   corner is not a convenience — it is two buttons shouting the same word. The
+   floating variant belongs to the desktop, where the bottom nav is gone. */
 .pulse-fab {
   position: fixed;
   z-index: 720;
-  display: grid;
+  display: none;
   place-items: center;
   width: var(--pulse-fab-size);
   height: var(--pulse-fab-size);
@@ -1027,8 +1031,36 @@ kbd {
   cursor: pointer;
   transition: transform var(--pulse-duration-tap) var(--pulse-ease-spring);
 }
+/* The raised centre slot of the bottom nav: the same action, wearing the bar
+   instead of floating over it. It is lifted by a negative margin so the ring of
+   page colour reads as one continuous edge with the nav, and it is 52px rather
+   than 56 because the bar is 64 tall and a taller disc starts eating the
+   neighbours' labels. */
+.pulse-navtab-fab {
+  display: grid;
+  place-items: center;
+  width: calc(var(--pulse-fab-size) - 4px);
+  height: calc(var(--pulse-fab-size) - 4px);
+  margin: calc(var(--pulse-space-4) * -1) auto 0;
+  border: 2px solid var(--bg-base);
+  border-radius: var(--pulse-shape-pill);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  box-shadow: var(--pulse-glow-teal);
+  transition: transform var(--pulse-duration-tap) var(--pulse-ease-spring);
+}
+.pulse-navtab-fab:active {
+  transform: scale(0.92);
+}
 .pulse-fab:active {
   transform: scale(0.92);
+}
+@media (min-width: 1024px) {
+  .pulse-fab {
+    display: grid;
+    bottom: calc(var(--pulse-space-8) + var(--pulse-safe-bottom));
+    right: calc(var(--pulse-space-8));
+  }
 }
 @media (hover: hover) and (pointer: fine) {
   .pulse-fab:hover {

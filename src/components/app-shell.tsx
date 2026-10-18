@@ -121,7 +121,9 @@ export function AppShell({
         {kicker && !isAdmin ? kicker : null}
       </header>
 
-      <div className={`mx-auto w-full max-w-[var(--pulse-page-max)] px-3 pb-6 sm:px-6 lg:pb-12 ${showRail ? "pulse-shell-row" : ""}`}>
+      <div
+        className={`mx-auto w-full max-w-[var(--pulse-page-max)] px-3 pb-6 sm:px-6 lg:pb-12 pulse-clear-nav ${showRail ? "pulse-shell-row" : ""}`}
+      >
         {showRail ? (
           <aside className="hidden lg:block">
             <PulseNavRail />

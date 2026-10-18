@@ -28,16 +28,14 @@ export function PageIntro({
   as?: "h1" | "h2";
 }) {
   return (
-    <header className={`pulse-intro pulse-enter flex flex-wrap items-end gap-x-5 gap-y-4${className ? ` ${className}` : ""}`}>
-      <div className="min-w-[240px] flex-1">
+    <header className={`pulse-intro pulse-enter${className ? ` ${className}` : ""}`}>
+      <div className="pulse-intro-copy">
         {eyebrow ? <p className="nb-eyebrow">{eyebrow}</p> : null}
         {kicker ? <div className="mt-2.5 flex flex-wrap items-center gap-2">{kicker}</div> : null}
-        <Tag className="mt-2.5 text-[clamp(1.7rem,4.6vw,2.55rem)] font-extrabold leading-[1.05] tracking-[-0.04em] text-primary">
-          {title}
-        </Tag>
+        <Tag className="mt-2.5">{title}</Tag>
         {blurb ? <p className="pulse-lede mt-2.5">{blurb}</p> : null}
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions ? <div className="pulse-intro-actions">{actions}</div> : null}
     </header>
   );
 }
