@@ -56,7 +56,7 @@ function SignIn({
   onSignUp,
 }: {
   onSignIn: (handle: string, password: string) => Promise<void>;
-  onSignUp: (body: { handle: string; email: string; password: string; displayName?: string; parish?: string }) => Promise<void>;
+  onSignUp: (body: { handle: string; email: string; password: string; displayName?: string; parish?: string; termsAccepted: boolean }) => Promise<void>;
 }) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [handle, setHandle] = useState("");

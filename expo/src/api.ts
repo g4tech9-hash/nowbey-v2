@@ -243,6 +243,16 @@ export function errMsg(e: unknown): string {
   return raw || "Something went wrong. Please try again.";
 }
 
+/**
+ * The one question the report screen asks before deciding whether to show an error or keep the words:
+ * could this succeed on its own later, without the person doing anything? Offline and timeouts can. A 400
+ * cannot, and hiding it in a queue would just delay the bad news.
+ */
+export function isOfflineOrSlow(e: unknown): boolean {
+  const raw = e instanceof Error ? e.message : typeof e === "string" ? e : "";
+  return e instanceof ApiError ? e.status >= 500 || e.status === 429 || e.status === 408 : /network request failed|failed to fetch|load failed|abort/i.test(raw) || raw === "";
+}
+
 async function call<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
   const token = await getToken();
   const controller = new AbortController();
@@ -303,6 +313,11 @@ export const api = {
     parish?: string | null;
     photoNote?: string;
     anonymous?: boolean;
+    /**
+     * Set by the offline queue (src/outbox.ts). Two attempts that carry the same key are one report, so a send
+     * whose answer was never seen cannot become a second pin.
+     */
+    clientKey?: string;
   }) =>
     call<{ incident: Incident; duplicate?: boolean; message?: string }>("/api/incidents", { method: "POST", body }),
   updateIncident: (id: string, kind: "confirm" | "photo" | "clear" | "escalate") =>

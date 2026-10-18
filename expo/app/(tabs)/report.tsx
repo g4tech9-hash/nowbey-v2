@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, Switch, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
-import { api, errMsg, type Incident, type Place, type ReportAssist } from "../../src/api";
-import { CATEGORIES, CATEGORY_KEYS, SEVERITY, inBahamas, type CategoryKey } from "../../src/geo";
+import { api, errMsg, isOfflineOrSlow, type Incident, type Place, type ReportAssist } from "../../src/api";
+import { CATEGORIES, CATEGORY_KEYS, SEVERITY, inBahamas, timeAgo, type CategoryKey } from "../../src/geo";
 import MapCanvas from "../../src/MapCanvas";
 import type { LatLng } from "../../src/map-types";
 import { useSession } from "../../src/session";
 import { color } from "../../src/theme";
 import { Btn, Card, Field, Pill, t, useTopInset } from "../../src/ui";
+import { clearDraft, loadDraft, queueReport, retryAll, saveDraft, snapshot, subscribe } from "../../src/outbox";
+import { useSyncExternalStore } from "react";
 
 const STEPS = ["What", "Where", "Details"];
 
@@ -35,6 +37,62 @@ export default function Report() {
   // The server answers duplicate:true when a nearby report already covers this. Nothing was created, so the
   // form must stay filled and the person must be told — "It is on the map" would be a lie.
   const [duplicate, setDuplicate] = useState<Incident | null>(null);
+  /** A report that could not reach the server is queued, not lost. This holds its client key while we say so. */
+  const [queued, setQueued] = useState<string | null>(null);
+  /** The queue, so this screen can tell the person the moment their queued report actually leaves the phone. */
+  const outbox = useSyncExternalStore(subscribe, snapshot, snapshot);
+  /** "We kept your words" — a draft restored from this phone, with its own age. */
+  const [restored, setRestored] = useState<{ at: number } | null>(null);
+
+  // A report written minutes ago and interrupted (a call, a dead battery, a closed tab) comes back. The pin is
+  // restored too, because without it the form is a headline with nowhere to put it.
+  useEffect(() => {
+    let alive = true;
+    void loadDraft().then((d) => {
+      if (!alive || !d) return;
+      if (d.title.trim() || d.details.trim() || d.lat !== null) {
+        setStep(d.step ?? 0);
+        setCategory(d.category as CategoryKey);
+        setSeverity(d.severity ?? 2);
+        if (d.lat !== null && d.lng !== null) {
+          setPick({ lat: d.lat, lng: d.lng });
+          setFocus({ lat: d.lat, lng: d.lng, nonce: Date.now() });
+        }
+        if (d.placeStreet || d.placeParish) {
+          setPlace({ street: d.placeStreet, parish: d.placeParish, address: d.placeStreet });
+        }
+        setTitle(d.title ?? "");
+        setDetails(d.details ?? "");
+        setPhotoNote(d.photoNote ?? "");
+        setAnonymous(d.anonymous === true);
+        setRestored({ at: d.savedAt });
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  // Save on a short debounce. A draft is cheap; losing the paragraph somebody wrote in the rain is not.
+  useEffect(() => {
+    if (done || queued) return;
+    const timer = setTimeout(() => {
+      void saveDraft({
+        step,
+        category,
+        severity,
+        lat: pick?.lat ?? null,
+        lng: pick?.lng ?? null,
+        placeStreet: place?.street ?? null,
+        placeParish: place?.parish ?? null,
+        title,
+        details,
+        photoNote,
+        anonymous,
+      });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [done, queued, step, category, severity, pick?.lat, pick?.lng, place?.street, place?.parish, title, details, photoNote, anonymous]);
 
   // Look up the street for the pin so the report names a real place.
   useEffect(() => {
@@ -125,11 +183,32 @@ export default function Report() {
         anonymous,
       });
       if (res.duplicate) {
+        await clearDraft();
         setDuplicate(res.incident);
         return;
       }
+      await clearDraft();
       setDone(res.incident);
     } catch (e) {
+      // The signal went, not the report. Keep the words, keep the pin, and say plainly what happens next.
+      if (isOfflineOrSlow(e)) {
+        const key = await queueReport({
+          title: title.trim(),
+          details: details.trim(),
+          category,
+          severity,
+          lat: pick.lat,
+          lng: pick.lng,
+          address: place?.address ?? null,
+          street: place?.street ?? null,
+          parish: place?.parish ?? null,
+          photoNote: photoNote.trim(),
+          anonymous,
+        });
+        await clearDraft();
+        setQueued(key);
+        return;
+      }
       setError(errMsg(e));
     } finally {
       setBusy(false);
@@ -138,6 +217,9 @@ export default function Report() {
 
   function reset() {
     setDone(null);
+    setQueued(null);
+    setRestored(null);
+    void clearDraft();
     setStep(0);
     setPick(null);
     setPlace(null);
@@ -157,6 +239,51 @@ export default function Report() {
         </Text>
         <Btn label="Open the existing report" onPress={() => router.replace(`/incident/${duplicate.id}`)} style={{ marginTop: 20 }} />
         <Btn label="Back to my report" kind="ghost" onPress={() => setDuplicate(null)} style={{ marginTop: 10 }} />
+      </View>
+    );
+  }
+
+  // Saved on the phone, not sent. The distinction matters more than any other sentence on this screen.
+  if (queued) {
+    const stillWaiting = outbox.some((i) => i.clientKey === queued);
+    const failed = outbox.find((i) => i.clientKey === queued)?.state === "failed";
+    if (!stillWaiting) {
+      return (
+        <View style={{ flex: 1, backgroundColor: color.bg, padding: 20, paddingTop: top + 40 }}>
+          <Text style={t.h1}>It sent</Text>
+          <Text style={[t.muted, { marginTop: 8 }]}>
+            The report reached NowBey when the phone found a signal. It is on the map now, with the time it was
+            written — not the time it arrived, because both matter.
+          </Text>
+          <Btn label="Back to the map" onPress={() => router.replace("/map")} style={{ marginTop: 20 }} />
+          <Btn label="Report another spot" kind="ghost" onPress={reset} style={{ marginTop: 10 }} />
+        </View>
+      );
+    }
+    return (
+      <View style={{ flex: 1, backgroundColor: color.bg, padding: 20, paddingTop: top + 40 }}>
+        <View style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: color.tideLight, alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ color: color.tideLight, fontSize: 26, fontWeight: "900" }}>↑</Text>
+        </View>
+        <Text style={[t.h1, { marginTop: 16 }]}>Saved on this phone</Text>
+        <Text style={[t.muted, { marginTop: 8 }]}>
+          There was no signal, so nothing has been published yet. Your report will send by itself as soon as the
+          phone finds a bar — you can close the app, it does not need to stay open.
+        </Text>
+        <Text style={[t.subtle, { marginTop: 10 }]}>
+          {failed
+            ? "The phone tried and could not reach NowBey. The report is still here — nothing is lost."
+            : "It will not be sent twice. Reports older than a day expire."}
+        </Text>
+        <Btn
+          label="Try sending now"
+          onPress={() => {
+            void retryAll();
+          }}
+          style={{ marginTop: 20 }}
+        />
+        <Btn label="Back to the map" kind="ghost" onPress={() => router.replace("/map")} style={{ marginTop: 10 }} />
+        <Btn label="Report another spot" kind="ghost" onPress={reset} style={{ marginTop: 10 }} />
       </View>
     );
   }
@@ -193,10 +320,37 @@ export default function Report() {
         {user ? `Posting as @${user.handle}` : "Posting without an account. Sign in on the You tab to get credit."}
       </Text>
 
-      <View style={{ flexDirection: "row", marginTop: 14 }}>
-        {STEPS.map((label, i) => (
-          <Pill key={label} label={`${i + 1} · ${label}`} active={step === i} onPress={() => setStep(i)} />
-        ))}
+      {restored ? (
+        <View style={{ marginTop: 12, borderWidth: 1, borderColor: color.line, borderRadius: 12, padding: 12 }}>
+          <Text style={[t.h3, { fontSize: 14 }]}>We kept your words</Text>
+          <Text style={[t.muted, { marginTop: 4 }]}>
+            {`This report was written ${timeAgo(new Date(restored.at).toISOString())} on this phone. The pin is where you left it — check it is still right before you publish.`}
+          </Text>
+          <View style={{ flexDirection: "row", marginTop: 8, gap: 8 }}>
+            <Btn label="Start fresh" kind="ghost" onPress={reset} style={{ paddingVertical: 8, minHeight: 38 }} />
+          </View>
+        </View>
+      ) : null}
+
+      <View style={{ flexDirection: "row", marginTop: 14, flexWrap: "wrap" }}>
+        {STEPS.map((label, i) => {
+          // Same rule as the website (audit U6): a step is only live when going there can succeed.
+          const reachable = i <= 1 || Boolean(pick);
+          return (
+            <Pill
+              key={label}
+              label={`${i + 1} · ${label}`}
+              active={step === i}
+              onPress={() => {
+                if (reachable) {
+                  setStep(i);
+                  return;
+                }
+                setError("Pin the place first — a report needs a spot on the map.");
+              }}
+            />
+          );
+        })}
       </View>
 
       {step === 0 ? (

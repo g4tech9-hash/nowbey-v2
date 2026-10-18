@@ -11,6 +11,7 @@ import { SPLASH_ENABLED } from "../src/brand";
 import { SessionProvider } from "../src/session";
 import { useSession } from "../src/session";
 import { ensurePushRegistered, watchPushTaps } from "../src/push";
+import { initOutbox } from "../src/outbox";
 
 /** Screen changes become breadcrumbs, so an app crash report shows where the person had been. */
 function BreadcrumbTracker() {
@@ -38,7 +39,10 @@ export default function RootLayout() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     installErrorReporting();
+    // Flush anything queued on the last run, and again whenever the app comes back to the foreground.
+    const stopOutbox = initOutbox();
     void Promise.all([loadApiBase(), loadBlocked()]).finally(() => setReady(true));
+    return stopOutbox;
   }, []);
   if (!ready) return <View style={{ flex: 1, backgroundColor: color.bg }} />;
   return (

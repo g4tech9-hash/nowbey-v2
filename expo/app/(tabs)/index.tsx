@@ -9,6 +9,7 @@ import { BRAND, THEME } from "../../src/brand";
 import { color } from "../../src/theme";
 import { useAutoRefresh } from "../../src/use-auto-refresh";
 import { BadgeMark, Btn, CategoryBadge, Card, Pill, t, useTopInset } from "../../src/ui";
+import { OutboxBanner } from "../../src/OutboxBanner";
 
 const SCENE = require("../../assets/splash-scene.jpg");
 
@@ -109,6 +110,7 @@ export default function Feed() {
             ))}
           </ScrollView>
 
+          <OutboxBanner />
           {error ? <Text style={t.error}>{error}</Text> : null}
           {loading ? <ActivityIndicator color={color.tideLight} /> : null}
         </View>
