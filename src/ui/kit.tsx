@@ -11,15 +11,15 @@ import Link from "next/link";
 export function NowBeyMark({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden className="shrink-0">
-      <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="#0c222d" stroke="#43e0cb" strokeWidth="2" />
-      <path d="M8 27c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#43e0cb" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.8" />
+      <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="var(--nb-surface-1)" stroke="var(--nb-mint)" strokeWidth="2" />
+      <path d="M8 27c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="var(--nb-mint)" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.8" />
       <path
         d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z"
         fill="none"
-        stroke="#43e0cb"
+        stroke="var(--nb-mint)"
         strokeWidth="2.2"
       />
-      <circle cx="20" cy="15.2" r="2.6" fill="#f6c75d" />
+      <circle cx="20" cy="15.2" r="2.6" fill="var(--nb-gold)" />
     </svg>
   );
 }
@@ -218,7 +218,7 @@ export function SampleMap({ height = 200 }: { height?: number }) {
           <circle cx="0" cy="-13.4" r="4.6" fill="#0c2b38" />
         </g>
         <g transform="translate(148, 136)">
-          <path d="M0-26c-7.2 0-13 5.6-13 12.6C-13-3.4 0 12 0 12s13-15.4 13-25.4C13-20.4 7.2-26 0-26Z" fill="#f6c75d" stroke="#fff8d4" strokeWidth="2.6" />
+          <path d="M0-26c-7.2 0-13 5.6-13 12.6C-13-3.4 0 12 0 12s13-15.4 13-25.4C13-20.4 7.2-26 0-26Z" fill="var(--nb-gold)" stroke="#fff8d4" strokeWidth="2.6" />
           <circle cx="0" cy="-13.4" r="4.6" fill="#33270a" />
         </g>
       </svg>
@@ -276,7 +276,7 @@ const TABS = [
 
 export function MockTabBar({ active }: { active: string }) {
   return (
-    <div className="mt-auto flex items-stretch justify-around border-t px-3 pb-5 pt-3" style={{ borderColor: "var(--nb-stroke)", background: "rgba(3,12,19,.6)" }}>
+    <div className="mt-auto flex items-stretch justify-around border-t px-3 pb-5 pt-3" style={{ borderColor: "var(--nb-stroke)", background: "color-mix(in srgb, var(--nb-bg-deep) 60%, transparent)" }}>
       {TABS.map((t) => {
         const on = t.key === active;
         return (

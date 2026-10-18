@@ -21,7 +21,7 @@ export function MockCommunityMap() {
       {/* floating update chip */}
       <div
         className="nb-card nb-card-tight"
-        style={{ padding: "12px 14px", display: "flex", gap: 12, alignItems: "center", background: "rgba(12,34,45,.95)" }}
+        style={{ padding: "12px 14px", display: "flex", gap: 12, alignItems: "center", background: "color-mix(in srgb, var(--nb-surface-1) 95%, transparent)" }}
       >
         <span
           aria-hidden
@@ -31,8 +31,8 @@ export function MockCommunityMap() {
             borderRadius: 10,
             display: "grid",
             placeItems: "center",
-            background: "rgba(67,224,203,.14)",
-            border: "1px solid rgba(67,224,203,.4)",
+            background: "color-mix(in srgb, var(--nb-mint) 14%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--nb-mint) 40%, transparent)",
             color: "var(--nb-mint)",
             flex: "none",
           }}
@@ -51,7 +51,7 @@ export function MockCommunityMap() {
         </span>
       </div>
 
-      <div className="nb-card nb-card-tight" style={{ background: "rgba(17,39,50,.85)" }}>
+      <div className="nb-card nb-card-tight" style={{ background: "color-mix(in srgb, var(--nb-surface-2) 85%, transparent)" }}>
         <div className="flex items-center gap-2.5">
           <CatBadge>Flooding</CatBadge>
           <span className="nb-label ml-auto" style={{ fontSize: 9.5 }}>
@@ -109,8 +109,8 @@ export function MockEmailAlerts() {
             borderRadius: 12,
             display: "grid",
             placeItems: "center",
-            border: "1px solid #6d6a45",
-            background: "#2e3122",
+            border: "1px solid color-mix(in srgb, var(--nb-gold) 34%, transparent)",
+            background: "color-mix(in srgb, var(--nb-gold) 12%, var(--nb-surface-1))",
             color: "var(--nb-gold)",
             flex: "none",
           }}
@@ -123,7 +123,7 @@ export function MockEmailAlerts() {
           <span className="block text-[15px] font-bold" style={{ color: "var(--nb-gold-ink)" }}>
             Storm warnings
           </span>
-          <span className="mt-0.5 block text-[12.5px]" style={{ color: "#a9a68c" }}>
+          <span className="mt-0.5 block text-[12.5px]" style={{ color: "var(--nb-gold-soft)" }}>
             Always sent. Free for everyone.
           </span>
         </span>
@@ -168,7 +168,7 @@ export function MockNewsWire() {
             borderRadius: 13,
             display: "grid",
             placeItems: "center",
-            background: "#143b42",
+            background: "color-mix(in srgb, var(--nb-mint) 18%, var(--nb-surface-1))",
             color: "var(--nb-mint)",
             fontFamily: "var(--font-display)",
             fontWeight: 800,
@@ -198,7 +198,7 @@ export function MockNewsWire() {
         </div>
       </div>
 
-      <div className="nb-card nb-card-tight" style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "rgba(17,39,50,.85)" }}>
+      <div className="nb-card nb-card-tight" style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "color-mix(in srgb, var(--nb-surface-2) 85%, transparent)" }}>
         <Dot color="var(--nb-coral)" glow />
         <span>
           <span className="block text-[13.5px] font-bold" style={{ color: "var(--nb-cream)" }}>
@@ -220,7 +220,7 @@ export function MockReportHazard() {
       <p className="display text-[24px] font-extrabold leading-tight">Report a hazard</p>
 
       {/* stepper */}
-      <div className="flex items-stretch rounded-2xl border" style={{ borderColor: "var(--nb-stroke-soft)", background: "rgba(12,34,45,.6)" }}>
+      <div className="flex items-stretch rounded-2xl border" style={{ borderColor: "var(--nb-stroke-soft)", background: "color-mix(in srgb, var(--nb-surface-1) 60%, transparent)" }}>
         <StepCell n={1} label="What" active />
         <span className="my-3 w-px" style={{ background: "var(--nb-stroke-soft)" }} />
         <StepCell n={2} label="Where" />
