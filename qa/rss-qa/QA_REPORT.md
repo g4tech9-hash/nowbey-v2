@@ -61,11 +61,11 @@ always available at `/api/rss/facebook`.
 | HTTP endpoint | `src/app/api/rss/facebook/route.ts` | `GET ?url=<page link>` (or `?page=<username>`, or no params → first admin page) → `application/rss+xml; charset=utf-8`, cache-friendly, 400 + readable JSON for non-Facebook links. |
 | Ingest core split | `src/lib/ingest-core.ts` | The pure classification/parsing half of `ingest.ts` (categorize, alertLevelFor, normalizeUrl, parseFeed, placeFromText), alias-free and re-exported so the wire conversion is unit-testable. |
 | BPL's own feed | `src/lib/ingest-core.ts` (`KNOWN_OUTLETS`) | `https://www.bplco.com/feed/` is a built-in outlet, so BPL press releases and outage updates reach the wire from hosting IPs without any Facebook access. |
-| Tests | `tests/facebook-rss.test.mjs` | 20 hermetic tests, wired into `npm test` (converter, bridge precedence/parsing, status parsing, BPL feed + power categorisation). The serializer's output is machine-validated by the QA harness itself. |
+| Tests | `tests/facebook-rss.test.mjs` | 22 hermetic tests, wired into `npm test` (converter, bridge precedence/parsing, status parsing, BPL feed + power categorisation). The serializer's output is machine-validated by the QA harness itself. |
 
 ## 2. Verification evidence
 
-- **Repo suite:** `npm test` → **119/119 pass** (includes the 12 new converter tests). `tsc --noEmit` clean, ESLint clean.
+- **Repo suite:** `npm test` → **129/129 pass** (includes the 22 converter/admin tests in this file). `tsc --noEmit` clean, ESLint clean, production build clean.
 - **Harness self-test (QA the QA):** 8/8 fixtures produce their known verdicts — unescaped `&` → FAIL (`WF_AMP`, line-accurate), undefined entities → FAIL, missing CDATA around HTML → warning, unclosed tags → FAIL, wrong channel metadata → FAIL, non-RFC-822 / future / missing dates → warnings, zero items → FAIL, golden feed → PASS.
 - **Live HTTP audit:** endpoint run under `next dev` and audited with `node qa/rss-qa/validate.mjs --url …` → **PASS**, transcript in the header of this report.
 - **Malformed-upstream proof:** a bridge fixture carrying a raw `&`, undefined `&nbsp;`/`&rsquo;` entities and attribute-order-flipped enclosures **fails** the harness as raw input (`WF_AMP`, `WF_ENTITY_UNDEFINED`); after `parseBridgeFeed → postsToRssXml` the same content **passes** with zero errors/warnings and 2/2 items accepted by the NowBey ingest simulation. The converter demonstrably repairs broken upstream feeds.
