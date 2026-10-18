@@ -18,31 +18,31 @@
   --text-3xl: clamp(1.9rem, 1.5rem + 1.8vw, 2.75rem);
 
   /* ---- Surfaces: landing palette ("abyss" — blue-shifted deep navy) ------- */
-  --color-abyss-975: #040e15;
-  --color-abyss-950: #07131c;
-  --color-abyss-900: #0a1b26;
-  --color-abyss-850: #0d202c;
-  --color-abyss-800: #122b37;
-  --color-abyss-700: #16323f;
-  --color-abyss-600: #1c4352;
+  --color-abyss-975: #040810;
+  --color-abyss-950: #050b14;
+  --color-abyss-900: #0b1220;
+  --color-abyss-850: #0e1a28;
+  --color-abyss-800: #16273a;
+  --color-abyss-700: #1e3145;
+  --color-abyss-600: #334155;
 
   /* ---- Primary: "tide" (luminous signal teal, landing #43e0cc) ----------- */
-  --color-tide-650: #1fa898;
-  --color-tide-600: #2cc4b2;
-  --color-tide-500: #43e0cc;
-  --color-tide-400: #6be9d9;
-  --color-tide-300: #9bfff0;
-  --color-tide-200: #c9fff7;
+  --color-tide-650: #00818b;
+  --color-tide-600: #00a3ad;
+  --color-tide-500: #00d2d3;
+  --color-tide-400: #33dbdc;
+  --color-tide-300: #7be8e8;
+  --color-tide-200: #b9f2f2;
 
   /* ---- Secondary & caution ------------------------------------------------ */
-  --color-conch-600: #e4675a;
-  --color-conch-500: #ff8877;
-  --color-conch-400: #ff9d8f;
-  --color-sun-600: #d9a832;
-  --color-sun-500: #f5c75d;
+  --color-conch-600: #c2410c;
+  --color-conch-500: #f97316;
+  --color-conch-400: #fb923c;
+  --color-sun-600: #e6b325;
+  --color-sun-500: #ffc72c;
   --color-sun-400: #ffd766;
-  --color-sand-100: #f7f1e7;
-  --color-sand-50: #fbf6ee;
+  --color-sand-100: #f8fafc;
+  --color-sand-50: #f1f5f9;
   --color-rum-500: #b4713f;
 
   /* ---- Semantic (600 tier = the text tier; light mode re-points it deep) -- */
@@ -96,7 +96,7 @@
   --color-cat-accident-t: #ef4444;
 
   /* ---- Text (landing: cream #f7f1e7 / muted #9cb5b8 / quiet #718d95) ------ */
-  --color-ink-100: #f7f1e7;
+  --color-ink-100: #f1f5f9;
   --color-ink-200: #c8d7d4;
   --color-ink-300: #9cb5b8;
   --color-ink-400: #718d95;
@@ -772,25 +772,25 @@ html[data-low-data="true"] * { scroll-behavior: auto !important; }
    the admin default comes from site_settings.mode / NOWBEY_MODE.
    ===================================================================== */
 html[data-mode="light"] {
-  --color-abyss-975: #ece8df;
-  --color-abyss-950: #f5f3ed;
+  --color-abyss-975: #f8fafc;
+  --color-abyss-950: #f8fafc;
   --color-abyss-900: #ffffff;
-  --color-abyss-850: #faf9f5;
-  --color-abyss-800: #e9efeb;
-  --color-abyss-700: #d4dfd9;
-  --color-abyss-600: #7b96a1;
+  --color-abyss-850: #f8fafc;
+  --color-abyss-800: #e2e8f0;
+  --color-abyss-700: #e2e8f0;
+  --color-abyss-600: #94a3b8;
 
-  --color-ink-100: #0a1a24;
-  --color-ink-200: #2a3e45;
-  --color-ink-300: #38505a;
-  --color-ink-400: #3a4e57;
+  --color-ink-100: #002b49;
+  --color-ink-200: #475569;
+  --color-ink-300: #64748b;
+  --color-ink-400: #94a3b8;
 
-  --color-tide-650: #00635a;
-  --color-tide-600: #00756a;
-  --color-tide-500: #007d70;
-  --color-tide-400: #007d70;
-  --color-tide-300: #00635a;
-  --color-tide-200: #00443d;
+  --color-tide-650: #00818b;
+  --color-tide-600: #00818b;
+  --color-tide-500: #00a3ad;
+  --color-tide-400: #00a3ad;
+  --color-tide-300: #00818b;
+  --color-tide-200: #006d76;
 
   --color-ok-500: #0b8a64;
   --color-ok-600: #065c43;
@@ -807,9 +807,9 @@ html[data-mode="light"] {
   --color-sev-4: #d64550;
   --color-sev-5: #a10e33;
 
-  --color-conch-600: #c2413c;
-  --color-conch-500: #d64550;
-  --color-conch-400: #b23332;
+  --color-conch-600: #9a3412;
+  --color-conch-500: #c2410c;
+  --color-conch-400: #ea580c;
   --color-sun-600: #6e4e00;
   --color-sun-500: #a87c00;
   --color-sun-400: #8a6100;
@@ -1360,7 +1360,7 @@ html[data-mode="light"] .nb-pagescene-veil {
 /* Light mode inverts the tide ink (tide-500 becomes #007d70, so dark text
    on it would fail contrast). */
 html[data-mode="light"] {
-  --nb-mint-ink: #ffffff;
+  --nb-mint-ink: #002b49;
 }
 
 @layer components {
@@ -1382,8 +1382,8 @@ html[data-mode="light"] {
       padding: 18px;
     }
     .nb-card-gold {
-      background: #1c2118;
-      border: 1px solid #4d4f3c;
+      background: color-mix(in srgb, var(--nb-gold) 10%, var(--nb-surface-1));
+      border: 1px solid color-mix(in srgb, var(--nb-gold) 32%, transparent);
       border-radius: 18px;
       padding: 18px;
       display: flex;
@@ -1412,12 +1412,12 @@ html[data-mode="light"] {
   
     /* ---- Buttons -------------------------------------------------------- */
     .nb-btn-outline {
-      background: rgba(12, 34, 45, 0.6);
-      border-color: #2a4552;
+      background: color-mix(in srgb, var(--nb-surface-1) 60%, transparent);
+      border-color: var(--nb-stroke-btn);
       color: var(--nb-cream);
     }
     .nb-btn-outline:hover {
-      border-color: rgba(67, 224, 203, 0.45);
+      border-color: color-mix(in srgb, var(--nb-mint) 45%, transparent);
       color: var(--nb-mint);
     }
     .nb-btn-block {
@@ -1430,8 +1430,8 @@ html[data-mode="light"] {
       align-items: center;
       gap: 8px;
       border-radius: 999px;
-      border: 1px solid rgba(246, 199, 93, 0.38);
-      background: rgba(246, 199, 93, 0.08);
+      border: 1px solid color-mix(in srgb, var(--nb-gold) 38%, transparent);
+      background: color-mix(in srgb, var(--nb-gold) 8%, transparent);
       color: var(--nb-gold);
       font-size: 11px;
       font-weight: 800;
@@ -1442,13 +1442,13 @@ html[data-mode="light"] {
       white-space: nowrap;
     }
     .nb-pill-mint {
-      border-color: rgba(67, 224, 203, 0.4);
-      background: rgba(67, 224, 203, 0.08);
+      border-color: color-mix(in srgb, var(--nb-mint) 40%, transparent);
+      background: color-mix(in srgb, var(--nb-mint) 8%, transparent);
       color: var(--nb-mint);
     }
     .nb-pill-dark {
       border-color: var(--nb-stroke-btn);
-      background: rgba(3, 12, 19, 0.75);
+      background: color-mix(in srgb, var(--nb-bg-deep) 75%, transparent);
       color: var(--nb-cream);
       letter-spacing: 0.08em;
     }
@@ -1540,7 +1540,7 @@ html[data-mode="light"] {
     .nb-textarea:focus {
       outline: none;
       border-color: var(--nb-mint);
-      box-shadow: 0 0 0 3px rgba(67, 224, 203, 0.18);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--nb-mint) 18%, transparent);
     }
     .nb-textarea {
       min-height: 110px;
@@ -1605,7 +1605,7 @@ html[data-mode="light"] {
       letter-spacing: -0.01em;
     }
     .nb-link-arrow:hover {
-      color: var(--nb-tide-300, #6beedc);
+      color: var(--nb-tide-300);
     }
   
     /* ---- Dividers / rows ---------------------------------------------------- */
@@ -1629,13 +1629,13 @@ html[data-mode="light"] {
       width: 40px;
       height: 40px;
       border-radius: 12px;
-      border: 1.5px solid rgba(67, 224, 203, 0.55);
+      border: 1.5px solid color-mix(in srgb, var(--nb-mint) 55%, transparent);
       color: var(--nb-mint);
       font-family: var(--font-display);
       font-weight: 800;
       font-size: 15px;
       flex: none;
-      background: rgba(67, 224, 203, 0.07);
+      background: color-mix(in srgb, var(--nb-mint) 7%, transparent);
     }
   
     /* ---- Phone mockup ------------------------------------------------------- */
@@ -1710,7 +1710,7 @@ html[data-mode="light"] {
   --nb-aqua-bright: #00d2d3;   /* Aquamarine Bright — glow/highlights */
   --nb-trench: #002b49;        /* Deep Ocean Trench */
   --nb-trench-deep: #001e36;   /* Deep Trench Darker */
-  --nb-gold: #ffc72c;          /* Sunburst Bahamas Gold — one accent per view */
+  --nb-gold: var(--color-sun-500); /* Sunburst Gold — flips per mode (#ffc72c night / AA gold day) */
   --nb-gold-pressed: #e6b325;  /* Gold Pressed */
 
   /* ---- SEMANTIC HAZARDS (identical in both modes) ------------------- */

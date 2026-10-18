@@ -125,7 +125,7 @@ test("daylight action and chip text have WCAG AA normal-text contrast", () => {
       .map((v) => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
     return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
   }
-  for (const [fg, bg] of [["ffffff", "007d70"], ["38505a", "ffffff"], ["0a1a24", "f5f3ed"]]) {
+  for (const [fg, bg] of [["ffffff", "00818b"], ["002b49", "f8fafc"], ["002b49", "00a3ad"]]) {
     const values = [luminance(fg), luminance(bg)].sort((a, b) => b - a);
     assert.ok((values[0] + 0.05) / (values[1] + 0.05) >= 4.5, `${fg} on ${bg}`);
   }
