@@ -93,8 +93,17 @@ export function fbPageName(username: string, env: NodeJS.ProcessEnv = process.en
   return KNOWN_FB_PAGES[username.toLowerCase()] ?? `${username} (Facebook)`;
 }
 
-/** Bridge feed URL for a page from FB_RSS_BRIDGES ("user|https://…/rss.xml,…"), if configured. */
-export function fbBridgeUrl(username: string, env: NodeJS.ProcessEnv = process.env): string | null {
+/**
+ * Bridge feed URL for a page. A bridge saved by an admin on /admin/wire wins (it takes effect on
+ * the next refresh, no redeploy); FB_RSS_BRIDGES remains the server-level fallback.
+ */
+export function fbBridgeUrl(
+  username: string,
+  env: NodeJS.ProcessEnv = process.env,
+  adminBridges: Record<string, string> = {},
+): string | null {
+  const fromAdmin = (adminBridges[username] ?? "").trim();
+  if (/^https?:\/\//i.test(fromAdmin)) return fromAdmin;
   const raw = env.FB_RSS_BRIDGES ?? "";
   for (const entry of raw.split(",")) {
     const i = entry.indexOf("|");
@@ -104,6 +113,57 @@ export function fbBridgeUrl(username: string, env: NodeJS.ProcessEnv = process.e
     }
   }
   return null;
+}
+
+/**
+ * Parse the admin-managed bridge list (site setting "fb_bridges", "user|https://…/rss.xml,…").
+ * Tolerant like the page list: http(s) only, junk dropped, a later entry for the same page wins.
+ * Stored separately from the pages so a bridge can be added without touching the page list.
+ */
+export function fbBridgesFromValue(raw: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const entry of (raw ?? "").split(",")) {
+    const trimmed = entry.trim();
+    if (!trimmed) continue;
+    const i = trimmed.indexOf("|");
+    if (i <= 0) continue;
+    const username = trimmed.slice(0, i).trim();
+    const url = trimmed.slice(i + 1).trim();
+    if (!/^[A-Za-z0-9.\-_]{2,80}$/.test(username)) continue;
+    if (!/^https?:\/\/[^\s]+$/i.test(url)) continue;
+    out[username] = url.slice(0, 600);
+  }
+  return out;
+}
+
+/**
+ * True for hosts a server must never fetch on an admin's behalf: loopback, LAN ranges,
+ * link-local and internal-only names. A bridge is a public feed; anything else is a
+ * misconfiguration at best and an SSRF attempt at worst.
+ */
+export function isPrivateHostname(host: string): boolean {
+  const h = host.trim().toLowerCase().replace(/^\[|\]$/g, "");
+  if (!h) return true;
+  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal")) return true;
+  const v4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) {
+    const a = Number(v4[1]);
+    const b = Number(v4[2]);
+    return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) || (a === 192 && b === 168) || (a === 172 && b >= 16 && b <= 31);
+  }
+  if (h.includes(":")) {
+    // IPv6: loopback, unique-local (fc00::/7) and link-local (fe80::/10).
+    if (h === "::1" || /^f[cd]/.test(h) || h.startsWith("fe80")) return true;
+  }
+  return false;
+}
+
+/** Serialize the bridge map back into the site setting's "user|url,user|url" form. */
+export function fbBridgesToValue(bridges: Record<string, string>): string {
+  return Object.entries(bridges)
+    .filter(([, url]) => /^https?:\/\//i.test(url))
+    .map(([username, url]) => `${username}|${url}`)
+    .join(",");
 }
 
 export type FbPageRef = { username: string; pageName: string };
@@ -409,9 +469,10 @@ export async function fetchFacebookPosts(
   username: string,
   env: NodeJS.ProcessEnv = process.env,
   timeoutMs = 9000,
+  adminBridges: Record<string, string> = {},
 ): Promise<{ posts: FbPost[]; source: FbSource; note: string }> {
   const pageName = fbPageName(username, env);
-  const bridge = fbBridgeUrl(username, env);
+  const bridge = fbBridgeUrl(username, env, adminBridges);
   if (bridge) {
     const xml = await fetchText(bridge, timeoutMs);
     if (xml) {
@@ -424,9 +485,9 @@ export async function fetchFacebookPosts(
   const html = await fetchText(`https://mbasic.facebook.com/${username}`, timeoutMs);
   const posts = html ? parseFacebookHtml(html, username) : [];
   const note = !html
-    ? "Facebook did not answer (blocked or unreachable from this host)"
+    ? `Facebook did not answer this server (blocked or unreachable) — add a bridge feed for @${username} on /admin/wire, or set FB_RSS_BRIDGES`
     : posts.length === 0
-      ? "Facebook answered with a login wall or markup we could not read — configure FB_RSS_BRIDGES for this page"
+      ? `Facebook answered with a login wall or markup we could not read — add a bridge feed for @${username} on /admin/wire, or set FB_RSS_BRIDGES`
       : "public mobile page";
   return { posts, source: { kind: "direct", pageName, username }, note };
 }

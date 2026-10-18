@@ -1,56 +1,13 @@
 import { db } from "@/db";
 import { desc } from "drizzle-orm";
 import { newsItems } from "@/db/schema";
-import { GAZETTEER, PARISHES, type CategoryKey } from "@/lib/geo";
+import { categorize, alertLevelFor, decode, normalizeUrl, parseFeed, placeFromText, configuredFeeds, type ParsedItem } from "./ingest-core";
 
-export type Feed = { name: string; url: string; /** Used to find the outlet through Google News if its own feed does not answer. */ domain?: string };
+// Pure classification/parsing and the outlet list live in ./ingest-core (alias-free, unit-tested);
+// re-exported here so existing callers keep their imports working.
+export { normalizeUrl, categorize, alertLevelFor, decode, isJunkTitle, parseFeed, placeFromText, configuredFeeds, KNOWN_OUTLETS } from "./ingest-core";
+export type { ParsedItem, Feed } from "./ingest-core";
 
-/*
- * Bahamian outlets. Each is tried through its own feed first. If that feed is down or blocks us, the same
- * outlet is found through Google News (a "site:" search), so one broken feed does not silence a newspaper.
- * Anything that still fails is listed in the ingest stats, never hidden.
- */
-export const KNOWN_OUTLETS: Feed[] = [
-  { name: "Eyewitness News", url: "https://ewnews.com/feed", domain: "ewnews.com" },
-  { name: "Tribune 242", url: "https://www.tribune242.com/feed", domain: "tribune242.com" },
-  { name: "The Nassau Guardian", url: "https://thenassauguardian.com/feed", domain: "thenassauguardian.com" },
-  { name: "Our News", url: "https://ournews.bs/feed", domain: "ournews.bs" },
-  { name: "Bahamas Press", url: "https://www.bahamaspress.com/feed", domain: "bahamaspress.com" },
-  { name: "Bahamas Weekly", url: "https://www.thebahamasweekly.com/feed", domain: "thebahamasweekly.com" },
-  { name: "Loop Bahamas", url: "https://loopnews.com/bahamas/feed", domain: "loopnews.com" },
-  { name: "ZNS Bahamas", url: "https://znsbahamas.com/feed", domain: "znsbahamas.com" },
-  { name: "Bahamas Information Services", url: "https://www.bahamas.gov.bs/feed", domain: "bahamas.gov.bs" },
-  { name: "Bahamas Investor", url: "https://www.bahamasinvestor.com/feed", domain: "bahamasinvestor.com" },
-  { name: "Bahamas Local", url: "https://bahamaslocal.com/feed", domain: "bahamaslocal.com" },
-];
-
-/**
- * All feeds in use: the outlets above plus anything in NEWS_FEEDS. Facebook pages (242 In The Know, The Bahamas
- * Times) cannot be read directly, since Facebook blocks it; give a page's RSS address from a service such as
- * rss.app or fetchrss.com instead:
- *   NEWS_FEEDS="242 In The Know|https://rss.app/feeds/xxxx.xml,The Bahamas Times|https://rss.app/feeds/yyyy.xml"
- */
-export function configuredFeeds(): Feed[] {
-  const raw = process.env.NEWS_FEEDS ?? "";
-  const extra = raw
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-    .map((entry) => {
-      const i = entry.indexOf("|");
-      return { name: (i < 0 ? "" : entry.slice(0, i)).trim(), url: (i < 0 ? entry : entry.slice(i + 1)).trim() };
-    })
-    .filter((f) => f.url.startsWith("http"))
-    .map((f) => ({ ...f, name: f.name || new URL(f.url).hostname }));
-  const have = new Set(extra.map((f) => f.url));
-  return [...KNOWN_OUTLETS.filter((f) => !have.has(f.url)), ...extra];
-}
-
-// Pure classification/parsing lives in ./ingest-core (alias-free, unit-tested); re-exported here so
-// existing callers keep their imports working.
-export { normalizeUrl, categorize, alertLevelFor, decode, isJunkTitle, parseFeed, placeFromText } from "./ingest-core";
-export type { ParsedItem } from "./ingest-core";
-import { categorize, alertLevelFor, decode, normalizeUrl, parseFeed, placeFromText, type ParsedItem } from "./ingest-core";
 export type IngestStats = {
   ok: string[];
   failed: { name: string; reason: string }[];
@@ -188,7 +145,18 @@ export async function runIngest(opts: { limit?: number } = {}): Promise<IngestSt
 export async function refreshIfStale(): Promise<void> {
   try {
     const [latest] = await db.select({ at: newsItems.ingestedAt }).from(newsItems).orderBy(desc(newsItems.ingestedAt)).limit(1);
-    if (!latest || Date.now() - latest.at.getTime() > 20 * 60_000) await runIngest();
+    if (!latest || Date.now() - latest.at.getTime() > 20 * 60_000) {
+      await runIngest();
+      // Facebook pages the admin configured ride the same cadence. Imported lazily so the
+      // pure ingest core stays free of the settings/facebook modules; a failure here must
+      // never stop the outlet refresh that already landed.
+      try {
+        const { runFacebookIngest } = await import("@/lib/facebook-ingest");
+        await runFacebookIngest();
+      } catch (err) {
+        console.warn(`[fb] scheduled refresh skipped: ${err instanceof Error ? err.message : err}`);
+      }
+    }
   } catch {
     /* never break a page because the news refresh failed */
   }
