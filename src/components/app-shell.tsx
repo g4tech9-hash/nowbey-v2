@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useId, type ReactNode } from "react";
 import { NavLinks, SessionChip } from "./nav-links";
 import { ModeToggle } from "./mode-toggle";
-import { LiveTicker } from "./live-ticker";
 import { BRAND } from "@/lib/brand";
 import type { ModeKey } from "@/lib/themes";
 import { AccessibilityControls } from "./accessibility-controls";
@@ -213,4 +212,3 @@ export function PageHead({
   return <PageIntro eyebrow={eyebrow} title={title} blurb={blurb} actions={actions} className="mb-6" />;
 }
 
-export { LiveTicker };

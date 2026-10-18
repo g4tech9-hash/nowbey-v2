@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/collect.test.mjs tests/redirect.test.mjs tests/security-unit.test.mjs tests/error-ai.test.mjs tests/report-ai.test.mjs tests/ai-budget.test.mjs tests/cluster.test.mjs tests/map-layout.test.mjs tests/admin-command.test.mjs tests/admin-access.test.mjs tests/avatar.test.mjs tests/broadcast.test.mjs tests/location-privacy.test.mjs tests/freshness.test.mjs tests/csp.test.mjs tests/fill-height.test.mjs tests/min-heights.test.mjs tests/consent.test.mjs tests/funnel.test.mjs tests/ai-directive.test.mjs tests/facebook-rss.test.mjs",
+    "test": "node --test tests/collect.test.mjs tests/redirect.test.mjs tests/security-unit.test.mjs tests/error-ai.test.mjs tests/report-ai.test.mjs tests/ai-budget.test.mjs tests/cluster.test.mjs tests/map-layout.test.mjs tests/admin-command.test.mjs tests/admin-access.test.mjs tests/avatar.test.mjs tests/broadcast.test.mjs tests/location-privacy.test.mjs tests/freshness.test.mjs tests/csp.test.mjs tests/fill-height.test.mjs tests/min-heights.test.mjs tests/consent.test.mjs tests/funnel.test.mjs tests/ai-directive.test.mjs tests/facebook-rss.test.mjs tests/public-incident.test.mjs tests/nav-targets.test.mjs",
     "test:local": "node --test tests/endpoints.test.mjs tests/auth.test.mjs tests/account-deletion.test.mjs tests/mail.test.mjs tests/admin.test.mjs tests/google.test.mjs tests/profile.test.mjs && node --test tests/security.test.mjs",
     "test:ui": "node --test tests/ui.test.mjs",
     "fuzz": "node tests/fuzz.mjs",

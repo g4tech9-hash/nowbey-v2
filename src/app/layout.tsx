@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import localFont from "next/font/local";
-import { AppShell, LiveTicker } from "@/components/app-shell";
+import { AppShell } from "@/components/app-shell";
 import { ErrorReporter } from "@/components/error-reporter";
 import { SceneBackdrop } from "@/components/scene-backdrop";
 import { SplashScreen } from "@/components/splash-screen";

@@ -351,23 +351,44 @@ export default function ReportWizard() {
       ) : null}
 
       <ol className="mt-5 flex flex-wrap gap-2">
-        {STEPS.map((label, i) => (
-          <li key={label}>
-            <button
-              type="button"
-              onClick={() => setStep(i)}
-              aria-current={i === step ? "step" : undefined}
-              data-on={i === step ? "true" : undefined}
-              className={`nb-chip min-h-[40px] px-3.5${i > step && !pick && i > 0 ? " opacity-60" : ""}`}
-            >
+        {STEPS.map((label, i) => {
+          // Audit U6: the rail looked like a progress bar but behaved as free navigation, so "Tell neighbours"
+          // opened a publish screen with a disabled button and a blocker — having skipped the pin that made
+          // publishing possible. A step is now only a button when going there can actually succeed.
+          const reachable = i <= 1 || Boolean(pick);
+          const inner = (
+            <>
               <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-white/10 text-[11.5px] font-extrabold">
                 {i + 1}
               </span>
               {label}
               {i === 1 && pick ? <span className="text-[11.5px] font-extrabold text-tide-500">pinned</span> : null}
-            </button>
-          </li>
-        ))}
+            </>
+          );
+          return (
+            <li key={label}>
+              {reachable ? (
+                <button
+                  type="button"
+                  onClick={() => setStep(i)}
+                  aria-current={i === step ? "step" : undefined}
+                  data-on={i === step ? "true" : undefined}
+                  className="nb-chip min-h-[40px] px-3.5"
+                >
+                  {inner}
+                </button>
+              ) : (
+                <span
+                  aria-disabled="true"
+                  title="Pin the place first"
+                  className="nb-chip min-h-[40px] px-3.5 opacity-60"
+                >
+                  {inner}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ol>
 
       {step === 0 ? (

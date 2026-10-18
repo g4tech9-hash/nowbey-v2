@@ -19,8 +19,17 @@ const PRIMARY = [
   { href: "/alerts", label: "Alerts", short: "Alerts", icon: "bell" },
 ] as const;
 
+/**
+ * The telephone bar carries five targets, not six (audit U4). At 320px six targets are ~53px wide with an
+ * 11.5px label, and the loudest action — Report — sat second from the right instead of under the thumb.
+ * Order: Map · Feed · [Report] · Wire · More. Alerts is a settings-shaped destination and lives in More.
+ */
+const MOBILE_LEFT = PRIMARY.filter((l) => l.href === "/map" || l.href === "/feed");
+const MOBILE_RIGHT = PRIMARY.filter((l) => l.href === "/wire");
+
 /** Everything else gathers under one honest label instead of cramming the bar. */
 const SECONDARY = [
+  { href: "/alerts", label: "Alerts", short: "Alerts", icon: "bell" },
   ...(SHOW_LIFE ? [{ href: "/life", label: "Island Life", short: "Life", icon: "life" }] : []),
   { href: "/open-now", label: "What is open now", short: "Open", icon: "clock" },
   ...(SHOW_GAS ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: "wire" }] : []),
@@ -181,7 +190,7 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
           aria-label="Primary"
         >
           <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-1 px-1.5 pb-1.5 pt-1">
-            {PRIMARY.map((l) => {
+            {MOBILE_LEFT.map((l) => {
               const active = isActive(l.href);
               return (
                 <li key={l.href} className="flex-1">
@@ -211,6 +220,23 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" }) {
                 Report
               </Link>
             </li>
+            {MOBILE_RIGHT.map((l) => {
+              const active = isActive(l.href);
+              return (
+                <li key={l.href} className="flex-1">
+                  <Link
+                    href={l.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`flex min-h-[48px] flex-col items-center justify-center gap-0.5 rounded-full px-1 text-[11.5px] font-bold transition duration-200 ease-standard active:scale-[0.97] ${
+                      active ? "bg-tide-500 text-[#04202a] shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
+                    }`}
+                  >
+                    <Glyph name={l.icon} active={active} />
+                    {l.short}
+                  </Link>
+                </li>
+              );
+            })}
             <li className="flex-1">
               <button
                 type="button"

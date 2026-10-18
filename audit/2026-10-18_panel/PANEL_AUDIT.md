@@ -439,3 +439,28 @@ Final gate: `npx tsc --noEmit` 0 · `npx eslint .` 0 · `npm test` **146/146** �
 - **Data-integrity nit:** `api/account` PATCH now refuses an unrecognised island instead of silently writing `null` over a member's home island.
 
 Still open, and listed in `TODO_HUMAN.md`: the tile contract (H3), a Bahamian lawyer's read of the terms (C3), Mail/App-URL keys for the deletion email in production, and everything marked **[needs device]** — R2's offline queue in particular, which is a feature rather than a fix.
+
+---
+
+## Second pass — the Medium items that were still open (2026-10-18)
+
+The overnight pass fixed the Critical, High and craft-level findings. Four Medium findings were left because
+they needed a decision rather than a patch. All four are now closed, each with a test or a measured check.
+
+| ID | Finding | What changed | Proof |
+| --- | --- | --- | --- |
+| **R4** | The pin was blurred 30–60m but `address` was published verbatim, so "12 Village Rd" sat beside the blurred coordinate and made the blur decorative | `src/lib/public.ts` gains `publicAddress()`: first segment only, house number / unit / plot stripped, 80-char cap, `null` rather than an empty string. `publicIncident()` now redacts `address` on every published row and falls back to `street`. The key is kept, so the UI reads it unchanged — it just cannot contain a doorway any more. | `tests/public-incident.test.mjs` — 8 tests: house numbers, `#4`, `No. 7`, `12-A`, junctions (`Madeira St & Mackey St` survives), unit tails, bare numbers, and "no digits can survive in a published address" |
+| **U8** | `live-ticker.tsx` rendered hard-coded fuel prices ("Shell $7.08/gal") under a live badge, one export away from shipping invented data | File deleted, along with its import in `layout.tsx` and its re-export in `app-shell.tsx`. Nothing referenced it at runtime; the risk was that something would. | `tests/nav-targets.test.mjs` asserts the file does not exist and the string `LiveTicker` appears nowhere |
+| **U4** | The phone bar had six targets at ~53px, and Report — the loudest action — was second from the right, not in the centre the comment claimed | Bar rebuilt as **Map · Feed · [Report] · Wire · More**. `MOBILE_LEFT` / `MOBILE_RIGHT` groups make the count structural instead of incidental; Alerts moved into the More sheet (still reachable, no longer a daily target). | `tests/nav-targets.test.mjs` — 4 tests: exactly two left + one right, Report between them, Alerts still in `SECONDARY`, and the bar no longer iterates `PRIMARY` |
+| **U6** | The report step rail looked like a progress bar but was free navigation, so "Tell neighbours" opened a publish screen with no pin, a disabled button and a blocker | A step renders as a button only when going there can succeed (`i <= 1 || pick`); otherwise it is a non-interactive `<span aria-disabled="true" title="Pin the place first">`, styled the same but not focusable. Backwards navigation and step 2 are untouched. | `npx tsc`, and the rail no longer exposes an affordance that cannot complete |
+
+**Checked and already closed by the overnight pass:** **A9** (map pins carry unique two-letter category codes,
+not colour alone) and **R3** (`src/app/loading.tsx` gives every route a shaped skeleton with `aria-busy`, so a
+slow query no longer looks like a dead tap). Per-route skeletons would be a refinement, not a defect.
+
+**Gate after the pass:** `npm test` **158/158** · `npx tsc --noEmit` 0 · `npx eslint .` 0 ·
+`node scripts/mobile-audit.mjs` **0 findings** · `npx next build` succeeds.
+
+**Still open by choice:** U5 (signup opens on Create account and pressures a home island), U7 (a restored
+draft is expired at 24h and surfaced, but not re-pinned), B5 (anonymous reports have no staff-side audit link
+— a privacy *policy* decision, not a bug), and R2 (the offline queue, which is a feature rather than a fix).
