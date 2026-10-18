@@ -1,5 +1,47 @@
 # TODO_HUMAN — production setup, manual steps (no guessing)
 
+## 0z. Terms of Use and Privacy Notice — fill the blanks before the app ships (2026-10-18)
+
+The two legal pages were rewritten to carry the Bahamian protections: governing law and
+exclusive jurisdiction of the Bahamian courts, the age-13 rule with a parent or guardian
+agreeing the terms for anyone under 18, an indemnity clause, the data controller's identity,
+cross-border transfer consent, IP and server-log retention periods, and the rights granted
+by the Data Protection (Privacy of Personal Information) Act of The Bahamas.
+
+**Two placeholders still show on the pages** (they are visible on purpose, not a bug):
+
+- `[REGISTERED COMPANY NAME]`
+- `[PHYSICAL ADDRESS IN THE BAHAMAS]`
+
+Set them in Vercel → Settings → Environment Variables → Production, then redeploy:
+
+```
+REGISTERED_COMPANY_NAME=Example Ltd
+REGISTERED_ADDRESS=1 Example Street, Nassau, New Providence, The Bahamas
+```
+
+Or in `.env` locally. `LEGAL_CONTACT_EMAIL` sets the address on the pages; it defaults to
+`SUPPORT_EMAIL` and then to the public contact address. The pages are at `/terms` and
+`/privacy`, and the Expo app links straight to them, so one change covers website and app.
+
+**Three things the policy promises that the infrastructure has to match.** The Privacy Notice
+now says specific things, so please make them true:
+
+1. *Server logs are kept 30 days.* That is the web host's setting, not the app's. On Vercel,
+   check the log retention for the project and set it to 30 days. The app itself never stores
+   a raw IP address — it stores a salted SHA-256 hash for signed-out visitors, used for
+   rate limiting and one-vote-per-person.
+2. *Deleted information is gone from backups after 90 days.* That is the database and hosting
+   backup window (Neon and Vercel). Shorten it to 90 days if the default is longer.
+3. *The company is the data controller.* A Bahamian data controller has to be identifiable, and
+   the Act expects the identity and contact details of the controller to be given to the
+   person whose data is collected. That is what the two placeholders above are for.
+
+**Still worth a Bahamian lawyer's eye** before the app ships: the indemnity and jurisdiction
+clauses (clause 8 and 9 of the Terms), and the rights list in the Privacy Notice. A draft
+Data Protection Act, 2025 has been passed in The Bahamas but is not yet in force; the Privacy
+Notice says we will update it when new Bahamian data protection law comes into operation.
+
 ## 0. Facebook posts on the wire — one pasted bridge feed (2026-10-18)
 
 **What already works, no step needed:** BPL's own announcements feed (`bplco.com/feed`) is
