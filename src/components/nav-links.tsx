@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 import { usePrefStore } from "@/lib/pulse/store";
+import { useFocusTrap } from "@/lib/pulse/motion";
 import { Anchor, Bell, BookmarkPlus, Clock, Compass, Flame, LayoutList, Plus, Newspaper, Radio, Star, UserRound, WifiOff, X } from "lucide-react";
 import { FEATURES } from "@/lib/features";
 import { CatSwatch } from "@/ui/pulse/badge";
@@ -218,13 +219,26 @@ export function PulseTabBar() {
   const pathname = usePathname();
   const [sheet, setSheet] = useState(false);
   const slots = [...PRIMARY_NAV.slice(0, 2), null, ...PRIMARY_NAV.slice(2, 4)] as (PulseNavEntry | null)[];
+  const closeSheet = useCallback(() => setSheet(false), []);
+  // Same focus-trap / Escape / scroll-lock contract as the incident detail
+  // drawer, so the bottom sheet is not a cheaper version of it: focus moves
+  // in on open, Tab cannot escape to the page behind, Escape closes, and
+  // focus returns to the More tab on dismiss.
+  const trapRef = useFocusTrap(sheet, closeSheet);
 
   return (
     <>
       {sheet ? (
         <div className="fixed inset-0 z-[690] lg:hidden">
           <button type="button" aria-label="Close menu" className="pulse-sheet-scrim" onClick={() => setSheet(false)} />
-          <div className="pulse-drawer" role="dialog" aria-modal="true" aria-label="More places">
+          <div
+            ref={trapRef}
+            id="pulse-more-drawer"
+            className="pulse-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="More places"
+          >
             <div className="pulse-sheet-grab" aria-hidden />
             <header className="flex items-center justify-between gap-3 px-4 pb-2 pt-3">
               <p className="nb-eyebrow">Everything else</p>
@@ -269,7 +283,14 @@ export function PulseTabBar() {
             </Link>
           ),
         )}
-        <button type="button" className="pulse-navtab" aria-expanded={sheet} aria-label="More places">
+        <button
+          type="button"
+          className="pulse-navtab"
+          aria-expanded={sheet}
+          aria-controls="pulse-more-drawer"
+          aria-label="More places"
+          onClick={() => setSheet((v) => !v)}
+        >
           <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
             <path d="M5 7h14M5 12h14M5 17h14" />
           </svg>
