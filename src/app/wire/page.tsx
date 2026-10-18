@@ -15,7 +15,6 @@ import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { sanitizeArticleContent } from "@/lib/sanitize";
-import { FacebookFeedPanel } from "@/components/facebook-feed";
 import { Chip, EmptyState, PageIntro, Panel, SectionTitle } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -176,8 +175,6 @@ export default async function WirePage() {
           <div className="overflow-hidden rounded-[20px] border border-tide-500/20 shadow-l2">
             <MapPanel pins={pins} mode="browse" center={[24.9, -77.6]} zoom={7} initialLayer="hybrid" className="h-[220px] w-full sm:h-[260px]" />
           </div>
-
-          <FacebookFeedPanel username={process.env.FB_WIRE_PAGE ?? "mybpl242"} />
 
           <Panel className="rounded-[20px] p-4">
             <SectionTitle>Where stories come from</SectionTitle>

@@ -61,10 +61,16 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   return { theme, mode, splash: theme === "island" && splashPref, splashPref, themeLocked, modeLocked, splashLocked };
 }
 
-export async function saveSetting(key: "theme" | "mode" | "splash", value: string, by: string) {
+export async function saveSetting(key: "theme" | "mode" | "splash" | "fb_pages", value: string, by: string) {
   await db
     .insert(siteSettings)
     .values({ key, value, updatedBy: by })
     .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedBy: by, updatedAt: new Date() } });
   store.value = null;
+}
+
+/** Raw saved value for an auxiliary setting (e.g. "fb_pages", the admin-managed Facebook page list). */
+export async function getAuxSetting(key: "fb_pages"): Promise<string> {
+  const rows = await readRows();
+  return rows[key] ?? "";
 }

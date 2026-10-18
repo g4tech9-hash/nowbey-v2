@@ -106,6 +106,28 @@ export function fbBridgeUrl(username: string, env: NodeJS.ProcessEnv = process.e
   return null;
 }
 
+export type FbPageRef = { username: string; pageName: string };
+
+/**
+ * Parse the admin-managed page list (site setting "fb_pages"). Each entry is a public
+ * page link or bare username, optionally "|Display Name". Entries are de-duplicated by
+ * username, invalid ones dropped — the list comes from an admin form, so be forgiving.
+ */
+export function fbPagesFromValue(raw: string, env: NodeJS.ProcessEnv = process.env): FbPageRef[] {
+  const out = new Map<string, FbPageRef>();
+  for (const entry of (raw ?? "").split(",")) {
+    const trimmed = entry.trim();
+    if (!trimmed) continue;
+    const pipe = trimmed.indexOf("|");
+    const givenName = pipe > 0 ? trimmed.slice(pipe + 1).trim() : "";
+    const username = fbUsernameFromUrl(pipe > 0 ? trimmed.slice(0, pipe) : trimmed);
+    if (!username) continue;
+    if (!out.has(username)) out.set(username, { username, pageName: givenName || fbPageName(username, env) });
+    else if (givenName) out.get(username)!.pageName = givenName;
+  }
+  return [...out.values()];
+}
+
 /* ───────────────────────── text helpers ───────────────────────── */
 
 const NAMED_ENTITIES: Record<string, string> = {

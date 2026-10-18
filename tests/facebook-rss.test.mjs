@@ -250,3 +250,59 @@ test("CDATA edge: post text containing ']]>' cannot break the feed", () => {
   const result = validateXmlString(xml, { expectTitle: "Bahamas Power", expectLink: "facebook.com/mybpl242", nowbey: true });
   assert.equal(result.status, "PASS", JSON.stringify(result.findings));
 });
+
+/* ───────────────────────── admin-managed page list + wire ingest core ───────────────────────── */
+
+import { fbPagesFromValue } from "../src/lib/facebook.ts";
+import { DEFAULT_FB_PAGE, fbPostToNewsRow } from "../src/lib/facebook-ingest-core.ts";
+
+test("the admin page list parser accepts links, names and bare handles, dedupes and drops junk", () => {
+  const env = { FB_PAGES: "" };
+  const pages = fbPagesFromValue(
+    "https://www.facebook.com/mybpl242/|Bahamas Power and Light, 242intheknow|242 In The Know, https://m.facebook.com/plpbridge/?ref=page_internal",
+    env,
+  );
+  assert.deepEqual(
+    pages.map((p) => [p.username, p.pageName]),
+    [
+      ["mybpl242", "Bahamas Power and Light"],
+      ["242intheknow", "242 In The Know"],
+      ["plpbridge", "plpbridge (Facebook)"],
+    ],
+  );
+  // duplicate (same page, different link shape) merges and keeps the given name
+  const merged = fbPagesFromValue("mybpl242, https://www.facebook.com/mybpl242/|Bahamas Power & Light", env);
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].pageName, "Bahamas Power & Light");
+  // reserved paths and garbage are dropped, not thrown on
+  assert.deepEqual(fbPagesFromValue("watch, login.php, ,, https://evil.example.com/x", env), []);
+});
+
+test("FB posts become regular wire rows: categorised, alert-levelled, dedup-keyed, geocoded", () => {
+  const post = {
+    id: "1205834411022",
+    url: "https://www.facebook.com/mybpl242/posts/1205834411022/?ref=nf",
+    text: "BPL advises customers of a power outage in Fox Hill: crews are on site, supply is expected back by 6 pm.",
+    imageUrl: "https://scontent.xx.fbcdn.net/crew.jpg",
+    publishedAt: new Date(Date.now() - 2 * HOUR),
+    timeEstimated: false,
+  };
+  const row = fbPostToNewsRow(post, "Bahamas Power and Light");
+  assert.equal(row.title.includes("power outage in Fox Hill"), true);
+  assert.equal(row.category, "power");
+  assert.equal(row.alertLevel, "high", "'power outage' is a high-alert phrase in NowBey's scanner");
+  assert.equal(row.url, "https://facebook.com/mybpl242/posts/1205834411022", "normalizeUrl strips tracking and www for the dedup key");
+  assert.equal(row.sourceName, "Bahamas Power and Light");
+  assert.equal(row.imageUrl, post.imageUrl);
+  assert.equal(row.review, "approved", "admin-added pages publish like the newspaper feeds, not like reader tips");
+  assert.equal(typeof row.geocoded, "boolean");
+
+  // An event post lands in the event category with no alert.
+  const row2 = fbPostToNewsRow({ ...post, text: "Join us for the Junkanoo parade downtown on Bay Street Saturday!" }, "Bahamas Power and Light");
+  assert.equal(row2.category, "event");
+  assert.equal(row2.alertLevel, "none");
+});
+
+test("the default page when no admin has configured anything is BPL", () => {
+  assert.equal(DEFAULT_FB_PAGE, "mybpl242");
+});

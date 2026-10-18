@@ -42,13 +42,19 @@ OVERALL STATUS: PASS
 
 ## 1. What was built
 
+The flow an admin sees: **paste a public Facebook page link on `/admin/wire`** → the page's
+posts are converted and stored as regular wire stories → **they appear on `/wire` inline
+with the other cards** (same categories, map pins, alert candidacy), and the raw feed is
+always available at `/api/rss/facebook`.
+
 | Piece | File | Purpose |
 |---|---|---|
-| Converter library | `src/lib/facebook.ts` | Pure logic: page-link parsing (any shape: `www/m/mbasic/fb.com`, bare usernames, `profile.php?id=`), source resolution, mbasic-HTML post parser, sloppy-upstream normalizer, strict RSS 2.0 serializer (escaped entities, CDATA policy, RFC-822 dates, `<enclosure url length type>` in the attribute order NowBey's ingest regex expects). |
-| HTTP endpoint | `src/app/api/rss/facebook/route.ts` | `GET ?url=<page link>` (or `?page=<username>`) → `application/rss+xml; charset=utf-8`, `Cache-Control: s-maxage=300, stale-while-revalidate=600`, 400 + readable JSON for non-Facebook links (SSRF guard: only `*.facebook.com` / `fb.com` page links accepted). |
-| Wire page panel | `src/components/facebook-feed.tsx` | "On Facebook" rail panel on `/wire`: latest posts with timestamps, permalinks, and the subscribe link. Renders **nothing** when the page can't be read — an honest blank, never a broken box. |
-| Bridge resolution | `FB_RSS_BRIDGES` env | Per-page bridge feeds (rss.app / fetchrss / self-hosted RSS-Bridge) in `USER\|URL` form; upstream output is **normalized** — broken entities, missing CDATA and ISO dates are all fixed on the way through. |
-| Tests | `tests/facebook-rss.test.mjs` | 12 hermetic tests, wired into `npm test`. The serializer's output is machine-validated by the QA harness itself. |
+| Converter library | `src/lib/facebook.ts` | Pure logic: page-link parsing (any shape: `www/m/mbasic/fb.com`, bare usernames, `profile.php?id=`), source resolution, mbasic-HTML post parser, sloppy-upstream normalizer, strict RSS 2.0 serializer (escaped entities, CDATA policy, RFC-822 dates, `<enclosure url length type>` in the attribute order NowBey's ingest regex expects), admin page-list parser. |
+| Admin page management | `src/app/api/admin/facebook-pages/route.ts` + `src/components/admin-facebook-pages.tsx` | Admins add/remove page links on **/admin/wire** (stored in `site_settings.fb_pages`, `requireStaff("admin")` + audit log, deduped, SSRF-validated). |
+| Wire ingest | `src/lib/facebook-ingest.ts` (+ `-core.ts`, pure & unit-tested) | Every refresh (`refreshIfStale`, manual "Refresh stories"), each configured page's posts are inserted into **`news_items`** — the same table as the newspaper feeds — so Facebook posts render **inline on the wire** as normal stories: categorised, alert-levelled, cheap-geocoded, deduped by normalized URL. |
+| HTTP endpoint | `src/app/api/rss/facebook/route.ts` | `GET ?url=<page link>` (or `?page=<username>`, or no params → first admin page) → `application/rss+xml; charset=utf-8`, cache-friendly, 400 + readable JSON for non-Facebook links. |
+| Ingest core split | `src/lib/ingest-core.ts` | The pure classification/parsing half of `ingest.ts` (categorize, alertLevelFor, normalizeUrl, parseFeed, placeFromText), alias-free and re-exported so the wire conversion is unit-testable. |
+| Tests | `tests/facebook-rss.test.mjs` | 15 hermetic tests, wired into `npm test`. The serializer's output is machine-validated by the QA harness itself. |
 
 ## 2. Verification evidence
 

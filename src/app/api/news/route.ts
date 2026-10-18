@@ -57,6 +57,11 @@ export async function POST(req: Request) {
   if (!gate.ok) return tooMany(gate.retryAfter, "refreshes");
   const body = await readJson(req);
   const stats = await runIngest({ limit: clampInt(String(body?.limit ?? ""), 12, 1, 40) });
-  after(() => refreshThenEnrich(8));
+  after(async () => {
+    refreshThenEnrich(8);
+    // Facebook pages the admin configured come along on every manual refresh too.
+    const { runFacebookIngest } = await import("@/lib/facebook-ingest");
+    await runFacebookIngest().catch(() => {});
+  });
   return NextResponse.json({ stats });
 }
