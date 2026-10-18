@@ -1,9 +1,12 @@
 import type { ReactNode } from "react";
 
 /**
- * Page intro — the landing "section intro" grammar at app scale:
- * tide eyebrow, Sora display headline with tight tracking, muted lede,
- * pill actions on the right.
+ * PageIntro — the first 5 seconds of every page.
+ *
+ * The rule it exists to enforce: one band, one promise, one primary action.
+ * Landing grammar at app scale (accent eyebrow → display headline → muted lede
+ * → pill actions), on an elevated surface with a radial glow behind the type, so
+ * a page reads as a place rather than a list that starts mid-sentence.
  */
 export function PageIntro({
   eyebrow,
@@ -11,24 +14,31 @@ export function PageIntro({
   blurb,
   actions,
   className,
+  kicker,
+  as: Tag = "h1",
 }: {
-  eyebrow: ReactNode;
+  eyebrow?: ReactNode;
   title: ReactNode;
   blurb?: ReactNode;
   actions?: ReactNode;
   className?: string;
+  /** Anything that belongs above the headline: a live pill, a category badge. */
+  kicker?: ReactNode;
+  /** Downgrade to h2 when the page already has its own h1 (a detail view). */
+  as?: "h1" | "h2";
 }) {
   return (
-    <div className={`flex flex-wrap items-end gap-x-4 gap-y-3${className ? ` ${className}` : ""}`}>
+    <header className={`pulse-intro pulse-enter flex flex-wrap items-end gap-x-5 gap-y-4${className ? ` ${className}` : ""}`}>
       <div className="min-w-[240px] flex-1">
-        <p className="nb-eyebrow">{eyebrow}</p>
-        <h1 className="display mt-2 text-[clamp(1.7rem,4.6vw,2.55rem)] font-extrabold leading-[1.04] tracking-[-0.055em] text-sand-100">
+        {eyebrow ? <p className="nb-eyebrow">{eyebrow}</p> : null}
+        {kicker ? <div className="mt-2.5 flex flex-wrap items-center gap-2">{kicker}</div> : null}
+        <Tag className="mt-2.5 text-[clamp(1.7rem,4.6vw,2.55rem)] font-extrabold leading-[1.05] tracking-[-0.04em] text-primary">
           {title}
-        </h1>
-        {blurb ? <p className="mt-2.5 max-w-[62ch] text-[13.5px] leading-[1.75] text-ink-300">{blurb}</p> : null}
+        </Tag>
+        {blurb ? <p className="pulse-lede mt-2.5">{blurb}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
-    </div>
+    </header>
   );
 }
 
@@ -37,14 +47,20 @@ export function SectionTitle({
   children,
   className,
   as: Tag = "h2",
+  right,
 }: {
   children: ReactNode;
   className?: string;
   as?: "h2" | "h3" | "p";
+  right?: ReactNode;
 }) {
-  return (
-    <Tag className={`display text-[15px] font-extrabold tracking-[-0.045em] text-sand-100${className ? ` ${className}` : ""}`}>
-      {children}
-    </Tag>
-  );
+  if (right) {
+    return (
+      <div className={`flex flex-wrap items-baseline justify-between gap-2${className ? ` ${className}` : ""}`}>
+        <Tag className="text-[15px] font-extrabold tracking-[-0.035em] text-primary">{children}</Tag>
+        {right}
+      </div>
+    );
+  }
+  return <Tag className={`text-[15px] font-extrabold tracking-[-0.035em] text-primary${className ? ` ${className}` : ""}`}>{children}</Tag>;
 }

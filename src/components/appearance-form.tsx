@@ -145,7 +145,7 @@ export function AppearanceForm(props: Props) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <button type="button" onClick={save} disabled={busy || !dirty} className="rounded-xl bg-tide-500 px-5 py-2.5 text-[13.5px] font-extrabold text-abyss-950 hover:bg-tide-400 disabled:opacity-50">
+        <button type="button" onClick={save} disabled={busy || !dirty} className="rounded-xl bg-tide-500 px-5 py-2.5 text-[13.5px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50">
           {busy ? "Saving…" : "Save appearance"}
         </button>
         <button

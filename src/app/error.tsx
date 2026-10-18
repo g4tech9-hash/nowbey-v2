@@ -24,7 +24,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
       </p>
       {error.digest ? <p className="mt-2 text-[11.5px] text-ink-400">Reference: {error.digest}</p> : null}
       <div className="mt-4 flex flex-wrap justify-center gap-2">
-        <button type="button" onClick={reset} className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
+        <button type="button" onClick={reset} className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
           Try again
         </button>
         <Link href="/" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5">

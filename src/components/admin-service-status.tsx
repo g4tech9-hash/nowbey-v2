@@ -25,7 +25,7 @@ export function ServiceStatusForm() {
       <Field name="sourceUrl" label="Source link" type="url" /><Field name="hours" label="Expires after hours" type="number" defaultValue="24" />
       <label className="sm:col-span-2 text-[12px] font-bold text-ink-300">Public note<textarea name="note" maxLength={500} className="mt-1 min-h-24 w-full rounded-xl border hairline bg-abyss-900 p-3 text-sand-100" /></label>
       <label className="flex min-h-[44px] items-center gap-2 text-[13px] font-bold text-sand-100"><input name="verified" type="checkbox" /> Staff checked this source</label>
-      <div className="flex items-center gap-3"><button disabled={busy} className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-50">{busy ? "Saving…" : "Publish status"}</button>{message ? <span className="text-[12px] text-sun-600">{message}</span> : null}</div>
+      <div className="flex items-center gap-3"><button disabled={busy} className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-50">{busy ? "Saving…" : "Publish status"}</button>{message ? <span className="text-[12px] text-sun-600">{message}</span> : null}</div>
     </form>
   );
 }

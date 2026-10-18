@@ -6,7 +6,7 @@ const TONES: Record<string, string> = {
   sun: "bg-sun-500/15 text-sun-600",
   conch: "bg-danger-500/15 text-danger-500",
   slate: "bg-white/10 text-ink-200",
-  violet: "bg-[#a78bfa]/18 text-[#c4b5fd]",
+  violet: "bg-violet/20 text-violet",
 };
 
 export function Pill({ tone = "slate", children }: { tone?: keyof typeof TONES; children: ReactNode }) {
@@ -86,7 +86,7 @@ export function FilterChips({
         <Link
           key={o.value}
           href={adminHref(path, params, { [name]: o.value || undefined, page: undefined })}
-          className={`${scroll ? "shrink-0" : ""} rounded-full px-2.5 py-1 text-[11.5px] font-bold ${value === o.value ? "bg-tide-500 text-abyss-950" : "bg-white/6 text-ink-300 hover:bg-white/12"}`}
+          className={`${scroll ? "shrink-0" : ""} rounded-full px-2.5 py-1 text-[11.5px] font-bold ${value === o.value ? "bg-tide-500 text-on-accent" : "bg-white/6 text-ink-300 hover:bg-white/12"}`}
         >
           {o.label}
         </Link>

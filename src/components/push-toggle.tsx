@@ -163,7 +163,7 @@ export function PushToggle({ config, vapidKey, parishes }: Props) {
             type="button"
             onClick={enable}
             disabled={busy}
-            className="rounded-full bg-tide-500 px-3.5 py-1.5 text-[12px] font-extrabold text-abyss-950 hover:bg-tide-400 disabled:opacity-50"
+            className="rounded-full bg-tide-500 px-3.5 py-1.5 text-[12px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50"
           >
             {busy ? "Working…" : "Turn on push alerts"}
           </button>

@@ -54,7 +54,7 @@ export default async function CommentsAdmin({ searchParams }: { searchParams: Pr
           ]}
         />
       </div>
-      <p className="text-[12px] text-[#8fb9b6]">
+      <p className="text-[12px] text-secondary">
         {n} {n === 1 ? "comment" : "comments"}. Most reported first. Hiding a comment removes it from public view, and you can restore it. You can also hide a comment right where it appears.
       </p>
 
@@ -71,11 +71,11 @@ export default async function CommentsAdmin({ searchParams }: { searchParams: Pr
                       {c.flagCount} {c.flagCount === 1 ? "report" : "reports"}
                     </Pill>
                   ) : null}
-                  {c.parentId ? <span className="text-[11.5px] text-[#8fb9b6]">a reply</span> : null}
-                  <span className="text-[11.5px] text-[#6e97a0]">{timeAgo(c.createdAt)}</span>
+                  {c.parentId ? <span className="text-[11.5px] text-secondary">a reply</span> : null}
+                  <span className="text-[11.5px] text-tertiary">{timeAgo(c.createdAt)}</span>
                 </div>
                 <p className="mt-1.5 whitespace-pre-line break-words text-[13.5px] leading-relaxed text-sand-100">{c.body || "(blank)"}</p>
-                <p className="mt-1 text-[12px] text-[#8fb9b6]">
+                <p className="mt-1 text-[12px] text-secondary">
                   by{" "}
                   <Link href={`/admin/users/${c.authorHandle}`} className="font-semibold text-tide-300 hover:underline">
                     @{c.authorHandle}
@@ -97,7 +97,7 @@ export default async function CommentsAdmin({ searchParams }: { searchParams: Pr
           );
         })}
         {rows.length === 0 ? (
-          <li className="glass rounded-2xl p-5 text-center text-[13px] text-[#8fb9b6]">{view === "flagged" ? "No comments have been reported. All quiet." : "Nothing here."}</li>
+          <li className="glass rounded-2xl p-5 text-center text-[13px] text-secondary">{view === "flagged" ? "No comments have been reported. All quiet." : "Nothing here."}</li>
         ) : null}
       </ul>
       <Pager page={Math.min(page, pages)} pages={pages} path="/admin/comments" params={params} />

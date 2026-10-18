@@ -8,8 +8,11 @@ import { EmergencyNotice } from "@/components/emergency-notice";
 import { ReportAssist } from "@/components/report-assist";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
 import { trackFunnel } from "@/lib/funnel-client";
+import { AriaAnnouncer, CatBadge, MetaChip, SeverityTag } from "@/ui/pulse";
+import { useAnnouncer } from "@/lib/pulse/motion";
+import { pulseCategoryMeta } from "@/ui/pulse/glyph";
 
-const STEPS = ["What is it?", "Where is it?", "Tell neighbours"] as const;
+const STEPS = ["What is it?", "Where is it?", "Tell neighbours", "Check and send"] as const;
 const SEVERITY_LABELS = ["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"] as const;
 const prefillAllowed = process.env.NEXT_PUBLIC_PREFILL_AREA !== "0";
 /** A report in progress survives a refresh, a dropped signal or a trip to the map. Cleared once it is published. */
@@ -57,6 +60,7 @@ function clearDraft() {
 
 export default function ReportWizard() {
   const router = useRouter();
+  const { announce, message } = useAnnouncer();
   const [step, setStep] = useState(0);
   const [category, setCategory] = useState<CategoryKey>("flood");
   const [severity, setSeverity] = useState(2);
@@ -181,6 +185,7 @@ export default function ReportWizard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not publish that.");
       if (data.duplicate) {
+        announce("A nearby report already covers this event. Nothing new was published.");
         // The server did not create a report. Say so, and keep what the person wrote.
         setDuplicate({
           id: data.incident.id,
@@ -192,6 +197,10 @@ export default function ReportWizard() {
       trackFunnel("report_published");
       setMadeId(data.incident.id);
       router.refresh();
+      // The success screen is a new document for a screen-reader user who tapped
+      // a button at the bottom of a form: say what happened, do not rely on them
+      // noticing the swap.
+      announce(`Published. Your report “${title.trim()}” is live for ${pick?.parish ?? island}.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not publish that.");
     } finally {
@@ -202,8 +211,9 @@ export default function ReportWizard() {
   if (duplicate) {
     return (
       <div className="mx-auto max-w-[640px] py-8">
-        <div className="nb-surface rounded-[24px] p-6 text-center sm:p-8">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-sun-500 text-[22px] font-black text-[#04202a]">
+        <AriaAnnouncer message={message} />
+        <div className="nb-surface pulse-enter rounded-[24px] p-6 text-center sm:p-8">
+          <span className="pulse-success-ring" data-tone="warning" aria-hidden>
             !
           </span>
           <h1 className="display mt-4 text-[24px] font-extrabold tracking-[-0.05em] text-sand-100">Someone already reported this</h1>
@@ -235,8 +245,9 @@ export default function ReportWizard() {
   if (madeId) {
     return (
       <div className="mx-auto max-w-[640px] py-8">
-        <div className="nb-surface rounded-[24px] p-6 text-center sm:p-8">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-tide-500 text-[22px] font-black text-[#04202a]">
+        <AriaAnnouncer message={message} />
+        <div className="nb-surface pulse-success pulse-enter rounded-[24px] p-6 text-center sm:p-8">
+          <span className="pulse-success-ring" aria-hidden>
             ✓
           </span>
           <h1 className="display mt-4 text-[24px] font-extrabold tracking-[-0.05em] text-sand-100">It is on the map</h1>
@@ -283,28 +294,41 @@ export default function ReportWizard() {
         <span className="nb-eyebrow-dot" aria-hidden />
         Report a hazard
       </p>
-      <h1 className="display mt-2.5 text-[clamp(1.75rem,4.6vw,2.55rem)] font-extrabold leading-[1.04] tracking-[-0.055em] text-sand-100">
-        Three steps, <em className="text-tide-500 not-italic">twenty seconds</em>
+      <h1 className="pulse-intro-heading mt-2.5">
+        Four steps, <em>twenty seconds</em>
       </h1>
+      <p className="nb-hint mt-2 max-w-[62ch]">
+        Nothing is published until you press send on the last screen, and everything you type is kept on this device while
+        you write — a dropped signal, a refresh or a trip back to the map will not cost you the report.
+      </p>
 
-      <ol className="mt-5 flex flex-wrap gap-2">
-        {STEPS.map((label, i) => (
-          <li key={label}>
-            <button
-              type="button"
-              onClick={() => setStep(i)}
-              aria-current={i === step ? "step" : undefined}
-              data-on={i === step ? "true" : undefined}
-              className={`nb-chip min-h-[40px] px-3.5${i > step && !pick && i > 0 ? " opacity-60" : ""}`}
-            >
-              <span className="grid h-[22px] w-[22px] place-items-center rounded-full bg-white/10 text-[11.5px] font-extrabold">
-                {i + 1}
-              </span>
-              {label}
-              {i === 1 && pick ? <span className="text-[11.5px] font-extrabold text-tide-500">pinned</span> : null}
-            </button>
-          </li>
-        ))}
+      {/* The step rail is a progress bar you can click: the number is the state
+          (done / here / not yet), and a step only unlocks when the one before it
+          has what it needs. */}
+      <ol className="pulse-steps mt-5" data-step={step + 1}>
+        {STEPS.map((label, i) => {
+          const done = i < step;
+          const locked = i > 0 && !pick && i > step;
+          return (
+            <li key={label}>
+              <button
+                type="button"
+                onClick={() => setStep(i)}
+                aria-current={i === step ? "step" : undefined}
+                data-on={i === step ? "true" : undefined}
+                data-done={done ? "true" : undefined}
+                disabled={locked}
+                className="pulse-chip pulse-step"
+              >
+                <span className="nb-num" aria-hidden>
+                  {done ? "✓" : i + 1}
+                </span>
+                {label}
+                {i === 1 && pick ? <MetaChip tone="success">pinned</MetaChip> : null}
+              </button>
+            </li>
+          );
+        })}
       </ol>
 
       {step === 0 ? (
@@ -318,18 +342,14 @@ export default function ReportWizard() {
                   key={key}
                   type="button"
                   onClick={() => chooseCategory(key)}
-                  className="rounded-[16px] border p-3.5 text-left transition duration-200 ease-standard hover:-translate-y-0.5"
-                  style={{
-                    borderColor: active ? c.color : "rgba(189,223,217,0.14)",
-                    background: active ? `${c.color}1f` : "linear-gradient(135deg, rgba(17,42,53,0.97), rgba(8,26,36,0.97))",
-                    boxShadow: active ? `0 12px 36px -10px ${c.color}40` : "0 10px 22px rgba(0,0,0,0.14)",
-                  }}
+                  aria-pressed={active}
+                  className="pulse-pick"
+                  data-on={active ? "true" : undefined}
+                  style={{ ["--pick-hue" as string]: pulseCategoryMeta(key).token } as React.CSSProperties}
                 >
-                  <span className="block h-2 w-8 rounded-full" style={{ background: c.color }} />
-                  <span className="display mt-2.5 block text-[15px] font-extrabold tracking-[-0.04em]" style={{ color: active ? c.color : "#f7f1e7" }}>
-                    {c.label}
-                  </span>
-                  <span className="mt-1 block text-[11.5px] leading-snug text-ink-400">{c.blurb}</span>
+                  <span className="pulse-pick-rail" aria-hidden />
+                  <span className="pulse-pick-label">{c.label}</span>
+                  <span className="pulse-pick-blurb">{c.blurb}</span>
                 </button>
               );
             })}
@@ -345,13 +365,14 @@ export default function ReportWizard() {
             </p>
           ) : null}
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">Severity</span>
+            <span className="nb-label" id="severity-label">Severity</span>
             <div className="flex flex-wrap gap-1.5">
               {["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"].map((label, i) => (
                 <button
                   key={label}
                   type="button"
                   onClick={() => setSeverity(i + 1)}
+                  aria-pressed={severity === i + 1}
                   data-on={severity === i + 1 ? "true" : undefined}
                   className="nb-chip"
                 >
@@ -359,13 +380,12 @@ export default function ReportWizard() {
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="nb-btn nb-btn-primary ml-auto"
-            >
-              Next: put it on the map →
-            </button>
+            <span className="ml-auto flex items-center gap-2">
+              <SeverityTag severity={severity} category={category} />
+              <button type="button" onClick={() => setStep(1)} className="nb-btn nb-btn-primary">
+                Next: put it on the map →
+              </button>
+            </span>
           </div>
         </div>
       ) : null}
@@ -425,7 +445,7 @@ export default function ReportWizard() {
                     const a = e.target.checked && pick ? areaFor(pick) : null;
                     if (a) setArea(a);
                   }}
-                  className="mt-0.5 h-4 w-4 accent-[#43e0cc]"
+                  className="mt-0.5 h-4 w-4 accent-tide-500"
                 />
                 <span>
                   Prefill from the pin
@@ -449,9 +469,15 @@ export default function ReportWizard() {
               disabled={!pick}
               onClick={() => setStep(2)}
               className="nb-btn nb-btn-primary w-full"
+              aria-describedby={pick ? undefined : "need-a-pin"}
             >
               Next: write it up →
             </button>
+            {pick ? null : (
+              <p id="need-a-pin" className="nb-hint text-center">
+                Tap the map once to drop the pin — that is all this step needs.
+              </p>
+            )}
           </div>
         </div>
       ) : null}
@@ -494,10 +520,6 @@ export default function ReportWizard() {
                 Photo uploads are not available yet. A line describing what you see helps neighbours who cannot view images.
               </span>
             </label>
-            <label className="flex items-center gap-2 text-[12.5px] text-ink-300">
-              <input type="checkbox" checked={anonymous} onChange={(e) => { setAnonymous(e.target.checked); setAnonTouched(true); }} className="h-4 w-4 accent-[#43e0cc]" />
-              {handle !== "neighbour" ? `Post anonymously instead of as @${handle}` : "Post anonymously"}
-            </label>
             <ReportAssist
               title={title}
               details={details}
@@ -511,7 +533,11 @@ export default function ReportWizard() {
               onHeadline={setTitle}
               onMovePin={handlePick}
             />
-            {error ? <p className="rounded-[12px] border border-conch-500/40 bg-conch-500/12 px-3.5 py-2.5 text-[12.5px] text-conch-500">{error}</p> : null}
+            {error ? (
+              <p className="pulse-inline-warn" role="alert">
+                {error}
+              </p>
+            ) : null}
             <div className="flex gap-2">
               <button
                 type="button"
@@ -522,16 +548,16 @@ export default function ReportWizard() {
               </button>
               <button
                 type="button"
-                onClick={submit}
-                disabled={saving || title.trim().length < 5 || !pick}
+                onClick={() => setStep(3)}
+                disabled={title.trim().length < 5 || !pick}
                 aria-describedby={publishBlocker ? "publish-blocker" : undefined}
                 className="nb-btn nb-btn-primary flex-1"
               >
-                {saving ? "Publishing…" : "Publish to NowBey"}
+                Check and send →
               </button>
             </div>
             {publishBlocker ? (
-              <p id="publish-blocker" className="text-[12px] font-semibold text-sun-500">
+              <p id="publish-blocker" className="text-[12px] font-semibold text-[color:var(--warning)]">
                 {publishBlocker}
               </p>
             ) : null}
@@ -578,6 +604,136 @@ export default function ReportWizard() {
                 />
               </div>
             ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Step 4 — the review. Nothing has been sent yet; this is the one screen
+          that says plainly what neighbours will see, where the pin will sit and
+          whether your name is on it. The publish action is the only primary on
+          the page at this point (Hick's law: one decision per screen). */}
+      {step === 3 ? (
+        <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-3.5">
+            <div className="nb-surface rounded-[20px] p-4 sm:p-5">
+              <p className="nb-eyebrow">
+                <span className="nb-eyebrow-dot" aria-hidden />
+                Going out now
+              </p>
+              <h2 className="display mt-2 text-[20px] font-extrabold leading-snug tracking-[-0.05em] text-sand-100">
+                {title.trim() || "Your headline appears here"}
+              </h2>
+              <p className="mt-2 text-[13px] leading-[1.75] text-ink-200">
+                {details.trim() || "No extra detail — neighbours will see the headline and the pin only."}
+              </p>
+              {photoNote.trim() ? <p className="nb-hint mt-2">Photo description: {photoNote.trim()}</p> : null}
+              <dl className="mt-3.5 grid gap-x-4 gap-y-2 border-t hairline pt-3 sm:grid-cols-2">
+                <div>
+                  <dt className="nb-label">Category</dt>
+                  <dd className="mt-1">
+                    <CatBadge category={category} size="sm" />
+                  </dd>
+                </div>
+                <div>
+                  <dt className="nb-label">Severity</dt>
+                  <dd className="mt-1 text-[13px] font-bold text-sand-100">
+                    {SEVERITY_LABELS[Math.min(4, Math.max(1, severity)) - 1]} · {severity}/4
+                  </dd>
+                </div>
+                <div>
+                  <dt className="nb-label">Pin</dt>
+                  <dd className="mt-1 font-mono text-[12px] text-ink-300 tabular-nums">
+                    {pick ? `${pick.lat.toFixed(5)}, ${pick.lng.toFixed(5)}` : "not pinned"} · ± {pick ? pick.precisionM.toFixed(1) : "0"} m
+                  </dd>
+                </div>
+                <div>
+                  <dt className="nb-label">Island</dt>
+                  <dd className="mt-1 text-[13px] font-bold text-sand-100">{pick?.parish ?? island}</dd>
+                </div>
+                <div>
+                  <dt className="nb-label">Area</dt>
+                  <dd className="mt-1 text-[13px] text-ink-200">{area || pick?.street || "read from the pin"}</dd>
+                </div>
+                <div>
+                  <dt className="nb-label">Filed by</dt>
+                  <dd className="mt-1 text-[13px] text-ink-200">
+                    {anonymous ? "someone (anonymous)" : handle !== "neighbour" ? `@${handle}` : "@neighbour"}
+                  </dd>
+                </div>
+              </dl>
+              <label className="mt-3.5 flex items-start gap-2 text-[12.5px] leading-snug text-ink-300">
+                <input
+                  type="checkbox"
+                  checked={anonymous}
+                  onChange={(e) => {
+                    setAnonymous(e.target.checked);
+                    setAnonTouched(true);
+                  }}
+                  className="mt-0.5 h-4 w-4 accent-tide-500"
+                />
+                {handle !== "neighbour"
+                  ? "Post anonymously instead of as @" + handle
+                  : "Post anonymously"}
+                <span className="nb-hint block">
+                  Anonymous reports still count confirmations; they just do not carry your handle.
+                </span>
+              </label>
+            </div>
+
+            {error ? (
+              <p className="pulse-inline-warn" role="alert">
+                {error}
+              </p>
+            ) : null}
+
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setStep(2)} className="nb-btn nb-btn-secondary">
+                ← Edit the write-up
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  submit();
+                  announce("Publishing your report to the island.");
+                }}
+                disabled={saving || title.trim().length < 5 || !pick}
+                className="nb-btn nb-btn-primary flex-1"
+              >
+                {saving ? "Publishing…" : "Publish to NowBey"}
+              </button>
+            </div>
+            <p className="nb-hint">
+              Published pins sit a short distance from the exact spot, so a home cannot be pinpointed from the map.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {pick ? (
+              <div className="overflow-hidden rounded-[20px] border border-tide-500/20 shadow-l2">
+                <MapPanel
+                  mode="browse"
+                  pins={[
+                    {
+                      id: "preview",
+                      lat: pick.lat,
+                      lng: pick.lng,
+                      category,
+                      title: title.trim() || "Your new pin",
+                      meta: area || pick.street || "",
+                      live: true,
+                    },
+                  ]}
+                  center={[pick.lat, pick.lng]}
+                  zoom={18}
+                  initialLayer="hybrid"
+                  className="h-[220px] w-full"
+                  compact
+                />
+              </div>
+            ) : null}
+            <p className="nb-hint">
+              That is the spot neighbours will see. If it is wrong, go back a step and drag the pin.
+            </p>
           </div>
         </div>
       ) : null}

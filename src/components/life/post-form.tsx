@@ -186,7 +186,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                     type="button"
                     aria-pressed={price === n}
                     onClick={() => setPrice(price === n ? 0 : n)}
-                    className={`min-h-[40px] min-w-[44px] rounded-lg px-2 text-[13px] font-extrabold ${price === n ? "bg-tide-500 text-abyss-950" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
+                    className={`min-h-[40px] min-w-[44px] rounded-lg px-2 text-[13px] font-extrabold ${price === n ? "bg-tide-500 text-on-accent" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
                   >
                     {"$".repeat(n)}
                   </button>
@@ -229,7 +229,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                 type="button"
                 onClick={() => removePhoto(p.key)}
                 aria-label="Remove this photo"
-                className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-abyss-950/85 text-[13px] font-bold text-sand-100 hover:bg-conch-500 hover:text-abyss-950"
+                className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-abyss-950/85 text-[13px] font-bold text-sand-100 hover:bg-conch-500 hover:text-on-accent"
               >
                 ×
               </button>
@@ -295,7 +295,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={busy || prep} className="rounded-xl bg-tide-500 px-6 py-3 text-[14px] font-extrabold text-abyss-950 hover:bg-tide-400 disabled:opacity-50">
+        <button type="submit" disabled={busy || prep} className="rounded-xl bg-tide-500 px-6 py-3 text-[14px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50">
           {busy ? "Sharing…" : "Share with the islands"}
         </button>
         <p className="text-[11.5px] text-ink-400">Your handle appears with your post. Be kind and honest.</p>

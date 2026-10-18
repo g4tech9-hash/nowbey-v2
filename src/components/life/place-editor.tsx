@@ -100,7 +100,7 @@ export function PlaceEditor({ placeId, kind, signedIn, initial }: Props) {
         <span className={label}>Menu or popular items (one per line)</span>
         <textarea value={menu} onChange={(e) => setMenu(e.target.value)} rows={5} placeholder={"Cracked conch - $24\nGrouper sandwich - $16"} className={field} maxLength={4000} />
       </label>
-      <button type="button" disabled={busy !== null} onClick={save} className="rounded-full bg-tide-400 px-4 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-60">
+      <button type="button" disabled={busy !== null} onClick={save} className="rounded-full bg-tide-400 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-60">
         {busy === "save" ? "Saving..." : "Save details"}
       </button>
 

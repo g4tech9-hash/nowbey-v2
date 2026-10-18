@@ -35,7 +35,7 @@ export function PostModActions({ id, status, flagged, canDelete }: { id: string;
             {busy === "hide" ? "…" : "Hide"}
           </button>
         ) : (
-          <button type="button" disabled={busy !== null} onClick={() => go("restore")} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
+          <button type="button" disabled={busy !== null} onClick={() => go("restore")} className={`${BTN} bg-tide-500 font-extrabold text-on-accent`}>
             {busy === "restore" ? "…" : "Restore"}
           </button>
         )}

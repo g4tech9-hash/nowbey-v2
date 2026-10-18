@@ -60,7 +60,7 @@ export default function ForgotPassword() {
               {error}
             </p>
           ) : null}
-          <button type="submit" disabled={busy || !email.trim()} className="mt-3 w-full rounded-xl bg-tide-500 py-2.5 text-[13.5px] font-extrabold text-abyss-950 disabled:opacity-50">
+          <button type="submit" disabled={busy || !email.trim()} className="mt-3 w-full rounded-xl bg-tide-500 py-2.5 text-[13.5px] font-extrabold text-on-accent disabled:opacity-50">
             {busy ? "Sending…" : "Send me a reset link"}
           </button>
           <p className="mt-3 text-center text-[12px]">

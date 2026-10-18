@@ -21,6 +21,7 @@ import {
   metersPerPixel,
   precisionLabel,
 } from "@/lib/geo";
+import { pulseCategoryMeta } from "@/ui/pulse/glyph";
 import { clusterPins } from "@/lib/cluster";
 
 /**
@@ -89,7 +90,10 @@ type Props = {
 const PIN_PX = 30;
 
 function pinHtml(pin: MapPin, selected: boolean) {
-  const c = pin.color ?? CATEGORIES[pin.category]?.color ?? "#94a3b8";
+  // The hue is a token, not the hex in CATEGORIES: a pin on warm sand has to be
+  // dark enough to see against paper, and the same pin on true black has to glow.
+  // `--cat-*` is re-derived per theme, so one value answers both.
+  const c = pin.color ?? pulseCategoryMeta(pin.category).token;
   // Two-letter codes, unique per category. A single letter was ambiguous on the
   // live map (S = Storm or Safety, F = Flooding or Fire, N = anything), so the
   // circles in Nassau read as alphabet soup with no legend able to save them.
@@ -97,7 +101,7 @@ function pinHtml(pin: MapPin, selected: boolean) {
   const code = raw.length <= 2 ? raw.toUpperCase() : raw.split(/\s+/).map((w) => w.charAt(0)).slice(0, 2).join("").toUpperCase();
   const size = code.length > 1 ? 9.5 : 13;
   return `<div class="nb-pin ${pin.live ? "nb-pin-live" : ""}" style="background:${c};color:${c};${
-    selected ? "outline:3px solid rgba(46,230,208,.85);outline-offset:2px;" : ""
+    selected ? "outline:3px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 6px var(--accent-muted);" : ""
   }"><span style="font-size:${size}px">${code}</span></div>`;
 }
 
@@ -126,9 +130,9 @@ function makePickIcon(zoomed: boolean) {
     iconSize: [46, 58],
     iconAnchor: [23, 54],
     html: `<svg width="46" height="58" viewBox="0 0 46 58" xmlns="http://www.w3.org/2000/svg">
-      <path d="M23 56C23 56 42 34.7 42 21.5C42 10.3 33.5 2 23 2S4 10.3 4 21.5C4 34.7 23 56 23 56Z" fill="#0b2a38" stroke="#2ee6d0" stroke-width="3"/>
-      <circle cx="23" cy="21" r="8.5" fill="${zoomed ? "#2ee6d0" : "#ffc531"}"/>
-      <circle cx="23" cy="21" r="3" fill="#03121b"/>
+      <path d="M23 56C23 56 42 34.7 42 21.5C42 10.3 33.5 2 23 2S4 10.3 4 21.5C4 34.7 23 56 23 56Z" style="fill:var(--bg-overlay);stroke:var(--accent)" stroke-width="3"/>
+      <circle cx="23" cy="21" r="8.5" style="fill:${zoomed ? "var(--accent)" : "var(--warning)"}"/>
+      <circle cx="23" cy="21" r="3" style="fill:var(--bg-base)"/>
     </svg>`,
   });
 }
@@ -546,7 +550,7 @@ export default function NowBeyMap({
                   <Popup>
                     <div className="space-y-1">
                       <p className="font-semibold leading-snug">{group.pins.length} reports near here</p>
-                      <p className="text-[12px] text-[#9fc4c9]">Tap the badge to zoom in and separate them.</p>
+                      <p className="text-[12px] text-secondary">Tap the badge to zoom in and separate them.</p>
                     </div>
                   </Popup>
                 </Marker>
@@ -570,8 +574,8 @@ export default function NowBeyMap({
                       {pin.label ?? CATEGORIES[pin.category]?.label ?? pin.category}
                     </p>
                     <p className="font-semibold leading-snug">{pin.title}</p>
-                    {pin.meta ? <p className="text-[12px] text-[#9fc4c9]">{pin.meta}</p> : null}
-                    <p className="text-[11.5px] text-[#7fa7a9]">
+                    {pin.meta ? <p className="text-[12px] text-secondary">{pin.meta}</p> : null}
+                    <p className="text-[11.5px] text-tertiary">
                       {formatCoord(pin.lat, "lat")} · {formatCoord(pin.lng, "lng")}
                     </p>
                     {pin.href ? (
@@ -692,7 +696,7 @@ export default function NowBeyMap({
                 aria-pressed={layer === key}
                 onClick={() => setLayer(key)}
                 className={`min-h-[40px] rounded-lg px-2.5 py-1.5 transition ${
-                  layer === key ? "bg-tide-500 text-abyss-950" : "text-ink-200 hover:bg-white/10"
+                  layer === key ? "bg-tide-500 text-on-accent" : "text-ink-200 hover:bg-white/10"
                 }`}
               >
                 <span className="sm:hidden">{LAYERS[key].short}</span>
@@ -744,7 +748,7 @@ export default function NowBeyMap({
           </button>
         </div>
 
-        <div className="glass hidden rounded-xl px-2.5 py-1.5 text-[11.5px] font-semibold text-[#9fc4c9] sm:block">
+        <div className="glass hidden rounded-xl px-2.5 py-1.5 text-[11.5px] font-semibold text-secondary sm:block">
           zoom {zoomNow} · {precisionLabel(zoomNow, centerPt[0])} on screen · {mPerPx.toFixed(2)} m/px
         </div>
       </div>
@@ -765,7 +769,7 @@ export default function NowBeyMap({
               }
             }}
             className={`glass min-h-[40px] rounded-full px-3 py-2 text-[12px] font-bold ${
-              aim ? "bg-sun-500 text-abyss-950" : "text-sand-100"
+              aim ? "bg-sun-500 text-on-accent" : "text-sand-100"
             }`}
           >
             {aim ? "Aim locked" : "Aim at centre"}
@@ -804,7 +808,7 @@ export default function NowBeyMap({
                           key={i}
                           type="button"
                           onClick={() => nudge(cell.dN * step, cell.dE * step)}
-                          className="h-6 w-6 rounded-md bg-white/10 text-[11.5px] font-bold text-sand-100 hover:bg-tide-500 hover:text-abyss-950"
+                          className="h-6 w-6 rounded-md bg-white/10 text-[11.5px] font-bold text-sand-100 hover:bg-tide-500 hover:text-on-accent"
                           title={`Move ${Math.abs(cell.dN * step)} m`}
                         >
                           {cell.g}
@@ -827,7 +831,7 @@ export default function NowBeyMap({
                           type="button"
                           onClick={() => setStep(s)}
                           className={`rounded-md px-1.5 py-0.5 text-[11.5px] font-bold ${
-                            step === s ? "bg-tide-500 text-abyss-950" : "bg-white/10 text-ink-200"
+                            step === s ? "bg-tide-500 text-on-accent" : "bg-white/10 text-ink-200"
                           }`}
                         >
                           {s} m
@@ -915,7 +919,7 @@ export default function NowBeyMap({
                   map?.flyTo([streetView.lat, streetView.lng], 19, { duration: 0.5 });
                   setStreetView(null);
                 }}
-                className="rounded-lg bg-tide-500 px-2.5 py-1.5 text-[11.5px] font-bold text-abyss-950"
+                className="rounded-lg bg-tide-500 px-2.5 py-1.5 text-[11.5px] font-bold text-on-accent"
               >
                 Pin here
               </button>
@@ -949,14 +953,14 @@ export default function NowBeyMap({
                       : "Street photos are not built into NowBey yet. Open this exact spot in Google Maps to look around at street level."}
                   </p>
                   <a
-                    className="inline-block rounded-lg bg-tide-500 px-3 py-2 text-[12.5px] font-bold text-abyss-950"
+                    className="inline-block rounded-lg bg-tide-500 px-3 py-2 text-[12.5px] font-bold text-on-accent"
                     href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${streetView.lat},${streetView.lng}`}
                     target="_blank"
                     rel="noreferrer"
                   >
                     Open street level in Google Maps
                   </a>
-                  <p className="text-[11.5px] text-[#7fa7a9]">
+                  <p className="text-[11.5px] text-tertiary">
                     This opens Google Maps in a new tab.
                   </p>
                 </div>

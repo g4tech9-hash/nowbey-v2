@@ -28,7 +28,7 @@ export function EnterpriseForm() {
   if (sent) {
     return (
       <div className="py-4 text-center">
-        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-tide-500 text-[20px] font-black text-abyss-950">
+        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-tide-500 text-[20px] font-black text-on-accent">
           ✓
         </span>
         <p className="display mt-3 text-[17px] font-extrabold text-sand-100">Thanks, we have your details</p>
@@ -143,7 +143,7 @@ export function EnterpriseForm() {
       <button
         type="submit"
         disabled={busy}
-        className="w-full rounded-xl bg-sand-100 py-3 text-[14px] font-extrabold text-abyss-950 hover:bg-white disabled:opacity-50"
+        className="w-full rounded-xl bg-sand-100 py-3 text-[14px] font-extrabold text-on-accent hover:bg-white disabled:opacity-50"
       >
         {busy ? "Sending…" : "Talk to us"}
       </button>

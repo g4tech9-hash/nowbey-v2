@@ -4,23 +4,42 @@ import { unstable_cache } from "next/cache";
 import { db, hasDatabase } from "@/db";
 import { DatabaseSetup } from "@/components/db-setup";
 import { incidentUpdates, incidents, newsItems } from "@/db/schema";
-import { IncidentCard } from "@/components/incident-card";
 import { AdSlot } from "@/components/ad-slot";
 import { EmergencyNotice } from "@/components/emergency-notice";
 import { OfficialSources } from "@/components/official-sources";
-import { MapPanel, type MapPin } from "@/components/map/map-panel";
-import { CATEGORIES, GAZETTEER, PARISHES, knownParish, nowMs, timeAgo, type CategoryKey } from "@/lib/geo";
+import { CATEGORIES, GAZETTEER, knownParish, nowMs, timeAgo, type CategoryKey } from "@/lib/geo";
 import { HIDDEN_STATUSES } from "@/lib/command";
 import { clampInt, likeEscape, param } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
 import { badgesFor } from "@/lib/badges";
 import { engagementFor } from "@/lib/engage";
-import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
-import { BRAND } from "@/lib/brand";
-import { PageScene } from "@/components/page-scene";
-import { KINDS, listPosts, type KindKey } from "@/lib/life";
-import { FEATURES } from "@/lib/features";
-import { ButtonLink, Eyebrow, SectionTitle, TextLink, ArrowIcon, EmptyState } from "@/components/ui";
+import { NO_ENGAGEMENT, type Engagement } from "@/lib/engage-kinds";
+import type { Badge } from "@/lib/badges";
+import { PageHead } from "@/components/app-shell";
+import { ButtonLink, Chip, Eyebrow, Panel, SectionTitle, TextLink } from "@/components/ui";
+import { FeedControls } from "@/components/pulse/feed-controls";
+import { FeedStream, type FeedRow } from "@/components/pulse/feed-stream";
+import { FeedMap } from "@/components/pulse/feed-map";
+import { IncidentRowMini } from "@/components/pulse/incident-card";
+import { CardLayered, CategoryLegend, TrustMeter } from "@/ui/pulse";
+import { trustFor } from "@/lib/pulse/trust";
+import { pulseCategoryMeta } from "@/ui/pulse/glyph";
+
+/**
+ * THE FEED — Pulse's centre of gravity.
+ *
+ * Three panes at ≥1024 (nav rail from the shell · stream · inspector), two at
+ * 640–1024 (stream, inspector folded below), one on a phone with a bottom nav.
+ * The stream itself is `FeedStream`; this file only decides *what* is in it.
+ *
+ * Nothing about how the data is fetched changed in the redesign — same query,
+ * same 30-second `unstable_cache`, same per-viewer work (reactions, ad-free)
+ * computed per request, same guard for a deployment with no database. What
+ * changed is the shape of the surface: a sticky filter island that writes query
+ * params, a critical spotlight for the worst thing on the island right now, sort
+ * and view switches that are shareable URLs, and cards you can drive with the
+ * keyboard or your thumb.
+ */
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Community feed" };
@@ -34,9 +53,11 @@ function first(v: string | string[] | undefined) {
 type HomeQuery = { status: "active" | "resolved" | "all"; category?: string; parish?: string; q?: string; hours: number };
 
 /**
- * Everything on the home page that does not depend on who is looking. Cached for 30 seconds, so a busy feed costs
- * one set of queries per half-minute instead of one per visitor. Per-viewer data (reactions, ad-free) is still
- * computed per request.
+ * Everything on the feed that does not depend on who is looking. Cached for 30
+ * seconds, so a busy feed costs one set of queries per half-minute instead of
+ * one per visitor. Per-viewer data (reactions, ad-free) is still computed per
+ * request. The Pulse redesign added only the per-category counts the filter
+ * island shows on its pills — one grouped query, same cache entry.
  */
 async function loadHomeData(f: HomeQuery) {
   const filters = [];
@@ -52,7 +73,7 @@ async function loadHomeData(f: HomeQuery) {
   const where = filters.length ? and(...filters) : undefined;
 
   const dayAgo = new Date(nowMs() - 864e5);
-  const [rows, recent, wire, totals, wireTotal] = await Promise.all([
+  const [rows, recent, wire, totals, wireTotal, categoryCounts] = await Promise.all([
     db.select().from(incidents).where(where).orderBy(desc(incidents.createdAt)).limit(24),
     db.select().from(incidents).where(notInArray(incidents.status, HIDDEN_STATUSES)).orderBy(desc(incidents.createdAt)).limit(40),
     db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(6),
@@ -68,6 +89,13 @@ async function loadHomeData(f: HomeQuery) {
       .where(notInArray(incidents.status, HIDDEN_STATUSES))
       .then((r) => r[0]),
     db.select({ n: count() }).from(newsItems).where(eq(newsItems.review, "approved")).then((r) => r[0]),
+    // Pill counts. Grouped, not one query per category — thirteen round-trips to
+    // paint chips is not a fair price for a number nobody asked for.
+    db
+      .select({ category: incidents.category, n: sql<number>`count(*)::int` })
+      .from(incidents)
+      .where(eq(incidents.status, "active"))
+      .groupBy(incidents.category),
   ]);
 
   // The newest timeline entry per report, for the card's "Latest" line. Flag entries are staff-only and are left out.
@@ -80,26 +108,52 @@ async function loadHomeData(f: HomeQuery) {
         .orderBy(desc(incidentUpdates.createdAt))
         .limit(ids.length * 5)
     : [];
-  const latest: Record<string, { kind: string; note: string | null; createdAt: string }> = {};
+  const latest: Record<string, { kind: string; note: string | null; createdAt: string } | null> = {};
   for (const u of updates) {
     if (!latest[u.incidentId]) latest[u.incidentId] = { kind: u.kind, note: u.note, createdAt: new Date(u.createdAt).toISOString() };
   }
 
-  return { rows, recent, wire, totals, wireTotal, latest };
+  const counts: Record<string, number> = {};
+  for (const c of categoryCounts) counts[c.category] = Number(c.n);
+  counts.__active = Number(totals?.active ?? 0);
+
+  return { rows, recent, wire, totals, wireTotal, latest, counts };
 }
 
-const loadHomeCached = unstable_cache(loadHomeData, ["home-feed-v1"], { revalidate: 30 });
+const loadHomeCached = unstable_cache(loadHomeData, ["home-feed-v2"], { revalidate: 30 });
+
+/** The sort the island offers. Applied here, in one place, on the page's own slice. */
+type SortKey = "recent" | "confirmed" | "trust" | "severe";
+function sortRows<T extends { createdAt: Date | string; confirmations: number; severity: number; status: string; updatedAt: Date | string; sourceKind: string; sightings: number; category: string; photoNote: string | null }>(
+  rows: T[],
+  sort: SortKey,
+) {
+  const t = nowMs();
+  const copy = [...rows];
+  if (sort === "confirmed") copy.sort((a, b) => b.confirmations - a.confirmations || +new Date(b.createdAt) - +new Date(a.createdAt));
+  else if (sort === "severe") copy.sort((a, b) => b.severity - a.severity || b.confirmations - a.confirmations);
+  else if (sort === "trust")
+    copy.sort(
+      (a, b) =>
+        trustFor({ confirmations: b.confirmations, sightings: b.sightings, sourceKind: b.sourceKind, severity: b.severity, status: b.status, updatedAt: b.updatedAt, createdAt: b.createdAt, hasPhotoNote: !!b.photoNote, category: b.category }, t).value -
+          trustFor({ confirmations: a.confirmations, sightings: a.sightings, sourceKind: a.sourceKind, severity: a.severity, status: a.status, updatedAt: a.updatedAt, createdAt: a.createdAt, hasPhotoNote: !!a.photoNote, category: a.category }, t).value,
+    );
+  return copy;
+}
 
 export default async function Home({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
   // Only a known category can reach the cache key; arbitrary strings would fill it.
   const categoryIn = first(sp.category);
   const category = categoryIn && Object.prototype.hasOwnProperty.call(CATEGORIES, categoryIn) ? categoryIn : undefined;
-  const parish = knownParish(first(sp.parish)) ?? undefined;
+  const parish = knownParish(first(sp.island) ?? first(sp.parish)) ?? undefined;
   const q = param(first(sp.q), 100);
   const statusIn = first(sp.status);
   const status = statusIn === "all" || statusIn === "resolved" ? statusIn : "active";
   const hours = clampInt(first(sp.hours), 0, 0, 24 * 365);
+  const sortIn = first(sp.sort);
+  const sort: SortKey = sortIn === "confirmed" || sortIn === "trust" || sortIn === "severe" ? sortIn : "recent";
+  const view = first(sp.view) === "map" ? "map" : "list";
 
   // A deployment without DATABASE_URL gets the setup notice rather than an error boundary.
   if (!hasDatabase()) {
@@ -116,203 +170,198 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   // Search text is not cached: free text would make an unbounded number of cache entries.
   const loadHome = q ? loadHomeData : loadHomeCached;
   const [home, viewer] = await Promise.all([loadHome(query), getViewer()]);
-  const { rows, recent, wire, totals, wireTotal, latest } = home;
+  const { rows, recent, wire, totals, wireTotal, latest, counts } = home;
   const emergencyUp = Number(totals?.activeSevere ?? 0) > 0;
-  const life = FEATURES.islandLife ? await listPosts({ perPage: 3 }) : null;
   const adFree = viewer.adFree;
   const handle = viewer.handle;
-  const badges = await badgesFor(rows.map((r) => (r.anonymous ? null : r.authorHandle)));
+  const badgeMap = await badgesFor(rows.map((r) => (r.anonymous ? null : r.authorHandle)));
   const engMap = await engagementFor("incident", rows.map((r) => r.id), viewer.userId);
 
-  const pins: MapPin[] = recent.slice(0, 30).map((r) => ({
+  const sorted = sort === "recent" ? rows : sortRows(rows, sort);
+  const stream: FeedRow[] = sorted.map((r) => ({
     id: r.id,
+    title: r.title,
+    details: r.details,
+    category: r.category,
+    severity: r.severity,
     lat: r.lat,
     lng: r.lng,
-    category: r.category as CategoryKey,
-    title: r.title,
-    meta: `${r.confirmations} confirm${r.confirmations === 1 ? "" : "s"} · ${timeAgo(r.createdAt)}`,
+    accuracyMeters: r.accuracyMeters,
+    address: r.address,
+    street: r.street,
+    parish: r.parish,
     status: r.status,
-    href: `/incident/${r.id}`,
-    live: r.status === "active" && r.severity >= 3,
+    confirmations: r.confirmations,
+    sightings: r.sightings,
+    sourceKind: r.sourceKind,
+    sourceName: r.sourceName,
+    sourceUrl: r.sourceUrl,
+    photoNote: r.photoNote,
+    authorHandle: r.anonymous ? null : r.authorHandle,
+    anonymous: r.anonymous,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
   }));
+  // The card components want plain objects keyed by id / handle — a Map cannot
+  // cross the server → client boundary.
+  const badges: Record<string, Badge | null> = {};
+  const engs: Record<string, Engagement> = {};
+  for (const r of sorted) {
+    const key = r.anonymous ? "" : (r.authorHandle ?? "");
+    badges[key] = badgeMap.get(key) ?? null;
+    engs[r.id] = engMap.get(r.id) ?? NO_ENGAGEMENT;
+  }
 
   const anchor = parish ? GAZETTEER.find((g) => g.parish === parish) : undefined;
-  const center: [number, number] = anchor ? [anchor.lat, anchor.lng] : [24.9, -77.6];
-  const zoom = anchor ? 14 : 8;
-
   const activeCount = Number(totals?.active ?? 0);
+  const feedHref = (patch: Record<string, string>) => {
+    const p = new URLSearchParams();
+    if (status !== "active") p.set("status", status);
+    if (category) p.set("category", category);
+    if (parish) p.set("island", parish);
+    if (q) p.set("q", q);
+    if (sort !== "recent") p.set("sort", sort);
+    for (const [k, v] of Object.entries(patch)) {
+      if (v) p.set(k, v);
+      else p.delete(k);
+    }
+    const qs = p.toString();
+    return `/feed${qs ? `?${qs}` : ""}`;
+  };
 
   return (
     <>
-      <div className="mb-5 space-y-3">
+      <PageHead
+        eyebrow={status === "all" ? "Everything" : status === "active" ? "Live now" : "Cleared"}
+        title="The feed"
+        blurb={
+          parish
+            ? `What neighbours are filing on ${parish} right now — pin the road or junction, not a house.`
+            : "Floods, outages, road damage and safety hazards, pinned by residents and confirmed by neighbours."
+        }
+        actions={
+          <>
+            <span className="nb-num" aria-hidden>
+              {activeCount}
+            </span>
+            <span className="text-[12.5px] font-bold uppercase tracking-[0.14em] text-tertiary">
+              live report{activeCount === 1 ? "" : "s"} · {Number(wireTotal?.n ?? 0)} on the wire
+            </span>
+            <ButtonLink href="/report" variant="primary" size="sm">
+              Drop a pin
+            </ButtonLink>
+          </>
+        }
+      />
+
+      <div className="mb-4 space-y-3">
         <EmergencyNotice />
         <OfficialSources />
       </div>
 
-      {/* Hero band — landing hero grammar: asymmetric grid, display headline, one loud CTA. */}
-      <section className="mb-8 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.95fr)]">
-        <div className="glass relative isolate overflow-hidden rounded-[24px] p-5 sm:p-7">
-          <PageScene name="aerial" />
-          <Eyebrow>{BRAND.tagline}</Eyebrow>
-          <h1 className="display mt-3 text-[clamp(1.75rem,5.4vw,2.9rem)] font-extrabold leading-[1.02] tracking-[-0.06em] text-sand-100">
-            What is actually happening, <em className="text-tide-500 not-italic">street by street.</em>
-          </h1>
-          <p className="mt-3 max-w-[54ch] text-[13.5px] leading-[1.75] text-ink-300">
-            Residents pin floods, outages, road damage and safety hazards on real aerial imagery. Pin the road or junction,
-            not a house: published pins sit a short distance from the exact spot, and neighbours confirm them. No accounts
-            are required to read the map.
-          </p>
-          <div className="mt-5 flex flex-wrap items-center gap-2.5">
-            <ButtonLink href="/report" variant="primary">
-              Drop a pin
-              <ArrowIcon />
-            </ButtonLink>
-            <ButtonLink href="/map" variant="secondary">
-              Open the map · {activeCount} live
-            </ButtonLink>
-            <ButtonLink href="/wire" variant="ghost">
-              Read the news wire
-            </ButtonLink>
-            <ButtonLink href="/open-now" variant="ghost">
-              What is open now
-            </ButtonLink>
-          </div>
-          <dl className="mt-6 grid grid-cols-3 gap-2.5 border-t hairline pt-4 text-left">
-            {[
-              ["Reports, last 24h", String(Number(totals?.reportsToday ?? 0))],
-              ["Parishes reporting", String(Number(totals?.parishes ?? 0))],
-              ["Wire stories", String(Number(wireTotal?.n ?? 0))],
-            ].map(([k, v]) => (
-              <div key={k}>
-                <dt className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">{k}</dt>
-                <dd className="num display mt-1 text-[21px] font-extrabold tracking-[-0.045em] text-sand-100">{v}</dd>
+      <FeedControls counts={counts} total={stream.length} view={view} />
+
+      <div className="mt-5 pulse-grid-3">
+        <div className="pulse-stream-col">
+          {view === "map" ? (
+            <FeedMap rows={stream} parish={parish ?? null} query={feedHref({ view: "list" })} />
+          ) : null}
+          <FeedStream
+            rows={stream}
+            total={stream.length}
+            handle={handle}
+            badges={badges}
+            engs={engs}
+            latest={latest}
+            spotlight={view === "list" && sort === "recent" && !category}
+            emptyTitle={q ? `Nothing matches “${q}”` : "Nothing filed under that yet"}
+            emptyBlurb={
+              q
+                ? "Try a street name, a parish, or a single word. Reports are short — most are one sentence."
+                : "Clear the filters, or be the first to report it — the pin takes about twenty seconds and neighbours see it immediately."
+            }
+            emptyActions={
+              <>
+                <ButtonLink href="/report" variant="primary" size="sm">
+                  Report a spot
+                </ButtonLink>
+                <Link href={feedHref({ category: "", island: "", q: "", status: "" })} className="nb-btn nb-btn-secondary nb-btn-sm">
+                  Clear filters
+                </Link>
+              </>
+            }
+          />
+        </div>
+
+        <aside className="pulse-inspector">
+          <CardLayered className="pulse-card-pad">
+            <SectionTitle>What is being filed</SectionTitle>
+            <ul className="mt-2.5 grid gap-1.5">
+              {(Object.keys(CATEGORIES) as CategoryKey[]).map((key) => {
+                const n = counts[key] ?? 0;
+                if (!n) return null;
+                return (
+                  <li key={key}>
+                    <Link href={feedHref({ category: key })} className="flex items-center gap-2 rounded-[10px] px-1.5 py-1.5 hover:bg-hover">
+                      <span className="pulse-catdot" style={{ ["--spine" as string]: pulseCategoryMeta(key).token }} aria-hidden />
+                      <span className="flex-1 text-[12.5px] font-semibold text-secondary">{CATEGORIES[key].label}</span>
+                      <span className="font-mono text-[12px] font-bold tabular-nums text-primary">{n}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="mt-3 flex items-center gap-1.5">
+              <CategoryLegend categories={["flood", "power", "road", "water", "crime", "marine", "health", "trash"]} />
+            </div>
+          </CardLayered>
+
+          {view === "list" ? (
+            <CardLayered className="pulse-card-pad">
+              <div className="flex items-baseline justify-between gap-2">
+                <SectionTitle>Also on the island</SectionTitle>
+                <TextLink href="/map">Open map</TextLink>
               </div>
-            ))}
-          </dl>
-        </div>
-
-        <div className="overflow-hidden rounded-[24px] border border-tide-500/20 shadow-l2">
-          <MapPanel pins={pins} center={center} zoom={zoom} initialLayer="hybrid" className="h-[260px] w-full sm:h-[380px]" mode="browse" />
-        </div>
-      </section>
-
-      {/* Feed + rail — asymmetric two-column grid, mobile-first. */}
-      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_318px]">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
-            <div className="min-w-[200px] flex-1">
-              <Eyebrow dot={status !== "resolved"}>{status === "all" ? "Everything" : status === "active" ? "Live now" : "Cleared"}</Eyebrow>
-              <h2 className="display mt-2 text-[clamp(1.5rem,3.6vw,2rem)] font-extrabold leading-[1.06] tracking-[-0.055em] text-sand-100">
-                The feed
-              </h2>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {(["active", "all", "resolved"] as const).map((s) => (
-                <Link
-                  key={s}
-                  href={{ pathname: "/feed", query: { ...(category ? { category } : {}), ...(parish ? { parish } : {}), status: s } }}
-                  aria-current={status === s ? "true" : undefined}
-                  className={`nb-chip${status === s ? " nb-chip" : ""}`}
-                  data-on={status === s ? "true" : undefined}
-                >
-                  {s === "all" ? "All" : s === "active" ? "Open" : "Resolved"}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          <div className="nb-no-scrollbar -mx-4 mt-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
-            <Link
-              href="/feed"
-              className="nb-chip shrink-0"
-              aria-current={!category ? "true" : undefined}
-            >
-              Everything
-            </Link>
-            {(Object.keys(CATEGORIES) as CategoryKey[]).map((key) => (
-              <Link
-                key={key}
-                href={{ pathname: "/feed", query: { category: key, ...(parish ? { parish } : {}), ...(status ? { status } : {}) } }}
-                aria-current={category === key ? "true" : undefined}
-                className="nb-category-chip shrink-0 rounded-full border px-2.5 py-1 text-[11.5px] font-bold transition hover:brightness-125"
-                style={{
-                  borderColor: category === key ? CATEGORIES[key].color : "rgba(120,220,214,.18)",
-                  background: category === key ? `${CATEGORIES[key].color}26` : "transparent",
-                  color: category === key ? CATEGORIES[key].color : "var(--color-ink-300)",
-                  ["--category-text" as string]: `var(--color-cat-${key}-t)`,
-                }}
-              >
-                {CATEGORIES[key].label}
-              </Link>
-            ))}
-          </div>
-
-          {rows.length ? (
-            <div className="mt-4 space-y-3">
-              {rows.map((row) => (
-                <IncidentCard
-                  key={row.id}
-                  row={{ ...row, category: row.category as CategoryKey }}
-                  handle={handle}
-                  badge={badges.get(row.authorHandle ?? "") ?? null}
-                  eng={engMap.get(row.id) ?? NO_ENGAGEMENT}
-                  latest={latest[row.id] ?? null}
-                />
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              className="mt-4"
-              title="Nothing filed under that yet"
-              blurb="Clear the filters, or be the first to report it — the pin takes about twenty seconds and neighbours see it immediately."
-              actions={
-                <>
-                  <ButtonLink href="/report" variant="primary" size="sm">
-                    Report a spot
-                  </ButtonLink>
-                  <ButtonLink href="/feed" variant="secondary" size="sm">
-                    Clear filters
-                  </ButtonLink>
-                </>
-              }
-            />
-          )}
-        </div>
-
-        <aside className="min-w-0 space-y-4">
-          <div className="nb-surface rounded-[20px] p-4">
-            <SectionTitle>Jump to an island</SectionTitle>
-            <div className="nb-no-scrollbar -mx-1 mt-2.5 flex gap-1.5 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
-              {PARISHES.slice(0, 12).map((p) => (
-                <Link
-                  key={p}
-                  href={{ pathname: "/feed", query: { parish: p, ...(category ? { category } : {}) } }}
-                  className="nb-chip shrink-0"
-                  data-on={parish === p ? "true" : undefined}
-                >
-                  {p}
-                </Link>
-              ))}
-            </div>
-          </div>
+              <ul className="mt-2 grid gap-1">
+                {recent
+                  .filter((r) => !stream.some((s) => s.id === r.id))
+                  .slice(0, 6)
+                  .map((r) => (
+                    <li key={r.id}>
+                      <IncidentRowMini
+                        row={{
+                          id: r.id,
+                          title: r.title,
+                          category: r.category,
+                          street: r.street,
+                          parish: r.parish,
+                          createdAt: r.createdAt,
+                        }}
+                      />
+                    </li>
+                  ))}
+              </ul>
+              {!stream.length ? <p className="mt-1.5 text-[12.5px] text-tertiary">Nothing else recent on this filter.</p> : null}
+            </CardLayered>
+          ) : null}
 
           {/* No ads beside an active severe hazard: the space is for the warning. */}
           {!adFree && !emergencyUp ? <AdSlot index={1} variant="rail" /> : null}
 
-          <div className="nb-surface rounded-[20px] p-4">
+          <Panel className="pulse-card-pad">
             <div className="flex items-baseline justify-between gap-2">
               <SectionTitle>From the wire</SectionTitle>
               <TextLink href="/wire">All stories</TextLink>
             </div>
-            <ul className="mt-2.5 space-y-2.5">
+            <ul className="mt-2.5 grid gap-2.5">
               {wire.length ? (
                 wire.map((n) => (
                   <li key={n.id}>
                     <a href={n.url} target="_blank" rel="noreferrer" className="group block">
-                      <p className="text-[13px] font-semibold leading-snug text-ink-200 transition duration-200 ease-standard group-hover:text-tide-300">
+                      <p className="text-[13px] font-semibold leading-snug text-secondary transition-colors group-hover:text-[color:var(--text-accent)]">
                         {n.title}
                       </p>
-                      <p className="mt-1 text-[11.5px] text-ink-400">
+                      <p className="mt-1 font-mono text-[11.5px] text-tertiary">
                         {n.sourceName} · {timeAgo(n.publishedAt)}
                         {n.parish ? ` · ${n.parish}` : ""}
                       </p>
@@ -320,56 +369,57 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
                   </li>
                 ))
               ) : (
-                <li className="text-[12.5px] text-ink-400">
+                <li className="text-[12.5px] text-tertiary">
                   No stories on the wire yet.{" "}
-                  <Link href="/wire" className="font-bold text-tide-300 hover:underline">
+                  <Link href="/wire" className="font-bold text-[color:var(--text-accent)] hover:underline">
                     Refresh the wire
                   </Link>
                   .
                 </li>
               )}
             </ul>
-          </div>
+          </Panel>
 
-          {life ? (
-            <div className="nb-surface rounded-[20px] p-4">
-              <div className="flex items-baseline justify-between gap-2">
-                <SectionTitle>Island Life</SectionTitle>
-                <TextLink href="/life">See all</TextLink>
-              </div>
-              <ul className="mt-2.5 space-y-2.5">
-                {life.rows.map((p) => (
-                  <li key={p.id}>
-                    <Link href={`/life/${p.id}`} className="group block">
-                      <p className="text-[13px] font-semibold leading-snug text-ink-200 transition duration-200 ease-standard group-hover:text-tide-300">
-                        {p.title}
-                      </p>
-                      <p className="mt-1 text-[11.5px] text-ink-400">
-                        {(KINDS[p.kind as KindKey] ?? KINDS.tip).label} · {p.placeName ?? p.parish} · {timeAgo(p.createdAt)}
-                      </p>
-                    </Link>
-                  </li>
-                ))}
-                {life.rows.length === 0 ? (
-                  <li className="text-[12.5px] text-ink-400">Be the first to share a favourite spot or how an event went.</li>
-                ) : null}
-              </ul>
-              <ButtonLink href="/life/new" variant="secondary" size="sm" className="mt-3">
-                Share an experience
-              </ButtonLink>
+          <Panel className="pulse-card-pad">
+            <SectionTitle>Trust, out loud</SectionTitle>
+            <p className="mt-1.5 text-[12.5px] leading-[1.7] text-tertiary">
+              Every card carries a number. It weighs who filed it, how many neighbours confirmed it and how long ago — and
+              it is deliberately allowed to be low.
+            </p>
+            <div className="mt-2.5 grid gap-2">
+              {[
+                { label: "One word, no neighbours", value: 22 },
+                { label: "Three confirmations, today", value: 68 },
+                { label: "Official bulletin, current", value: 91 },
+              ].map((x) => (
+                <div key={x.label} className="flex items-center gap-2.5">
+                  <span className="flex-1 text-[12px] text-secondary">{x.label}</span>
+                  <TrustMeter value={x.value} compact label={`${x.label}: ${x.value} of 100`} />
+                </div>
+              ))}
             </div>
-          ) : null}
+          </Panel>
 
-          <div className="nb-surface rounded-[20px] border-conch-500/35 p-4">
+          <div className="pulse-card pulse-card-pad" style={{ borderColor: "color-mix(in srgb, var(--warning) 35%, transparent)" }}>
             <SectionTitle>Get pinged for your parish</SectionTitle>
-            <p className="mt-1.5 text-[12.5px] leading-[1.75] text-ink-300">
-              Choose the islands and categories you care about — floods and power for a Family Island home, safety and roads
-              for Nassau.
+            <p className="mt-1.5 text-[12.5px] leading-[1.7] text-tertiary">
+              Choose the islands and categories you care about — floods and power for a Family Island home, safety and
+              roads for Nassau.
             </p>
             <ButtonLink href="/alerts" variant="secondary" size="sm" className="mt-3">
               Set up alerts
             </ButtonLink>
           </div>
+
+          {q || category || parish || status !== "active" || sort !== "recent" ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <Chip tone="tide">filtered</Chip>
+              <TextLink href="/feed">See the whole island</TextLink>
+              <Eyebrow dot={false}>
+                <Link href={feedHref({ view: "map" })}>as pins</Link>
+              </Eyebrow>
+            </div>
+          ) : null}
         </aside>
       </div>
     </>

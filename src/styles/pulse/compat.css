@@ -1,0 +1,169 @@
+/* =============================================================================
+   NOWBEY PULSE — COMPAT LAYER
+   The landing kit (src/ui/kit.tsx), the shared forms and ~20 older components
+   speak a second class vocabulary: `.nb-*` classes reading `--nb-*` custom
+   properties. Rather than fork the palette, every property below is an ALIAS
+   onto a Pulse semantic token, so those components repaint with the redesign —
+   and pick up the light theme for free, because the semantic token they point
+   at is the one that changes.
+
+   Delete a line here only when the last component using it is gone.
+   ============================================================================= */
+
+:root {
+  /* Surfaces → Pulse surface semantics. */
+  --nb-bg: var(--bg-base);
+  --nb-bg-deep: var(--bg-sunken);
+  --nb-surface-1: var(--bg-raised);
+  --nb-surface-2: var(--bg-elevated);
+  --nb-stroke: var(--border-default);
+  --nb-stroke-soft: var(--border-subtle);
+  --nb-stroke-btn: var(--border-strong);
+
+  /* Signal → accent. */
+  --nb-mint: var(--accent);
+  --nb-mint-deep: var(--accent-hover);
+  --nb-tide-300: var(--text-accent);
+  --nb-mint-ink: var(--text-on-accent);
+
+  /* Text → Pulse type ramp. */
+  --nb-cream: var(--text-primary);
+  --nb-text: var(--text-primary);
+  --nb-muted: var(--text-secondary);
+  --nb-faint: var(--text-tertiary);
+
+  /* Accents → Pulse signal semantics. */
+  --nb-gold: var(--warning);
+  --nb-gold-soft: var(--warning);
+  --nb-gold-ink: var(--warning);
+  --nb-coral: var(--danger);
+  --nb-danger-500: var(--danger);
+  --nb-sky: var(--info);
+  --nb-sky-bg: var(--info-muted);
+  --nb-sky-stroke: color-mix(in srgb, var(--info) 38%, transparent);
+
+  /* Switch hardware. */
+  --nb-knob-dark: var(--bg-raised);
+  --nb-knob-light: var(--text-secondary);
+  --nb-toggle-off: var(--bg-active);
+
+  /* Chrome heights kept under their old names: the map workspace and the
+     fill-view contract are measured against them. */
+  --nb-safe-bottom: var(--pulse-safe-bottom);
+  --nb-safe-top: var(--pulse-safe-top);
+  --nb-header-h: var(--pulse-header-h);
+  --nb-nav-h: var(--pulse-navbar-h);
+}
+
+@layer components {
+  /* Legacy wrapper form used by wire-forms: a <label class="nb-field"> around
+     .nb-input. Pulse's .nb-field is the control itself, so the wrapper has to
+     be neutralised or the label grows a second border and background. */
+  label.nb-field,
+  .nb-field:has(> .nb-input),
+  .nb-field:has(> .nb-textarea) {
+    display: block;
+    width: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    box-shadow: none;
+  }
+
+  .nb-input,
+  .nb-select,
+  .nb-textarea {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: var(--pulse-shape-sm);
+    padding: 13px var(--pulse-space-4);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: border-color var(--pulse-duration-state) var(--pulse-ease-out),
+      box-shadow var(--pulse-duration-state) var(--pulse-ease-out);
+  }
+  .nb-input:hover,
+  .nb-select:hover,
+  .nb-textarea:hover {
+    border-color: var(--border-strong);
+  }
+  .nb-input:focus,
+  .nb-select:focus,
+  .nb-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-muted);
+  }
+  .nb-textarea {
+    min-height: 110px;
+    resize: vertical;
+  }
+  .nb-hint {
+    margin-top: 7px;
+    font-size: var(--pulse-text-xs);
+    color: var(--text-tertiary);
+  }
+  .nb-row {
+    display: flex;
+    align-items: center;
+    gap: var(--pulse-space-4);
+    padding: var(--pulse-space-4) 0;
+  }
+  .nb-card-gold {
+    background: color-mix(in srgb, var(--warning) 8%, var(--bg-raised));
+    border: 1px solid color-mix(in srgb, var(--warning) 32%, transparent);
+    border-radius: var(--pulse-shape-md);
+    padding: var(--pulse-space-4);
+    display: flex;
+    gap: var(--pulse-space-4);
+    align-items: flex-start;
+  }
+  .nb-card-head {
+    display: flex;
+    align-items: center;
+    gap: var(--pulse-space-3);
+  }
+  .nb-card-link {
+    transition: border-color var(--pulse-duration-state) var(--pulse-ease-out),
+      transform var(--pulse-duration-state) var(--pulse-ease-spring),
+      box-shadow var(--pulse-duration-state) var(--pulse-ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nb-card-link:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-3px);
+      box-shadow: var(--pulse-elev-3);
+    }
+  }
+
+  /* The marquee the gas ticker used before Ticker arrived; kept as an alias so
+     nothing that still carries the class goes still-by-accident. */
+  .marquee-track {
+    animation: nb-ticker 34s linear infinite;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  /* Grain is Pulse's noise film, one step stronger. */
+  .grain::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: calc(var(--pulse-noise-opacity, 0.055) * 0.7);
+    background-image: radial-gradient(color-mix(in srgb, var(--text-secondary) 55%, transparent) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+  :root[data-theme="light"] .grain::before {
+    background-image: radial-gradient(color-mix(in srgb, var(--text-primary) 45%, transparent) 1px, transparent 1px);
+  }
+}

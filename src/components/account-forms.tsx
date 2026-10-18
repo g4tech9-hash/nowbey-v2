@@ -18,7 +18,7 @@ function Note({ msg }: { msg: Msg }) {
   );
 }
 
-const SAVE = "rounded-xl bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-50";
+const SAVE = "rounded-xl bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-50";
 
 async function send(url: string, method: string, body?: unknown) {
   const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
@@ -99,7 +99,7 @@ export function ResendVerification() {
             setBusy(false);
           }
         }}
-        className="rounded-full bg-sand-100 px-3.5 py-1.5 text-[12px] font-extrabold text-abyss-950 hover:bg-white disabled:opacity-50"
+        className="rounded-full bg-sand-100 px-3.5 py-1.5 text-[12px] font-extrabold text-on-accent hover:bg-white disabled:opacity-50"
       >
         {busy ? "Sending…" : "Send the confirmation email again"}
       </button>

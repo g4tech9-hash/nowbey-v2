@@ -89,7 +89,7 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
             type="button"
             onClick={() => setBilling(v)}
             aria-pressed={billing === v}
-            className={`rounded-full px-3.5 py-1.5 transition ${billing === v ? "bg-tide-500 text-abyss-950" : "text-ink-200 hover:bg-white/8"}`}
+            className={`rounded-full px-3.5 py-1.5 transition ${billing === v ? "bg-tide-500 text-on-accent" : "text-ink-200 hover:bg-white/8"}`}
           >
             {v === "month" ? "Monthly" : "Yearly"}
             {v === "year" ? <span className="ml-1.5 text-[11.5px] opacity-80">2 months free</span> : null}
@@ -161,7 +161,7 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
                   type="button"
                   disabled={busy !== null}
                   onClick={() => choose(t.key)}
-                  className="mt-3 w-full rounded-xl bg-sand-100 py-2.5 text-[13px] font-extrabold text-abyss-950 hover:bg-white disabled:opacity-50"
+                  className="mt-3 w-full rounded-xl bg-sand-100 py-2.5 text-[13px] font-extrabold text-on-accent hover:bg-white disabled:opacity-50"
                 >
                   {busy === t.key ? "One moment…" : signedIn ? `Get ${t.name}` : "Sign in to choose"}
                 </button>

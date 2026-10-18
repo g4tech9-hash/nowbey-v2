@@ -91,7 +91,7 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
   return (
     <article className="nb-surface rounded-xl2 p-4">
       <div className="flex flex-wrap items-start gap-2">
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase ${group.kind === "server" ? "bg-danger-500/20 text-danger-500" : group.kind === "app" ? "bg-[#a78bfa]/18 text-[#c4b5fd]" : "bg-tide-500/18 text-tide-300"}`}>
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase ${group.kind === "server" ? "bg-danger-500/20 text-danger-500" : group.kind === "app" ? "bg-violet/20 text-violet" : "bg-tide-500/18 text-tide-300"}`}>
           {group.kind} · {group.platform}
         </span>
         {a && a.status !== "unavailable" ? (
@@ -136,7 +136,7 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
           type="button"
           disabled={pending}
           onClick={() => run("analyze")}
-          className="rounded-full bg-tide-500 px-3.5 py-1.5 text-[12px] font-extrabold text-abyss-950 disabled:opacity-50"
+          className="rounded-full bg-tide-500 px-3.5 py-1.5 text-[12px] font-extrabold text-on-accent disabled:opacity-50"
         >
           {pending ? "Working…" : a ? "Re-analyze with AI" : "Analyze with AI"}
         </button>
@@ -152,7 +152,7 @@ export function LogGroupCard({ group, aiOn, githubOn }: { group: LogGroupView; a
                   : "Approve this proposal? GitHub is not connected yet, so it will be saved as Approved and wait — no issue will be created until GITHUB_TOKEN + GITHUB_REPO are set.",
               )
             }
-            className="rounded-full bg-sun-500 px-3.5 py-1.5 text-[12px] font-extrabold text-abyss-950 disabled:opacity-50"
+            className="rounded-full bg-sun-500 px-3.5 py-1.5 text-[12px] font-extrabold text-on-accent disabled:opacity-50"
           >
             Approve → create GitHub issue
           </button>
@@ -211,7 +211,7 @@ export function AnalyzeAllButton({ aiOn }: { aiOn: boolean }) {
             router.refresh();
           })
         }
-        className="rounded-full bg-tide-500 px-4 py-2 text-[12.5px] font-extrabold text-abyss-950 disabled:opacity-50"
+        className="rounded-full bg-tide-500 px-4 py-2 text-[12.5px] font-extrabold text-on-accent disabled:opacity-50"
       >
         {pending ? "Analyzing…" : "Analyze queued groups now"}
       </button>

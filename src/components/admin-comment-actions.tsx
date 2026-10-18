@@ -35,13 +35,13 @@ export function CommentModActions({ id, status, flagged }: { id: number; status:
             {busy === "hide" ? "…" : "Hide"}
           </button>
         ) : status === "hidden" ? (
-          <button type="button" disabled={busy !== null} onClick={() => go("restore")} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
+          <button type="button" disabled={busy !== null} onClick={() => go("restore")} className={`${BTN} bg-tide-500 font-extrabold text-on-accent`}>
             {busy === "restore" ? "…" : "Restore"}
           </button>
         ) : null}
         {flagged ? (
           <>
-            <button type="button" disabled={busy !== null} onClick={() => go("approve")} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
+            <button type="button" disabled={busy !== null} onClick={() => go("approve")} className={`${BTN} bg-tide-500 font-extrabold text-on-accent`}>
               {busy === "approve" ? "…" : "Approve"}
             </button>
             <button type="button" disabled={busy !== null} onClick={() => go("clearFlags")} className={soft}>
@@ -65,7 +65,7 @@ export function CommentModActions({ id, status, flagged }: { id: number; status:
             if (reason === null) return;
             go("deleteWarn", undefined, { reason });
           }}
-          className={`${BTN} bg-conch-500 font-extrabold text-abyss-950`}
+          className={`${BTN} bg-conch-500 font-extrabold text-on-accent`}
         >
           {busy === "deleteWarn" ? "…" : "Delete & warn user"}
         </button>

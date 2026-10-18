@@ -99,8 +99,8 @@ export function AdminUserActions(p: Props) {
             Save role
           </button>
         </div>
-        {p.isSelf ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">You cannot change your own role.</p> : null}
-        {p.envAdmin ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">{p.emailVerified ? "Admin access is granted through ADMIN_HANDLES and a confirmed email. The stored database role does not override that access." : "This handle is listed in ADMIN_HANDLES, but its email must be confirmed before environment-based admin access becomes active."}</p> : null}
+        {p.isSelf ? <p className="mt-1 text-[11.5px] text-secondary">You cannot change your own role.</p> : null}
+        {p.envAdmin ? <p className="mt-1 text-[11.5px] text-secondary">{p.emailVerified ? "Admin access is granted through ADMIN_HANDLES and a confirmed email. The stored database role does not override that access." : "This handle is listed in ADMIN_HANDLES, but its email must be confirmed before environment-based admin access becomes active."}</p> : null}
       </div>
 
       <div>
@@ -121,7 +121,7 @@ export function AdminUserActions(p: Props) {
             Save plan
           </button>
         </div>
-        <p className="mt-1 text-[11.5px] text-[#8fb9b6]">
+        <p className="mt-1 text-[11.5px] text-secondary">
           {p.payingViaStripe
             ? "This member pays through Stripe, so their plan is managed there."
             : "For community partners and staff. It involves no payment and stays until you remove it."}
@@ -145,13 +145,13 @@ export function AdminUserActions(p: Props) {
               onClick={() => {
                 if (window.confirm(`Suspend @${p.handle}? They will be signed out everywhere and cannot sign in.`)) void run("suspend", { reason }, "Account suspended.");
               }}
-              className="rounded-lg bg-conch-500/90 px-3 py-2 text-[12.5px] font-extrabold text-abyss-950 hover:bg-conch-500 disabled:opacity-50"
+              className="rounded-lg bg-conch-500/90 px-3 py-2 text-[12.5px] font-extrabold text-on-accent hover:bg-conch-500 disabled:opacity-50"
             >
               Suspend
             </button>
           </div>
         )}
-        {!p.suspended && (p.isSelf || p.targetIsAdmin) ? <p className="mt-1 text-[11.5px] text-[#8fb9b6]">Admins cannot be suspended. Remove their admin role first.</p> : null}
+        {!p.suspended && (p.isSelf || p.targetIsAdmin) ? <p className="mt-1 text-[11.5px] text-secondary">Admins cannot be suspended. Remove their admin role first.</p> : null}
       </div>
 
       <div>
@@ -171,7 +171,7 @@ export function AdminUserActions(p: Props) {
         </div>
         {link ? (
           <div className="mt-2 rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
-            <p className="text-[11.5px] text-[#8fb9b6]">One hour, one use. Shown only now, and not kept in the activity log.</p>
+            <p className="text-[11.5px] text-secondary">One hour, one use. Shown only now, and not kept in the activity log.</p>
             <div className="mt-1.5 flex gap-2">
               <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} className={`${INPUT} min-w-0 flex-1 font-mono text-[11.5px]`} aria-label="Password reset link" />
               <button type="button" onClick={() => void navigator.clipboard?.writeText(link)} className={BTN}>
@@ -195,7 +195,7 @@ export function AdminUserActions(p: Props) {
             {liveVerified.map((b) => (
               <li key={b.id} className="rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
                 <p className="text-[12.5px] text-sand-100">“{b.reason}”</p>
-                <p className="mt-0.5 text-[11.5px] text-[#8fb9b6]">
+                <p className="mt-0.5 text-[11.5px] text-secondary">
                   granted by @{b.grantedBy} {shortDate(b.grantedAt)}
                   {b.expiresAt ? ` · runs until ${shortDate(b.expiresAt)}` : ""}
                 </p>
@@ -213,7 +213,7 @@ export function AdminUserActions(p: Props) {
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-[11.5px] text-[#8fb9b6]">No live verified badge. {revoked.length ? `${revoked.length} revoked earlier — see the activity log below.` : ""}</p>
+          <p className="mt-1 text-[11.5px] text-secondary">No live verified badge. {revoked.length ? `${revoked.length} revoked earlier — see the activity log below.` : ""}</p>
         )}
         <div className={`${row} mt-2`}>
           <input
@@ -249,7 +249,7 @@ export function AdminUserActions(p: Props) {
             Grant
           </button>
         </div>
-        <p className="mt-1 text-[11.5px] text-[#8fb9b6]">
+        <p className="mt-1 text-[11.5px] text-secondary">
           Only grant this after checking who the account is. It appears beside their handle on every report, post and comment they wrote.
         </p>
       </div>
@@ -266,7 +266,7 @@ export function AdminUserActions(p: Props) {
               <li key={`${d.kind}-${d.id}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/[.05] p-2.5">
                 <div>
                   <p className="font-mono text-[12px] text-sand-100">{d.label}</p>
-                  <p className="text-[11.5px] text-[#8fb9b6]">last seen {shortDate(d.at)}</p>
+                  <p className="text-[11.5px] text-secondary">last seen {shortDate(d.at)}</p>
                 </div>
                 <button
                   type="button"
@@ -276,7 +276,7 @@ export function AdminUserActions(p: Props) {
                     if (reason === null) return;
                     void run("banDevice", { kind: d.kind, id: d.id, reason }, "Device banned.");
                   }}
-                  className="rounded-lg bg-conch-500/90 px-3 py-2 text-[12.5px] font-extrabold text-abyss-950 hover:bg-conch-500 disabled:opacity-50"
+                  className="rounded-lg bg-conch-500/90 px-3 py-2 text-[12.5px] font-extrabold text-on-accent hover:bg-conch-500 disabled:opacity-50"
                 >
                   Ban device
                 </button>
@@ -284,17 +284,17 @@ export function AdminUserActions(p: Props) {
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-[11.5px] text-[#8fb9b6]">No registered devices.</p>
+          <p className="mt-1 text-[11.5px] text-secondary">No registered devices.</p>
         )}
         {p.bans.length ? (
           <div className="mt-2">
-            <p className="text-[11.5px] font-bold uppercase tracking-wide text-[#6e97a0]">Banned</p>
+            <p className="text-[11.5px] font-bold uppercase tracking-wide text-tertiary">Banned</p>
             <ul className="mt-1 space-y-2">
               {p.bans.map((b) => (
                 <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-conch-500/30 p-2.5">
                   <div>
                     <p className="text-[12px] text-sand-100">{b.platform ?? "device"} · {b.reason ?? "no reason given"}</p>
-                    <p className="text-[11.5px] text-[#8fb9b6]">banned {shortDate(b.at)}</p>
+                    <p className="text-[11.5px] text-secondary">banned {shortDate(b.at)}</p>
                   </div>
                   <button type="button" disabled={busy !== null} onClick={() => void run("unbanDevice", { id: b.id }, "Ban lifted.")} className={BTN}>
                     Unban
@@ -315,7 +315,7 @@ export function AdminUserActions(p: Props) {
         {liveBroadcaster ? (
           <div className="mt-1 rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
             <p className="text-[12.5px] text-sand-100">“{liveBroadcaster.reason}”</p>
-            <p className="mt-0.5 text-[11.5px] text-[#8fb9b6]">
+            <p className="mt-0.5 text-[11.5px] text-secondary">
               granted by @{liveBroadcaster.grantedBy} {shortDate(liveBroadcaster.grantedAt)}
               {liveBroadcaster.expiresAt ? ` · runs until ${shortDate(liveBroadcaster.expiresAt)}` : ""}
             </p>
@@ -379,7 +379,7 @@ export function AdminUserActions(p: Props) {
           >
             Save note
           </button>
-          <span className="text-[11.5px] text-[#8fb9b6]">Notes are never shown to the member and cannot be edited afterwards.</span>
+          <span className="text-[11.5px] text-secondary">Notes are never shown to the member and cannot be edited afterwards.</span>
         </div>
       </div>
 

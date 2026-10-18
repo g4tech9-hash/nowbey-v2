@@ -1,5 +1,10 @@
 # NowBey Design System — extracted from the landing page
 
+> **Component, theme and motion decisions now live in [NowBey Pulse](./PULSE.md).** What follows stays
+> accurate about the landing page's typography and colour DNA — the measured starting point Pulse was
+> built on — but for tokens, the two themes, the component library and the responsive contract, read
+> Pulse.
+
 **Source of truth:** `src/app/page.tsx` + `src/app/landing.module.css` (the new landing page).
 Everything below is measured from that code, not invented. The application UI is rebuilt on these
 tokens and component DNA so the product feels like one continuous experience from the first

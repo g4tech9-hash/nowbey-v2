@@ -15,7 +15,23 @@ import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { sanitizeArticleContent } from "@/lib/sanitize";
-import { Chip, EmptyState, PageIntro, Panel, SectionTitle } from "@/components/ui";
+import { EmptyState, PageIntro, Panel, SectionTitle, Chip } from "@/components/ui";
+import { AvatarStack, CardLayered, CatBadge, FreshnessPill, LiveDot, MetaChip } from "@/ui/pulse";
+import { pulseCategoryMeta } from "@/ui/pulse/glyph";
+
+/**
+ * THE WIRE — the desk side of the island.
+ *
+ * A feed of *articles* reads differently from a feed of *sightings*: it is a
+ * chronology, and the thing you scan for is when and where, not who confirmed it.
+ * So this page is a timeline — a rule down the left with a category dot per day —
+ * and each story is a card on that spine, and the rail on the right is the desk:
+ * the map of where the wire has landed, which outlets are actually being read, and
+ * the one thing a reader can do (send a link worth mapping).
+ *
+ * Data fetching, the stale-refresh `after()` hook, sanitisation of imported HTML
+ * and the engagement counts are untouched by the redesign.
+ */
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "News wire" };
@@ -56,149 +72,164 @@ export default async function WirePage() {
       hrefLabel: "Read and discuss",
     }));
 
+  // Day buckets drive the timeline rule. Grouping is presentational: the rows
+  // stay in the order the query returned them, newest first.
+  const days: { key: string; label: string; items: typeof rows }[] = [];
+  for (const n of rows) {
+    const key = new Date(n.publishedAt).toDateString();
+    const last = days[days.length - 1];
+    if (last && last.key === key) last.items.push(n);
+    else days.push({ key, label: dayLabel(n.publishedAt), items: [n] });
+  }
+
   return (
     <>
       <PageIntro
-        eyebrow="News wire"
+        eyebrow={<span className="flex items-center gap-2"><LiveDot /> News wire</span>}
         title="The news wire, on the map"
         blurb="Headlines from Bahamian news outlets, sorted into NowBey categories and placed on the map when a street or island is named in the story. Stories we cannot place stay in the list without a pin."
         actions={<IngestButton />}
-        className="mb-7"
+        className="mb-6"
       />
 
-      {/* Editorial grid: story column + map-and-desk rail. */}
-      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_330px]">
-        <div className="min-w-0 space-y-3.5">
+      <div className="pulse-grid-3">
+        <div className="pulse-wire min-w-0">
           {rows.length ? (
-            rows.map((n, i) => {
-              const c = CATEGORIES[(n.category as CategoryKey) ?? "notice"] ?? CATEGORIES.notice;
-              return (
-                <article
-                  key={n.id}
-                  className="nb-surface nb-card-link rounded-[20px] p-4 sm:p-5"
-                >
-                  <div className="flex flex-wrap items-center gap-2 text-[11.5px] font-bold">
-                    <span
-                      className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 uppercase tracking-[0.1em]"
-                      style={{ color: c.color, borderColor: `${c.color}3d`, background: `${c.color}14` }}
-                    >
-                      <span className="h-2 w-2 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}80` }} />
-                      {c.label}
-                    </span>
-                    <span className="num text-ink-400">
-                      {n.sourceName} · {timeAgo(n.publishedAt)}
-                    </span>
-                    {n.parish ? (
-                      <Link
-                        href={`/map?parish=${encodeURIComponent(n.parish)}`}
-                        className="nb-chip min-h-[40px] px-3"
+            days.map((day) => (
+              <section key={day.key} aria-label={day.label} className="pulse-wire-day">
+                <h2 className="pulse-section-title">{day.label}</h2>
+                <ul className="pulse-timeline pulse-wire-list">
+                  {day.items.map((n, i) => {
+                    const eng = engMap.get(n.id) ?? NO_ENGAGEMENT;
+                    const globalIndex = rows.findIndex((r) => r.id === n.id);
+                    return (
+                      <li
+                        key={n.id}
+                        className="pulse-timeline-item pulse-wire-item"
+                        style={{ ["--spine" as string]: pulseCategoryMeta(n.category ?? "notice").token } as React.CSSProperties}
                       >
-                        {n.parish}
-                      </Link>
-                    ) : null}
-                    {i === 0 ? (
-                      <span className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-ok-500/35 bg-ok-500/12 px-2.5 py-1 text-[11.5px] font-bold text-ok-600">
-                        <span className="nb-live-dot" aria-hidden />
-                        newest
-                      </span>
-                    ) : null}
-                  </div>
-                  <h2 className="display mt-2.5 text-[18px] font-extrabold leading-[1.25] tracking-[-0.04em] text-sand-100">
-                    <a href={n.url} target="_blank" rel="noreferrer" className="transition duration-200 ease-standard hover:text-tide-300">
-                      {n.title}
-                    </a>
-                  </h2>
-                  {n.aiSummary ? (
-                    <p className="mt-2 text-[13px] leading-[1.75] text-ink-200">
-                      <span className="mr-1.5 rounded-md border border-tide-500/30 bg-tide-500/12 px-1.5 py-0.5 align-middle text-[10px] font-extrabold uppercase tracking-[0.1em] text-tide-300">
-                        AI brief
-                      </span>
-                      {n.aiSummary}
-                    </p>
-                  ) : n.summary ? (
-                    <p
-                      className="mt-2 text-[13px] leading-[1.75] text-ink-300"
-                      dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(n.summary) }}
-                    />
-                  ) : null}
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11.5px]">
-                    {n.lat != null && n.lng != null ? (
-                      <Chip tone="neutral">
-                        <span className="num">
-                          Pinned · {(n.lat as number).toFixed(4)}, {(n.lng as number).toFixed(4)}
-                        </span>
-                      </Chip>
-                    ) : (
-                      <Chip tone="neutral">No place named in the text — unpinned</Chip>
-                    )}
-                    <a
-                      href={n.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="nb-textlink ml-auto"
-                    >
-                      Read at {(() => {
-                        try {
-                          return new URL(n.url).host.replace(/^www\./, "");
-                        } catch {
-                          return "source";
-                        }
-                      })()}
-                      {" ↗"}
-                    </a>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t hairline pt-3">
-                    {(engMap.get(n.id) ?? NO_ENGAGEMENT).total + (engMap.get(n.id) ?? NO_ENGAGEMENT).comments > 0 ? (
-                      <EngagementSummary eng={engMap.get(n.id) ?? NO_ENGAGEMENT} href={`/wire/${n.id}`} />
-                    ) : null}
-                    <Link href={`/wire/${n.id}#comments`} className="text-[12px] font-bold text-tide-300 hover:underline">
-                      React and comment
-                    </Link>
-                  </div>
-                </article>
-              );
-            })
+                        <CardLayered as="article" category={n.category ?? "notice"} spine interactive className="pulse-card-pad">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <CatBadge category={n.category ?? "notice"} size="sm" />
+                            <span className="font-mono text-[11.5px] text-tertiary tabular-nums">
+                              {n.sourceName} · {timeAgo(n.publishedAt)}
+                            </span>
+                            {n.parish ? (
+                              <Link href={`/map?parish=${encodeURIComponent(n.parish)}`} className="pulse-chip">
+                                {n.parish}
+                              </Link>
+                            ) : null}
+                            {globalIndex === 0 ? (
+                              <span className="ml-auto">
+                                <MetaChip tone="success">
+                                  <span className="pulse-live-dot" style={{ background: "currentColor" }} aria-hidden />
+                                  newest
+                                </MetaChip>
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <h3 className="pulse-card-title">
+                            <a href={n.url} target="_blank" rel="noreferrer">
+                              {n.title}
+                            </a>
+                          </h3>
+
+                          {n.aiSummary ? (
+                            <p className="pulse-card-body">
+                              <span className="pulse-ai-brief">AI brief</span>
+                              {n.aiSummary}
+                            </p>
+                          ) : n.summary ? (
+                            <p
+                              className="pulse-card-body"
+                              dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(n.summary) }}
+                            />
+                          ) : null}
+
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+                            {n.lat != null && n.lng != null ? (
+                              <Chip tone="neutral">
+                                <span className="font-mono tabular-nums">
+                                  Pinned · {(n.lat as number).toFixed(4)}, {(n.lng as number).toFixed(4)}
+                                </span>
+                              </Chip>
+                            ) : (
+                              <Chip tone="neutral">No place named in the text — unpinned</Chip>
+                            )}
+                            <FreshnessPill freshness={i === 0 ? "live" : "watching"} time={n.publishedAt} label={timeAgo(n.publishedAt)} />
+                            <a href={n.url} target="_blank" rel="noreferrer" className="nb-textlink ml-auto">
+                              Read at {(() => {
+                                try {
+                                  return new URL(n.url).host.replace(/^www\./, "");
+                                } catch {
+                                  return "source";
+                                }
+                              })()}
+                              {" ↗"}
+                            </a>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-default pt-3">
+                            <AvatarStack seed={n.sourceName} size={22} label={n.sourceName} />
+                            <span className="text-[12px] text-tertiary">{CATEGORIES[(n.category as CategoryKey) ?? "notice"]?.blurb}</span>
+                            {eng.total + eng.comments > 0 ? (
+                              <EngagementSummary eng={eng} href={`/wire/${n.id}`} />
+                            ) : null}
+                            <Link href={`/wire/${n.id}#comments`} className="pulse-mini-link ml-auto">
+                              React and comment
+                            </Link>
+                          </div>
+                        </CardLayered>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))
           ) : (
             <EmptyState
               title="No stories on the wire yet"
               blurb={
                 <>
-                  Tap <span className="font-bold text-tide-300">Refresh stories</span> to bring in the latest headlines, or send
-                  us a link to a story you think neighbours should see.
+                  Tap <span className="font-bold text-[color:var(--text-accent)]">Refresh stories</span> to bring in the
+                  latest headlines, or send us a link to a story you think neighbours should see.
                 </>
               }
             />
           )}
         </div>
 
-        <aside className="space-y-4">
-          <div className="overflow-hidden rounded-[20px] border border-tide-500/20 shadow-l2">
-            <MapPanel pins={pins} mode="browse" center={[24.9, -77.6]} zoom={7} initialLayer="hybrid" className="h-[220px] w-full sm:h-[260px]" />
+        <aside className="pulse-inspector">
+          <div className="pulse-map-frame">
+            <MapPanel pins={pins} mode="browse" center={[24.9, -77.6]} zoom={7} initialLayer="hybrid" className="h-full w-full" />
           </div>
 
-          <Panel className="rounded-[20px] p-4">
+          <Panel className="pulse-card-pad">
             <SectionTitle>Where stories come from</SectionTitle>
-            <p className="num mt-1.5 text-[12px] leading-snug text-ink-400">
+            <p className="mt-1.5 font-mono text-[12px] leading-snug text-tertiary tabular-nums">
               {meta.n} {meta.n === 1 ? "story" : "stories"} on the wire
               {meta.at ? `, last updated ${timeAgo(meta.at)}` : ""}.
             </p>
-            <ul className="mt-3 space-y-2 text-[12.5px]">
+            <ul className="mt-3 grid gap-2 text-[12.5px]">
               {feeds.map((f) => (
                 <li key={f.url} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-tide-500" />
-                  <span className="min-w-0 truncate font-semibold text-ink-200">{f.name}</span>
+                  <span className="pulse-catdot" aria-hidden />
+                  <span className="min-w-0 truncate font-semibold text-secondary">{f.name}</span>
                 </li>
               ))}
             </ul>
-            <p className="mt-3.5 border-t hairline pt-3 text-[12px] leading-[1.75] text-ink-400">
+            <p className="mt-3.5 border-t border-default pt-3 text-[12px] leading-[1.75] text-tertiary">
               Want another outlet covered, like the Tribune or the Nassau Guardian? Send us a story link below and we will
               add its island to the map.
             </p>
           </Panel>
 
-          <Panel className="rounded-[20px] p-4">
+          <Panel className="pulse-card-pad">
             <SectionTitle>Got a link worth mapping?</SectionTitle>
-            <p className="mt-1.5 mb-3 text-[12px] leading-[1.75] text-ink-400">Send the story and we will work out where it happened.</p>
+            <p className="mt-1.5 mb-3 text-[12px] leading-[1.75] text-tertiary">
+              Send the story and we will work out where it happened.
+            </p>
             <SubmitLink />
           </Panel>
 
@@ -207,4 +238,13 @@ export default async function WirePage() {
       </div>
     </>
   );
+}
+
+function dayLabel(iso: string | Date) {
+  const d = new Date(iso);
+  const today = new Date();
+  if (d.toDateString() === today.toDateString()) return "Today";
+  const y = new Date(today.getTime() - 864e5);
+  if (d.toDateString() === y.toDateString()) return "Yesterday";
+  return d.toLocaleDateString("en-BS", { weekday: "long", day: "numeric", month: "long" });
 }

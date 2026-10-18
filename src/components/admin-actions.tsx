@@ -34,7 +34,7 @@ export function ReviewButtons({ id }: { id: string }) {
   return (
     <div className="flex flex-col items-start gap-1">
       <div className="flex gap-1.5">
-        <button type="button" disabled={busy !== null} onClick={() => go("approve")} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
+        <button type="button" disabled={busy !== null} onClick={() => go("approve")} className={`${BTN} bg-tide-500 font-extrabold text-on-accent`}>
           {busy === "approve" ? "…" : "Approve"}
         </button>
         <button type="button" disabled={busy !== null} onClick={() => go("reject")} className={`${BTN} border hairline text-danger-500 hover:bg-white/8`}>
@@ -133,7 +133,7 @@ export function ReportActions({ id, status, canDelete }: { id: string; status: s
           </button>
         ) : (
           <>
-            <button type="button" disabled={busy !== null} onClick={() => go("restore")} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
+            <button type="button" disabled={busy !== null} onClick={() => go("restore")} className={`${BTN} bg-tide-500 font-extrabold text-on-accent`}>
               {busy === "restore" ? "…" : "Restore"}
             </button>
             {canDelete ? (
@@ -179,7 +179,7 @@ export function EnquiryStatus({ id, status }: { id: number; status: string }) {
                 setBusy(null);
               }
             }}
-            className={`${BTN} ${s === status ? "bg-tide-500 text-abyss-950" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
+            className={`${BTN} ${s === status ? "bg-tide-500 text-on-accent" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
           >
             {s === "new" ? "New" : s === "contacted" ? "Contacted" : "Closed"}
           </button>
@@ -213,7 +213,7 @@ export function SendAlertButton({ id }: { id: string }) {
 
   return (
     <div className="flex flex-col items-start gap-1">
-      <button type="button" disabled={busy} onClick={go} className={`${BTN} bg-tide-500 font-extrabold text-abyss-950`}>
+      <button type="button" disabled={busy} onClick={go} className={`${BTN} bg-tide-500 font-extrabold text-on-accent`}>
         {busy ? "Sending…" : "Send alert"}
       </button>
       {err ? <p className="text-[11.5px] text-danger-500">{err}</p> : null}

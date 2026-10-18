@@ -95,7 +95,7 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
         ) : (
           <span className="text-[13px] text-ink-400">Not rated yet</span>
         )}
-        <a href={directions} target="_blank" rel="noopener noreferrer" className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
+        <a href={directions} target="_blank" rel="noopener noreferrer" className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
           Directions
         </a>
         <Link href="/life/new" className="rounded-full bg-white/10 px-4 py-2 text-[13px] font-bold text-sand-100 hover:bg-white/15">

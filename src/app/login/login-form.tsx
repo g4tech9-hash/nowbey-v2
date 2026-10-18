@@ -230,7 +230,7 @@ export function LoginForm() {
                 setError(null);
               }}
               className={`min-h-[40px] flex-1 rounded-full text-[12.5px] font-extrabold transition duration-200 ease-standard ${
-                mode === v ? "bg-tide-500 text-[#04202a] shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
+                mode === v ? "bg-tide-500 text-on-accent shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
               }`}
             >
               {v === "signup" ? "Create account" : "Sign in"}

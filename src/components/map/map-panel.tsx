@@ -41,7 +41,7 @@ export function MapPanel(props: MapProps) {
         <div>
           <p className="font-bold text-sand-100">Map paused to save mobile data</p>
           <p className="mt-1 text-[12.5px] text-ink-400">The report list and location text still work.</p>
-          <button type="button" onClick={() => setLoadAnyway(true)} className="mt-3 min-h-[44px] rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-abyss-950">
+          <button type="button" onClick={() => setLoadAnyway(true)} className="mt-3 min-h-[44px] rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
             Load this map
           </button>
         </div>

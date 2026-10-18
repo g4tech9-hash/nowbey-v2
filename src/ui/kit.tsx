@@ -2,24 +2,29 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 /* =====================================================================
-   NOWBEY UI KIT — rebuilt 2026-10-17 from the reference set.
-   Every primitive here reproduces the component DNA in
-   docs/DESIGN_SYSTEM_REBUILD.md. Server-rendering safe (no hooks).
+   NOWBEY UI KIT — the landing page's own primitives.
+   2026-10-18 (Pulse): every UI colour in here is a token. The only literal
+   colours left are *inside the satellite illustration* — the simulated roads,
+   water and shadow in the map mock — because that artwork is depicting a
+   photograph, not chrome, and a photograph does not invert when you change the
+   theme. Everything a user could read as interface (labels, marks, pills,
+   frames) follows `--text-*`, `--accent`, `--card-*`.
+   Server-rendering safe: no hooks, no effects.
    ===================================================================== */
 
 /** Brand mark: mint-stroked rounded square with pin + wave. */
 export function NowBeyMark({ size = 36 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" aria-hidden className="shrink-0">
-      <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="#0c222d" stroke="#43e0cb" strokeWidth="2" />
-      <path d="M8 27c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="#43e0cb" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.8" />
+      <rect x="1.5" y="1.5" width="37" height="37" rx="12" fill="var(--bg-raised)" stroke="var(--accent)" strokeWidth="2" />
+      <path d="M8 27c3.6-3.4 6.2 2.2 9.9 0 3.7-2.2 5.6 2.6 9.4 0" stroke="var(--accent)" strokeWidth="1.8" fill="none" strokeLinecap="round" opacity="0.8" />
       <path
         d="M20 8.5c-3.9 0-7 3-7 6.8 0 4.9 7 11.2 7 11.2s7-6.3 7-11.2c0-3.8-3.1-6.8-7-6.8Z"
         fill="none"
-        stroke="#43e0cb"
+        stroke="var(--accent)"
         strokeWidth="2.2"
       />
-      <circle cx="20" cy="15.2" r="2.6" fill="#f6c75d" />
+      <circle cx="20" cy="15.2" r="2.6" fill="var(--warning)" />
     </svg>
   );
 }
@@ -27,8 +32,8 @@ export function NowBeyMark({ size = 36 }: { size?: number }) {
 /** “Now” in cream + “Bey” in mint — the wordmark from the reference header. */
 export function Wordmark({ size = 22 }: { size?: number }) {
   return (
-    <span className="display leading-none" style={{ fontSize: size, fontWeight: 800, letterSpacing: "-0.02em", color: "var(--nb-cream)" }}>
-      Now<span style={{ color: "var(--nb-mint)" }}>Bey</span>
+    <span className="display leading-none" style={{ fontSize: size, fontWeight: 800, letterSpacing: "-0.02em", color: "var(--text-primary)" }}>
+      Now<span style={{ color: "var(--text-accent)" }}>Bey</span>
     </span>
   );
 }
@@ -199,13 +204,13 @@ export function SampleMap({ height = 200 }: { height?: number }) {
         {/* dashed minor route */}
         <path d="M210 96 L 246 92" stroke="#97aa94" strokeWidth="2.4" strokeDasharray="4 5" strokeLinecap="round" />
         {/* place labels */}
-        <text x="150" y="42" textAnchor="middle" fill="#879e8c" fontFamily="Manrope, sans-serif" fontSize="10" fontWeight="700" letterSpacing="3">
+        <text x="150" y="42" textAnchor="middle" fill="var(--text-tertiary)" fontFamily="var(--font-display), sans-serif" fontSize="10" fontWeight="700" letterSpacing="3">
           NEW PROVIDENCE
         </text>
-        <text x="192" y="122" textAnchor="middle" fill="#879e8c" fontFamily="Manrope, sans-serif" fontSize="9" fontWeight="700" letterSpacing="2">
+        <text x="192" y="122" textAnchor="middle" fill="var(--text-tertiary)" fontFamily="var(--font-display), sans-serif" fontSize="9" fontWeight="700" letterSpacing="2">
           BAY STREET
         </text>
-        <text x="268" y="162" textAnchor="middle" fill="#879e8c" fontFamily="Manrope, sans-serif" fontSize="9.5" fontWeight="700" letterSpacing="2.5">
+        <text x="268" y="162" textAnchor="middle" fill="var(--text-tertiary)" fontFamily="var(--font-display), sans-serif" fontSize="9.5" fontWeight="700" letterSpacing="2.5">
           NASSAU HARBOUR
         </text>
         {/* pins: coral, cyan, amber — cream stroke + dark core */}
@@ -238,7 +243,7 @@ export function SampleMap({ height = 200 }: { height?: number }) {
 
 export function MockStatusBar() {
   return (
-    <div className="flex items-center justify-between px-6 pt-4 pb-1 text-[11px] font-bold" style={{ color: "var(--nb-cream)" }}>
+    <div className="flex items-center justify-between px-6 pt-4 pb-1 text-[11px] font-bold" style={{ color: "var(--text-primary)" }}>
       <span className="num">9:41</span>
       <span className="flex items-center gap-1.5" aria-hidden>
         <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">

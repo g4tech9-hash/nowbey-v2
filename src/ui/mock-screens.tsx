@@ -109,9 +109,9 @@ export function MockEmailAlerts() {
             borderRadius: 12,
             display: "grid",
             placeItems: "center",
-            border: "1px solid #6d6a45",
-            background: "#2e3122",
-            color: "var(--nb-gold)",
+            border: "1px solid color-mix(in srgb, var(--warning) 34%, transparent)",
+            background: "color-mix(in srgb, var(--warning) 12%, var(--bg-raised))",
+            color: "var(--warning)",
             flex: "none",
           }}
         >
@@ -120,10 +120,10 @@ export function MockEmailAlerts() {
           </svg>
         </span>
         <span>
-          <span className="block text-[15px] font-bold" style={{ color: "var(--nb-gold-ink)" }}>
+          <span className="block text-[15px] font-bold" style={{ color: "var(--text-primary)" }}>
             Storm warnings
           </span>
-          <span className="mt-0.5 block text-[12.5px]" style={{ color: "#a9a68c" }}>
+          <span className="mt-0.5 block text-[12.5px]" style={{ color: "var(--text-tertiary)" }}>
             Always sent. Free for everyone.
           </span>
         </span>
@@ -168,8 +168,8 @@ export function MockNewsWire() {
             borderRadius: 13,
             display: "grid",
             placeItems: "center",
-            background: "#143b42",
-            color: "var(--nb-mint)",
+            background: "color-mix(in srgb, var(--accent) 16%, var(--bg-raised))",
+            color: "var(--text-accent)",
             fontFamily: "var(--font-display)",
             fontWeight: 800,
             fontSize: 20,

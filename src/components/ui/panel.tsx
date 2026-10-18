@@ -1,32 +1,48 @@
 import type { ReactNode } from "react";
+import { CardLayered } from "@/ui/pulse/card";
 
-/** Landing card material: gradient panel, hairline edge, 20px radius, soft ambient shadow. */
+/**
+ * Panels are `CardLayered` under another name. Two APIs stayed because ~30 pages
+ * import these, and the redesign is not allowed to break them; underneath, they
+ * are one component reading `--card-bg` / `--card-border` / `--card-radius` /
+ * `--card-shadow`.
+ */
 export function Panel({
   className,
   children,
   as: Tag = "section",
+  spine,
   ...rest
 }: {
   className?: string;
   children: ReactNode;
   as?: "section" | "div" | "article" | "aside" | "li";
+  /** Paint the left spine rail (pass a category key to colour it by signal). */
+  spine?: boolean | string;
 } & React.HTMLAttributes<HTMLElement>) {
   return (
-    <Tag className={`nb-surface${className ? ` ${className}` : ""}`} {...rest}>
+    <CardLayered
+      as={Tag}
+      className={className}
+      spine={spine === true || typeof spine === "string"}
+      category={typeof spine === "string" ? spine : null}
+      {...rest}
+    >
+      {/* No padding here on purpose: every call site supplies its own, and a
+          redesign that moved the padding into the component would double it. */}
       {children}
-    </Tag>
+    </CardLayered>
   );
 }
 
-/** Card with the landing hover lift (border warms to tide, -2px rise). */
+/** Card with the hover lift (edge warms to the accent, the card rises 3px). */
 export function CardLink({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={`nb-surface nb-card-link${className ? ` ${className}` : ""}`}>{children}</div>;
+  return (
+    <div className={`pulse-card pulse-lift${className ? ` ${className}` : ""}`}>{children}</div>
+  );
 }
 
-/**
- * Panel with a title row — the standard app block:
- * optional eyebrow, display title, optional right-hand actions.
- */
+/** Panel with a title row: eyebrow, display title, optional right-hand actions. */
 export function PanelHead({
   title,
   eyebrow,
@@ -44,23 +60,23 @@ export function PanelHead({
     <div className={`flex flex-wrap items-start gap-x-3 gap-y-2${className ? ` ${className}` : ""}`}>
       <div className="min-w-0 flex-1">
         {eyebrow ? <p className="nb-eyebrow mb-1">{eyebrow}</p> : null}
-        <h2 className="display text-[16px] font-extrabold leading-snug tracking-[-0.04em] text-sand-100">{title}</h2>
-        {blurb ? <p className="mt-1 max-w-[62ch] text-[12.5px] leading-relaxed text-ink-300">{blurb}</p> : null}
+        <h2 className="mt-0.5 text-[16px] font-extrabold leading-snug tracking-[-0.035em] text-primary">{title}</h2>
+        {blurb ? <p className="mt-1 max-w-[62ch] text-[13px] leading-[1.7] text-tertiary">{blurb}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
   );
 }
 
-/** Numbered step row — landing "how it works" DNA at app scale. */
+/** Numbered step row — the wizard and "how it works" grammar. */
 export function StepRow({ n, title, children }: { n: number | string; title: string; children: ReactNode }) {
   return (
     <p className="mt-2.5 flex gap-2.5">
-      <span className="num mt-0.5 grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full bg-tide-500/15 text-[12px] font-extrabold text-tide-300">
+      <span className="nb-num mt-0.5" aria-hidden>
         {n}
       </span>
-      <span className="text-[12.5px] leading-relaxed text-ink-300">
-        <span className="font-bold text-sand-100">{title}. </span>
+      <span className="text-[13px] leading-[1.7] text-secondary">
+        <span className="font-bold text-primary">{title}. </span>
         {children}
       </span>
     </p>

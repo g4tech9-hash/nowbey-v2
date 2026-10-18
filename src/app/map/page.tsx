@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { MapPanel, type MapPin, type PickResult } from "@/components/map/map-panel";
 import { useIsMobile } from "@/lib/use-is-mobile";
+import { pulseCategoryMeta } from "@/ui/pulse/glyph";
 import { EmergencyNotice } from "@/components/emergency-notice";
 import { trackFunnel } from "@/lib/funnel-client";
 import { CATEGORIES, PARISHES, timeAgo, type CategoryKey } from "@/lib/geo";
@@ -341,7 +342,7 @@ export default function MapWorkspace() {
             <button
               type="button"
               onClick={startPinning}
-              className="nb-btn nb-btn-primary absolute bottom-3 left-1/2 z-[500] min-h-[44px] -translate-x-1/2 shadow-[0_12px_28px_rgba(0,0,0,.5)] lg:hidden"
+              className="nb-btn nb-btn-primary absolute bottom-3 left-1/2 z-[500] min-h-[44px] -translate-x-1/2 shadow-l3 lg:hidden"
             >
               + Report a hazard
             </button>
@@ -351,15 +352,15 @@ export default function MapWorkspace() {
 
       {/* What the phone shows: the map, the list, or both. Never on desktop — there everything fits. */}
       <div className={`flex-none items-center gap-2 lg:hidden ${pickMode ? "hidden" : "flex"}`}>
-        <div className="glass flex min-h-[48px] flex-1 rounded-full p-1" role="group" aria-label="What to show on this screen">
+        <div className="glass flex min-h-[52px] flex-1 rounded-full p-1" role="group" aria-label="What to show on this screen">
           {PHONE_MODES.map((m) => (
             <button
               key={m.key}
               type="button"
               onClick={() => setMode(m.key)}
               aria-pressed={view === m.key}
-              className={`min-h-[40px] flex-1 rounded-full px-2 text-[12px] font-extrabold transition duration-200 ease-standard ${
-                view === m.key ? "bg-tide-500 text-[#04202a] shadow-glow-tide" : "text-ink-200 hover:bg-white/10"
+              className={`min-h-[44px] lg:min-h-[40px] flex-1 rounded-full px-2 text-[12px] font-extrabold transition duration-200 ease-standard ${
+                view === m.key ? "bg-accent text-on-accent shadow-glow-tide" : "text-ink-200 hover:bg-white/10"
               }`}
             >
               {m.label}
@@ -370,7 +371,7 @@ export default function MapWorkspace() {
 
       {/* Phones: the pin list (or the pin form while pinning). Desktop: the left rail. */}
       <aside
-        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border hairline bg-abyss-900/95 shadow-[0_-12px_32px_rgba(0,0,0,.45)] backdrop-blur-md lg:order-1 lg:h-full lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none lg:backdrop-blur-none ${
+        className={`flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border hairline bg-raised shadow-l3 pulse-glass-blur lg:order-1 lg:h-full lg:rounded-none lg:border-0 lg:bg-transparent lg:shadow-none lg:lg:pulse-glass-blur-0 ${
           view === "map" ? "hidden lg:flex" : ""
         }`}
       >
@@ -384,7 +385,7 @@ export default function MapWorkspace() {
             <button
               type="button"
               onClick={cancelPinning}
-              className="nb-btn nb-btn-secondary nb-btn-sm min-h-[40px] flex-none"
+              className="nb-btn nb-btn-secondary nb-btn-sm min-h-[44px] lg:min-h-[40px] flex-none"
             >
               Cancel
             </button>
@@ -392,7 +393,7 @@ export default function MapWorkspace() {
             <button
               type="button"
               onClick={startPinning}
-              className="nb-btn nb-btn-primary nb-btn-sm min-h-[40px] flex-none lg:min-h-[36px]"
+              className="nb-btn nb-btn-primary nb-btn-sm min-h-[44px] lg:min-h-[40px] flex-none lg:min-h-[44px] lg:min-h-[36px]"
             >
               + Report a hazard
             </button>
@@ -405,7 +406,7 @@ export default function MapWorkspace() {
         {/* One scroll owner: controls must never squeeze the reports to zero height. */}
         <div className="nb-pin-rail-scroll nb-scroll mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3 lg:pr-1.5" tabIndex={0} aria-label="Pin filters and reports">
         <details className="px-3 lg:px-0">
-          <summary className="min-h-[36px] cursor-pointer py-2 text-[11.5px] font-bold text-ink-400 hover:text-tide-300">
+          <summary className="min-h-[44px] lg:min-h-[36px] cursor-pointer py-2 text-[11.5px] font-bold text-ink-400 hover:text-tide-300">
             Island activity · {pulse.open} open pins
           </summary>
         {/* Tideglass bento: island pulse (2/3) + open/confirmed tiles (1/3). */}
@@ -464,7 +465,7 @@ export default function MapWorkspace() {
                   active={filter === k}
                   onClick={() => { setFilter(k); setListLimit(40); }}
                   label={CATEGORIES[k].label}
-                  color={CATEGORIES[k].color}
+                  category={k}
                 />
               ))}
             </div>
@@ -473,7 +474,7 @@ export default function MapWorkspace() {
               onClick={() => setMoreFilters((v) => !v)}
               aria-expanded={moreFilters}
               aria-label="Island and wire-pin filters"
-              className={`min-h-[34px] flex-none rounded-full px-2.5 text-[11.5px] font-bold lg:hidden ${
+              className={`min-h-[44px] lg:min-h-[34px] flex-none rounded-full px-2.5 text-[11.5px] font-bold lg:hidden ${
                 moreFilters ? "bg-tide-500/20 text-tide-300" : "bg-white/8 text-ink-300"
               }`}
             >
@@ -490,7 +491,7 @@ export default function MapWorkspace() {
               value={island}
               onChange={(e) => { setIsland(e.target.value); setListLimit(40); }}
               aria-label="Filter pins by island"
-              className="min-h-[40px] rounded-lg border border-white/10 bg-abyss-950/80 px-1.5 py-1 text-[11.5px] outline-none"
+              className="nb-select min-h-[44px] text-[11.5px] lg:min-h-[40px]"
             >
               <option value="all">Everywhere</option>
               {PARISHES.map((p) => (
@@ -504,7 +505,7 @@ export default function MapWorkspace() {
             type="button"
             onClick={() => setShowWire((v) => !v)}
             aria-pressed={showWire}
-            className={`min-h-[40px] rounded-lg px-2 py-1 text-[11.5px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-ink-400"}`}
+            className={`min-h-[44px] lg:min-h-[40px] rounded-lg px-2 py-1 text-[11.5px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-ink-400"}`}
           >
             Wire pins {showWire ? "on" : "off"}
           </button>
@@ -519,7 +520,7 @@ export default function MapWorkspace() {
             {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
               <li key={k} className="flex items-center gap-1.5 text-[11.5px] text-ink-300">
                 <span
-                  className="grid h-[22px] w-[22px] place-items-center rounded-full border border-white/70 text-[8px] font-extrabold text-abyss-950"
+                  className="grid h-[22px] w-[22px] place-items-center rounded-full border border-strong text-[8px] font-extrabold text-on-accent"
                   style={{ background: CATEGORIES[k].color }}
                 >
                   {CATEGORIES[k].pin}
@@ -528,7 +529,7 @@ export default function MapWorkspace() {
               </li>
             ))}
             <li className="flex items-center gap-1.5 text-[11.5px] text-ink-300">
-              <span className="grid h-[22px] w-[22px] place-items-center rounded-full border-2 border-tide-400 bg-abyss-950 text-[9px] font-extrabold text-tide-300">
+              <span className="grid h-[22px] w-[22px] place-items-center rounded-full border-2 border-accent bg-sunken text-[9px] font-extrabold text-accent">
                 12
               </span>
               Several reports — tap to zoom in
@@ -546,7 +547,7 @@ export default function MapWorkspace() {
                 {current.street ?? "unmapped"} · {timeAgo(current.createdAt)} · {current.confirmations} ✓
               </span>
             </span>
-            <Link href={`/incident/${current.id}`} className="min-h-[40px] flex-none rounded-full bg-tide-500/20 px-3 py-2 text-[11.5px] font-extrabold text-tide-300">
+            <Link href={`/incident/${current.id}`} className="min-h-[44px] lg:min-h-[40px] flex-none rounded-full bg-tide-500/20 px-3 py-2 text-[11.5px] font-extrabold text-tide-300">
               Open
             </Link>
           </div>
@@ -580,7 +581,7 @@ export default function MapWorkspace() {
                     type="button"
                     disabled={!pick}
                     onClick={openDetails}
-                    className="mt-2.5 min-h-[44px] w-full rounded-xl bg-tide-500 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-40"
+                    className="nb-btn nb-btn-primary min-h-[44px] w-full rounded-xl py-2 text-[13px] font-extrabold disabled:opacity-40"
                   >
                     Next: add details →
                   </button>
@@ -593,7 +594,7 @@ export default function MapWorkspace() {
                       value={form.title}
                       onChange={(e) => setForm({ ...form, title: e.target.value })}
                       placeholder="Water across Bay Street outside the bus stand"
-                      className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[16px] outline-none focus:border-tide-400 sm:text-[13px]"
+                      className="nb-field mt-1 text-[16px] sm:text-[13px]"
                     />
                   </label>
                   <label className="block">
@@ -602,7 +603,7 @@ export default function MapWorkspace() {
                       value={form.area}
                       onChange={(e) => setForm({ ...form, area: e.target.value })}
                       placeholder="Bay Street"
-                      className="mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[16px] outline-none focus:border-tide-400 sm:text-[13px]"
+                      className="nb-field mt-1 text-[16px] sm:text-[13px]"
                     />
                     <span className="mt-1 block text-[11.5px] text-ink-400">
                       Prefilled from the pin. Edit it if locals call the spot something else.
@@ -616,10 +617,10 @@ export default function MapWorkspace() {
                           key={k}
                           type="button"
                           onClick={() => setForm({ ...form, category: k })}
-                          className="min-h-[36px] rounded-lg px-2 py-1 text-[11.5px] font-bold"
+                          className="min-h-[44px] lg:min-h-[36px] rounded-lg px-2 py-1 text-[11.5px] font-bold"
                           style={{
                             background: form.category === k ? `${CATEGORIES[k].color}2e` : "rgba(255,255,255,.06)",
-                            color: form.category === k ? CATEGORIES[k].color : "#a9cdc9",
+                            color: form.category === k ? CATEGORIES[k].color : "var(--text-tertiary)",
                           }}
                         >
                           {CATEGORIES[k].label}
@@ -635,8 +636,8 @@ export default function MapWorkspace() {
                           key={label}
                           type="button"
                           onClick={() => setForm({ ...form, severity: i + 1 })}
-                          className={`min-h-[40px] rounded-lg px-1.5 py-1.5 text-[11.5px] font-bold ${
-                            form.severity === i + 1 ? "bg-conch-500 text-abyss-950" : "bg-white/6 text-ink-300"
+                          className={`min-h-[44px] lg:min-h-[40px] rounded-lg px-1.5 py-1.5 text-[11.5px] font-bold ${
+                            form.severity === i + 1 ? "bg-danger text-on-accent" : "bg-white/6 text-ink-300"
                           }`}
                         >
                           {label}
@@ -651,7 +652,7 @@ export default function MapWorkspace() {
                       onChange={(e) => setForm({ ...form, details: e.target.value })}
                       rows={3}
                       placeholder="Water is knee deep from the traffic light to the pharmacy. Small cars are turning back."
-                      className="mt-1 w-full resize-none rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[16px] leading-relaxed outline-none focus:border-tide-400 sm:text-[13px]"
+                      className="nb-field mt-1 resize-none text-[16px] leading-relaxed sm:text-[13px]"
                     />
                   </label>
                   <label className="flex items-center gap-2 text-[12px] text-ink-300">
@@ -659,7 +660,7 @@ export default function MapWorkspace() {
                       type="checkbox"
                       checked={form.anonymous}
                       onChange={(e) => setForm({ ...form, anonymous: e.target.checked })}
-                      className="h-4 w-4 accent-[#43e0cc]"
+                      className="h-4 w-4 accent-tide-500"
                     />
                     {handle ? `Post as “someone” instead of @${handle}` : "Post as “someone” (you are not signed in)"}
                   </label>
@@ -667,7 +668,7 @@ export default function MapWorkspace() {
                     <button
                       type="button"
                       onClick={() => setStep("spot")}
-                      className="min-h-[44px] rounded-xl border hairline px-3 py-2 text-[12.5px] font-bold hover:bg-white/5"
+                      className="nb-btn nb-btn-secondary nb-btn-sm min-h-[44px] rounded-xl border hairline px-3 py-2 text-[12.5px] font-bold"
                     >
                       ← Fix the pin
                     </button>
@@ -675,7 +676,7 @@ export default function MapWorkspace() {
                       type="button"
                       onClick={submit}
                       disabled={saving || form.title.trim().length < 5}
-                      className="min-h-[44px] flex-1 rounded-xl bg-tide-500 py-2 text-[13px] font-extrabold text-abyss-950 disabled:opacity-45"
+                      className="nb-btn nb-btn-primary min-h-[44px] flex-1 rounded-xl py-2 text-[13px] font-extrabold disabled:opacity-45"
                     >
                       {saving ? "Publishing…" : "Publish to the map"}
                     </button>
@@ -690,7 +691,7 @@ export default function MapWorkspace() {
                   <>
                     <li className="sr-only">Loading pins…</li>
                     {[0, 1, 2, 3, 4].map((i) => (
-                      <li key={i} className="min-h-[52px] animate-pulse rounded-xl bg-white/[.04] px-2 py-2" aria-hidden>
+                      <li key={i} className="min-h-[52px] pulse-skeleton px-2 py-2" aria-hidden>
                         <span className="block h-3 w-3/4 rounded bg-white/10" />
                         <span className="mt-2 block h-2.5 w-1/2 rounded bg-white/[.07]" />
                       </li>
@@ -763,7 +764,7 @@ export default function MapWorkspace() {
                         setShowWire(true);
                         setListLimit(40);
                       }}
-                      className="mt-2 min-h-[40px] rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/20"
+                      className="mt-2 min-h-[44px] lg:min-h-[40px] rounded-full bg-white/10 px-3 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/20"
                     >
                       Clear filters
                     </button>
@@ -800,7 +801,7 @@ export default function MapWorkspace() {
                       setLoading(true);
                       void load();
                     }}
-                    className="mt-1.5 min-h-[40px] rounded-full bg-danger-500/20 px-3 py-1.5 text-[12px] font-extrabold text-danger-500 hover:bg-danger-500/30"
+                    className="mt-1.5 min-h-[44px] lg:min-h-[40px] rounded-full bg-danger-500/20 px-3 py-1.5 text-[12px] font-extrabold text-danger-500 hover:bg-danger-500/30"
                   >
                     Try again
                   </button>
@@ -816,32 +817,40 @@ export default function MapWorkspace() {
 }
 
 
+/**
+ * A category filter chip, on Pulse Layer 3.
+ *
+ * The hue comes from `var(--cat-*)` (so it is the light-theme hue on paper and
+ * the glowing hue on black) rather than from `CATEGORIES[k].color`, which is a
+ * hex tuned once for a dark night sky. Everything else — 44px on a phone, 36px
+ * on desktop, `aria-pressed` for the state, the spring press — is the chip's own
+ * contract in components.css.
+ */
 function FilterChip({
   active,
   onClick,
   label,
-  color,
+  category,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
-  color?: string;
+  /** A category key, for the hue dot. Omit for "All". */
+  category?: string;
 }) {
+  const hue = category ? pulseCategoryMeta(category).token : "var(--accent)";
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
       aria-current={active ? "true" : undefined}
-      className="nb-category-chip min-h-[40px] shrink-0 rounded-full px-2.5 py-1 text-[11.5px] font-bold transition duration-200 ease-standard active:scale-95"
-      style={{
-        background: active ? `${color ?? "var(--color-tide-400)"}26` : "rgba(255,255,255,.05)",
-        border: `1px solid ${active ? `${color ?? "var(--color-tide-400)"}66` : "rgba(255,255,255,.08)"}`,
-        color: active ? color ?? "#8ff0e4" : "#a9cdc9",
-      }}
+      className="pulse-chip pulse-press shrink-0"
+      data-on={active ? "true" : undefined}
+      style={{ ["--chip-hue" as string]: hue } as React.CSSProperties}
     >
       <span className="inline-flex items-center gap-1.5">
-        {color ? <span className="h-1.5 w-1.5 rounded-full" style={{ background: color }} /> : null}
+        {category ? <span className="h-1.5 w-1.5 rounded-full" style={{ background: hue }} aria-hidden /> : null}
         {label}
       </span>
     </button>

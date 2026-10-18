@@ -93,7 +93,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
           onClick={() => send("confirm")}
           disabled={busy !== null}
           aria-label={busy === "confirm" ? PENDING.confirm : undefined}
-          className="rounded-full bg-tide-500/15 px-2.5 py-1 font-bold text-tide-300 ring-1 ring-tide-400/35 hover:bg-tide-500 hover:text-abyss-950 disabled:opacity-50"
+          className="rounded-full bg-tide-500/15 px-2.5 py-1 font-bold text-tide-300 ring-1 ring-tide-400/35 hover:bg-tide-500 hover:text-on-accent disabled:opacity-50"
         >
           {busy === "confirm" ? "Saving…" : `Still there · ${n}`}
         </button>
