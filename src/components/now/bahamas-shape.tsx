@@ -63,8 +63,8 @@ export function BahamasShape() {
         <polygon
           key={code}
           points={toPoints(ring)}
-          fill="rgba(0, 163, 173, 0.09)"
-          stroke="rgba(0, 163, 173, 0.28)"
+          fill="color-mix(in srgb, var(--nb-aqua) 9%, transparent)"
+          stroke="color-mix(in srgb, var(--nb-aqua) 28%, transparent)"
           strokeWidth={0.35}
           strokeLinejoin="round"
         />
