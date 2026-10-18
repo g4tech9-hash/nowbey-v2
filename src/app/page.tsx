@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check, MapPin } from "lucide-react";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { BRAND } from "@/lib/brand";
@@ -182,10 +183,8 @@ export default async function Landing() {
               <MockCommunityMap />
             </PhoneFrame>
             <div className={`${styles.floatChip} ${styles.floatChipRight}`}>
-              <span className={styles.floatIcon} style={{ color: "var(--nb-mint)", borderColor: "rgba(67,224,203,.4)" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 12.5 9.5 18 20 6.5" />
-                </svg>
+              <span className={styles.floatIcon} style={{ color: "var(--nb-mint)", borderColor: "color-mix(in srgb, var(--nb-mint) 40%, transparent)" }}>
+                <Check size={14} strokeWidth={3} aria-hidden />
               </span>
               <span>
                 <small className="nb-label" style={{ fontSize: 9 }}>
@@ -195,11 +194,8 @@ export default async function Landing() {
               </span>
             </div>
             <div className={`${styles.floatChip} ${styles.floatChipLeft}`}>
-              <span className={styles.floatIcon} style={{ color: "var(--nb-coral)", borderColor: "rgba(255,157,115,.4)" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z" />
-                  <circle cx="12" cy="10" r="2.3" fill="currentColor" />
-                </svg>
+              <span className={styles.floatIcon} style={{ color: "var(--nb-coral)", borderColor: "color-mix(in srgb, var(--nb-coral) 40%, transparent)" }}>
+                <MapPin size={14} strokeWidth={2.2} aria-hidden />
               </span>
               <span>
                 <small className="nb-label" style={{ fontSize: 9 }}>

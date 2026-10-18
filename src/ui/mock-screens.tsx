@@ -1,3 +1,4 @@
+import { ArrowRight, ArrowUpRight, Check } from "lucide-react";
 import { CatBadge, CheckRow, Dot, NumBadge, Pill, SampleMap, Toggle } from "./kit";
 
 /* =====================================================================
@@ -37,9 +38,7 @@ export function MockCommunityMap() {
             flex: "none",
           }}
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 12.5 9.5 18 20 6.5" />
-          </svg>
+          <Check size={15} strokeWidth={3} aria-hidden />
         </span>
         <span className="min-w-0">
           <span className="nb-label" style={{ fontSize: 9.5 }}>
@@ -87,9 +86,7 @@ export function MockEmailAlerts() {
           <span className="nb-label">Your island</span>
           <span className="flex items-center gap-2 text-[14.5px] font-bold" style={{ color: "var(--nb-cream)" }}>
             New Providence
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--nb-mint)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M4 12.5 9.5 18 20 6.5" />
-            </svg>
+            <Check size={15} strokeWidth={3} style={{ color: "var(--nb-mint)" }} aria-hidden />
           </span>
         </div>
         <hr className="nb-divider" />
@@ -191,9 +188,7 @@ export function MockNewsWire() {
           </span>
           <span className="nb-link-arrow" style={{ fontSize: 13.5 }}>
             Open story
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M7 17 17 7M9 7h8v8" />
-            </svg>
+            <ArrowUpRight size={13} strokeWidth={2.4} aria-hidden />
           </span>
         </div>
       </div>
@@ -241,9 +236,7 @@ export function MockReportHazard() {
         </p>
         <div className="nb-btn nb-btn-primary nb-btn-block" style={{ marginTop: 16 }}>
           Continue
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M4 12h15M13 5.5 19.5 12 13 18.5" />
-          </svg>
+          <ArrowRight size={18} strokeWidth={2.4} aria-hidden />
         </div>
       </div>
     </div>
