@@ -17,6 +17,7 @@ import {
 import { MockCommunityMap, MockEmailAlerts, MockNewsWire, MockReportHazard } from "@/ui/mock-screens";
 import { PhoneFrame } from "@/ui/kit";
 import { SessionChip } from "@/components/nav-links";
+import { ThemeToggle } from "@/components/now/theme-toggle";
 import styles from "./landing.module.css";
 
 /* =====================================================================
@@ -106,6 +107,7 @@ export default async function Landing() {
             <Wordmark size={25} />
           </Link>
           <div className={styles.headerAuth}>
+            <ThemeToggle />
             <SessionChip handle={viewer.handle} />
           </div>
         </div>
