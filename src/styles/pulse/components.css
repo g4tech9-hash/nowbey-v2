@@ -227,7 +227,7 @@
 .nb-surface,
 .pulse-card {
   position: relative;
-  background: var(--card-bg, #2e4052);
+  background: var(--card-bg, #1e2e3c);
   border: var(--card-border);
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
@@ -631,7 +631,7 @@
   z-index: 950;
   display: flex;
   flex-direction: column;
-  background: var(--bg-elevated, #364a5e);
+  background: var(--bg-elevated, #26384a);
   border: 1px solid var(--border-default);
   box-shadow: var(--pulse-elev-3);
   animation: nb-slide-in var(--pulse-duration-enter) var(--pulse-ease-spring) both;
@@ -2099,7 +2099,9 @@ kbd {
   padding: var(--pulse-space-3) var(--pulse-space-4);
   border: 1px solid var(--border-default);
   border-radius: var(--pulse-shape-md);
-  background: var(--bg-raised);
+  /* A whisper of the category hue even at rest, so the grid reads as a
+     spectrum of kinds instead of 13 identical slabs. Selection deepens it. */
+  background: color-mix(in srgb, var(--pick-hue, var(--accent)) 7%, var(--bg-raised));
   text-align: left;
   box-shadow: var(--pulse-elev-1);
   transition: transform var(--pulse-duration-state) var(--pulse-ease-spring),
@@ -2109,6 +2111,7 @@ kbd {
   .pulse-pick:hover {
     transform: translateY(-2px);
     border-color: color-mix(in srgb, var(--pick-hue, var(--accent)) 55%, transparent);
+    background: color-mix(in srgb, var(--pick-hue, var(--accent)) 12%, var(--bg-raised));
   }
 }
 .pulse-pick:active {
@@ -2116,7 +2119,7 @@ kbd {
 }
 .pulse-pick[data-on="true"] {
   border-color: var(--pick-hue, var(--accent));
-  background: color-mix(in srgb, var(--pick-hue, var(--accent)) 14%, var(--bg-raised));
+  background: color-mix(in srgb, var(--pick-hue, var(--accent)) 18%, var(--bg-raised));
   box-shadow: 0 12px 36px -12px color-mix(in srgb, var(--pick-hue, var(--accent)) 55%, transparent);
 }
 .pulse-pick-rail {
@@ -2215,7 +2218,7 @@ kbd {
   padding: var(--pulse-space-3) var(--pulse-space-4);
   border-radius: var(--pulse-shape-md);
   border: 1px solid var(--border-default);
-  background: var(--card-bg, #2e4052);
+  background: var(--card-bg, #1e2e3c);
 }
 .pulse-demo-shimmer {
   position: relative;
