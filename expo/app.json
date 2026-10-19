@@ -55,7 +55,7 @@
       "apiBase": "https://nowbey-v2.vercel.app",
       "router": {},
       "eas": {
-        "projectId": "7d87c5ec-058f-4434-8915-559bac1ac1697"
+        "projectId": null
       }
     },
     "icon": "./assets/icon.png",
@@ -63,7 +63,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/7d87c5ec-058f-4434-8915-559bac1ac1697"
+      "url": null
     },
     "owner": "nowbey-v3s-team"
   }
