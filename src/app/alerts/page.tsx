@@ -4,6 +4,8 @@ import { db, hasDatabase } from "@/db";
 import { DatabaseSetup } from "@/components/db-setup";
 import { alertSubscriptions } from "@/db/schema";
 import { EmergencyNotice } from "@/components/emergency-notice";
+import { CoverageBadge } from "@/components/coverage-badge";
+import { COVERAGE_COPY } from "@/lib/copy";
 import { AlertForm, StopAlertButton } from "@/components/wire-forms";
 import { PushToggle } from "@/components/push-toggle";
 import { CATEGORIES, timeAgo } from "@/lib/geo";
@@ -91,10 +93,12 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
           </Panel>
         ) : null}
 
-        <div className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-center text-[12px] font-bold text-accent">Live alerts: New Providence — other islands soon</div>
+        <div className="text-center">
+          <CoverageBadge className="px-3 py-1.5 text-[12px]" />
+        </div>
         <Panel className="rounded-[20px] p-4 sm:p-5">
           <AlertForm plan={viewer.tier} defaultEmail={viewer.email ?? ""} />
-          <p className="mt-3 text-[11.5px] text-tertiary">Other islands: <span className="rounded-full border border-default px-2 py-0.5">Tell me when it opens</span> — leave your email, no account needed.</p>
+          <p className="mt-3 text-[11.5px] text-tertiary">Other islands: <span className="rounded-full border border-default px-2 py-0.5">{COVERAGE_COPY.islandDisabledHint}</span> — leave your email, no account needed.</p>
         </Panel>
 
         {push ? (

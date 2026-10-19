@@ -43,9 +43,11 @@ test("the rail renders a page of rows at a time, with a way to grow it", () => {
   assert.ok(page.includes("Show more pins"), "the rest of the list stays one tap away");
 });
 
-test("pin codes are unique per category, so a legend can decode them", () => {
-  const geo = read("src/lib/geo.ts");
-  const codes = [...geo.matchAll(/pin: "([A-Z]{2})"/g)].map((m) => m[1]);
+test("pin codes are unique per category, so a legend can decode them", async () => {
+  // Semantics over source text: pins now derive from src/lib/categories.ts
+  // through geo.ts, so check the exported list instead of regexing literals.
+  const { CATEGORIES } = await import("../src/lib/geo.ts");
+  const codes = Object.values(CATEGORIES).map((c) => c.pin);
   assert.ok(codes.length >= 13, "every category needs a pin code");
   assert.equal(new Set(codes).size, codes.length, `pin codes must be unique, got: ${codes.join(",")}`);
   assert.ok(page.includes("What the pins mean"), "the map page must ship the legend");

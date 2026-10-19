@@ -9,7 +9,11 @@ import { getFreshness, primaryTimeLine, freshnessFor, ageLabel } from "../src/li
 import { clusterDuplicateReports, isContentCategoryMismatch, isCannedPhotoNote, shouldCollapseTitleBody, isIslandLevelApproximate } from "../src/lib/report-utils.ts";
 import { SEVERITY, severityLabel, normalizeSeverity } from "../src/lib/severity.ts";
 import { CATEGORIES, CATEGORY_IDS, categoryFor } from "../src/lib/categories.ts";
-import { CTA, TERMS, REPORT_STEPS } from "../src/lib/copy.ts";
+import { CATEGORIES as GEO_CATEGORIES, CATEGORY_KEYS } from "../src/lib/geo.ts";
+import { CTA, TERMS, REPORT_STEPS, COVERAGE_COPY } from "../src/lib/copy.ts";
+import { readFileSync, readdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const NOW = Date.UTC(2026, 9, 17, 12, 0, 0);
 const hAgo = (h) => new Date(NOW - h * 3600_000).toISOString();
@@ -159,6 +163,34 @@ test("categories: one list of 13, used everywhere", () => {
     assert.ok(CATEGORIES[id].defaultSeverity >= 1 && CATEGORIES[id].defaultSeverity <= 4);
   }
   assert.equal(categoryFor("not-a-category").id, "notice");
+});
+
+test("categories: the map/pin list (geo) derives from the single source", () => {
+  assert.deepEqual([...CATEGORY_KEYS], [...CATEGORY_IDS]);
+  for (const id of CATEGORY_IDS) {
+    assert.equal(GEO_CATEGORIES[id].label, CATEGORIES[id].label);
+    assert.equal(GEO_CATEGORIES[id].blurb, CATEGORIES[id].description);
+    assert.equal(GEO_CATEGORIES[id].pin, CATEGORIES[id].legacyPin);
+    assert.ok(GEO_CATEGORIES[id].color.startsWith("#"));
+    assert.ok(GEO_CATEGORIES[id].glyph.length > 0);
+  }
+});
+
+test("coverage copy: one source of truth, no hardcoded duplicates", () => {
+  const srcRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "src");
+  const offenders = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, entry.name);
+      if (entry.isDirectory()) walk(p);
+      else if (/\.(ts|tsx)$/.test(entry.name) && !p.endsWith("lib/copy.ts")) {
+        const body = readFileSync(p, "utf8");
+        if (body.includes(COVERAGE_COPY.badge) || body.includes(COVERAGE_COPY.islandDisabledHint)) offenders.push(p);
+      }
+    }
+  };
+  walk(srcRoot);
+  assert.deepEqual(offenders, [], "COVERAGE_COPY strings must come from src/lib/copy.ts only");
 });
 
 /* ---------------- 2.3 CTA GLOSSARY ---------------- */
