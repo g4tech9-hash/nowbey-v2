@@ -17,11 +17,22 @@ const app = read('app.json').expo;
 const eas = read('eas.json');
 const profile = eas.build.preview;
 
-check(app.owner === 'oasistech242', 'owner is set (Expo account links the project)');
-check(Boolean(app.extra?.eas?.projectId), 'EAS project is linked');
+// The Expo account is an expo.dev decision, not a source decision: moving the project to another
+// account rewrites `owner`, `extra.eas.projectId` and `updates.url` together. Pinning the account
+// name or the project UUID here turned that move into a preflight failure before EAS was ever
+// asked, so check the shape of the link instead of who it points at.
+const owner = typeof app.owner === 'string' ? app.owner.trim() : '';
+const projectId = typeof app.extra?.eas?.projectId === 'string' ? app.extra.eas.projectId.trim().toLowerCase() : '';
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const updatesUrl = typeof app.updates?.url === 'string' ? app.updates.url.trim().replace(/\/+$/, '') : '';
+
+check(owner.length > 0, 'owner is set (Expo account links the project)');
+check(uuid.test(projectId), 'EAS project is linked (extra.eas.projectId is a project UUID)');
 check(app.scheme === 'nowbey', 'URL scheme is nowbey (deep links)');
 check(app.runtimeVersion?.policy === 'appVersion', 'runtimeVersion pinned by appVersion for OTA updates');
-check(typeof app.updates?.url === 'string' && app.updates.url.includes('/10e4a677-274e-43b1-99e6-33a2b32ccd23'), 'updates.url points at the EAS project (hosted OTA)');
+// A half-move — account and project UUID changed but updates.url kept the old project — is what
+// this catches; the three fields move together.
+check(projectId.length > 0 && updatesUrl === `https://u.expo.dev/${projectId}`, 'updates.url points at extra.eas.projectId (move both together)');
 check(profile.env.EXPO_PUBLIC_API_BASE === 'https://nowbey-v2.vercel.app', 'preview build targets production HTTPS API');
 check(eas.cli?.appVersionSource === 'remote', 'appVersionSource=remote so EAS manages build numbers');
 check(profile.distribution === 'internal', 'preview distribution is internal (not store)');
