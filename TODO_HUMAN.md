@@ -320,6 +320,29 @@ cancelled, or blocked by a billing flag on the account. The APK carries the Fire
 from the `FIREBASE_GOOGLE_SERVICES_JSON` secret; push delivery to a device is still unproven and stays
 on this checklist.
 
+**Status 2026-10-19 — the pipeline is ready; the `EXPO_TOKEN` lost its access.** The web half of the
+deploy is green (production serves the merged master), and run `39240916798` passed the gate and the
+APK preflight (which now explicitly checks *preview builds an APK, not an AAB*). The EAS step was
+refused before any build started:
+
+```
+Entity Not Authorized: Entity not authorized: AppEntity[10e4a677-274e-43b1-99e6-33a2b32ccd23]
+(viewer = RegularUserViewerContext[…]) — You don't have the required permissions to perform this
+operation. This can sometimes happen if you are logged in as incorrect user.
+```
+
+`AppEntity[10e4a677…]` is the NowBey Expo project (`extra.eas.projectId` in `expo/app.json`,
+`owner: oasistech242`). The token behind the `EXPO_TOKEN` secret authenticated, but as a user who is
+not authorized on that project — the secret's token changed or its account lost access since the
+2026-10-17 build. Owner fix (expo.dev account work — never paste a token anywhere but the secret):
+
+* **Preferred:** expo.dev → account `oasistech242` → project NowBey → Members → invite the account
+  behind the current `EXPO_TOKEN` (see the failing run's *EAS credentials* step log for `eas whoami`).
+* **Or:** create a fresh access token while logged in as `oasistech242` (expo.dev → Account settings →
+  Access tokens) and replace the `EXPO_TOKEN` repository secret with it.
+
+Then re-run the `mobile` dispatch below — the app source is already synced with master.
+
 **To resume, only when the owner says so:** Actions → Deploy (Vercel + EAS) → Run workflow → `mobile`, or
 
 ```bash
