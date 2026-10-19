@@ -73,6 +73,8 @@ Measured and still open: **55** `!important` declarations across CSS, **1010** a
 
 ## 4. Action plan
 
+**Status:** P0 and both P1 items are **done** — executed in `c02bb11` (category SSOT + CoverageBadge) and `ca21924` (report addendum + README database docs). The `git` chunks below are kept for the record; P2/P3 remain open.
+
 ### 4.1 Git commands
 There is **nothing to `git add` today** — the tree is clean and synced. The commands below are the exact chunks for the fixes above, ready when you want them executed:
 
