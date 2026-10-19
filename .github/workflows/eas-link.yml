@@ -1,0 +1,455 @@
+name: Link EAS project
+
+# Creates the NowBey project under a different Expo account — or re-links the app to an existing
+# one — and delivers the three config fields as a pull request. This is the button for the move
+# that `expo/app.json` cannot make on its own: `owner`, `extra.eas.projectId` and `updates.url` are
+# one fact in three places, and only expo.dev can mint the project UUID in the middle.
+#
+# Why it runs here rather than on a laptop: expo.dev is reachable from GitHub's runners, the
+# EXPO_TOKEN secret already lives there, and `eas init` needs the project's node_modules to resolve
+# the config plugins (expo-router, …) before it will write anything. Nothing is ever built, so this
+# workflow spends no build quota — creating a project and reading its config are free.
+#
+# The sequence is the one eas-cli 25.2.0 actually implements:
+#   1. `eas init --account <owner> --force --json` creates `@<owner>/<slug>` (or links it when it
+#      already exists) and writes `extra.eas.projectId`; `ensureOwnerSlugConsistencyAsync` then
+#      rewrites `owner`. `--force` is load-bearing: without it a config already linked to another
+#      account is refused (`Project is already linked…`) instead of moved.
+#   2. `scripts/eas-relink.js` writes `updates.url` from that UUID and refuses anything that is not
+#      the three-field move. `eas init` never touches `updates.url`, so skipping this leaves OTA
+#      updates pointing at the old project — the half-move the APK preflight fails on.
+#   3. `npx expo config --type public` proves what EAS will resolve, and `eas project:info` proves
+#      the token can read it — the exact call that used to fail as `AppEntity[…] Not Authorized`.
+#
+# master is never written to: the change arrives as a PR for review, plus a patch artifact.
+on:
+  # Actions > Link EAS project > Run workflow.
+  workflow_dispatch:
+    inputs:
+      owner:
+        description: Expo account or team that should own the project
+        required: true
+        default: nowbey-v3s-team
+        type: string
+      project_id:
+        description: Existing EAS project UUID to link (leave empty to create or link @owner/<slug>)
+        required: false
+        default: ""
+        type: string
+      dry_run:
+        description: Only report (no eas init, no PR)
+        required: false
+        default: false
+        type: boolean
+  # The same button from a script or an agent: POST a repository_dispatch of type "eas-link" with
+  # client_payload {owner, project_id, dry_run}. Push permission is enough.
+  repository_dispatch:
+    types: [eas-link]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# One relink at a time. Two concurrent runs would each create/link and then race to open the same
+# PR; the second would fail on a stale branch for no useful reason.
+concurrency:
+  group: eas-link
+  cancel-in-progress: false
+
+jobs:
+  link:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # `eas init` loads the Expo config, which resolves the plugins array in app.json. Without
+      # node_modules that fails with `Failed to resolve plugin for module "expo-router"` — the same
+      # defect PR #54 fixed in the Expo account workflow — and no project would be written.
+      - name: Install Expo dependencies
+        working-directory: expo
+        run: npm ci --no-audit --no-fund --loglevel=error
+
+      - name: Install the EAS CLI
+        run: npm install --global eas-cli@latest --no-audit --no-fund --loglevel=error
+
+      - name: Resolve the requested link
+        id: resolve
+        env:
+          INPUT_OWNER: ${{ inputs.owner || github.event.client_payload.owner }}
+          INPUT_PROJECT_ID: ${{ inputs.project_id || github.event.client_payload.project_id }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run || github.event.client_payload.dry_run }}
+        run: |
+          set -euo pipefail
+
+          # Account names are lowercase on expo.dev; the trim + lowercase means a pasted display
+          # name either becomes the right slug or is refused, never written as-is.
+          owner="$(node -e 'const v=(process.argv[1]||"").trim().toLowerCase();
+            if (!/^[a-z0-9][a-z0-9_-]*$/.test(v)) { console.error(`"${v}" is not an Expo account name`); process.exit(1); }
+            process.stdout.write(v)' "${INPUT_OWNER:-nowbey-v3s-team}")"
+
+          project_id="$(node -e 'const v=(process.argv[1]||"").trim().toLowerCase();
+            const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+            if (v && !uuid.test(v)) { console.error(`"${v}" is not a project UUID`); process.exit(1); }
+            process.stdout.write(v)' "${INPUT_PROJECT_ID:-}")"
+
+          case "$(printf '%s' "${INPUT_DRY_RUN:-false}" | tr '[:upper:]' '[:lower:]')" in
+            true|1|yes) dry_run=true ;;
+            *) dry_run=false ;;
+          esac
+
+          echo "owner=$owner" >> "$GITHUB_OUTPUT"
+          echo "project_id=$project_id" >> "$GITHUB_OUTPUT"
+          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
+          echo "Linking @${owner}/${project_id:+project $project_id}${project_id:-<slug>} (dry run: $dry_run)"
+
+      # -------------------------------------------------------------------------------------------
+      # Can this token create or link a project for the requested account? An `eas whoami` answers it
+      # before `eas init` spends a request failing three steps later. Parsed in node for the reasons
+      # expo-account.yml documents at length: the bullet is multi-byte under the runner's C locale,
+      # and a single-account token prints no account list at all.
+      # -------------------------------------------------------------------------------------------
+      - name: Check the token can reach @${{ steps.resolve.outputs.owner }}
+        id: check
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          OWNER: ${{ steps.resolve.outputs.owner }}
+          DRY_RUN: ${{ steps.resolve.outputs.dry_run }}
+        run: |
+          set -uo pipefail
+          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret (repo Settings > Secrets and variables > Actions). It must be created on expo.dev while logged in as an account that can create projects in @${OWNER}.}"
+
+          esc() { printf '%s' "$1" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }'; }
+          plain() { node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>process.stdout.write(d.replace(/\u001B\[[0-9;?]*[ -\/]*[@-~]/g,"")))'; }
+
+          set +e
+          eas whoami 2>&1 | plain > whoami.txt
+          code=$?
+          set -e
+          cat whoami.txt
+          if [ "$code" -ne 0 ]; then
+            echo "::error title=EAS rejected the EXPO_TOKEN::$(esc "$(grep -v '^[[:space:]]*$' whoami.txt | tail -n 3)")"
+            exit "$code"
+          fi
+
+          actor="$(grep -v '^[[:space:]]*$' whoami.txt | head -n 1 | tr -d '\r' | cut -c1-200)"
+          parsed="$(node -e 'const fs=require("fs");const L=fs.readFileSync("whoami.txt","utf8").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);const actorName=(L[0]||"").split(" (")[0].trim();const bullets=L.filter(s=>/^[\u2022\u00b7*\-+]\s+/.test(s)).map(s=>s.replace(/^[\u2022\u00b7*\-+]\s+/,"").trim());const names=bullets.map(s=>s.split(/\s*\(Role:/)[0].trim()).filter(Boolean);console.log(actorName);console.log([...new Set([actorName,...names].filter(Boolean))].join(" "));console.log(bullets.join(" | "));' || true)"
+          actor_name="$(printf '%s\n' "$parsed" | sed -n '1p' | cut -c1-120)"
+          reachable="$(printf '%s\n' "$parsed" | sed -n '2p')"
+          accounts="$(printf '%s\n' "$parsed" | sed -n '3p')"
+
+          echo "::notice title=EXPO_TOKEN authenticates as::${actor_name:-unknown}"
+          [ -n "${accounts// /}" ] && echo "::notice title=Accounts this token can reach::$(esc "$accounts")"
+
+          reaches=""
+          for name in $reachable; do [ "$name" = "$OWNER" ] && reaches=yes && break; done
+          if [ -z "$reaches" ]; then
+            echo "::error title=EXPO_TOKEN cannot reach @${OWNER}::It authenticates as ${actor_name:-unknown} and can reach: ${reachable:-none listed}. Nothing in this repository can grant that — either create a token while logged in as an account that owns @${OWNER} (expo.dev > Account settings > Access tokens) and replace the EXPO_TOKEN secret, or run this workflow with owner set to one of the accounts above."
+            exit 1
+          fi
+
+          {
+            echo "### EAS credentials"
+            echo ""
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| \`EXPO_TOKEN\` authenticates as | ${actor_name:-unknown} |"
+            echo "| Accounts it can reach | ${reachable:-none listed} |"
+            echo "| Account requested for this project | \`${OWNER}\` |"
+            echo "| Mode | $([ "${DRY_RUN:-false}" = "true" ] && echo "dry run — nothing will be written" || echo "create or link") |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Free to read, and the first question asked after a move: does the new account have Android
+      # builds this billing period? A plan fact, never a failure here.
+      - name: Read the plan's remaining builds
+        continue-on-error: true
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          OWNER: ${{ steps.resolve.outputs.owner }}
+        run: |
+          set -uo pipefail
+          if ! eas account:usage "$OWNER" --json > usage.json 2> usage.err; then
+            echo "::warning title=Could not read the build quota for $OWNER::$(grep -v '^[[:space:]]*$' usage.err | tail -n 2)"
+            exit 0
+          fi
+          if ! jq -e --slurp 'length > 0 and (.[0] | type == "object") and (.[0].account.name != null)' usage.json > /dev/null 2>&1; then
+            echo "::warning title=eas account:usage returned nothing parseable for $OWNER::$(head -c 400 usage.json)"
+            exit 0
+          fi
+          plan="$(jq -r '.account.plan // "unknown"' usage.json)"
+          android="$(jq -r 'if .builds.android then "\(.builds.android.plan.used)/\(.builds.android.plan.limit) (\(.builds.android.plan.percentUsed)%)" else "not reported" end' usage.json)"
+          period="$(jq -r '"\((.account.billingPeriod.start // "?")[0:10]) → \((.account.billingPeriod.end // "?")[0:10])"' usage.json)"
+          echo "::notice title=EAS build quota::$OWNER is on $plan with Android at $android; the period is $period."
+          printf '| Plan | %s |\n| Android builds | %s |\n| Billing period | %s |\n' "$plan" "$android" "$period" > quota-table.md
+          {
+            echo "### Build quota"
+            echo ""
+            echo "| | |"
+            echo "| --- | --- |"
+            cat quota-table.md
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # -------------------------------------------------------------------------------------------
+      # The one step that changes expo.dev. `--json` implies non-interactive, and an explicit
+      # `--account` is what lets non-interactive mode create a project without a confirmation
+      # prompt. `--force` is required to move a config that is already linked elsewhere.
+      # -------------------------------------------------------------------------------------------
+      - name: Create or link the EAS project
+        id: init
+        if: steps.resolve.outputs.dry_run != 'true'
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          OWNER: ${{ steps.resolve.outputs.owner }}
+          PROJECT_ID: ${{ steps.resolve.outputs.project_id }}
+        run: |
+          set -euo pipefail
+          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret}"
+
+          set +e
+          if [ -n "$PROJECT_ID" ]; then
+            eas init --id "$PROJECT_ID" --force --json > eas-init.json 2> eas-init.log
+          else
+            eas init --account "$OWNER" --force --json > eas-init.json 2> eas-init.log
+          fi
+          code=$?
+          set -e
+          cat eas-init.log
+          if [ "$code" -ne 0 ]; then
+            esc() { printf '%s' "$1" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }'; }
+            echo "::error title=eas init failed (exit $code)::$(esc "$(grep -v '^[[:space:]]*$' eas-init.log | tail -n 4)")"
+            exit "$code"
+          fi
+          cat eas-init.json
+
+          # Verify the CLI's own answer rather than trusting it: the project UUID must be a UUID and
+          # the owner must be the account this run was asked for. A silent mismatch here would put a
+          # wrong link into app.json and the PR.
+          #
+          # Captured in shell variables first: a value written to $GITHUB_ENV is only visible to
+          # *later* steps, so the summary below (same step) would print blanks otherwise.
+          init_row="$(node -e '
+            const fs = require("fs");
+            const r = JSON.parse(fs.readFileSync("eas-init.json", "utf8"));
+            const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+            if (!uuid.test(r.projectId || "")) throw new Error(`eas init returned no project UUID: ${JSON.stringify(r)}`);
+            if (r.owner !== process.env.OWNER) throw new Error(`eas init linked @${r.owner}, but this run asked for @${process.env.OWNER}`);
+            console.log(`${r.projectId}\t${r.status || "unknown"}\t${r.dashboardUrl || ""}`);
+          ')"
+          IFS=$'\t' read -r init_project_id init_status init_dashboard <<< "$init_row"
+          echo "::notice title=EAS project::${init_status} ${init_project_id} under @${OWNER} — ${init_dashboard}"
+          {
+            echo "INIT_PROJECT_ID=$init_project_id"
+            echo "INIT_STATUS=$init_status"
+          } >> "$GITHUB_ENV"
+
+          {
+            echo "### EAS project"
+            echo ""
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Result | ${init_status} |"
+            echo "| Owner | \`${OWNER}\` |"
+            echo "| Project | \`${init_project_id}\` |"
+            echo "| Dashboard | ${init_dashboard:-https://expo.dev/accounts/$OWNER/projects/} |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # `eas init` writes owner + projectId and stops; updates.url is the third field and only the
+      # repository knows it. In a dry run the same script is used as a check, so the report says
+      # whether the move is still needed.
+      - name: Write updates.url (the three fields move together)
+        working-directory: expo
+        env:
+          OWNER: ${{ steps.resolve.outputs.owner }}
+          DRY_RUN: ${{ steps.resolve.outputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$DRY_RUN" = "true" ]; then
+            set +e
+            node scripts/eas-relink.js --check --owner "$OWNER"
+            set -e
+            echo "Dry run: app.json is untouched. Run again with dry_run=false to create/link and open the PR."
+            exit 0
+          fi
+          node scripts/eas-relink.js --owner "$OWNER" --project-id "${INIT_PROJECT_ID:?eas init did not report a project UUID}"
+          node scripts/eas-relink.js --check --owner "$OWNER"
+
+      # The strongest statement available without a build: this is the config EAS itself resolves
+      # (app.config.js → app.json → plugins), read back through Expo's own config loader.
+      - name: Confirm the config EAS will resolve
+        if: steps.resolve.outputs.dry_run != 'true'
+        working-directory: expo
+        env:
+          OWNER: ${{ steps.resolve.outputs.owner }}
+        run: |
+          set -euo pipefail
+          npx expo config --type public --json > expo-public-config.json 2> expo-config.err || {
+            cat expo-config.err
+            echo "::error title=expo config failed::The link is written but the resolved config could not be read; see expo-config.err in the artifact."
+            exit 1
+          }
+          node -e '
+            const fs = require("fs");
+            const c = JSON.parse(fs.readFileSync("expo-public-config.json", "utf8"));
+            const projectId = c.extra && c.extra.eas && c.extra.eas.projectId;
+            const url = c.updates && c.updates.url;
+            const problems = [];
+            if (c.owner !== process.env.OWNER) problems.push(`owner resolves to ${c.owner}`);
+            if (!projectId) problems.push("extra.eas.projectId is missing");
+            if (url !== `https://u.expo.dev/${projectId}`) problems.push(`updates.url resolves to ${url}`);
+            console.log(`resolved: owner=${c.owner} projectId=${projectId} updates.url=${url}`);
+            if (problems.length) { console.error(problems.join("; ")); process.exit(1); }
+            fs.writeFileSync("expo-config-summary.md", `| Resolved owner | \`${c.owner}\` |\n| Resolved projectId | \`${projectId}\` |\n| Resolved updates.url | \`${url}\` |\n`);
+          '
+          {
+            echo "### Resolved Expo config"
+            echo ""
+            echo "| | |"
+            echo "| --- | --- |"
+            cat expo-config-summary.md
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: APK preflight (config only)
+        if: steps.resolve.outputs.dry_run != 'true'
+        working-directory: expo
+        run: node scripts/preflight-apk.js
+
+      # The call that used to fail as `AppEntity[10e4a677…] … You don't have the required
+      # permissions`. If it passes here, a `mobile` dispatch can get past the credential check.
+      - name: Confirm the token can read the linked project
+        if: steps.resolve.outputs.dry_run != 'true'
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          set -uo pipefail
+          set +e
+          eas project:info 2>&1 | tee project-info.txt
+          code=$?
+          set -e
+          if [ "$code" -ne 0 ]; then
+            echo "::error title=The token cannot read the newly linked project::$(grep -v '^[[:space:]]*$' project-info.txt | tail -n 4) The app.json change is still valid — this is the token/account relationship EAS will check again during a build."
+            exit "$code"
+          fi
+
+      - name: Record the diff
+        if: steps.resolve.outputs.dry_run != 'true'
+        working-directory: expo
+        run: |
+          set -euo pipefail
+          git -C .. diff -- expo/app.json > ../eas-link.patch || true
+          if [ -s ../eas-link.patch ]; then
+            {
+              echo "### Config change"
+              echo ""
+              echo '```diff'
+              cat ../eas-link.patch
+              echo '```'
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Config change" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "app.json already names @${OWNER}; no change to propose." >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # A PR, never a push to master. A failed push (branch protection, a stale branch) is reported
+      # and never loses the change: the patch is uploaded as an artifact either way.
+      - name: Open the relink pull request
+        if: steps.resolve.outputs.dry_run != 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ steps.resolve.outputs.owner }}
+        run: |
+          set -euo pipefail
+          if [ ! -s eas-link.patch ]; then
+            echo "No app.json change; nothing to propose."
+            exit 0
+          fi
+          branch="eas/link-${OWNER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add expo/app.json
+          git commit -m "chore(eas): link the app to @${OWNER}"
+          git push --force origin "$branch"
+
+          body="$(printf '%s\n' \
+            "Created by the **Link EAS project** workflow (run ${GITHUB_RUN_ID})." \
+            "" \
+            "\`owner\`, \`extra.eas.projectId\` and \`updates.url\` move together; \`eas init\` wrote the first two and \`scripts/eas-relink.js\` wrote the third." \
+            "" \
+            "\`\`\`diff" \
+            "$(cat eas-link.patch)" \
+            "\`\`\`" \
+            "" \
+            "Verified in the run: \`eas whoami\` reaches @${OWNER}, \`npx expo config --type public\` resolves the link, \`scripts/preflight-apk.js\` passes, and \`eas project:info\` reads the project." \
+            "" \
+            "Merging this makes the next \`scripts/eas-dispatch.sh mobile\` use @${OWNER}. The local Gradle fallback (\`scripts/eas-dispatch.sh fallback\`) never needed EAS at all.")"
+
+          if number="$(gh pr list --head "$branch" --state open --json number --jq '.[0].number' 2>/dev/null)" && [ -n "$number" ]; then
+            gh pr comment "$number" --body "Re-linked by run ${GITHUB_RUN_ID}. $body"
+            echo "::notice title=Updated pull request::$number — the config change is in the latest commit."
+          else
+            gh pr create --base master --head "$branch" \
+              --title "chore(eas): link the app to @${OWNER}" \
+              --body "$body"
+          fi
+
+      - name: Upload the relink artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eas-link
+          if-no-files-found: ignore
+          path: |
+            eas-link.patch
+            expo/eas-init.json
+            expo/eas-init.log
+            expo/usage.json
+            expo/usage.err
+            expo/expo-public-config.json
+            expo/expo-config.err
+            expo/project-info.txt
+            expo/whoami.txt
+            expo/app.json
+
+      - name: Verdict
+        if: always()
+        env:
+          RESOLVE_OUTCOME: ${{ steps.resolve.outcome }}
+          CHECK_OUTCOME: ${{ steps.check.outcome }}
+          INIT_OUTCOME: ${{ steps.init.outcome }}
+          OWNER: ${{ steps.resolve.outputs.owner }}
+          DRY_RUN: ${{ steps.resolve.outputs.dry_run }}
+        run: |
+          set -uo pipefail
+          if [ "$RESOLVE_OUTCOME" != "success" ]; then
+            echo "::error title=The requested link was not understood::The owner or project ID input is not valid Expo syntax; nothing was sent to expo.dev."
+            exit 1
+          fi
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "::notice title=Dry run::@${OWNER} was reachable by the token and nothing was written. Run again with dry_run=false to create or link the project."
+            exit 0
+          fi
+          if [ "$CHECK_OUTCOME" != "success" ]; then
+            echo "::error title=Nothing was sent to expo.dev::The token could not reach @${OWNER}, so \`eas init\` was never run and app.json is unchanged. The annotation on the reachability step names the accounts this token can actually reach."
+            exit 1
+          fi
+          if [ "$INIT_OUTCOME" != "success" ]; then
+            echo "::error title=The EAS project was not created or linked::See the annotation on the \`Create or link the EAS project\` step. app.json is unchanged."
+            exit 1
+          fi
+          echo "::notice title=EAS link ready::@${OWNER} owns the project and expo/app.json carries the link. Merge the pull request (or the patch artifact) to make CI use it."

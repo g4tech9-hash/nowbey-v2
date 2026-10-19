@@ -44,7 +44,9 @@
     "preflight": "node scripts/preflight-apk.js",
     "preflight:apk": "node scripts/preflight-apk.js",
     "preflight:full": "node scripts/preflight-apk.js --full",
-    "preflight:apk:full": "node scripts/preflight-apk.js --full"
+    "preflight:apk:full": "node scripts/preflight-apk.js --full",
+    "eas:relink": "node scripts/eas-relink.js",
+    "eas:check": "node scripts/eas-relink.js --check"
   },
   "private": true
 }

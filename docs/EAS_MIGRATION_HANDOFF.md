@@ -21,7 +21,7 @@
    - No `production` (AAB) profile and no `submit` block yet — NowBey does not ship to Play Store.
 
 2. **`expo/app.json`**:
-   - `updates.url` points at `https://u.expo.dev/10e4a677-274e-43b1-99e6-33a2b32ccd23` (hosted OTA updates) instead of the empty `{}` placeholder.
+   - `updates.url` points at `https://u.expo.dev/10e4a677-274e-43b1-99e6-33a2b32ccd23` (hosted OTA updates) instead of the empty `{}` placeholder. It moves with `owner` and `extra.eas.projectId`, never alone — `docs/EAS_ACCOUNT_RELINK.md`.
    - iOS metadata (bundle id, permissions, `ITSAppUsesNonExemptEncryption`) is *present* so the codebase is ready when iOS ships, but no iOS profile is built yet.
    - Owner, scheme, EAS project id, runtime version (`appVersion` policy) all wired.
 
@@ -65,7 +65,7 @@
 ## Secrets the workflow expects (repository scope)
 | Secret | Required | Notes |
 |---|---|---|
-| `EXPO_TOKEN` | EAS path only | expo.dev → Account Settings → Access tokens. Must be able to build for project `oasistech242/nowbey`. Not used by the local Gradle fallback. |
+| `EXPO_TOKEN` | EAS path only | expo.dev → Account Settings → Access tokens. Must be able to build for the project named by `expo/app.json` (`owner` + `extra.eas.projectId`) — currently `oasistech242/nowbey`, moving to `nowbey-v3s-team` (see `docs/EAS_ACCOUNT_RELINK.md`). Not used by the local Gradle fallback. |
 | `FIREBASE_GOOGLE_SERVICES_JSON` | yes | Full `google-services.json` from Firebase project `nowbey-6a30f`, package `app.nowbey.mobile`. Without it the preflight fails. |
 | `VERCEL_TOKEN` | web only | Full-account scope per `docs/AUTH_DEPLOY_STATUS.md`. |
 | `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | web only | From `.vercel/project.json` or project Settings → General. |
@@ -114,6 +114,13 @@ EAS without anything in this repository being wrong, and that is exactly when a 
 What the fallback APK is *not*: it is signed with the debug key, so Android installs it for
 testing, but it cannot replace a Play Store upload key. NowBey ships direct APKs only, so that is
 the intended artifact — it is simply a different signing identity from an EAS preview build.
+
+## Changing Expo accounts
+
+`owner`, `extra.eas.projectId` and `updates.url` are one fact in three places; expo.dev mints the
+UUID in the middle. `docs/EAS_ACCOUNT_RELINK.md` is the procedure, `expo/scripts/eas-relink.js`
+performs the three-field write (and refuses a half-move), and the **Link EAS project** workflow
+(`.github/workflows/eas-link.yml`) runs `eas init` and delivers the change as a pull request.
 
 ## When iOS or Play Store is added later
 1. **iOS:** add a `preview` iOS block in `eas.json` (simulator + device) and a matching matrix leg in `build-apk` (rename back to `build-mobile`); add the `FIREBASE_GOOGLE_SERVICE_INFO_PLIST` secret + an iOS Firebase install step; register an APNs key on expo.dev; upload the `GoogleService-Info.plist` to the CI step. The `app.json` iOS block, `push.ts` iOS path and `.easignore` un-ignore rule are already in place.
