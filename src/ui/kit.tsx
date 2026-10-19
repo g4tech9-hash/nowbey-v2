@@ -238,7 +238,8 @@ export function SampleMap({ height = 200 }: { height?: number }) {
 }
 
 /* ---------------------------------------------------------------------
-   Phone mockup chrome (landing page sample views)
+   Phone mockup chrome (landing page sample views). The interactive shell
+   — tab switching and screen scrolling — lives in ui/phone-demo.tsx.
    --------------------------------------------------------------------- */
 
 export function MockStatusBar() {
@@ -267,60 +268,6 @@ export function MockAppHeader({ sample = true }: { sample?: boolean }) {
     <div className="flex items-center justify-between border-b px-6 pb-4 pt-3" style={{ borderColor: "var(--nb-stroke)" }}>
       <Wordmark size={19} />
       {sample ? <Pill tone="gold">Sample view</Pill> : null}
-    </div>
-  );
-}
-
-const TABS = [
-  { key: "feed", label: "Feed", icon: "M4 6h16M4 12h11M4 18h7" },
-  { key: "map", label: "Map", icon: "M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Zm0-8.6a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8Z" },
-  { key: "report", label: "Report a hazard", icon: "M12 5v14M5 12h14" },
-  { key: "wire", label: "Wire", icon: "M4 5h16v14H4zM4 9.5h16M8 13.5h8M8 16.5h5" },
-  { key: "alerts", label: "Alerts", icon: "M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Zm4 10a2.2 2.2 0 0 0 4 0" },
-] as const;
-
-export function MockTabBar({ active }: { active: string }) {
-  return (
-    <div className="mt-auto flex items-stretch justify-around border-t px-3 pb-5 pt-3" style={{ borderColor: "var(--nb-stroke)", background: "rgba(3,12,19,.6)" }}>
-      {TABS.map((t) => {
-        const on = t.key === active;
-        return (
-          <div key={t.key} className="flex flex-col items-center gap-1.5" style={{ color: on ? "var(--nb-mint)" : "var(--nb-faint)" }}>
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d={t.icon} />
-            </svg>
-            <span style={{ fontSize: 10.5, fontWeight: 700 }}>{t.label}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/** Device frame with status bar, app header, and tab bar around arbitrary screen content. */
-export function PhoneFrame({
-  activeTab,
-  children,
-  sampleLabel,
-}: {
-  activeTab: string;
-  children: ReactNode;
-  sampleLabel?: string;
-}) {
-  return (
-    <div className="nb-phone">
-      <div className="nb-phone-screen">
-        <div className="nb-phone-notch" />
-        <MockStatusBar />
-        <MockAppHeader />
-        {sampleLabel ? (
-          <p className="nb-label px-6 pt-4" style={{ color: "var(--nb-faint)" }}>
-            {sampleLabel}
-          </p>
-        ) : null}
-        {children}
-        <MockTabBar active={activeTab} />
-      </div>
     </div>
   );
 }

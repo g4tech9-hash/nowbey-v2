@@ -1602,7 +1602,9 @@ kbd {
   display: flex;
   flex-direction: column;
   gap: 0;
-  min-height: 470px;
+  /* A phone screen has a fixed size: content taller than this scrolls inside
+     the frame (see .nb-phone-pane) exactly like the device being imitated. */
+  height: 620px;
   overflow: hidden;
   border-radius: 26px;
   background: var(--bg-base);
@@ -1619,6 +1621,67 @@ kbd {
   border-radius: var(--pulse-shape-pill);
   background: var(--bg-sunken);
   border: 1px solid var(--border-default);
+}
+
+/* Demo screens live in a bounded viewport; each pane scrolls like a phone
+   body: touch-drag with momentum, no visible scrollbar, no scroll chaining
+   into the landing page. Each pane is its own scroller, so a tab keeps its
+   scroll position while hidden — same as iOS/Android tab bars. */
+.nb-phone-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.nb-phone-pane {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nb-phone-pane::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tab bar: real buttons, phone-sized hit targets. */
+.nb-phone-tabs {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  border-top: 1px solid var(--nb-stroke);
+  padding: 8px 8px calc(16px + env(safe-area-inset-bottom, 0px));
+  background: rgba(3, 12, 19, 0.6);
+}
+.nb-phone-tab {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 44px;
+  min-height: 48px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: var(--pulse-shape-sm);
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.nb-phone-tab-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-align: center;
+}
+.nb-phone-tab:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+.nb-phone-tab:active {
+  transform: scale(0.96);
 }
 .nb-tagline {
   color: var(--text-tertiary);

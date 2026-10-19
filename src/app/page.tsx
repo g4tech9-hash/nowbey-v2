@@ -14,8 +14,7 @@ import {
   SectionMark,
   Wordmark,
 } from "@/ui/kit";
-import { MockCommunityMap, MockEmailAlerts, MockNewsWire, MockReportHazard } from "@/ui/mock-screens";
-import { PhoneFrame } from "@/ui/kit";
+import { PhoneDemo } from "@/ui/phone-demo";
 import { SessionChip } from "@/components/nav-links";
 import styles from "./landing.module.css";
 
@@ -62,7 +61,6 @@ const SECTIONS = [
       "Built for phones first — no app download needed",
     ],
     link: { href: "/map", label: "Explore the map" },
-    screen: <MockCommunityMap />,
     tab: "map",
   },
   {
@@ -75,7 +73,6 @@ const SECTIONS = [
       "Your draft stays if you lose the signal",
     ],
     link: { href: "/report", label: "Report a hazard" },
-    screen: <MockReportHazard />,
     tab: "report",
   },
   {
@@ -88,7 +85,6 @@ const SECTIONS = [
       "Community links reviewed before publishing",
     ],
     link: { href: "/wire", label: "Read the news wire" },
-    screen: <MockNewsWire />,
     tab: "wire",
   },
   {
@@ -101,7 +97,6 @@ const SECTIONS = [
       "Storm warnings are never paywalled",
     ],
     link: { href: "/alerts", label: "Set up email alerts" },
-    screen: <MockEmailAlerts />,
     tab: "alerts",
   },
 ] as const;
@@ -164,9 +159,7 @@ export default async function Landing() {
           </p>
 
           <div className={styles.heroMock}>
-            <PhoneFrame activeTab="map">
-              <MockCommunityMap />
-            </PhoneFrame>
+            <PhoneDemo initialTab="map" />
             <p style={{ textAlign: "center", fontSize: "11px", color: "var(--text-tertiary)", marginTop: "8px" }}>
               Sample view — demo pins. The live map is one tap away.
             </p>
@@ -238,7 +231,7 @@ export default async function Landing() {
                   <p className={styles.watermark} aria-hidden>
                     {s.watermark}
                   </p>
-                  <PhoneFrame activeTab={s.tab}>{s.screen}</PhoneFrame>
+                  <PhoneDemo initialTab={s.tab} />
                 </div>
               </div>
             </section>
