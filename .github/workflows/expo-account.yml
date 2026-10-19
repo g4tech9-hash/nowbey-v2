@@ -1,0 +1,356 @@
+name: Expo account
+
+# The Expo/EAS answer sheet. It asks expo.dev the three questions the mobile pipeline has actually
+# been blocked on — and asks nothing of the build queue, so it can be run as often as it is useful.
+#
+#   1. Which account does the EXPO_TOKEN secret authenticate as, and which accounts can it reach?
+#   2. Is that account authorized on *this* project, or is it a valid token for the wrong account?
+#   3. How many builds does the plan have left this billing period, and when does the period reset?
+#
+# Those are the two refusals that stopped a mobile dispatch in October 2026, and neither is a
+# repository defect that `deploy.yml` can fix from the inside:
+#
+#   * `AppEntity[10e4a677…] … You don't have the required permissions` — the secret held a valid
+#     Owner token for `nowbey242s-team`, while `expo/app.json` puts the project under
+#     `oasistech242`. Authentication worked; authorization did not. TODO_HUMAN.md records the hunt.
+#   * `This account has used its Android builds from the Free plan this month` — the token and the
+#     project were both correct, and the account had simply spent its monthly builds.
+#
+# `deploy.yml` meets both of them only after a gate, an APK preflight and an archive upload, and it
+# reports them mid-build. This workflow reports them in about a minute, before anything is queued,
+# and its verdict is published as check-run annotations plus the step summary — readable through the
+# Checks API, unlike the blocked log blobs. It never starts a build and never spends quota.
+on:
+  # The button in the Actions tab (Actions > Expo account > Run workflow).
+  workflow_dispatch:
+  # The same button from a script, a bot or an agent: POST a repository_dispatch event of type
+  # "expo-account". That only needs the permission to push, and it runs the copy of this file on
+  # the default branch — see scripts/eas-dispatch.sh account.
+  repository_dispatch:
+    types: [expo-account]
+
+permissions:
+  contents: read
+
+jobs:
+  account:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node for the CLI itself and for the parsing below: app.json reads, stripping eas-cli's ANSI
+      # colours, and reading its account list as UTF-8 (the runner's locale is C, where grep/sed
+      # text classes mishandle the multi-byte bullet — the whoami step explains this in full).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Installed once and reused by every step below. Only the CLI is needed: `eas` resolves the
+      # project from expo/app.json + expo/eas.json, so this workflow never runs `npm ci` and never
+      # touches the build queue. (deploy.yml uses `npx --yes eas-cli@latest`, which re-downloads the
+      # CLI per step; that is worth it there because a build follows anyway.)
+      - name: Install the EAS CLI
+        run: npm install --global eas-cli@latest --no-audit --no-fund --loglevel=error
+
+      # -------------------------------------------------------------------------------------------
+      # Question 1: who is this token? `eas account:view` (alias `whoami`) prints the actor, whether
+      # it authenticated with EXPO_TOKEN, and every account the credentials can reach with the role
+      # each one carries. A token that is scoped down prints "limited to <role> by the current
+      # credentials" — the reason an Owner token can still be refused.
+      # -------------------------------------------------------------------------------------------
+      - name: Read who the EXPO_TOKEN authenticates as
+        id: whoami
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          set -uo pipefail
+          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret (repo Settings > Secrets and variables > Actions). It is created on expo.dev > Account settings > Access tokens, logged in as the account that owns this project.}"
+
+          # One annotation is one line: newlines become %0A, percent signs %25, carriage returns %0D.
+          esc() { printf '%s' "$1" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }'; }
+
+          # The account this project must be readable by, straight out of the app config — not a
+          # value copy-pasted into this workflow, so the check cannot drift away from app.json.
+          owner="$(node -e 'const a=require("./app.json");const e=a.expo||a;process.stdout.write(e.owner||"")')"
+          project_id="$(node -e 'const a=require("./app.json");const e=a.expo||a;process.stdout.write((e.extra&&e.extra.eas&&e.extra.eas.projectId)||"")')"
+          slug="$(node -e 'const a=require("./app.json");const e=a.expo||a;process.stdout.write(e.slug||"")')"
+          echo "owner=$owner" >> "$GITHUB_OUTPUT"
+          echo "project_id=$project_id" >> "$GITHUB_OUTPUT"
+          echo "slug=$slug" >> "$GITHUB_OUTPUT"
+
+          # eas-cli colours its output; strip the escapes so the plain text can be parsed and so the
+          # annotation is readable in the UI instead of showing ^[[32m.
+          plain() { node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>process.stdout.write(d.replace(/\u001B\[[0-9;?]*[ -\/]*[@-~]/g,"")))'; }
+
+          set +e
+          eas whoami 2>&1 | plain > whoami.txt
+          code=$?
+          set -e
+          cat whoami.txt
+          if [ "$code" -ne 0 ]; then
+            echo "::error title=EAS rejected the EXPO_TOKEN::$(esc "$(grep -v '^[[:space:]]*$' whoami.txt | tail -n 3)")"
+            echo "reachable=" >> "$GITHUB_OUTPUT"
+            exit "$code"
+          fi
+
+          actor="$(grep -v '^[[:space:]]*$' whoami.txt | head -n 1 | tr -d '\r' | cut -c1-200)"
+          echo "actor=$actor" >> "$GITHUB_OUTPUT"
+
+          # Everything else is parsed in node, not with grep/sed text classes. Two reasons, both
+          # observed rather than theoretical: the account bullet is three bytes and a grep bracket
+          # expression under the runner's C locale matches those bytes individually (so the list
+          # comes back empty and a good token is reported as a mismatch), and `[[:space:]]*(`  in a
+          # sed script does not strip the " (authenticated using EXPO_TOKEN)" suffix there either.
+          # eas-cli also prints the account list *only* when the actor can reach accounts besides
+          # its own, so the actor's own name has to be folded in below.
+          #   line 1 = actor name without the "(authenticated using EXPO_TOKEN)" suffix
+          #   line 2 = the accounts the credentials can reach, space separated
+          #   line 3 = the same lines as printed, for the annotation
+          #   line 4 = "limited" when the token's own scopes cut a role down
+          # One line on purpose: a multi-line `node -e` here would put its closing quote at a lower
+          # indent than the block, which reads like the end of the step to anyone scanning the YAML.
+          parsed="$(node -e 'const fs=require("fs");const L=fs.readFileSync("whoami.txt","utf8").split(/\r?\n/).map(s=>s.trim()).filter(Boolean);const actorName=(L[0]||"").split(" (")[0].trim();const bullets=L.filter(s=>/^[\u2022\u00b7*\-+]\s+/.test(s)).map(s=>s.replace(/^[\u2022\u00b7*\-+]\s+/,"").trim());const names=bullets.map(s=>s.split(/\s*\(Role:/)[0].trim()).filter(Boolean);const reachable=[actorName,...names].filter(Boolean);console.log(actorName);console.log([...new Set(reachable)].join(" "));console.log(bullets.join(" | "));console.log(bullets.some(s=>/limited to/i.test(s))?"limited":"");' || true)"
+          actor_name="$(printf '%s\n' "$parsed" | sed -n '1p' | cut -c1-120)"
+          reachable="$(printf '%s\n' "$parsed" | sed -n '2p')"
+          accounts="$(printf '%s\n' "$parsed" | sed -n '3p')"
+          limited="$(printf '%s\n' "$parsed" | sed -n '4p')"
+          echo "actor_name=$actor_name" >> "$GITHUB_OUTPUT"
+          echo "reachable=$reachable" >> "$GITHUB_OUTPUT"
+
+          echo "::notice title=EXPO_TOKEN authenticates as::${actor:-unknown}"
+          if [ -n "${accounts// /}" ]; then
+            echo "::notice title=Accounts this token can reach::$(esc "$accounts")"
+          fi
+          if [ -n "$limited" ]; then
+            echo "::warning title=This token's scopes cut its permissions down::$(esc "$accounts") Run \`eas login\` locally to widen the grant, or replace the secret with a token whose scopes cover what a build needs."
+          fi
+
+          # The mismatch is named here, not three steps later: if the account that owns this project
+          # is absent from the list, every authorization failure below already has its cause.
+          # Word-by-word, not `grep -qx`: $reachable is one space-separated line, so a whole-line
+          # match would report a mismatch for every token that can reach more than one account.
+          reaches_owner=""
+          for name in $reachable; do
+            [ "$name" = "$owner" ] && reaches_owner=yes && break
+          done
+          if [ -n "$owner" ] && [ -z "$reaches_owner" ]; then
+            echo "::error title=EXPO_TOKEN cannot reach the account that owns this project::expo/app.json puts this project under '$owner', and this token can only reach: ${reachable:-none listed}. Invite the token's account to the project (expo.dev > $owner > $slug > Members), or replace the EXPO_TOKEN secret with a token created while logged in as $owner. Nothing in the repository can fix this."
+            echo "mismatch=$owner" >> "$GITHUB_OUTPUT"
+          else
+            echo "mismatch=" >> "$GITHUB_OUTPUT"
+          fi
+
+          {
+            echo "### Expo account"
+            echo ""
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| \`EXPO_TOKEN\` authenticates as | ${actor:-unknown} |"
+            echo "| Accounts it can reach | ${reachable:-none listed} |"
+            echo "| Project in \`expo/app.json\` | ${owner:-?}/${slug:-?} |"
+            echo "| \`extra.eas.projectId\` | \`${project_id:-?}\` |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # -------------------------------------------------------------------------------------------
+      # Question 2: is the token authorized on this project? `eas project:info` reads the project
+      # through the API using the projectId from app.json. This is the exact call that the build
+      # step fails on with "AppEntity[<uuid>] … You don't have the required permissions" — asked
+      # here on its own, with nothing queued and nothing uploaded first. continue-on-error is
+      # deliberate: the verdict step at the bottom reports every refusal in one place.
+      # -------------------------------------------------------------------------------------------
+      - name: Check the token can read this project
+        id: project
+        continue-on-error: true
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          TOKEN_ACTOR: ${{ steps.whoami.outputs.actor_name }}
+        run: |
+          set -uo pipefail
+          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret}"
+          esc() { printf '%s' "$1" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }'; }
+          plain() { node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>process.stdout.write(d.replace(/\u001B\[[0-9;?]*[ -\/]*[@-~]/g,"")))'; }
+
+          set +e
+          eas project:info 2>&1 | plain > project-info.txt
+          code=$?
+          set -e
+          cat project-info.txt
+
+          full_name="$(sed -n 's/^fullName:[[:space:]]*//p' project-info.txt | tail -n 1 | tr -d '\r' | cut -c1-200)"
+          echo "full_name=$full_name" >> "$GITHUB_OUTPUT"
+
+          if [ "$code" -ne 0 ]; then
+            reason="$(grep -v '^[[:space:]]*$' project-info.txt | tail -n 2 | tr '\n' ' ' | cut -c1-300)"
+            case "$reason" in
+              *"Not Authorized"*|*"not authorized"*|*"required permissions"*|*"incorrect user"*)
+                echo "::error title=EXPO_TOKEN is not authorized on this project::${reason} Either invite ${TOKEN_ACTOR:-the account behind the secret} to the project (expo.dev > project > Members), or replace the secret with a token from the account that owns it."
+                ;;
+              *)
+                echo "::error title=eas project:info failed (exit $code)::${reason}"
+                ;;
+            esac
+            exit "$code"
+          fi
+
+          echo "::notice title=Project is readable by this token::${full_name:-unknown}"
+          {
+            echo "Authorization: the token reads **${full_name:-the project}** — the same call the EAS build step makes before it archives anything."
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # -------------------------------------------------------------------------------------------
+      # Question 3: what is left on the plan? `eas account:usage <account> --json` returns the
+      # billing period and the build counters (used / limit / percentUsed), overall and per
+      # platform. This is the check that names the other refusal — an exhausted Free plan — before
+      # a dispatch is fired, instead of after an upload.
+      # -------------------------------------------------------------------------------------------
+      - name: Read the build quota for the project's account
+        id: quota
+        continue-on-error: true
+        working-directory: expo
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          set -uo pipefail
+          : "${EXPO_TOKEN:?Add the EXPO_TOKEN secret}"
+          esc() { printf '%s' "$1" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }'; }
+
+          # Read the account out of the app config rather than out of the whoami step's outputs: if
+          # whoami failed, its outputs are empty, and this step would otherwise report "no owner in
+          # app.json" — a different problem from the one that actually happened.
+          owner="$(node -e 'const c=require("./app.json");const e=c.expo||c;process.stdout.write(e.owner||"")' 2>/dev/null || true)"
+          if [ -z "$owner" ]; then
+            echo "::warning title=No owner in expo/app.json::Cannot ask which account's quota to read."
+            exit 0
+          fi
+
+          set +e
+          eas account:usage "$owner" --json > usage.json 2> usage.err
+          code=$?
+          set -e
+          if [ "$code" -ne 0 ]; then
+            cat usage.err
+            echo "::warning title=Could not read the build quota for $owner::$(esc "$(grep -v '^[[:space:]]*$' usage.err | tail -n 2)") A token that can reach an account it cannot bill will do this; the authorization check above is the one that decides whether a build can start."
+            exit "$code"
+          fi
+          cat usage.json
+
+          # jq ships on the GitHub ubuntu-latest runners (eas-cancel.yml depends on it too). An exit
+          # 0 with unreadable output is still no answer, so the JSON is validated before it is
+          # reported — an empty quota table would look like "unlimited" otherwise.
+          # --slurp is load-bearing, not decoration: `jq -e <filter>` exits 0 on *empty* input,
+          # because nothing was produced for -e to judge, so a guard written as
+          # `jq -e '.account.name'` waves through a zero-byte response — the exact case it is here
+          # to catch. Slurped, an empty file becomes `[]` and `length > 0` fails as intended.
+          if ! jq -e --slurp 'length > 0 and (.[0] | type == "object") and (.[0].account.name != null)' usage.json > /dev/null 2>&1; then
+            echo "::warning title=eas account:usage returned nothing parseable for $owner::$(esc "$(head -c 400 usage.json)") The authorization check above is the one that decides whether a build can start."
+            exit 1
+          fi
+
+          plan="$(jq -r '.account.plan // "unknown"' usage.json)"
+          period="$(jq -r '"\((.account.billingPeriod.start // "?")[0:10]) → \((.account.billingPeriod.end // "?")[0:10]) (\(.account.billingPeriod.daysRemaining // "?") days left)"' usage.json)"
+          total="$(jq -r '"\(.builds.plan.used // 0)/\(.builds.plan.limit // 0) builds (\(.builds.plan.percentUsed // 0)%)"' usage.json)"
+          android="$(jq -r 'if .builds.android then "\(.builds.android.plan.used)/\(.builds.android.plan.limit) (\(.builds.android.plan.percentUsed)%)" else "not reported" end' usage.json)"
+          ios="$(jq -r 'if .builds.ios then "\(.builds.ios.plan.used)/\(.builds.ios.plan.limit) (\(.builds.ios.plan.percentUsed)%)" else "not reported" end' usage.json)"
+          # NowBey ships Android APKs only, so the Android counter is the one that decides whether a
+          # `mobile` dispatch can build on EAS or must take the local Gradle fallback.
+          pct="$(jq -r 'if .builds.android then .builds.android.plan.percentUsed else .builds.plan.percentUsed end // 0' usage.json)"
+          echo "plan=$plan" >> "$GITHUB_OUTPUT"
+          echo "period=$period" >> "$GITHUB_OUTPUT"
+          echo "total=$total" >> "$GITHUB_OUTPUT"
+          echo "android=$android" >> "$GITHUB_OUTPUT"
+          echo "pct=$pct" >> "$GITHUB_OUTPUT"
+
+          case "$pct" in (*[!0-9]*|'') pct=0 ;; esac
+          if [ "$pct" -ge 100 ]; then
+            echo "::warning title=The $owner plan has no Android builds left::Used $android on the $plan plan; the period resets $period. Until then an APK comes from the local Gradle fallback (scripts/eas-dispatch.sh fallback) or from upgrading on expo.dev. Nothing in Git restores EAS quota."
+          elif [ "$pct" -ge 85 ]; then
+            echo "::warning title=The $owner Android build quota is nearly spent::$android used on the $plan plan; the period resets $period."
+          else
+            echo "::notice title=EAS build quota::$owner is on $plan with Android at $android; the period resets $period."
+          fi
+
+          {
+            echo "Quota:"
+            echo ""
+            echo "| | |"
+            echo "| --- | --- |"
+            echo "| Plan | $plan |"
+            echo "| Billing period | $period |"
+            echo "| Builds (all platforms) | $total |"
+            echo "| Android builds | $android |"
+            echo "| iOS builds | $ios |"
+            echo ""
+            echo "Detailed billing: https://expo.dev/accounts/$owner/settings/billing"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the raw EAS output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: expo-account-log
+          if-no-files-found: ignore
+          path: |
+            expo/whoami.txt
+            expo/project-info.txt
+            expo/usage.json
+            expo/usage.err
+
+      # -------------------------------------------------------------------------------------------
+      # The verdict. Every refusal is already annotated on the step that found it; this one decides
+      # the colour of the run, and it fails only on things that mean "a mobile dispatch cannot build
+      # on EAS right now" — never on a spent quota, which is a plan fact and not a broken pipeline.
+      # -------------------------------------------------------------------------------------------
+      - name: Report the verdict
+        if: always()
+        env:
+          WHOAMI_OUTCOME: ${{ steps.whoami.outcome }}
+          PROJECT_OUTCOME: ${{ steps.project.outcome }}
+          QUOTA_OUTCOME: ${{ steps.quota.outcome }}
+          ACTOR: ${{ steps.whoami.outputs.actor }}
+          ACTOR_NAME: ${{ steps.whoami.outputs.actor_name }}
+          MISMATCH: ${{ steps.whoami.outputs.mismatch }}
+          PROJECT_NAME: ${{ steps.project.outputs.full_name }}
+          PLAN: ${{ steps.quota.outputs.plan }}
+          ANDROID: ${{ steps.quota.outputs.android }}
+          PERIOD: ${{ steps.quota.outputs.period }}
+        run: |
+          set -uo pipefail
+          esc() { printf '%s' "$1" | sed -e 's/%/%25/g' -e 's/\r/%0D/g' | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }'; }
+
+          {
+            echo "### Verdict"
+            echo ""
+            echo "- Token: ${ACTOR:-not established}"
+            echo "- Project: ${PROJECT_NAME:-not readable by this token}"
+            echo "- Quota: ${PLAN:+$PLAN plan, }Android ${ANDROID:-unknown}, resets ${PERIOD:-unknown}"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$WHOAMI_OUTCOME" != "success" ]; then
+            echo "::error title=The Expo account could not be established::\`eas whoami\` ended $WHOAMI_OUTCOME, so nothing below it means anything yet. Fix EXPO_TOKEN first — see the annotation on the step above."
+            exit 1
+          fi
+
+          if [ -n "$MISMATCH" ]; then
+            echo "::error title=EXPO_TOKEN belongs to a different account than this project::${ACTOR_NAME:-$ACTOR} cannot reach $MISMATCH, which owns the project per expo/app.json. Invite ${ACTOR_NAME:-$ACTOR} to the project on expo.dev, or replace the secret with a token created while logged in as $MISMATCH."
+            exit 1
+          fi
+
+          if [ "$PROJECT_OUTCOME" != "success" ]; then
+            echo "::error title=The token cannot read this project::\`eas project:info\` ended $PROJECT_OUTCOME. This is the same refusal that stops an EAS build after the archive is uploaded; the annotation on that step carries EAS's own wording."
+            exit 1
+          fi
+
+          if [ "$QUOTA_OUTCOME" != "success" ]; then
+            # Deliberately not fatal: usage needs billing visibility the project token may lack, and
+            # a quota this step could not read is not evidence that a build would be refused.
+            echo "::notice title=The build quota could not be read::\`eas account:usage\` ended $QUOTA_OUTCOME. Authorization above passed, so a \`mobile\` dispatch is still worth firing — deploy.yml falls back to a local Gradle APK if EAS refuses."
+          fi
+
+          echo "::notice title=Expo account check passed::$ACTOR can read ${PROJECT_NAME:-the project}; Android quota ${ANDROID:-unknown} (${PLAN:-plan unknown}), resets ${PERIOD:-unknown}."
