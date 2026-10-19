@@ -308,7 +308,7 @@ jobs:
           # project: EAS answers "Entity Not Authorized" later, deep in the build step, naming
           # only a project UUID. Name the account here instead — as an annotation, so it is
           # readable without opening the job log — and export it for the failure report below.
-          account="$(grep -v '^[[:space:]]*$' eas-whoami.log | tail -n 1 | tr -d '\r' | cut -c1-120)"
+          account="$(grep -v '^[[:space:]]*$' eas-whoami.log | tail -n 1 | tr -d '\r' | sed 's/^[^[:alnum:]]*//' | cut -c1-120)"
           echo "EAS_WHOAMI=$account" >> "$GITHUB_ENV"
           echo "::notice title=EXPO_TOKEN authenticates as::${account:-unknown}"
           {
