@@ -94,7 +94,7 @@ export function FeedMap({
             <li className="pulse-state">
               <p>No pins on this filter. Widen it, or drop the first one.</p>
               <Link href="/report" className="nb-btn nb-btn-primary nb-btn-sm">
-                Drop a pin
+                Report a hazard
               </Link>
             </li>
           )}

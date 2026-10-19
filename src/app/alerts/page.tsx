@@ -13,7 +13,7 @@ import { text } from "@/lib/validate";
 import { ButtonLink, Chip, Eyebrow, Panel, PanelHead, SectionTitle, StepRow } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Alerts" };
+export const metadata = { title: "Email alerts — island by island" };
 
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
@@ -58,7 +58,7 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
           </h1>
           <p className="mt-2.5 max-w-[62ch] text-[13.5px] leading-[1.75] text-ink-300">
             Nassau first: alerts cover New Providence at launch, and when a neighbour files a matching report we email you a
-            link straight to it. Two fields decide everything — your email address and the kinds of report you care about.
+            link straight to it. Three things decide it — your email, your island and the report types you care about.
           </p>
         </div>
 
@@ -91,8 +91,10 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
           </Panel>
         ) : null}
 
+        <div className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1.5 text-center text-[12px] font-bold text-accent">Live alerts: New Providence — other islands soon</div>
         <Panel className="rounded-[20px] p-4 sm:p-5">
           <AlertForm plan={viewer.tier} defaultEmail={viewer.email ?? ""} />
+          <p className="mt-3 text-[11.5px] text-tertiary">Other islands: <span className="rounded-full border border-default px-2 py-0.5">Tell me when it opens</span> — leave your email, no account needed.</p>
         </Panel>
 
         {push ? (
@@ -100,9 +102,10 @@ export default async function AlertsPage({ searchParams }: { searchParams: Promi
         ) : (
           <Panel className="rounded-[20px] p-5">
             <PanelHead
-              title="Push alerts on this device"
-              blurb="Not switched on for this site yet. Email is the channel that works today; the Android app has a push switch of its own once it is installed."
+              title="Alert channels"
+              blurb="Email: On · Phone push: Off — Android app only · Text: Not available"
             />
+            <p className="mt-2 text-[12px] text-tertiary">Email alerts work on every device. Push is available in the Android app. Text messages are not available.</p>
           </Panel>
         )}
 

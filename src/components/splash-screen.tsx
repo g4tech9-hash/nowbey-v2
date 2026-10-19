@@ -13,23 +13,33 @@ export function SplashScreen({ tagline, promise }: { tagline: string; promise: s
   const [phase, setPhase] = useState<"show" | "leave" | "gone">("show");
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- The skip decision must run before
+       the first paint of the splash itself; deferring it would flash the splash we are
+       trying to suppress. This is a mount-time capability gate, not derived state. */
+    // Skip entirely when motion off, low-data, reduced-motion, or deep link
     try {
+      if (document.documentElement.dataset.motion === "off") { setPhase("gone"); return; }
+      if (localStorage.getItem("nb_low_data") === "1") { setPhase("gone"); return; }
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setPhase("gone"); return; }
+      // Deep links: incident, /map?focus= — never show splash
+      if (window.location.pathname.startsWith("/incident") || new URLSearchParams(window.location.search).has("focus")) { setPhase("gone"); return; }
+      if (sessionStorage.getItem("nb_splash_seen")) { setPhase("gone"); return; }
       sessionStorage.setItem("nb_splash", "1");
-    } catch {
-      /* private mode: the splash simply shows again next time */
-    }
+      sessionStorage.setItem("nb_splash_seen", "1");
+    } catch {}
     const skip = () => setPhase((p) => (p === "show" ? "leave" : p));
-    const done = window.setTimeout(() => setPhase("gone"), 3900);
+    const done = window.setTimeout(() => setPhase("gone"), 1100);
     window.addEventListener("keydown", skip);
     return () => {
       window.clearTimeout(done);
       window.removeEventListener("keydown", skip);
     };
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
   useEffect(() => {
     if (phase !== "leave") return;
-    const t = window.setTimeout(() => setPhase("gone"), 520);
+    const t = window.setTimeout(() => setPhase("gone"), 320);
     return () => window.clearTimeout(t);
   }, [phase]);
 

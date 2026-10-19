@@ -11,7 +11,7 @@ import { ReportEditor, ReportMerge } from "@/components/admin-report-detail";
 import { Pill } from "@/components/admin-ui";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Report" };
+export const metadata = { title: "Report a hazard" };
 
 /** Incident Command detail: one report, its status, its history, and the tools to fix it. */
 export default async function ReportDetailPage({ params }: { params: Promise<{ id: string }> }) {

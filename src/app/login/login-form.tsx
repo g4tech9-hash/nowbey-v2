@@ -168,7 +168,7 @@ export function LoginForm() {
           )}
         </h1>
         <p className="mt-3 max-w-[52ch] text-[13.5px] leading-[1.75] text-ink-300">
-          You can read the map, confirm reports and file a pin without an account. An account puts your handle on the reports
+          You can read the map, confirm reports and Report a hazard without an account. An account puts your handle on the reports
           you file, keeps your alert settings, and brings your plan with you to any device.
         </p>
         <ul className="mt-4 space-y-2 text-[12.5px] text-ink-400">
@@ -350,13 +350,12 @@ export function LoginForm() {
           {busy ? "Working…" : mode === "signup" ? "Create my account" : "Sign in"}
         </button>
         <p className="mt-2 text-[11.5px] text-ink-400">
-          Just looking?{" "}
-          <Link href="/map" className="font-bold text-tide-300 hover:underline">
-            Open the map
+          <Link href="/feed" className="font-bold text-tide-300 hover:underline">
+            Continue without an account
           </Link>{" "}
-          or{" "}
+          — the map, feed and news wire are open to everyone. You can still{" "}
           <Link href="/report" className="font-bold text-tide-300 hover:underline">
-            file a pin anonymously
+            report a hazard anonymously
           </Link>
           .
         </p>

@@ -274,7 +274,7 @@ export function MockAppHeader({ sample = true }: { sample?: boolean }) {
 const TABS = [
   { key: "feed", label: "Feed", icon: "M4 6h16M4 12h11M4 18h7" },
   { key: "map", label: "Map", icon: "M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Zm0-8.6a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8Z" },
-  { key: "report", label: "Report", icon: "M12 5v14M5 12h14" },
+  { key: "report", label: "Report a hazard", icon: "M12 5v14M5 12h14" },
   { key: "wire", label: "Wire", icon: "M4 5h16v14H4zM4 9.5h16M8 13.5h8M8 16.5h5" },
   { key: "alerts", label: "Alerts", icon: "M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Zm4 10a2.2 2.2 0 0 0 4 0" },
 ] as const;

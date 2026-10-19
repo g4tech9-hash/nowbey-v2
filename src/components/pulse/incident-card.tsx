@@ -5,7 +5,9 @@ import { Bookmark, Eye, MapPin, MessageSquare } from "lucide-react";
 import type { Badge } from "@/lib/badges";
 import type { Engagement } from "@/lib/engage-kinds";
 import { UPDATE_LABELS } from "@/components/incident-card";
-import { formatCoord, timeAgo, type CategoryKey } from "@/lib/geo";
+import { timeAgo, type CategoryKey } from "@/lib/geo";
+import { getFreshness, primaryTimeLine } from "@/lib/freshness";
+import { isCannedPhotoNote, shouldCollapseTitleBody, isIslandLevelApproximate } from "@/lib/report-utils";
 import { useSwipe } from "@/lib/pulse/motion";
 import {
   ActionBar,
@@ -19,7 +21,7 @@ import {
   TrustMeter,
 } from "@/ui/pulse";
 import { useWatchList } from "@/lib/pulse/saved";
-import { trustFor } from "@/lib/pulse/trust";
+import { trustFor, TRUST_LABEL } from "@/lib/pulse/trust";
 import { useIncidentUpdate } from "./use-incident-update";
 
 /**
@@ -60,6 +62,8 @@ export type PulseCardRow = {
   anonymous?: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
+  /** How many neighbours filed the same thing nearby (clustered upstream). */
+  clusterCount?: number;
 };
 
 export function PulseIncidentCard({
@@ -168,11 +172,10 @@ export function PulseIncidentCard({
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
               <CatBadge category={row.category} />
               <SeverityTag severity={row.severity} category={row.category} />
-              <FreshnessPill
-                freshness={row.status === "resolved" ? "stale" : "live"}
-                time={row.updatedAt}
-                label={timeAgo(row.updatedAt)}
-              />
+              {/* Band from the one freshness function. The clock lives behind the module
+                  default (same convention as timeAgo); the pill re-derives it on its own
+                  clock after mount so an open feed never keeps a stale band. */}
+              <FreshnessPill freshness={getFreshness(row.updatedAt, "report").band} time={row.updatedAt} label={timeAgo(row.updatedAt)} />
               {row.status !== "active" ? (
                 <span className="pulse-chip" data-tone="neutral">
                   {row.status === "resolved" ? "cleared" : row.status}
@@ -185,10 +188,11 @@ export function PulseIncidentCard({
               ) : row.sourceKind === "news" ? (
                 <span className="pulse-chip" data-tone="neutral">from the wire</span>
               ) : null}
-              <span className="pulse-fresh ml-auto" data-freshness={row.status === "resolved" ? "stale" : "live"}>
-                <time dateTime={String(row.createdAt)}>{timeAgo(row.createdAt)}</time>
-              </span>
+              {row.clusterCount && row.clusterCount > 1 ? (
+                <span className="pulse-chip" data-tone="accent">x{row.clusterCount} neighbours reported this</span>
+              ) : null}
             </div>
+            <p className="mt-1 font-mono text-[11.5px] text-tertiary tabular-nums">{primaryTimeLine(row.createdAt, row.updatedAt, "report")}</p>
 
             <h3
               id={id ? `${id}-title` : undefined}
@@ -199,9 +203,9 @@ export function PulseIncidentCard({
               </Link>
             </h3>
 
-            {row.details ? <p className={`pulse-card-body${spotlight ? "" : " line-clamp-2"}`}>{row.details}</p> : null}
+            {row.details && !shouldCollapseTitleBody(row.title, row.details) ? <p className={`pulse-card-body${spotlight ? "" : " line-clamp-2"}`}>{row.details}</p> : null}
 
-            {row.photoNote ? (
+            {row.photoNote && !isCannedPhotoNote(row.photoNote) ? (
               <p className="mt-2.5 flex items-start gap-2 text-[12.5px] text-secondary">
                 <Eye size={14} strokeWidth={2.2} aria-hidden style={{ color: "var(--text-accent)", marginTop: 3 }} />
                 <span>
@@ -213,17 +217,10 @@ export function PulseIncidentCard({
             <p className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-tertiary">
               <span className="inline-flex items-center gap-1.5 font-bold text-secondary">
                 <MapPin size={13} strokeWidth={2.4} aria-hidden style={{ color: "var(--spine, var(--accent))" }} />
-                {row.street ?? "Unmapped spot"}
+                {row.street ?? row.parish ?? "The Bahamas"}
+                {isIslandLevelApproximate(row.lat, row.lng) ? <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-600">Island-level — approximate</span> : null}
               </span>
               {row.parish ? <span>· {row.parish}</span> : null}
-              <span className="font-mono tabular-nums">
-                {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
-              </span>
-              {row.accuracyMeters ? (
-                <span className="pulse-chip" data-tone="neutral" title="How close the reporter's pin is to the real spot">
-                  ± {Math.round(row.accuracyMeters)} m
-                </span>
-              ) : null}
               <Link href={`/map?focus=${row.id}`} className="pulse-mini-link ml-auto" onClick={(e) => e.stopPropagation()}>
                 On map
               </Link>
@@ -282,7 +279,7 @@ export function PulseIncidentCard({
               ) : null}
               <span className="ml-auto flex items-center gap-2.5">
                 <AvatarStack seed={row.authorHandle ?? row.id} count={1 + Math.min(3, row.confirmations)} size={spotlight ? 28 : 24} />
-                <TrustMeter value={trust.value} tier={trust.tier} compact label={`Trust ${trust.value} of 100 — ${trust.tier}`} />
+                <TrustMeter value={trust.value} tier={trust.tier} compact label={`Trust ${trust.value} of 100 — ${TRUST_LABEL[trust.tier] ?? trust.tier}`} />
               </span>
             </ActionBar>
           </div>

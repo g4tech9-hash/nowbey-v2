@@ -12,8 +12,8 @@ import { AriaAnnouncer, CatBadge, MetaChip, SeverityTag } from "@/ui/pulse";
 import { useAnnouncer } from "@/lib/pulse/motion";
 import { pulseCategoryMeta } from "@/ui/pulse/glyph";
 
-const STEPS = ["What is it?", "Where is it?", "Tell neighbours", "Check and send"] as const;
-const SEVERITY_LABELS = ["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"] as const;
+const STEPS = ["What", "Where", "Details", "Check & send"] as const; // one glossary — src/lib/copy.ts REPORT_STEPS
+const SEVERITY_LABELS = ["Minor", "Lane blocked", "Road blocked", "Dangerous"] as const;
 const prefillAllowed = process.env.NEXT_PUBLIC_PREFILL_AREA !== "0";
 /** A report in progress survives a refresh, a dropped signal or a trip to the map. Cleared once it is published. */
 const DRAFT_KEY = "nb_report_draft_v1";
@@ -256,11 +256,22 @@ export default function ReportWizard() {
             it cleared. The pin is shown a short distance from the exact spot to protect homes.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
-            <Link href={`/incident/${madeId}`} className="nb-btn nb-btn-primary">
-              Watch this report
+            <Link href={`/map?focus=${madeId}`} className="nb-btn nb-btn-primary">
+              View on map
             </Link>
-            <Link href="/map" className="nb-btn nb-btn-secondary">
-              Back to the map
+            <button
+              type="button"
+              onClick={() => {
+                const url = `${window.location.origin}/incident/${madeId}`;
+                if (navigator.share) void navigator.share({ title: title.trim() || "NowBey report", url }).catch(() => {});
+                else void navigator.clipboard?.writeText(url).catch(() => {});
+              }}
+              className="nb-btn nb-btn-secondary"
+            >
+              Share
+            </button>
+            <Link href={`/incident/${madeId}`} className="nb-btn nb-btn-secondary">
+              Watch this report
             </Link>
             <button
               type="button"
@@ -275,7 +286,7 @@ export default function ReportWizard() {
               }}
               className="nb-btn nb-btn-secondary"
             >
-              Report another spot
+              Report another hazard
             </button>
           </div>
         </div>
@@ -367,7 +378,7 @@ export default function ReportWizard() {
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="nb-label" id="severity-label">Severity</span>
             <div className="flex flex-wrap gap-1.5">
-              {["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"].map((label, i) => (
+              {["Minor", "Lane blocked", "Road blocked", "Dangerous"].map((label, i) => (
                 <button
                   key={label}
                   type="button"
@@ -421,6 +432,11 @@ export default function ReportWizard() {
                     <p className="text-[11.5px] text-ink-400">
                       Parish {pick.parish ?? island} · accuracy estimate ± {pick.precisionM.toFixed(1)} m
                     </p>
+                    {pick.precisionM >= 100 ? (
+                      <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-[11.5px] font-bold text-amber-700">
+                        Pin is about {Math.round(pick.precisionM)} m from where you are — move it closer with the arrows or drag the pin tip.
+                      </p>
+                    ) : null}
                   </>
                 ) : (
                   <p className="text-ink-400">Nothing pinned yet.</p>

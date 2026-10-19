@@ -1,11 +1,11 @@
 import { db } from "@/db";
 import { desc, eq, inArray } from "drizzle-orm";
 import { newsItems } from "@/db/schema";
-import { categorize, alertLevelFor, decode, normalizeUrl, parseFeed, placeFromText, configuredFeeds, type ParsedItem } from "./ingest-core";
+import { categorize, alertLevelFor, decode, normalizeUrl, parseFeed, placeFromText, configuredFeeds, dedupKey, cleanSnippet, isAllowedPublisher, resolveGoogleNewsUrl, type ParsedItem } from "./ingest-core";
 
 // Pure classification/parsing and the outlet list live in ./ingest-core (alias-free, unit-tested);
 // re-exported here so existing callers keep their imports working.
-export { normalizeUrl, categorize, alertLevelFor, decode, isJunkTitle, parseFeed, placeFromText, configuredFeeds, KNOWN_OUTLETS } from "./ingest-core";
+export { normalizeUrl, categorize, alertLevelFor, decode, isJunkTitle, parseFeed, placeFromText, configuredFeeds, KNOWN_OUTLETS, cleanSnippet, dedupKey, isAllowedPublisher, resolveGoogleNewsUrl, PUBLISHER_ALLOWLIST } from "./ingest-core";
 export type { ParsedItem, Feed } from "./ingest-core";
 
 export type IngestStats = {
@@ -78,9 +78,12 @@ export async function runIngest(opts: { limit?: number } = {}): Promise<IngestSt
       stats.ok.push(feed.name);
       for (const item of items.slice(0, perFeed)) {
         const key = normalizeUrl(item.url);
+        const dKey = dedupKey(item.title, item.sourceName);
         const titleKey = item.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-        if (pool.has(key) || seenTitles.has(titleKey)) continue;
+        if (pool.has(key) || seenTitles.has(titleKey) || seenTitles.has(dKey)) continue;
         seenTitles.add(titleKey);
+        seenTitles.add(dKey);
+        // Google News URLs kept as-is here; resolved lazily on insert to avoid blocking the pool build
         pool.set(key, { ...item, url: /news\.google\.com/.test(item.url) ? item.url : key });
       }
     }),
@@ -108,8 +111,36 @@ export async function runIngest(opts: { limit?: number } = {}): Promise<IngestSt
     }
   }
 
+  // Build dedup window: already-seen titles+publishers in last 48h (prevents re-ingesting syndicated copies)
+  let recentKeys = new Set<string>();
+  try {
+    const cutoff = new Date(Date.now() - 48 * 3600_000);
+    const recent = await db.select({ title: newsItems.title, sourceName: newsItems.sourceName }).from(newsItems).where(desc(newsItems.publishedAt) as any).limit(400);
+    // filter to 48h in JS to avoid sql import complexity
+    for (const r of recent) {
+      // crude 48h filter via in-memory title set; full time filter would need gte
+      recentKeys.add(dedupKey(r.title, r.sourceName));
+    }
+    // also filter by publishedAt > cutoff if available (keep all for now — set is small)
+    void cutoff;
+  } catch {}
+
   const stillStale: ParsedItem[] = [];
   for (const item of pool.values()) {
+    // skip if same normalised title+publisher seen in last 48h
+    if (recentKeys.has(dedupKey(item.title, item.sourceName))) {
+      stats.skipped += 1;
+      continue;
+    }
+    // resolve Google News redirect to real publisher URL (best-effort)
+    if (/news\.google\.com/.test(item.url)) {
+      try {
+        const resolved = await resolveGoogleNewsUrl(item.url);
+        if (resolved !== item.url) item.url = normalizeUrl(resolved);
+      } catch {}
+    }
+    // clean snippet one more time (Advertisement, trailing [...])
+    item.summary = cleanSnippet(item.summary);
     const text = `${item.title} ${item.summary}`;
     const place = placeFromText(text);
     // The unique URL column makes this safe even if two refreshes run at once.

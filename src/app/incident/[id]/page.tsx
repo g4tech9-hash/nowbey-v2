@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { and, desc, eq, ne, notInArray } from "drizzle-orm";
 import { db, hasDatabase } from "@/db";
@@ -48,14 +49,23 @@ import { Chip, Eyebrow } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   // No database configured → the page below renders the setup notice, so keep the title generic.
   if (!hasDatabase()) return { title: "Report" };
   if (!UUID_RE.test(id)) return { title: "Report not found" };
   const [row] = await db.select({ title: incidents.title, status: incidents.status }).from(incidents).where(eq(incidents.id, id)).limit(1);
   // A hidden or unfounded report never leaks its title into the page title.
-  return { title: row && !isHiddenStatus(row.status) ? row.title : "Report" };
+  if (!row || isHiddenStatus(row.status)) return { title: "Report" };
+  return {
+    title: row.title,
+    description: `Neighbour report on NowBey: ${row.title}. Confirm it, add what you see, or check the map.`,
+    openGraph: {
+      title: row.title,
+      description: "A neighbour report on NowBey, the community safety map for The Bahamas.",
+      images: [{ url: "/og/map-1200x630.png", width: 1200, height: 630 }],
+    },
+  };
 }
 
 export default async function IncidentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -63,7 +73,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
   if (!hasDatabase()) {
     return (
       <DatabaseSetup
-        eyebrow="Report"
+        eyebrow="Report a hazard"
         title="This report opens once the database is connected"
         blurb="Reports live in the database, so this deployment needs its DATABASE_URL before any pin can be shown."
       />
@@ -89,12 +99,21 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
   const badges = await badgesFor([row.anonymous ? null : row.authorHandle]);
   const meta = CATEGORIES[row.category as CategoryKey] ?? CATEGORIES.notice;
   const hue = pulseCategoryMeta(row.category).token;
-  const neighbours = nearby
-    .filter((n) => n.id !== row.id)
-    .map((n) => ({ row: n, d: haversineMeters([row.lat, row.lng], [n.lat, n.lng]) }))
-    .filter((n) => n.d < 1200)
-    .sort((a, b) => a.d - b.d)
-    .slice(0, 5);
+  const neighbours = (() => {
+    const seen = new Set<string>();
+    return nearby
+      .filter((n) => n.id !== row.id)
+      .map((n) => ({ row: n, d: haversineMeters([row.lat, row.lng], [n.lat, n.lng]) }))
+      .filter((n) => n.d < 1200)
+      .sort((a, b) => a.d - b.d)
+      .filter((n) => {
+        const key = n.row.title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 5);
+  })();
   const handle = viewer.handle;
   const eng = (await engagementFor("incident", [row.id], viewer.userId)).get(row.id) ?? NO_ENGAGEMENT;
   const trust = trustFor(
@@ -114,6 +133,8 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
   const readAloud = `${meta.label}. ${row.title}. ${row.details ?? ""}. Location: ${row.address ?? row.street ?? row.parish ?? "The Bahamas"}. Status: ${row.status}. ${row.confirmations} neighbours confirmed this report.`;
 
   return (
+    <>
+      <div className="mb-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-center text-[12px] font-bold text-ink-800">Emergency: call <a href="tel:919" className="underline">919</a> / <a href="tel:911" className="underline">911</a> — this app is not an emergency service.</div>
     <div className="pulse-grid-3">
       <article className="pulse-detail min-w-0">
         <p className="flex flex-wrap items-center gap-2">
@@ -148,7 +169,8 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
           ) : null}
           <div className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-2">
             <span className="flex items-center gap-2">
-              <AvatarStack seed={row.anonymous ? row.id : (row.authorHandle ?? row.id)} count={1 + Math.min(3, row.confirmations)} size={26} />
+              <AvatarStack seed={row.anonymous ? row.id : (row.authorHandle ?? row.id)} count={1} size={26} />
+              {row.confirmations > 0 ? <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-on-accent">+{row.confirmations}</span> : null}
               <span className="text-[12.5px] text-tertiary">
                 reported by <span className="font-bold text-primary">@{row.anonymous ? "someone" : (row.authorHandle ?? "someone")}</span>
                 {row.authorHandle && badges.get(row.authorHandle) ? (
@@ -268,9 +290,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
               mapHref={`/map?focus=${row.id}`}
             />
           </div>
-          <p className="mt-2.5 font-mono text-[11.5px] text-tertiary tabular-nums">
-            {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
-          </p>
+          {/* raw coords moved to detail page only when not approximate — hidden here for island-level pins */}
           <div className="mt-3 grid gap-1.5">
             {[
               {
@@ -374,5 +394,6 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
         </CardLayered>
       </aside>
     </div>
+    </>
   );
 }

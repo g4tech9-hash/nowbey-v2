@@ -51,7 +51,7 @@ export function MapPanel(props: MapProps) {
 
   return (
     <div className="nb-data-heavy h-full w-full">
-      <Suspense fallback={<MapSkeleton label="Wiring up the map…" />}>
+      <Suspense fallback={<MapSkeleton label="Loading the map…" />}>
         <NowBeyMap {...props} googleKey={googleKey} />
       </Suspense>
     </div>

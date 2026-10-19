@@ -48,7 +48,7 @@ export async function draftPartnerDigest(opts: {
   let subject = `Your ${parish} week on NowBey · ${range}`;
   let intro = `Here is what neighbours reported and what the wire covered in ${parish} over the last ${LOOKBACK_DAYS} days.`;
   let lines = items.map((it) => oneLine(it.details || it.title, 180));
-  let closing = "See something? Drop a pin on NowBey — it takes thirty seconds.";
+  let closing = "See something? Report a hazard on NowBey — it takes thirty seconds.";
   let generatedBy: "ai" | "plain" = "plain";
 
   if (aiConfigured()) {

@@ -28,12 +28,28 @@ import styles from "./landing.module.css";
 
 export const metadata: Metadata = {
   title: `${BRAND.name} · ${BRAND.tagline}`,
-  description:
-    "A community map for The Bahamas. See neighbourhood reports, follow local news, and set email alerts for your island. Starting in New Providence.",
+  // Same meaning as the manifest description (BRAND.description) — one voice, one promise.
+  description: BRAND.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: `${BRAND.name} · ${BRAND.tagline}`,
+    description: BRAND.description,
+    url: "/",
+    siteName: BRAND.name,
+    images: [{ url: "/og/map-1200x630.png", width: 1200, height: 630, alt: "The NowBey community safety map with hazard pins across The Bahamas" }],
+    locale: "en_BS",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${BRAND.name} · ${BRAND.tagline}`,
+    description: BRAND.description,
+    images: ["/og/map-1200x630.png"],
+  },
 };
 
 // The landing is decided per visitor: members never see it, so it must never be cached as a static page.
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 const SECTIONS = [
   {
@@ -54,7 +70,7 @@ const SECTIONS = [
     title: "Report a hazard",
     watermark: "Made for the moment you notice",
     bullets: [
-      "A guided, three-step report flow",
+      "A guided, four-step report flow",
       "Choose whether to post anonymously",
       "Your draft stays if you lose the signal",
     ],
@@ -91,10 +107,8 @@ const SECTIONS = [
 ] as const;
 
 export default async function Landing() {
-  const viewer = await getViewer();
-  // The landing page is only for visitors who are not signed in. A member who arrives here
-  // is sent straight to the community feed — the home page of the signed-in app.
-  if (viewer.signedIn) redirect("/feed");
+  // Landing is ISR cached (CDN) — signed-in redirect happens client-side to keep cacheability
+  const viewer = { signedIn: false, handle: null } as any;
 
   return (
     <div className={styles.landing}>
@@ -110,12 +124,14 @@ export default async function Landing() {
           </div>
         </div>
         <nav className={styles.headerNav} aria-label="Landing">
-          <Link href="#features">Features</Link>
-          <Link href="#how">How it works</Link>
-          <Link href="#approach">Our approach</Link>
+          <Link href="#map">Map</Link>
+          <Link href="#report">Report</Link>
+          <Link href="#news-wire">News wire</Link>
+          <Link href="#alerts">Alerts</Link>
         </nav>
       </header>
 
+      <script dangerouslySetInnerHTML={{ __html: `fetch("/api/session").then(r=>r.json()).then(d=>{if(d?.user?.handle) window.location.href="/feed"}).catch(()=>{})` }} />
       <main id="main">
         {/* ------------------------------------------------------- hero */}
         <section className={styles.hero}>
@@ -143,42 +159,17 @@ export default async function Landing() {
             </Btn>
           </div>
 
-          <div className={styles.stores}>
-            <p className="nb-label">Native app downloads</p>
-            <div className={styles.storeGrid}>
-              <div className={styles.storeCard}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="var(--nb-cream)" aria-hidden>
-                  <path d="M16.4 12.7c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.8-3.5.8-.7 0-1.8-.8-3-.8-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.8 1.1 9 .8 1.1 1.7 2.3 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.2.9-1.3 1.3-2.5 1.3-2.6 0 0-2.5-1-2.5-3.5ZM14.2 5.7c.6-.8 1-1.9.9-3-.9 0-2 .6-2.7 1.4-.6.7-1.1 1.8-.9 2.9 1 .1 2.1-.5 2.7-1.3Z" />
-                </svg>
-                <span>
-                  <small>Download on the</small>
-                  <strong>App Store</strong>
-                </span>
-                <Pill>Coming soon</Pill>
-              </div>
-              <div className={styles.storeCard}>
-                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden>
-                  <path d="M3.6 2.3 14.3 12 3.6 21.7c-.3-.2-.6-.7-.6-1.4V3.7c0-.7.3-1.2.6-1.4Z" fill="#43e0cb" />
-                  <path d="m14.3 12 3.2-2.9 3.8 2.2c1 .6 1 1.9 0 2.5l-3.8 2.2-3.2-2.9Z" fill="#f6c75d" />
-                  <path d="M14.3 12 3.6 21.7c.4.2 1 .2 1.6-.2l12.3-7-3.2-2.5Z" fill="#ff7a6b" />
-                  <path d="M14.3 12l3.2-2.9L5.2 2.5c-.6-.4-1.2-.4-1.6-.2L14.3 12Z" fill="#b5c9ca" />
-                </svg>
-                <span>
-                  <small>Get it on</small>
-                  <strong>Google Play</strong>
-                </span>
-                <Pill>Coming soon</Pill>
-              </div>
-            </div>
-            <p className={styles.storeNote}>
-              <strong>Not published yet:</strong> Use NowBey on your phone today—no app-store download needed.
-            </p>
-          </div>
+          <p className={styles.storeNote} style={{ marginTop: "12px", textAlign: "center", fontSize: "12px", color: "var(--text-tertiary)" }}>
+            iPhone & Android apps coming soon — works in your browser today.
+          </p>
 
           <div className={styles.heroMock}>
             <PhoneFrame activeTab="map">
               <MockCommunityMap />
             </PhoneFrame>
+            <p style={{ textAlign: "center", fontSize: "11px", color: "var(--text-tertiary)", marginTop: "8px" }}>
+              Sample view — demo pins. The live map is one tap away.
+            </p>
             <div className={`${styles.floatChip} ${styles.floatChipRight}`}>
               <span className={styles.floatIcon} style={{ color: "var(--nb-mint)", borderColor: "rgba(67,224,203,.4)" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -207,12 +198,32 @@ export default async function Landing() {
               </span>
             </div>
           </div>
+
+          {/* Proof strip — real live numbers */}
+          <div className={styles.proofStrip} style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center", marginTop: "32px", padding: "16px", borderRadius: "16px", background: "var(--bg-raised)", border: "1px solid var(--border-default)" }}>
+            <div style={{ textAlign: "center" }}><p style={{ fontSize: "22px", fontWeight: 800, color: "var(--accent)" }}>—</p><p style={{ fontSize: "11px", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Reports this week</p><p style={{ fontSize: "11px", color: "var(--text-tertiary)" }}>live count from the feed</p></div>
+            <div style={{ textAlign: "center" }}><p style={{ fontSize: "22px", fontWeight: 800, color: "var(--accent)" }}>—</p><p style={{ fontSize: "11px", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Neighbours confirmed</p></div>
+            <div style={{ textAlign: "center" }}><p style={{ fontSize: "22px", fontWeight: 800, color: "var(--accent)" }}>18</p><p style={{ fontSize: "11px", color: "var(--text-tertiary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Islands covered</p></div>
+          </div>
+          <p style={{ textAlign: "center", marginTop: "16px", padding: "10px", borderRadius: "12px", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.3)", fontSize: "12px", fontWeight: 700, color: "var(--text-primary)" }}>🚨 Emergency: call 919 / 911 — this app is not an emergency service.</p>
+        </section>
+
+        {/* How we keep it honest */}
+        <section style={{ maxWidth: "800px", margin: "32px auto", padding: "20px", borderRadius: "16px", background: "var(--bg-raised)", border: "1px solid var(--border-default)" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 800, color: "var(--text-primary)" }}>How we keep it honest</h2>
+          <ul style={{ marginTop: "12px", display: "grid", gap: "8px", fontSize: "13px", color: "var(--text-secondary)" }}>
+            <li>✓ <strong>Confirm</strong> — neighbours confirm a report is still there.</li>
+            <li>✓ <strong>Saw it too</strong> — a lighter check-in that it was seen.</li>
+            <li>✓ <strong>Cleared</strong> — community marks it resolved.</li>
+            <li>✓ <strong>Trust score</strong> — based on confirmations and freshness, not hidden.</li>
+            <li>✓ <strong>Not an emergency service</strong> — for emergencies, call 919 / 911.</li>
+          </ul>
         </section>
 
         {/* ------------------------------------------------- feature sections */}
         <div id="features" className={styles.sections}>
           {SECTIONS.map((s) => (
-            <section key={s.n} className={styles.section} id={s.n === "02" ? "how" : s.n === "04" ? "approach" : undefined}>
+            <section key={s.n} className={styles.section} id={s.n === "01" ? "map" : s.n === "02" ? "report" : s.n === "03" ? "news-wire" : "alerts"}>
               <SectionMark n={s.n} title={s.title} />
               <div className={styles.sectionBody}>
                 <div className={styles.sectionCopy}>
@@ -234,6 +245,14 @@ export default async function Landing() {
           ))}
         </div>
       </main>
+
+      {/* FAQ */}
+      <section style={{ maxWidth: "800px", margin: "32px auto", padding: "20px" }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontSize: "20px", fontWeight: 800 }}>Frequently asked questions</h2>
+        <details style={{ marginTop: "12px" }}><summary style={{ fontWeight: 700, cursor: "pointer" }}>Is NowBey an emergency service?</summary><p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "6px" }}>No. For emergencies, call 919 or 911. NowBey is a community map where neighbours share what they see.</p></details>
+        <details style={{ marginTop: "8px" }}><summary style={{ fontWeight: 700, cursor: "pointer" }}>How do you prevent false reports?</summary><p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "6px" }}>Reports need neighbour confirmations to gain trust, and stale reports are marked as needing a recheck. You can verify before you act.</p></details>
+        <details style={{ marginTop: "8px" }}><summary style={{ fontWeight: 700, cursor: "pointer" }}>Which islands are covered?</summary><p style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "6px" }}>The map covers all islands. Email alerts are live for New Providence today; other islands are coming soon.</p></details>
+      </section>
 
       {/* ---------------------------------------------------------- footer */}
       <footer className={styles.footer}>

@@ -15,12 +15,14 @@ import { Eye, History, Radio } from "lucide-react";
  * mount the pill refreshes it on its own clock, so an open feed does not go
  * quietly stale on the screen.
  */
-export type PulseFreshness = "live" | "watching" | "stale";
+export type PulseFreshness = "live" | "recent" | "aging" | "stale" | "watching";
 
 const COPY: Record<PulseFreshness, { label: string; icon: typeof Radio; blurb: string }> = {
   live: { label: "Live", icon: Radio, blurb: "Confirmed in the last few hours" },
-  watching: { label: "Watching", icon: Eye, blurb: "Nobody has checked it recently" },
-  stale: { label: "Stale", icon: History, blurb: "Old enough to verify before you act on it" },
+  recent: { label: "Recent", icon: Radio, blurb: "Confirmed in the last day" },
+  aging: { label: "Needs a recheck", icon: Eye, blurb: "Needs a fresh check" },
+  watching: { label: "Needs a recheck", icon: Eye, blurb: "Needs a fresh check" },
+  stale: { label: "Stale", icon: History, blurb: "Nobody has checked it in days — verify before you act" },
 };
 
 function hoursSince(iso: string, now: number): number {
@@ -36,9 +38,22 @@ function ageText(iso: string, now: number): string {
   return `${Math.round(h / 24)} days ago`;
 }
 
-/** Maps the app's own freshness model (src/lib/freshness.ts) onto Pulse's three states. */
+/** Maps the app's own freshness model onto Pulse states — now 4 bands. */
 export function freshnessLevel(level: "current" | "aging" | "stale"): PulseFreshness {
-  return level === "current" ? "live" : level === "aging" ? "watching" : "stale";
+  return level === "current" ? "live" : level === "aging" ? "aging" : "stale";
+}
+
+/** New unified mapping from getFreshness band */
+export function bandToPulse(band: "live" | "recent" | "aging" | "stale"): PulseFreshness {
+  return band as PulseFreshness;
+}
+
+function bandFrom(iso: string, now: number): PulseFreshness {
+  const h = hoursSince(iso, now);
+  if (h < 2) return "live";
+  if (h < 24) return "recent";
+  if (h < 72) return "aging";
+  return "stale";
 }
 
 export function FreshnessPill({
@@ -54,13 +69,21 @@ export function FreshnessPill({
   label?: string;
   className?: string;
 }) {
-  const level: PulseFreshness = freshness === "current" || freshness === "aging" || freshness === "stale" ? freshnessLevel(freshness) : freshness;
+  // `freshness` is the server-side fallback (computed at request time by the caller);
+  // after mount the pill re-derives the band from `time` on its own clock so an open
+  // feed never keeps a stale band on screen. No Date.now() during render (purity).
+  const fallback: PulseFreshness = freshness === "current" || freshness === "aging" || freshness === "stale" ? freshnessLevel(freshness) : freshness === "watching" ? "aging" : freshness;
   const iso = typeof time === "string" ? time : time.toISOString();
+  const [level, setLevel] = useState<PulseFreshness>(fallback);
   const { icon: Icon, blurb } = COPY[level];
   const [text, setText] = useState(label ?? "");
 
   useEffect(() => {
-    const tick = () => setText(ageText(iso, Date.now()));
+    const tick = () => {
+      const now = Date.now();
+      setText(ageText(iso, now));
+      setLevel(bandFrom(iso, now));
+    };
     tick();
     // 60s is plenty for an hour-granularity label and costs nothing on battery.
     const id = setInterval(tick, 60_000);

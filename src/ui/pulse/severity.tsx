@@ -14,22 +14,30 @@ export function SeverityTag({
   category,
   showMeter = true,
 }: {
-  severity: number;
+  severity: number | null | undefined;
   category?: string;
   showMeter?: boolean;
 }) {
-  if (severity < 3) return null;
+  // ONE scale: always show icon+word, neutral "Not rated" when missing
+  if (severity == null || severity < 1 || severity > 4) {
+    return (
+      <span className="pulse-sev" style={{ ["--sev-color" as string]: "var(--text-tertiary)" } as React.CSSProperties} aria-label="Not rated">
+        <span>Not rated</span>
+      </span>
+    );
+  }
   const critical = severity >= 4;
-  const color = critical ? "var(--danger)" : "var(--sev-3)";
+  const color = critical ? "var(--danger)" : severity === 3 ? "var(--sev-3)" : severity === 2 ? "var(--sev-2)" : "var(--sev-1)";
 
+  const labels: Record<number, string> = { 1: "Minor", 2: "Lane blocked", 3: "Road blocked", 4: "Dangerous" };
   return (
     <span
       className="pulse-sev"
       style={{ ["--sev-color" as string]: color } as React.CSSProperties}
-      aria-label={critical ? "Critical severity" : "High severity"}
+      aria-label={`${labels[severity]} severity`}
     >
       {critical ? <Flame size={12} strokeWidth={2.4} aria-hidden /> : null}
-      <span>{critical ? "Critical" : "High"}</span>
+      <span>{labels[severity]}</span>
       {showMeter ? <SeverityMeter severity={severity} category={category} /> : null}
     </span>
   );

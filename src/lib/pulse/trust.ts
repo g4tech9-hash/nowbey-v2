@@ -25,7 +25,7 @@ export type TrustSignals = {
   category?: string;
 };
 
-export type TrustTier = "unverified" | "shaky" | "solid" | "verified";
+export type TrustTier = "unverified" | "partly" | "well" | "recheck";
 
 export type TrustScore = {
   /** 0–100, for the meter. */
@@ -33,9 +33,11 @@ export type TrustScore = {
   tier: TrustTier;
   /** The reasons, in the order they were added, for the drawer's trust card. */
   reasons: { label: string; delta: number }[];
+  /** Human-readable reason leading the card, e.g. "14 confirmed, but nobody has checked in 7 days" */
+  leadReason: string;
 };
 
-const TIER_FOR = (value: number): TrustTier => (value >= 75 ? "verified" : value >= 50 ? "solid" : value >= 25 ? "shaky" : "unverified");
+const TIER_FOR = (value: number): TrustTier => (value >= 75 ? "well" : value >= 50 ? "partly" : value >= 25 ? "recheck" : "unverified");
 
 /** A neighbour's word counts for a while, then it stops counting for much. */
 function confirmationCredit(n: number): number {
@@ -96,27 +98,56 @@ export function trustFor(signals: TrustSignals, now: number = Date.now()): Trust
   if (value === 0) value = 12;
 
   value = Math.max(5, Math.min(99, value));
-  return { value, tier: TIER_FOR(value), reasons };
+  const tier = TIER_FOR(value);
+  // Lead with reason: combine confirmation count + staleness
+  const stale = !stamp ? false : (() => {
+    const fresh = freshnessFor((signals.category ?? "notice") as CategoryKey, stamp, now);
+    return fresh.level === "stale";
+  })();
+  const daysAgo = stamp ? Math.round(Math.max(0, (now - new Date(stamp).getTime()) / 86400000)) : 0;
+  let leadReason = "";
+  if (n > 0 && stale) leadReason = `${n} confirmed, but nobody has checked in ${daysAgo} days`;
+  else if (n > 0) leadReason = `${n} neighbour${n === 1 ? "" : "s"} confirmed`;
+  else if (stale) leadReason = `Nobody has checked in ${daysAgo} days`;
+  else leadReason = "Awaiting confirmation";
+
+  return { value, tier, reasons, leadReason };
 }
 
 /** One token per tier, so CSS owns the colour and the component owns the maths. */
 export const TRUST_TOKEN: Record<TrustTier, string> = {
   unverified: "var(--danger)",
-  shaky: "var(--warning)",
-  solid: "var(--info)",
-  verified: "var(--success)",
-};
+  partly: "var(--warning)",
+  recheck: "var(--warning)",
+  well: "var(--success)",
+} as Record<string, string>;
+// Legacy aliases for components still reading old tier names
+(TRUST_TOKEN as any).shaky = TRUST_TOKEN.partly;
+(TRUST_TOKEN as any).solid = TRUST_TOKEN.partly;
+(TRUST_TOKEN as any).verified = TRUST_TOKEN.well;
 
 export const TRUST_LABEL: Record<TrustTier, string> = {
   unverified: "Unverified",
-  shaky: "Shaky",
-  solid: "Solid",
-  verified: "Verified",
+  partly: "Partly confirmed",
+  recheck: "Needs a recheck",
+  well: "Well confirmed",
 };
+
+// Legacy labels for old meter values
+(TRUST_LABEL as any).shaky = "Partly confirmed";
+(TRUST_LABEL as any).solid = "Partly confirmed";
+(TRUST_LABEL as any).verified = "Well confirmed";
 
 export const TRUST_BLURB: Record<TrustTier, string> = {
   unverified: "Nobody has confirmed this yet. Treat it as a tip, not a fact.",
-  shaky: "One or two neighbours have seen it. Verify before you act on it.",
-  solid: "Several people confirmed it and it is recent enough to rely on.",
-  verified: "Repeatedly confirmed, recently checked, or from a named official source.",
+  partly: "A few neighbours have confirmed it. Verify before you act on it.",
+  recheck: "Confirmed before, but nobody has checked in a while — verify before you act.",
+  well: "Several neighbours confirmed it recently, or from a named official source.",
+};
+
+// Back-compat aliases for older code expecting shaky/solid/verified
+export const TRUST_LABEL_LEGACY: Record<string, string> = {
+  shaky: TRUST_LABEL.partly,
+  solid: TRUST_LABEL.partly,
+  verified: TRUST_LABEL.well,
 };

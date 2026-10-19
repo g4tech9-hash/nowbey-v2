@@ -537,7 +537,7 @@ html[data-splash-seen] #nb-splash {
   overflow: hidden;
   cursor: pointer;
   background: var(--bg-base);
-  animation: nb-splash-out 0.8s var(--pulse-ease-out) 2.9s both;
+  animation: nb-splash-out 0.6s var(--pulse-ease-out) 0.9s both;
 }
 .nb-splash.is-leaving {
   animation: none;

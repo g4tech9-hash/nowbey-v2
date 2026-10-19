@@ -107,7 +107,7 @@ export function AppShell({
 
           <div className="ml-auto flex items-center gap-2">
             <Link href="/report" className="nb-btn nb-btn-primary nb-btn-sm hidden md:inline-flex">
-              Report a spot
+              Report a hazard
               <ArrowIcon />
             </Link>
             <SimpleViewToggle />
@@ -138,6 +138,9 @@ export function AppShell({
 
       {!isAdmin ? (
         <>
+          <div className="mx-auto w-full max-w-[var(--pulse-page-max)] border-t border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-[11px] font-bold text-ink-800 sm:px-6">
+            Emergency: call <a href="tel:919" className="underline">919</a> / <a href="tel:911" className="underline">911</a> — this app is not an emergency service.
+          </div>
           <footer id="display-options" className="nb-clear-nav mx-auto w-full max-w-[var(--pulse-page-max)] px-3 sm:px-6">
             <div className="grid gap-8 border-t border-default py-9 sm:grid-cols-[1.5fr_1fr_1fr]">
               <div>

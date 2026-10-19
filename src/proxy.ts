@@ -35,20 +35,28 @@ export function proxy(req: NextRequest) {
  * Pages get a fresh nonce for scripts. The policy is report-only for now (see src/lib/csp.ts): the browser logs
  * what it would block, and the framework reads the nonce from the request header to tag its own scripts.
  */
+/**
+ * Marketing pages are the same document for every anonymous visitor (the signed-in
+ * landing redirect runs client-side), so they may be CDN-cached. The body and the CSP
+ * header are cached together, so the nonce embedded in the body always matches the
+ * header it ships with. User-specific surfaces keep Next's default no-store.
+ */
+const MARKETING_PATHS = new Set(["/", "/privacy", "/terms", "/support", "/mobile", "/credits"]);
+const MARKETING_CACHE = "public, s-maxage=3600, stale-while-revalidate=86400";
+
 function page(req: NextRequest) {
   const path = new URL(req.url).pathname;
   // Service-worker scripts get no page policy: see isWorkerScriptPath in src/lib/csp.ts.
   if (isWorkerScriptPath(path)) return NextResponse.next();
   const nonce = newNonce();
   const csp = buildCsp(nonce);
-  // Start from the incoming headers: passing a new Headers object would drop cookies and everything else.
   const requestHeaders = new Headers(req.headers);
-  // The root layout uses the trusted proxy path to avoid hydrating route-dependent splash markup differently.
   requestHeaders.set("x-nowbey-pathname", path);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
   const res = NextResponse.next({ request: { headers: requestHeaders } });
-  res.headers.set("Content-Security-Policy-Report-Only", csp);
+  res.headers.set("Content-Security-Policy", csp);
+  if (MARKETING_PATHS.has(path)) res.headers.set("Cache-Control", MARKETING_CACHE);
   return res;
 }
 

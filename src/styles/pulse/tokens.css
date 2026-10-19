@@ -144,6 +144,9 @@
   --pulse-space-6: 24px;
   --pulse-space-8: 32px;
   --pulse-space-10: 40px;
+  --pulse-space-12: 48px;
+  --pulse-space-16: 64px;
+  --pulse-space-20: 80px;
 
   /* ---- Shape ------------------------------------------------------------- */
   --pulse-shape-xs: 8px;

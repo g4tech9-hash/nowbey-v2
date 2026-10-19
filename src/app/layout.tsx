@@ -50,12 +50,14 @@ const jetbrainsMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://nowbey.com"),
   title: {
     default: `${BRAND.name} · ${BRAND.tagline}`,
     template: `%s · ${BRAND.name}`,
   },
   description: BRAND.description,
   applicationName: BRAND.name,
+  alternates: { canonical: "/" },
 };
 
 /**

@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "No pin at those coordinates — NowBey",
+  robots: { index: false, follow: false },
+};
+
 import Link from "next/link";
 import { NowBeyMark } from "@/components/app-shell";
 
@@ -17,7 +24,7 @@ export default function NotFound() {
           Back to the feed
         </Link>
         <Link href="/report" className="nb-btn nb-btn-outline nb-btn-sm">
-          Report a spot
+          Report a hazard
         </Link>
       </div>
     </div>

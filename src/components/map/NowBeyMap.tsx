@@ -90,16 +90,15 @@ type Props = {
 const PIN_PX = 30;
 
 function pinHtml(pin: MapPin, selected: boolean) {
-  // The hue is a token, not the hex in CATEGORIES: a pin on warm sand has to be
-  // dark enough to see against paper, and the same pin on true black has to glow.
-  // `--cat-*` is re-derived per theme, so one value answers both.
+  const isApprox = (pin as any).approximate === true;
   const c = pin.color ?? pulseCategoryMeta(pin.category).token;
-  // Two-letter codes, unique per category. A single letter was ambiguous on the
-  // live map (S = Storm or Safety, F = Flooding or Fire, N = anything), so the
-  // circles in Nassau read as alphabet soup with no legend able to save them.
   const raw = pin.label ?? CATEGORIES[pin.category]?.pin ?? "NT";
   const code = raw.length <= 2 ? raw.toUpperCase() : raw.split(/\s+/).map((w) => w.charAt(0)).slice(0, 2).join("").toUpperCase();
   const size = code.length > 1 ? 9.5 : 13;
+  // Approximate island-level pins: hollow, larger radius, no 4-decimal coords in popup
+  if (isApprox) {
+    return `<div class="nb-pin nb-pin-approx ${pin.live ? "nb-pin-live" : ""}" style="border:3px solid ${c};background:transparent;color:${c};width:38px;height:38px;border-radius:999px;display:grid;place-items:center;${selected ? "outline:3px solid var(--accent);outline-offset:2px;" : ""}"><span style="font-size:${size}px;color:${c}">${code}</span></div>`;
+  }
   return `<div class="nb-pin ${pin.live ? "nb-pin-live" : ""}" style="background:${c};color:${c};${
     selected ? "outline:3px solid var(--accent);outline-offset:2px;box-shadow:0 0 0 6px var(--accent-muted);" : ""
   }"><span style="font-size:${size}px">${code}</span></div>`;
@@ -575,9 +574,13 @@ export default function NowBeyMap({
                     </p>
                     <p className="font-semibold leading-snug">{pin.title}</p>
                     {pin.meta ? <p className="text-[12px] text-secondary">{pin.meta}</p> : null}
-                    <p className="text-[11.5px] text-tertiary">
-                      {formatCoord(pin.lat, "lat")} · {formatCoord(pin.lng, "lng")}
-                    </p>
+                    {(pin as any).approximate ? (
+                      <p className="text-[11.5px] font-semibold text-amber-600">Island-level — approximate</p>
+                    ) : (
+                      <p className="text-[11.5px] text-tertiary">
+                        {formatCoord(pin.lat, "lat")} · {formatCoord(pin.lng, "lng")}
+                      </p>
+                    )}
                     {pin.href ? (
                       <a className="mt-1 inline-block text-[12px] font-bold text-tide-300 underline" href={pin.href}>
                         {pin.hrefLabel ?? "Open report"}

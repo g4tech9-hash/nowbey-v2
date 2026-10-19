@@ -45,34 +45,36 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
       ) : null}
 
       <section aria-label="Plans" className="-mt-2">
-        <PlanGrid live={live} purchasable={purchasable} signedIn={viewer.signedIn} currentTier={viewer.tier} currentInterval={viewer.interval} complimentary={viewer.status === "comp"} />
-
-        <div className="mt-3">
-          {live ? (
-            <p className="text-[12px] leading-snug text-ink-400">
-              Payments are handled securely by Stripe. Cancel any time from your account page and your plan runs to the end of
-              the period you paid for. To switch plans, cancel from your account page and choose the new plan when the old one ends. Perks marked <span className="font-bold text-ink-200">Soon</span> are on the way.
-            </p>
-          ) : demo ? (
-            <p className="text-[12px] leading-snug text-ink-400">
-              <span className="font-bold text-sun-600">Payments are not live yet.</span> You can try a plan with your account to
-              switch the ads off. You will not be charged. Perks marked <span className="font-bold text-ink-200">Soon</span> are
-              on the way.
-            </p>
-          ) : (
-            <p className="text-[12px] leading-snug text-ink-400">
-              <span className="font-bold text-sun-600">Plans open soon.</span> Payments are not set up yet, so nothing can be bought
-              today and nobody is charged. Everything free on NowBey stays free. Want a plan for your group now?{" "}
-              <a href="#enterprise" className="font-bold text-tide-300 underline-offset-2 hover:underline">
-                Get in touch
-              </a>
-              .
-            </p>
-          )}
-          <p className="mt-1 text-[11.5px] text-ink-400">
-            Prices are in US dollars. The Bahamian dollar is pegged one to one, so $10 is B$10.
-          </p>
+        {/* Free live — always visible */}
+        <div className="rounded-2xl border border-accent/30 bg-raised p-4">
+          <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-accent">Free — live now</p>
+          <h2 className="mt-1 text-[18px] font-extrabold text-primary">Everything free stays free</h2>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-secondary">Reading the map, filing reports, confirming neighbours, the news wire and email alerts for your island cost nothing. Storm warnings are never paywalled.</p>
+          {viewer.signedIn ? <p className="mt-2 text-[12px] text-tertiary">You are on the Free plan.</p> : null}
         </div>
+        {/* Paid waitlist — replaces 4-tier grid when not live */}
+        {!live ? (
+          <div className="mt-3 rounded-2xl border border-default bg-raised p-4">
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-tertiary">Paid plans — join the waitlist</p>
+            <ul className="mt-2 grid gap-1.5 text-[12.5px] text-secondary">
+              <li>• Ad-free browsing</li>
+              <li>• Extra alert filters and early features</li>
+              <li>• Support the map for everyone — storm warnings stay free</li>
+            </ul>
+            <p className="mt-2 text-[12px] text-tertiary">Leave your email and we will tell you when paid plans open. No charge today.</p>
+            <a href="mailto:support@nowbey.com?subject=Waitlist%20for%20paid%20plans" className="mt-2 inline-flex min-h-[44px] items-center rounded-full border border-accent px-4 py-2 text-[13px] font-bold text-accent">Join the waitlist</a>
+          </div>
+        ) : (
+          <>
+            <div className="mt-3">
+              <PlanGrid live={live} purchasable={purchasable} signedIn={viewer.signedIn} currentTier={viewer.tier} currentInterval={viewer.interval} complimentary={viewer.status === "comp"} />
+            </div>
+            <p className="mt-3 text-[12px] leading-snug text-ink-400">
+              Payments are handled securely by Stripe. Cancel any time from your account page and your plan runs to the end of the period you paid for. Perks marked <span className="font-bold text-ink-200">Soon</span> are on the way.
+            </p>
+          </>
+        )}
+        <p className="mt-2 text-[11.5px] text-ink-400">Prices are in US dollars. The Bahamian dollar is pegged one to one, so $10 is B$10.</p>
       </section>
 
       <section id="enterprise" aria-label="Enterprise" className="scroll-mt-24">

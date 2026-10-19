@@ -9,6 +9,7 @@ import { pulseCategoryMeta } from "@/ui/pulse/glyph";
 import { EmergencyNotice } from "@/components/emergency-notice";
 import { trackFunnel } from "@/lib/funnel-client";
 import { CATEGORIES, PARISHES, timeAgo, type CategoryKey } from "@/lib/geo";
+import { getFreshness } from "@/lib/freshness";
 
 type Row = {
   id: string;
@@ -24,6 +25,7 @@ type Row = {
   status: string;
   confirmations: number;
   createdAt: string;
+  updatedAt: string;
   accuracyMeters: number | null;
   sourceKind: string;
 };
@@ -84,6 +86,8 @@ export default function MapWorkspace() {
     return p && (PARISHES as readonly string[]).includes(p) ? p : "all";
   });
   const [showWire, setShowWire] = useState(true);
+  // Stale (>72h) pins are excluded from the default map so it shows what is true now.
+  const [showStale, setShowStale] = useState(false);
   const [selected, setSelected] = useState<string | null>(focus);
   const [pickMode, setPickMode] = useState(false);
   const [pick, setPick] = useState<PickResult | null>(null);
@@ -168,9 +172,14 @@ export default function MapWorkspace() {
   const visible = useMemo(
     () =>
       rows.filter(
-        (r) => (filter === "all" || r.category === filter) && (island === "all" || r.parish === island) && r.status !== "archived" && r.status !== "unfounded",
+        (r) =>
+          (filter === "all" || r.category === filter) &&
+          (island === "all" || r.parish === island) &&
+          r.status !== "archived" &&
+          r.status !== "unfounded" &&
+          (showStale || r.status === "resolved" || !getFreshness(r.updatedAt ?? r.createdAt, "report").isStale),
       ),
-    [rows, filter, island],
+    [rows, filter, island, showStale],
   );
 
   // The rail's first row is the single Tab stop (arrow keys move through the rest). The selected pin takes that role.
@@ -378,9 +387,14 @@ export default function MapWorkspace() {
         {/* Row A — the count and the one action that matters. */}
         <div className="flex flex-none items-center gap-2 px-3 pt-2.5 lg:px-0 lg:pt-0">
           <p className="display min-w-0 flex-1 truncate text-[13.5px] font-extrabold text-sand-100">
-            {pickMode ? (step === "spot" ? "1 · Pick the exact spot" : "2 · Add details") : loading ? "Loading pins…" : `${visible.length} open pin${visible.length === 1 ? "" : "s"}`}
+            {pickMode ? (step === "spot" ? "1 · Pick the exact spot" : "2 · Add details") : loading ? "Loading the map…" : `${visible.length} open pin${visible.length === 1 ? "" : "s"}`}
             {pickMode ? null : <span className="ml-1.5 text-[11.5px] font-semibold text-ink-400">{island === "all" ? "everywhere" : island}</span>}
           </p>
+          {!pickMode ? (
+            <p className="hidden font-mono text-[11px] text-tertiary tabular-nums lg:block">
+              Last updated {rows.length ? timeAgo(rows.reduce((a, b) => (new Date(a.updatedAt ?? a.createdAt) > new Date(b.updatedAt ?? b.createdAt) ? a : b)).updatedAt ?? rows[0].createdAt) : "—"}
+            </p>
+          ) : null}
           {pickMode ? (
             <button
               type="button"
@@ -416,7 +430,15 @@ export default function MapWorkspace() {
               <p className="text-[11.5px] font-bold uppercase tracking-[0.16em] text-ink-400">Island pulse</p>
               <span className="nb-live-dot ml-auto" aria-hidden />
             </div>
-            {pulse.top.length ? (
+            {loading ? (
+              <div className="space-y-2" aria-busy="true">
+                <div className="h-3 w-full animate-pulse rounded bg-white/10" />
+                <div className="h-3 w-3/4 animate-pulse rounded bg-white/10" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-white/10" />
+              </div>
+            ) : error ? (
+              <p className="py-2 text-[12px] font-semibold text-danger-500">Could not load reports. <button onClick={() => { setLoading(true); void load(); }} className="underline">Retry</button> · Last checked {new Date().toLocaleTimeString("en-BS", { hour: "2-digit", minute: "2-digit" })}</p>
+            ) : pulse.top.length ? (
               <ul className="space-y-1.5">
                 {pulse.top.map(([k, n]) => (
                   <li key={k} className="flex items-center gap-2">
@@ -435,7 +457,7 @@ export default function MapWorkspace() {
                 ))}
               </ul>
             ) : (
-              <p className="py-2 text-[11.5px] text-ink-400">The island is quiet — no open pins.</p>
+              <p className="py-2 text-[11.5px] text-ink-400">No open reports on this island right now. Last checked {new Date().toLocaleTimeString("en-BS", { hour: "2-digit", minute: "2-digit" })}.</p>
             )}
           </section>
           <div className="flex flex-col gap-2">
@@ -493,12 +515,15 @@ export default function MapWorkspace() {
               aria-label="Filter pins by island"
               className="nb-select min-h-[44px] text-[11.5px] lg:min-h-[40px]"
             >
-              <option value="all">Everywhere</option>
-              {PARISHES.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
+              <option value="all">Everywhere · {rows.filter((r) => r.status !== "archived" && r.status !== "unfounded").length}</option>
+              {PARISHES.map((p) => {
+                const n = rows.filter((r) => r.parish === p && r.status !== "archived" && r.status !== "unfounded").length;
+                return (
+                  <option key={p} value={p}>
+                    {p} · {n}
+                  </option>
+                );
+              })}
             </select>
           </label>
           <button
@@ -508,6 +533,14 @@ export default function MapWorkspace() {
             className={`min-h-[44px] lg:min-h-[40px] rounded-lg px-2 py-1 text-[11.5px] font-bold ${showWire ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-ink-400"}`}
           >
             Wire pins {showWire ? "on" : "off"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowStale((v) => !v)}
+            aria-pressed={showStale}
+            className={`min-h-[44px] lg:min-h-[40px] rounded-lg px-2 py-1 text-[11.5px] font-bold ${showStale ? "bg-tide-500/20 text-tide-300" : "bg-white/6 text-ink-400"}`}
+          >
+            Older reports {showStale ? "shown" : "hidden"}
           </button>
         </div>
 
@@ -631,7 +664,7 @@ export default function MapWorkspace() {
                   <div>
                     <span className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">How bad is it?</span>
                     <div className="mt-1 grid grid-cols-2 gap-1 sm:grid-cols-4">
-                      {["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"].map((label, i) => (
+                      {["Minor", "Lane blocked", "Road blocked", "Dangerous"].map((label, i) => (
                         <button
                           key={label}
                           type="button"
