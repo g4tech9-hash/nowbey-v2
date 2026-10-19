@@ -120,15 +120,15 @@
      (#000000…#48697a) tested too dark; three lifts then overshot into a wash;
      an Island-look override (fixed in globals.css) had been masking all of it.
      This is the calibrated landing. */
-  --pulse-hue-night-000: #14202b;
-  --pulse-hue-night-050: #192632;
-  --pulse-hue-night-100: #1e2e3c;
-  --pulse-hue-night-200: #26384a;
-  --pulse-hue-night-300: #2e4458;
-  --pulse-hue-night-400: #375066;
-  --pulse-hue-night-500: #435e75;
-  --pulse-hue-night-600: #527089;
-  --pulse-hue-night-700: #66859e;
+  --pulse-hue-night-000: #101b25;
+  --pulse-hue-night-050: #15212c;
+  --pulse-hue-night-100: #1a2936;
+  --pulse-hue-night-200: #223342;
+  --pulse-hue-night-300: #2a3e51;
+  --pulse-hue-night-400: #324a5e;
+  --pulse-hue-night-500: #3e586e;
+  --pulse-hue-night-600: #4c6b82;
+  --pulse-hue-night-700: #5f8096;
 
   /* warm-sand family for the light theme — its own hues, not a desaturated dark */
   --pulse-hue-sand-000: #ffffff;
@@ -223,7 +223,7 @@
 /* ===========================================================================
    LAYER 2 — SEMANTIC TOKENS (theme-aware)
    Meaning, not material. A component says "this is the sunken surface", never
-   "this is #1e2e3c". Both themes fill the same names with different hues,
+   "this is #1a2936". Both themes fill the same names with different hues,
    which is why light mode is a design and not an inversion.
    ========================================================================= */
 :root,
@@ -236,17 +236,17 @@
   --bg-base: var(--pulse-hue-night-000);
   --bg-sunken: var(--pulse-hue-night-000);
   --bg-raised: var(--pulse-hue-night-100);
-  --bg-overlay: rgba(25, 38, 50, 0.88);
+  --bg-overlay: rgba(21, 33, 44, 0.88);
   --bg-elevated: var(--pulse-hue-night-200);
-  --bg-glass: rgba(30, 46, 60, 0.62);
+  --bg-glass: rgba(26, 41, 54, 0.62);
   --bg-hover: var(--pulse-hue-night-300);
   --bg-active: var(--pulse-hue-night-400);
   --bg-selected: rgba(63, 214, 192, 0.14);
 
   /* Type — three clear steps: body copy, support copy, quiet labels. */
-  --text-primary: #f3f1ea; /* 14.6:1 on base */
-  --text-secondary: #b9c8c9; /* 9.6:1 */
-  --text-tertiary: #9aafb3; /* 7.2:1 on base / 6.1:1 on cards — AA body text */
+  --text-primary: #f3f1ea; /* 15.4:1 on base */
+  --text-secondary: #b9c8c9; /* 10.1:1 */
+  --text-tertiary: #9aafb3; /* 7.6:1 on base / 6.5:1 on cards — AA body text */
   --text-inverse: #06141b;
   --text-accent: var(--pulse-hue-teal-300);
   --text-on-accent: #04211d;
@@ -305,7 +305,7 @@
   --pulse-elev-2: 0 12px 30px -12px rgba(0, 0, 0, 0.78), 0 1px 0 rgba(255, 255, 255, 0.055) inset;
   --pulse-elev-3: 0 30px 70px -22px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.075) inset;
 
-  --meta-theme-color: #14202b;
+  --meta-theme-color: #101b25;
 }
 
 :root[data-theme="light"] {
@@ -443,15 +443,15 @@
    ========================================================================= */
 @supports not (background: color-mix(in srgb, red 50%, blue)) {
   :root {
-    --bg-base: #14202b;
-    --bg-raised: #1e2e3c;
-    --bg-elevated: #26384a;
+    --bg-base: #101b25;
+    --bg-raised: #1a2936;
+    --bg-elevated: #223342;
     --text-primary: #f3f1ea;
     --text-secondary: #b9c8c9;
     --text-tertiary: #9aafb3;
     --border-default: rgba(148, 206, 202, 0.18);
     --accent: #3fd6c0;
-    --skeleton-shine: linear-gradient(100deg, #1e2e3c 20%, #3a5064 50%, #1e2e3c 80%);
+    --skeleton-shine: linear-gradient(100deg, #1a2936 20%, #354a5c 50%, #1a2936 80%);
   }
   :root[data-theme="light"] {
     --bg-base: #f7f3ec;
@@ -469,7 +469,7 @@
    `var(--card-bg, …)` with these values, so a token that failed to resolve
    degrades to the dark theme rather than to transparent-on-transparent. */
 :root {
-  --pulse-fallback-card-bg: #1e2e3c;
+  --pulse-fallback-card-bg: #1a2936;
   --pulse-fallback-text: #f3f1ea;
   --pulse-fallback-muted: #b9c8c9;
   --pulse-fallback-border: rgba(148, 206, 202, 0.18);
