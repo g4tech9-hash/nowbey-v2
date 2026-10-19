@@ -13,6 +13,7 @@ import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
 import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
 import { UUID_RE } from "@/lib/validate";
 import { getViewer } from "@/lib/viewer";
+import { stripMarkup } from "@/lib/sanitize";
 
 export const dynamic = "force-dynamic";
 
@@ -75,10 +76,10 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
         {story.aiSummary ? (
           <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-secondary">
             <span className="mr-1.5 rounded bg-accent/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-text-accent">AI brief</span>
-            {story.aiSummary}
+            {stripMarkup(story.aiSummary)}
           </p>
         ) : story.summary ? (
-          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-secondary">{story.summary}</p>
+          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-secondary">{stripMarkup(story.summary)}</p>
         ) : null}
 
         <a
