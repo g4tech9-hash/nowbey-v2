@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Bookmark, Eye, MapPin, MessageSquare } from "lucide-react";
 import type { Badge } from "@/lib/badges";
 import type { Engagement } from "@/lib/engage-kinds";
@@ -114,12 +115,13 @@ export function PulseIncidentCard({
     category: row.category,
   });
   const saved = watch.ids.has(row.id);
+  const router = useRouter();
   const open = () => {
     if (onOpen) {
       onOpen(row);
       return;
     }
-    window.location.href = `/incident/${row.id}`;
+    router.push(`/incident/${row.id}`);
   };
 
   async function doConfirm() {

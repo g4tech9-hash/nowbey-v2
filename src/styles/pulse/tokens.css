@@ -293,7 +293,6 @@
   --sev-2: var(--pulse-hue-amber-300);
   --sev-3: #ff9a52;
   --sev-4: var(--pulse-hue-coral-400);
-  --sev-5: #ff4d4d;
 
   /* Ambient decoration */
   --pulse-grid: rgba(122, 186, 190, 0.085);
@@ -368,7 +367,6 @@
   --sev-2: #8a5b06;
   --sev-3: #b45310;
   --sev-4: #b03328;
-  --sev-5: #8c1d12;
 
   --pulse-grid: rgba(52, 38, 20, 0.07);
   --pulse-noise-opacity: 0.03;

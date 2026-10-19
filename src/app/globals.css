@@ -176,7 +176,6 @@
   --color-sev-2: var(--sev-2);
   --color-sev-3: var(--sev-3);
   --color-sev-4: var(--sev-4);
-  --color-sev-5: var(--sev-5);
 
   /* ---- Category ramp: both the fill tier and the text tier resolve to the
      theme-aware category hue, so old code that painted `--color-cat-flood`
