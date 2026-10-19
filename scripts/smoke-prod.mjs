@@ -118,7 +118,7 @@ async function main() {
   check(checkout.status === 401 || checkout.status === 503, "anonymous checkout grants nothing", `HTTP ${checkout.status}`);
 
   const support = await get("/support");
-  check(support.status === 200 && /Plans open soon/.test(support.text), "plans page says Plans open soon", `HTTP ${support.status}`);
+  check(support.status === 200 && /Free to use\. Pay only to lose the ads\./.test(support.text), "plans page states the free promise", `HTTP ${support.status}`);
   check(!/Sign in to choose|>Get (Conch|Rock Sound|Admiral)</.test(support.text), "plans page offers no pretend purchase button");
 
   const cron = await get("/api/cron/gas-update");
