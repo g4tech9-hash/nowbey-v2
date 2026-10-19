@@ -10,10 +10,16 @@
  * fresh clone works with `npm run dev` alone. Production is skipped on purpose — an
  * unconfigured deployment must stay obviously unconfigured (the "setup not finished" pages and
  * 503 APIs), not silently pretend to work.
+ *
+ * The one exception is explicit opt-in: `NOWBEY_EMBEDDED_DB=1` boots the same embedded database
+ * under `next start` too, for sandboxes and preview deployments where standing up a real
+ * Postgres is disproportionate. The flag is the configuration — without it, production still
+ * stays honestly unconfigured.
  */
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
-  if (process.env.NODE_ENV === "production" || process.env.DATABASE_URL?.trim()) return;
+  if (process.env.DATABASE_URL?.trim()) return;
+  if (process.env.NODE_ENV === "production" && process.env.NOWBEY_EMBEDDED_DB !== "1") return;
   try {
     const { initDevDatabase } = await import("@/db/dev");
     await initDevDatabase();
