@@ -39,26 +39,26 @@ export default function OfflinePage() {
   return (
     <div className="mx-auto max-w-[760px] space-y-4">
       <div className="glass rounded-2xl p-4">
-        <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">Offline</p>
-        <h1 className="display mt-1 text-[22px] font-extrabold text-sand-100">NowBey cannot be reached right now</h1>
+        <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-accent-hover">Offline</p>
+        <h1 className="display mt-1 text-[22px] font-extrabold text-primary">NowBey cannot be reached right now</h1>
         {state.fromCache && state.savedAt ? (
-          <p className="mt-2 text-[13px] text-sun-600">
+          <p className="mt-2 text-[13px] text-warn-600">
             Showing the feed saved {timeAgo(state.savedAt)}. It will not include anything reported since then.
           </p>
         ) : (
-          <p className="mt-2 text-[13px] text-ink-300">
+          <p className="mt-2 text-[13px] text-tertiary">
             Reports are not sent while you are offline. Your draft is kept on this device, so you can finish it when you are back.
           </p>
         )}
       </div>
 
       <section aria-labelledby="saved-feed" className="nb-surface rounded-xl2 p-3.5">
-        <h2 id="saved-feed" className="display text-[15px] font-bold text-sand-100">
+        <h2 id="saved-feed" className="display text-[15px] font-bold text-primary">
           Last saved reports
         </h2>
-        {state.status === "loading" ? <p className="mt-2 text-[13px] text-ink-400">Checking for a saved copy…</p> : null}
+        {state.status === "loading" ? <p className="mt-2 text-[13px] text-tertiary">Checking for a saved copy…</p> : null}
         {state.status === "error" || state.status === "empty" ? (
-          <p className="mt-2 text-[13px] text-ink-400">
+          <p className="mt-2 text-[13px] text-tertiary">
             No saved reports on this device yet. Open NowBey once while you are online and they will be kept here.
           </p>
         ) : null}
@@ -70,10 +70,10 @@ export default function OfflinePage() {
                 <li key={r.id} className="rounded-xl border hairline px-3 py-2.5">
                   <p className="text-[11.5px] font-bold uppercase tracking-wide" style={{ color: meta.color }}>
                     {meta.label}
-                    {r.parish ? <span className="text-ink-400"> · {r.parish}</span> : null}
+                    {r.parish ? <span className="text-tertiary"> · {r.parish}</span> : null}
                   </p>
-                  <p className="mt-0.5 text-[14px] font-semibold text-sand-100">{r.title}</p>
-                  <p className="mt-0.5 text-[12px] text-ink-400">Reported {timeAgo(r.createdAt)}</p>
+                  <p className="mt-0.5 text-[14px] font-semibold text-primary">{r.title}</p>
+                  <p className="mt-0.5 text-[12px] text-tertiary">Reported {timeAgo(r.createdAt)}</p>
                 </li>
               );
             })}

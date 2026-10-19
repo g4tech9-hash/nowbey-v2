@@ -60,7 +60,7 @@ export function PostActions({ id, title, isOwner, canDelete }: { id: string; tit
     }
   }
 
-  const btn = "inline-flex min-h-[36px] items-center rounded-full bg-white/8 px-3.5 text-[12.5px] font-bold text-ink-200 hover:bg-white/14 disabled:opacity-50";
+  const btn = "inline-flex min-h-[36px] items-center rounded-full bg-white/8 px-3.5 text-[12.5px] font-bold text-secondary hover:bg-white/14 disabled:opacity-50";
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
@@ -80,12 +80,12 @@ export function PostActions({ id, title, isOwner, canDelete }: { id: string; tit
       </div>
       {reporting ? (
         <div className="mt-2.5 rounded-xl border hairline bg-white/[.03] p-3">
-          <label className="block text-[12px] font-bold text-sand-100">
+          <label className="block text-[12px] font-bold text-primary">
             What is wrong with this post?
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as FlagReason)}
-              className="mt-1.5 block w-full rounded-lg border border-white/10 bg-abyss-950/80 px-2.5 py-2 text-[13px] font-normal outline-none focus:border-tide-400"
+              className="mt-1.5 block w-full rounded-lg border border-white/10 bg-base/80 px-2.5 py-2 text-[13px] font-normal outline-none focus:border-accent-hover"
             >
               {(Object.keys(FLAG_REASONS) as FlagReason[]).map((r) => (
                 <option key={r} value={r}>
@@ -95,17 +95,17 @@ export function PostActions({ id, title, isOwner, canDelete }: { id: string; tit
             </select>
           </label>
           <div className="mt-2.5 flex gap-2">
-            <button type="button" disabled={busy !== null} onClick={report} className="rounded-lg bg-conch-500 px-3.5 py-2 text-[12.5px] font-extrabold text-on-accent disabled:opacity-50">
+            <button type="button" disabled={busy !== null} onClick={report} className="rounded-lg bg-danger-500 px-3.5 py-2 text-[12.5px] font-extrabold text-on-accent disabled:opacity-50">
               {busy === "report" ? "Sending…" : "Send report"}
             </button>
-            <button type="button" onClick={() => setReporting(false)} className="rounded-lg border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8">
+            <button type="button" onClick={() => setReporting(false)} className="rounded-lg border hairline px-3.5 py-2 text-[12.5px] font-bold text-primary hover:bg-white/8">
               Cancel
             </button>
           </div>
         </div>
       ) : null}
       {note ? (
-        <p role="status" className={`mt-2 text-[12.5px] ${note.ok ? "text-tide-300" : "text-danger-500"}`}>
+        <p role="status" className={`mt-2 text-[12.5px] ${note.ok ? "text-text-accent" : "text-danger-500"}`}>
           {note.text}
         </p>
       ) : null}

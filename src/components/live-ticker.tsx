@@ -54,19 +54,19 @@ export function LiveTicker() {
   // In-flow banner: rendered inside the sticky header via AppShell's kicker prop,
   // so it must never be fixed - a fixed ticker would sit on top of the header.
   return (
-    <div className="w-full border-b hairline bg-abyss-900/90 backdrop-blur-sm">
+    <div className="w-full border-b hairline bg-raised/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1180px] items-center gap-2.5 px-3.5 py-1 sm:gap-3 sm:px-5">
-        <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-sun-500/18 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-sun-600 sm:text-[11.5px]">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sun-500" />
+        <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-warn-500/18 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-warn-600 sm:text-[11.5px]">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-warn-500" />
           Gas Updates
         </span>
         <div className="relative flex-1 min-w-0 overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_5%,#000_92%,transparent)]">
-          <div className="marquee-track flex w-max items-center gap-8 whitespace-nowrap text-[12.5px] font-medium text-sand-100">
+          <div className="marquee-track flex w-max items-center gap-8 whitespace-nowrap text-[12.5px] font-medium text-primary">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="flex items-center gap-6">
-                <span>Shell <span className="text-sun-600">$7.08/gal</span></span>
-                <span>Esso <span className="text-sun-600">$7.50/gal</span></span>
-                <span>Rubis <span className="text-sun-600">$7.56/gal</span></span>
+                <span>Shell <span className="text-warn-600">$7.08/gal</span></span>
+                <span>Esso <span className="text-warn-600">$7.50/gal</span></span>
+                <span>Rubis <span className="text-warn-600">$7.56/gal</span></span>
               </div>
             ))}
           </div>

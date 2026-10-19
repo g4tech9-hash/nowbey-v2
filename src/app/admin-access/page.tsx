@@ -30,7 +30,7 @@ export default async function AdminAccessPage() {
   const row = (k: string, v: React.ReactNode, warn = false) => (
     <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/5 py-2 last:border-0">
       <dt className="text-[11.5px] font-bold uppercase tracking-wide text-tertiary">{k}</dt>
-      <dd className={`text-right text-[13px] ${warn ? "font-bold text-sun-400" : "text-sand-100"}`}>{v}</dd>
+      <dd className={`text-right text-[13px] ${warn ? "font-bold text-warn-400" : "text-primary"}`}>{v}</dd>
     </div>
   );
 
@@ -43,22 +43,22 @@ export default async function AdminAccessPage() {
         actions={
           <Link
             href="/you"
-            className="rounded-full border border-white/15 px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8"
+            className="rounded-full border border-white/15 px-3.5 py-2 text-[12.5px] font-bold text-primary hover:bg-white/8"
           >
             Your account
           </Link>
         }
       />
 
-      <section className={`rounded-2xl p-4 ${access.isAdmin ? "bg-tide-500/12" : "bg-sun-500/12"}`}>
-        <p className="display text-[17px] font-extrabold text-sand-100">
+      <section className={`rounded-2xl p-4 ${access.isAdmin ? "bg-accent/12" : "bg-warn-500/12"}`}>
+        <p className="display text-[17px] font-extrabold text-primary">
           {access.isAdmin ? "You have admin access." : "You do not have admin access."}
         </p>
-        <p className="mt-1.5 text-[13px] leading-relaxed text-sand-100/90">{access.reason}</p>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-primary/90">{access.reason}</p>
         {access.isAdmin ? (
           <Link
             href="/admin"
-            className="mt-3 inline-block rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400"
+            className="mt-3 inline-block rounded-full bg-accent px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-accent-hover"
           >
             Open the admin area
           </Link>
@@ -66,15 +66,15 @@ export default async function AdminAccessPage() {
       </section>
 
       <section className="glass mt-4 rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">The two doors</p>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-ink-300">
+        <p className="display text-[15px] font-bold text-primary">The two doors</p>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-tertiary">
           An account is an admin in one of two ways, and only one of them has to be true.
         </p>
         <dl className="mt-3">
           {row(
             "1. Role on the account",
             u.role === "admin" ? (
-              <span className="font-bold text-tide-300">admin</span>
+              <span className="font-bold text-text-accent">admin</span>
             ) : (
               <>
                 <span className="font-mono">{u.role}</span> — set by an admin on the Members page, or by{" "}
@@ -86,9 +86,9 @@ export default async function AdminAccessPage() {
             "2. ADMIN_HANDLES + confirmed email",
             access.inAdminHandles ? (
               access.emailVerified ? (
-                <span className="font-bold text-tide-300">listed, email confirmed</span>
+                <span className="font-bold text-text-accent">listed, email confirmed</span>
               ) : (
-                <span className="font-bold text-sun-400">listed, email not confirmed</span>
+                <span className="font-bold text-warn-400">listed, email not confirmed</span>
               )
             ) : (
               <>not listed in ADMIN_HANDLES{access.adminHandlesSet ? "" : " — ADMIN_HANDLES is empty"}</>
@@ -99,8 +99,8 @@ export default async function AdminAccessPage() {
       </section>
 
       <section className="glass mt-4 rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">What this deployment sees</p>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-ink-300">
+        <p className="display text-[15px] font-bold text-primary">What this deployment sees</p>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-tertiary">
           Read from the server environment of the deployment that served this page. If a value looks wrong, it is
           set in the host&apos;s environment variables and needs a redeploy to take effect.
         </p>
@@ -114,7 +114,7 @@ export default async function AdminAccessPage() {
                 <span className="mt-1 block">{u.emailVerifiedAt ? "confirmed" : "not confirmed"}</span>
               </>
             ) : (
-              <span className="text-sun-400">none on file</span>
+              <span className="text-warn-400">none on file</span>
             ),
             !u.emailVerifiedAt,
           )}
@@ -130,8 +130,8 @@ export default async function AdminAccessPage() {
 
       {!access.isAdmin && !access.inAdminHandles ? (
         <section className="glass mt-4 rounded-2xl p-4">
-          <p className="display text-[15px] font-bold text-sand-100">If the handle is simply not listed</p>
-          <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-300">
+          <p className="display text-[15px] font-bold text-primary">If the handle is simply not listed</p>
+          <p className="mt-1.5 text-[12.5px] leading-relaxed text-tertiary">
             Add <code className="rounded bg-white/10 px-1">ADMIN_HANDLES={u.handle}</code> to the environment of
             this deployment and redeploy. Until then the account is an ordinary member. If you cannot reach the
             environment at all, an existing admin can promote it from the Members page, or{" "}
@@ -141,7 +141,7 @@ export default async function AdminAccessPage() {
         </section>
       ) : null}
 
-      <p className="mt-4 text-[11.5px] leading-relaxed text-ink-400">
+      <p className="mt-4 text-[11.5px] leading-relaxed text-tertiary">
         Nothing here changes anything — it only reports. Signing out and back in is never the fix: the role is read
         from the database on every request, and ADMIN_HANDLES is read from the environment on every request.
       </p>

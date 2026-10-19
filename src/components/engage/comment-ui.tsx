@@ -32,8 +32,8 @@ export function CommentComposer({
 
   if (!signedIn) {
     return (
-      <p className="rounded-xl bg-white/[.04] px-3.5 py-3 text-[13px] text-ink-300">
-        <Link href={`/login?mode=signin&next=${encodeURIComponent(`${pathname}#comments`)}`} className="font-bold text-tide-300 underline">
+      <p className="rounded-xl bg-white/[.04] px-3.5 py-3 text-[13px] text-tertiary">
+        <Link href={`/login?mode=signin&next=${encodeURIComponent(`${pathname}#comments`)}`} className="font-bold text-text-accent underline">
           Sign in
         </Link>{" "}
         to join the conversation.
@@ -78,19 +78,19 @@ export function CommentComposer({
           maxLength={COMMENT_MAX}
           rows={parentId ? 2 : 3}
           placeholder={parentId ? "Write a reply…" : "Add a comment, a tip or a question…"}
-          className="w-full resize-y rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2.5 text-[14px] leading-relaxed outline-none focus:border-tide-400"
+          className="w-full resize-y rounded-lg border border-white/10 bg-base/70 px-3 py-2.5 text-[14px] leading-relaxed outline-none focus:border-accent-hover"
         />
       </label>
       <div className="mt-2 flex items-center gap-3">
-        <button type="submit" disabled={busy || body.trim().length < 1} className="rounded-xl bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-50">
+        <button type="submit" disabled={busy || body.trim().length < 1} className="rounded-xl bg-accent px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-50">
           {busy ? "Posting…" : parentId ? "Reply" : "Post comment"}
         </button>
         {onDone ? (
-          <button type="button" onClick={onDone} className="rounded-xl border hairline px-3.5 py-2 text-[13px] font-bold text-sand-100 hover:bg-white/8">
+          <button type="button" onClick={onDone} className="rounded-xl border hairline px-3.5 py-2 text-[13px] font-bold text-primary hover:bg-white/8">
             Cancel
           </button>
         ) : null}
-        <span className="ml-auto text-[11.5px] text-ink-400">
+        <span className="ml-auto text-[11.5px] text-tertiary">
           {body.length}/{COMMENT_MAX}
         </span>
       </div>
@@ -151,7 +151,7 @@ export function CommentTools({
     }
   }
 
-  const link = "text-[11.5px] font-bold text-ink-400 hover:text-tide-300 disabled:opacity-50";
+  const link = "text-[11.5px] font-bold text-tertiary hover:text-text-accent disabled:opacity-50";
   return (
     <div className="mt-1">
       <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1">
@@ -181,7 +181,7 @@ export function CommentTools({
           <button
             type="button"
             disabled={busy !== null}
-            className={`${link} !text-tide-300`}
+            className={`${link} !text-text-accent`}
             onClick={() => void call("staff", "/api/admin/comments", { method: "PATCH", body: JSON.stringify({ id: commentId, action: staffAction }) })}
           >
             {busy === "staff" ? "…" : staffAction === "hide" ? "Hide (staff)" : "Restore (staff)"}
@@ -197,12 +197,12 @@ export function CommentTools({
 
       {panel === "report" ? (
         <div className="mt-2 rounded-lg border hairline bg-white/[.03] p-2.5">
-          <label className="block text-[12px] font-bold text-sand-100">
+          <label className="block text-[12px] font-bold text-primary">
             What is wrong with this comment?
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value as FlagReason)}
-              className="mt-1.5 block w-full rounded-lg border border-white/10 bg-abyss-950/80 px-2.5 py-2 text-[13px] font-normal outline-none focus:border-tide-400"
+              className="mt-1.5 block w-full rounded-lg border border-white/10 bg-base/80 px-2.5 py-2 text-[13px] font-normal outline-none focus:border-accent-hover"
             >
               {(Object.keys(FLAG_REASONS) as FlagReason[]).map((r) => (
                 <option key={r} value={r}>
@@ -216,11 +216,11 @@ export function CommentTools({
               type="button"
               disabled={busy !== null}
               onClick={() => void call("report", `/api/comments/${commentId}/flag`, { method: "POST", body: JSON.stringify({ reason }) }, "Thank you. Our team will take a look.")}
-              className="rounded-lg bg-conch-500 px-3 py-1.5 text-[12px] font-extrabold text-on-accent disabled:opacity-50"
+              className="rounded-lg bg-danger-500 px-3 py-1.5 text-[12px] font-extrabold text-on-accent disabled:opacity-50"
             >
               {busy === "report" ? "Sending…" : "Send report"}
             </button>
-            <button type="button" onClick={() => setPanel(null)} className="rounded-lg border hairline px-3 py-1.5 text-[12px] font-bold text-sand-100 hover:bg-white/8">
+            <button type="button" onClick={() => setPanel(null)} className="rounded-lg border hairline px-3 py-1.5 text-[12px] font-bold text-primary hover:bg-white/8">
               Cancel
             </button>
           </div>
@@ -228,7 +228,7 @@ export function CommentTools({
       ) : null}
 
       {note ? (
-        <p role={note.ok ? "status" : "alert"} className={`mt-1.5 text-[12px] ${note.ok ? "text-tide-300" : "text-danger-500"}`}>
+        <p role={note.ok ? "status" : "alert"} className={`mt-1.5 text-[12px] ${note.ok ? "text-text-accent" : "text-danger-500"}`}>
           {note.text}
         </p>
       ) : null}

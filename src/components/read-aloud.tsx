@@ -34,7 +34,7 @@ export function ReadAloud({ text }: { text: string }) {
   }
 
   return (
-    <button type="button" onClick={toggle} aria-pressed={speaking} className="min-h-[42px] rounded-full border hairline bg-white/5 px-3.5 py-2 text-[12.5px] font-bold text-tide-300 hover:bg-white/10">
+    <button type="button" onClick={toggle} aria-pressed={speaking} className="min-h-[42px] rounded-full border hairline bg-white/5 px-3.5 py-2 text-[12.5px] font-bold text-text-accent hover:bg-white/10">
       {speaking ? "■ Stop reading" : "🔊 Read this update"}
     </button>
   );

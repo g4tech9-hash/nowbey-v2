@@ -10,7 +10,7 @@ const GeofenceMap = dynamic(() => import("./admin-geofence-map"), {
 });
 
 const BTN = "rounded-full px-4 py-2 text-[13px] font-bold disabled:opacity-50";
-const INPUT = "w-full rounded-xl border hairline bg-abyss-900/60 px-3 py-2 text-[13px] text-sand-100 outline-none focus:border-tide-400";
+const INPUT = "w-full rounded-xl border hairline bg-raised/60 px-3 py-2 text-[13px] text-primary outline-none focus:border-accent-hover";
 const LABEL = "mb-1 block text-[11.5px] font-bold uppercase tracking-wide text-tertiary";
 
 /**
@@ -129,17 +129,17 @@ export function AlertComposer({ incidents, defaultLat, defaultLng }: { incidents
             "Enter a point inside The Bahamas to preview the audience."
           ) : (
             <>
-              Reaches <strong className="text-sand-100">~{audience.n} confirmed subscribers</strong>
+              Reaches <strong className="text-primary">~{audience.n} confirmed subscribers</strong>
               {audience.parish ? <> on {audience.parish} (island-wide profiles included)</> : null} plus a push to the island.
             </>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" disabled={busy || !title.trim() || !body.trim() || !mapOk} onClick={send} className={`${BTN} bg-conch-500 font-extrabold text-on-accent`}>
+          <button type="button" disabled={busy || !title.trim() || !body.trim() || !mapOk} onClick={send} className={`${BTN} bg-danger-500 font-extrabold text-on-accent`}>
             {busy ? "Sending…" : "Send geofenced alert"}
           </button>
-          {done ? <span className="text-[12px] font-bold text-tide-300">{done}</span> : null}
-          {err ? <span className="text-[12px] text-conch-400">{err}</span> : null}
+          {done ? <span className="text-[12px] font-bold text-text-accent">{done}</span> : null}
+          {err ? <span className="text-[12px] text-danger-400">{err}</span> : null}
         </div>
       </div>
     </div>

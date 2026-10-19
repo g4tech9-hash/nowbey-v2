@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
 
 const BTN = "rounded-full px-3 py-1.5 text-[12px] font-bold disabled:opacity-50";
-const INPUT = "w-full rounded-xl border hairline bg-abyss-900/60 px-3 py-2 text-[13px] text-sand-100 outline-none focus:border-tide-400";
+const INPUT = "w-full rounded-xl border hairline bg-raised/60 px-3 py-2 text-[13px] text-primary outline-none focus:border-accent-hover";
 
 async function patch(body: unknown) {
   const res = await fetch("/api/admin/reports", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -100,11 +100,11 @@ export function ReportEditor({ report }: { report: ReportForEdit }) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button type="submit" disabled={busy} className={`${BTN} bg-tide-500 font-extrabold text-on-accent`}>
+        <button type="submit" disabled={busy} className={`${BTN} bg-accent font-extrabold text-on-accent`}>
           {busy ? "Saving…" : "Save changes"}
         </button>
-        {saved ? <span className="text-[12px] font-bold text-tide-300">Saved.</span> : null}
-        {err ? <span className="text-[12px] text-conch-400">{err}</span> : null}
+        {saved ? <span className="text-[12px] font-bold text-text-accent">Saved.</span> : null}
+        {err ? <span className="text-[12px] text-danger-400">{err}</span> : null}
       </div>
     </form>
   );
@@ -142,10 +142,10 @@ export function ReportMerge({ id }: { id: string }) {
         </label>
         <input id="merge-from" name="from" placeholder="e.g. 3f2c…" className={INPUT} />
       </div>
-      <button type="submit" disabled={busy} className={`${BTN} bg-white/10 text-sand-100 hover:bg-white/16`}>
+      <button type="submit" disabled={busy} className={`${BTN} bg-white/10 text-primary hover:bg-white/16`}>
         {busy ? "Merging…" : "Merge"}
       </button>
-      {err ? <span className="text-[12px] text-conch-400">{err}</span> : null}
+      {err ? <span className="text-[12px] text-danger-400">{err}</span> : null}
     </form>
   );
 }

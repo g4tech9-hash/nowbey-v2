@@ -6,7 +6,7 @@ export function EngagementSummary({ eng, href }: { eng: Engagement; href: string
   const top = topReactions(eng.counts);
   const quiet = eng.total === 0 && eng.comments === 0;
   return (
-    <Link href={`${href}#comments`} className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold text-ink-300 hover:text-tide-300">
+    <Link href={`${href}#comments`} className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] font-semibold text-tertiary hover:text-text-accent">
       {eng.total > 0 ? (
         <span aria-label={`${eng.total} ${eng.total === 1 ? "reaction" : "reactions"}`}>
           <span aria-hidden="true">{top.map((k) => REACTIONS[k].emoji).join("")}</span> {eng.total}

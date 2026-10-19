@@ -66,12 +66,12 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <article className="min-w-0">
-        <Link href="/life" className="text-[12px] font-bold text-tide-300 hover:underline">
+        <Link href="/life" className="text-[12px] font-bold text-text-accent hover:underline">
           ← Island Life
         </Link>
 
         {hidden ? (
-          <p className="mt-2 rounded-xl bg-conch-500/12 px-3.5 py-2.5 text-[12.5px] text-danger-500">
+          <p className="mt-2 rounded-xl bg-danger-500/12 px-3.5 py-2.5 text-[12.5px] text-danger-500">
             This post is hidden from the public{viewer.isEditor ? ". Staff can restore it below." : ", and only you can see it. Our team may have taken it down."}
           </p>
         ) : null}
@@ -80,22 +80,22 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           <span className="rounded-full px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide" style={{ background: `${kind.color}26`, color: kind.color }}>
             {kind.label}
           </span>
-          {post.parish ? <span className="text-[12px] text-ink-400">{post.parish}</span> : null}
-          <span className="text-[11.5px] text-ink-400">{timeAgo(post.createdAt)}</span>
+          {post.parish ? <span className="text-[12px] text-tertiary">{post.parish}</span> : null}
+          <span className="text-[11.5px] text-tertiary">{timeAgo(post.createdAt)}</span>
         </div>
 
         {post.placeName ? (
-          <p className="mt-2 flex flex-wrap items-center gap-x-2.5 text-[14px] font-bold text-sand-100">
+          <p className="mt-2 flex flex-wrap items-center gap-x-2.5 text-[14px] font-bold text-primary">
             {post.placeName}
             <Stars value={post.rating} size={16} />
-            {price ? <span className="text-[12.5px] font-semibold text-tide-300">{price}</span> : null}
+            {price ? <span className="text-[12.5px] font-semibold text-text-accent">{price}</span> : null}
           </p>
         ) : null}
 
-        <h1 className="display mt-1 text-[clamp(1.5rem,4vw,2.15rem)] font-extrabold leading-[1.08] text-sand-100">{post.title}</h1>
+        <h1 className="display mt-1 text-[clamp(1.5rem,4vw,2.15rem)] font-extrabold leading-[1.08] text-primary">{post.title}</h1>
 
-        <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12.5px] text-ink-400">
-          <span className="font-semibold text-sand-100">@{post.authorHandle}</span>
+        <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[12.5px] text-tertiary">
+          <span className="font-semibold text-primary">@{post.authorHandle}</span>
           <BadgeMark kind={badges.get(post.authorHandle) ?? null} />
         </div>
 
@@ -107,7 +107,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                 href={photoUrl(p.id)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`block overflow-hidden rounded-2xl border hairline bg-abyss-800 ${i === 0 && photos.length === 3 ? "sm:col-span-2" : ""}`}
+                className={`block overflow-hidden rounded-2xl border hairline bg-hover ${i === 0 && photos.length === 3 ? "sm:col-span-2" : ""}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element -- member photos are served by our own photo route */}
                 <img
@@ -123,7 +123,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           </div>
         ) : null}
 
-        <p className="mt-4 max-w-[68ch] whitespace-pre-line text-[15px] leading-relaxed text-ink-200">{post.body}</p>
+        <p className="mt-4 max-w-[68ch] whitespace-pre-line text-[15px] leading-relaxed text-secondary">{post.body}</p>
 
         {!hidden ? (
           <div className="mt-4">
@@ -135,8 +135,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         </div>
 
         {viewer.isEditor ? (
-          <div className="mt-4 rounded-2xl border border-tide-400/25 bg-tide-500/[.06] p-3">
-            <p className="text-[11.5px] font-bold uppercase tracking-wide text-tide-300">
+          <div className="mt-4 rounded-2xl border border-accent-hover/25 bg-accent/[.06] p-3">
+            <p className="text-[11.5px] font-bold uppercase tracking-wide text-text-accent">
               Staff tools · {post.flagCount} {post.flagCount === 1 ? "report" : "reports"}
             </p>
             <div className="mt-2">
@@ -147,8 +147,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
         {post.lat !== null && post.lng !== null ? (
           <section className="mt-6">
-            <p className="display text-[15px] font-extrabold text-sand-100">On the map</p>
-            <div className="mt-2 overflow-hidden rounded-2xl border border-tide-500/20">
+            <p className="display text-[15px] font-extrabold text-primary">On the map</p>
+            <div className="mt-2 overflow-hidden rounded-2xl border border-accent/20">
               <MapPanel
                 mode="browse"
                 center={[post.lat, post.lng]}
@@ -158,11 +158,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                 pins={[{ id: post.id, lat: post.lat, lng: post.lng, category: "notice", color: kind.color, label: kind.label, title: post.title, meta: post.placeName ?? post.street ?? "" }]}
               />
             </div>
-            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-[12px] text-ink-400">
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-[12px] text-tertiary">
               <span className="font-mono text-[11.5px]">
                 {formatCoord(post.lat, "lat")} {formatCoord(post.lng, "lng")}
               </span>
-              <a className="font-bold text-tide-300 underline" href={`https://www.google.com/maps/dir/?api=1&destination=${post.lat},${post.lng}`} target="_blank" rel="noopener noreferrer">
+              <a className="font-bold text-text-accent underline" href={`https://www.google.com/maps/dir/?api=1&destination=${post.lat},${post.lng}`} target="_blank" rel="noopener noreferrer">
                 Directions
               </a>
             </p>
@@ -176,14 +176,14 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
 
       <aside className="space-y-4">
         <div className="nb-surface rounded-xl2 p-3.5">
-          <p className="display text-[14.5px] font-bold text-sand-100">More in {kind.label}</p>
+          <p className="display text-[14.5px] font-bold text-primary">More in {kind.label}</p>
           {others.length ? (
             <ul className="mt-2 space-y-2.5">
               {others.map((o) => (
                 <li key={o.id}>
                   <Link href={`/life/${o.id}`} className="group block">
-                    <span className="block text-[13px] font-semibold leading-snug text-ink-200 group-hover:text-tide-300">{o.title}</span>
-                    <span className="block text-[11.5px] text-ink-400">
+                    <span className="block text-[13px] font-semibold leading-snug text-secondary group-hover:text-text-accent">{o.title}</span>
+                    <span className="block text-[11.5px] text-tertiary">
                       {o.placeName ?? o.parish} · {timeAgo(o.createdAt)}
                     </span>
                   </Link>
@@ -191,9 +191,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
               ))}
             </ul>
           ) : (
-            <p className="mt-1.5 text-[12.5px] text-ink-400">This is the first one in this section.</p>
+            <p className="mt-1.5 text-[12.5px] text-tertiary">This is the first one in this section.</p>
           )}
-          <Link href="/life/new" className="mt-3 inline-block rounded-full bg-sun-500 px-3.5 py-1.5 text-[12.5px] font-extrabold text-on-accent">
+          <Link href="/life/new" className="mt-3 inline-block rounded-full bg-warn-500 px-3.5 py-1.5 text-[12.5px] font-extrabold text-on-accent">
             Share your own
           </Link>
         </div>

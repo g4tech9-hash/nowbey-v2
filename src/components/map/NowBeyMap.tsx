@@ -498,7 +498,7 @@ export default function NowBeyMap({
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden rounded-2xl border border-tide-500/20 bg-abyss-900 ${className}`}
+      className={`relative overflow-hidden rounded-2xl border border-accent/20 bg-raised ${className}`}
     >
       <MapContainer
         center={center}
@@ -582,7 +582,7 @@ export default function NowBeyMap({
                       </p>
                     )}
                     {pin.href ? (
-                      <a className="mt-1 inline-block text-[12px] font-bold text-tide-300 underline" href={pin.href}>
+                      <a className="mt-1 inline-block text-[12px] font-bold text-text-accent underline" href={pin.href}>
                         {pin.hrefLabel ?? "Open report"}
                       </a>
                     ) : null}
@@ -618,11 +618,11 @@ export default function NowBeyMap({
             type="button"
             onClick={locateMe}
             disabled={!map}
-            className="min-h-[40px] rounded-full bg-abyss-950/90 px-3 py-2 text-[12.5px] font-bold text-tide-300 shadow-[0_8px_20px_rgba(0,0,0,.45)] hover:bg-abyss-950 disabled:opacity-50"
+            className="min-h-[40px] rounded-full bg-base/90 px-3 py-2 text-[12.5px] font-bold text-text-accent shadow-[0_8px_20px_rgba(0,0,0,.45)] hover:bg-base disabled:opacity-50"
           >
             Locate me
           </button>
-          <p role="status" aria-live="polite" className="rounded bg-abyss-950/80 px-1.5 text-[11.5px] font-semibold text-sand-100">
+          <p role="status" aria-live="polite" className="rounded bg-base/80 px-1.5 text-[11.5px] font-semibold text-primary">
             {locating ?? ""}
           </p>
         </div>
@@ -660,9 +660,9 @@ export default function NowBeyMap({
                 }}
                 placeholder="Search street, dock, landmark…"
                 aria-label="Search for a street or landmark"
-                className="w-full bg-transparent text-[13px] text-sand-100 outline-none placeholder:text-ink-400"
+                className="w-full bg-transparent text-[13px] text-primary outline-none placeholder:text-tertiary"
               />
-              {searching ? <span className="text-[11.5px] text-tide-300">…</span> : null}
+              {searching ? <span className="text-[11.5px] text-text-accent">…</span> : null}
             </div>
             {results.length ? (
               <ul className="glass nb-scroll absolute mt-1.5 max-h-64 w-full overflow-auto rounded-xl py-1 text-left shadow-[0_20px_44px_rgba(0,0,0,.55)]">
@@ -670,14 +670,14 @@ export default function NowBeyMap({
                   <li key={`${r.lat},${r.lng},${r.label}`}>
                     <button
                       type="button"
-                      className="block w-full px-3 py-2 text-left hover:bg-tide-500/15"
+                      className="block w-full px-3 py-2 text-left hover:bg-accent/15"
                       onClick={() => {
                         placePin(r.lat, r.lng, { fly: true, zoomTo: 18 });
                         setQuery("");
                       }}
                     >
                       <span className="block text-[13px] font-semibold">{r.label}</span>
-                      <span className="block text-[11.5px] text-ink-400">
+                      <span className="block text-[11.5px] text-tertiary">
                         {formatCoord(r.lat, "lat")} · {formatCoord(r.lng, "lng")}
                         {r.parish ? ` · ${r.parish}` : ""}
                       </span>
@@ -699,7 +699,7 @@ export default function NowBeyMap({
                 aria-pressed={layer === key}
                 onClick={() => setLayer(key)}
                 className={`min-h-[40px] rounded-lg px-2.5 py-1.5 transition ${
-                  layer === key ? "bg-tide-500 text-on-accent" : "text-ink-200 hover:bg-white/10"
+                  layer === key ? "bg-accent text-on-accent" : "text-secondary hover:bg-white/10"
                 }`}
               >
                 <span className="sm:hidden">{LAYERS[key].short}</span>
@@ -712,7 +712,7 @@ export default function NowBeyMap({
             onClick={() => setShowPins((v) => !v)}
             title={showPins ? "Hide other pins" : "Show other pins"}
             aria-pressed={showPins}
-            className={`glass min-h-[40px] shrink-0 rounded-xl px-2.5 py-2 text-[11.5px] font-bold ${showPins ? "text-tide-300" : "text-ink-400"}`}
+            className={`glass min-h-[40px] shrink-0 rounded-xl px-2.5 py-2 text-[11.5px] font-bold ${showPins ? "text-text-accent" : "text-tertiary"}`}
           >
             Pins
           </button>
@@ -745,7 +745,7 @@ export default function NowBeyMap({
           <button
             type="button"
             onClick={openStreetView}
-            className="glass rounded-full px-3 py-2 text-[12px] font-bold text-sand-100"
+            className="glass rounded-full px-3 py-2 text-[12px] font-bold text-primary"
           >
             Street View
           </button>
@@ -772,7 +772,7 @@ export default function NowBeyMap({
               }
             }}
             className={`glass min-h-[40px] rounded-full px-3 py-2 text-[12px] font-bold ${
-              aim ? "bg-sun-500 text-on-accent" : "text-sand-100"
+              aim ? "bg-warn-500 text-on-accent" : "text-primary"
             }`}
           >
             {aim ? "Aim locked" : "Aim at centre"}
@@ -787,10 +787,10 @@ export default function NowBeyMap({
           <div className="nb-surface rounded-xl2 p-2.5 text-[12px] shadow-[0_18px_40px_rgba(0,0,0,.5)]">
             {pick ? (
               <>
-                <p className="font-mono text-[11.5px] text-tide-300">
+                <p className="font-mono text-[11.5px] text-text-accent">
                   {pick.lat.toFixed(6)}, {pick.lng.toFixed(6)}
                 </p>
-                <p className="mt-0.5 text-[11.5px] text-ink-200">
+                <p className="mt-0.5 text-[11.5px] text-secondary">
                   {geoNote ?? (aim ? "Nudge the map, not the pin — the crosshair is the pin." : "Drag the pin tip, or use the arrows.")}
                 </p>
                 <div className="mt-2 flex items-center gap-2">
@@ -811,20 +811,20 @@ export default function NowBeyMap({
                           key={i}
                           type="button"
                           onClick={() => nudge(cell.dN * step, cell.dE * step)}
-                          className="h-6 w-6 rounded-md bg-white/10 text-[11.5px] font-bold text-sand-100 hover:bg-tide-500 hover:text-on-accent"
+                          className="h-6 w-6 rounded-md bg-white/10 text-[11.5px] font-bold text-primary hover:bg-accent hover:text-on-accent"
                           title={`Move ${Math.abs(cell.dN * step)} m`}
                         >
                           {cell.g}
                         </button>
                       ) : (
-                        <span key={i} className="grid h-6 w-6 place-items-center text-[9px] text-ink-400">
+                        <span key={i} className="grid h-6 w-6 place-items-center text-[9px] text-tertiary">
                           {cell.g || "\u00b7"}
                         </span>
                       ),
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="mb-1 text-[11.5px] leading-tight text-ink-400">
+                    <p className="mb-1 text-[11.5px] leading-tight text-tertiary">
                       Nudge the pin tip onto the kerb, gate or drain.
                     </p>
                     <div className="flex gap-1">
@@ -834,7 +834,7 @@ export default function NowBeyMap({
                           type="button"
                           onClick={() => setStep(s)}
                           className={`rounded-md px-1.5 py-0.5 text-[11.5px] font-bold ${
-                            step === s ? "bg-tide-500 text-on-accent" : "bg-white/10 text-ink-200"
+                            step === s ? "bg-accent text-on-accent" : "bg-white/10 text-secondary"
                           }`}
                         >
                           {s} m
@@ -866,7 +866,7 @@ export default function NowBeyMap({
                 </div>
               </>
             ) : (
-              <p className="text-[12px] text-ink-200">
+              <p className="text-[12px] text-secondary">
                 Tap the exact spot on the map, or search a street. Then drag the pin tip onto the kerb, gate or pothole.
               </p>
             )}
@@ -876,13 +876,13 @@ export default function NowBeyMap({
 
       {fallbackNote ? (
         <div className={`absolute inset-x-2.5 z-[500] ${compact ? "bottom-2.5" : "top-[118px] sm:top-[64px]"}`}>
-          <p className="glass flex items-start gap-2 rounded-lg border-l-[3px] border-sun-500 px-3 py-2 text-[11.5px] text-sand-100">
+          <p className="glass flex items-start gap-2 rounded-lg border-l-[3px] border-warn-500 px-3 py-2 text-[11.5px] text-primary">
             <span className="flex-1">{fallbackNote}</span>
             <button
               type="button"
               onClick={() => setFallbackNote(null)}
               aria-label="Dismiss"
-              className="min-h-[32px] min-w-[32px] rounded-md text-[13px] font-bold text-ink-400 hover:bg-white/10"
+              className="min-h-[32px] min-w-[32px] rounded-md text-[13px] font-bold text-tertiary hover:bg-white/10"
             >
               ✕
             </button>
@@ -895,22 +895,22 @@ export default function NowBeyMap({
           className="pointer-events-none fixed z-[900] -translate-x-1/2 -translate-y-1/2"
           style={{ left: pegman.x, top: pegman.y }}
         >
-          <div className={`grid h-10 w-10 place-items-center rounded-full ${pegman.over ? "bg-tide-500" : "bg-sun-500"}`}>
+          <div className={`grid h-10 w-10 place-items-center rounded-full ${pegman.over ? "bg-accent" : "bg-warn-500"}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
               <circle cx="12" cy="4.6" r="2.6" fill="#03121b" />
               <path d="M12 8c-2.6 0-3.6 1.3-3.6 3.1V14H7v6h2.5v-5h5v5H17v-6h-1.4v-2.9C15.6 9.3 14.6 8 12 8Z" fill="#03121b" />
             </svg>
           </div>
-          {pegman.over ? <p className="mt-1 rounded bg-abyss-950/85 px-2 py-0.5 text-[11.5px] font-bold">Drop for street level</p> : null}
+          {pegman.over ? <p className="mt-1 rounded bg-base/85 px-2 py-0.5 text-[11.5px] font-bold">Drop for street level</p> : null}
         </div>
       ) : null}
 
       {streetView ? (
-        <div className="absolute inset-0 z-[600] flex flex-col bg-abyss-950/92 p-2.5 backdrop-blur-sm">
+        <div className="absolute inset-0 z-[600] flex flex-col bg-base/92 p-2.5 backdrop-blur-sm">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="display text-[15px] font-bold">Street level</p>
-              <p className="text-[11.5px] text-ink-400">
+              <p className="text-[11.5px] text-tertiary">
                 {formatCoord(streetView.lat, "lat")} · {formatCoord(streetView.lng, "lng")}
               </p>
             </div>
@@ -922,7 +922,7 @@ export default function NowBeyMap({
                   map?.flyTo([streetView.lat, streetView.lng], 19, { duration: 0.5 });
                   setStreetView(null);
                 }}
-                className="rounded-lg bg-tide-500 px-2.5 py-1.5 text-[11.5px] font-bold text-on-accent"
+                className="rounded-lg bg-accent px-2.5 py-1.5 text-[11.5px] font-bold text-on-accent"
               >
                 Pin here
               </button>
@@ -935,7 +935,7 @@ export default function NowBeyMap({
               </button>
             </div>
           </div>
-          <div className="relative mt-2 flex-1 overflow-hidden rounded-xl border border-tide-500/25 bg-abyss-900">
+          <div className="relative mt-2 flex-1 overflow-hidden rounded-xl border border-accent/25 bg-raised">
             {googleKey && !svError ? (
               // eslint-disable-next-line @next/next/no-img-element -- an external Google Street View photo, not a local asset
               <img
@@ -947,16 +947,16 @@ export default function NowBeyMap({
             ) : (
               <div className="grid h-full place-items-center p-5 text-center">
                 <div className="max-w-[420px] space-y-2">
-                  <p className="display text-[15px] font-bold text-sun-600">
+                  <p className="display text-[15px] font-bold text-warn-600">
                     {googleKey ? "No Street View photos at this exact spot" : "Street level opens in Google Maps"}
                   </p>
-                  <p className="text-[12.5px] text-ink-200">
+                  <p className="text-[12.5px] text-secondary">
                     {googleKey
                       ? "Coverage in The Bahamas is strongest around Nassau, Paradise Island and Freeport. Zoom the satellite layer for the closest thing to a photo."
                       : "Street photos are not built into NowBey yet. Open this exact spot in Google Maps to look around at street level."}
                   </p>
                   <a
-                    className="inline-block rounded-lg bg-tide-500 px-3 py-2 text-[12.5px] font-bold text-on-accent"
+                    className="inline-block rounded-lg bg-accent px-3 py-2 text-[12.5px] font-bold text-on-accent"
                     href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${streetView.lat},${streetView.lng}`}
                     target="_blank"
                     rel="noreferrer"

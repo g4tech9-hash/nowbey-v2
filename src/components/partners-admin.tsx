@@ -38,7 +38,7 @@ export type PartnerRow = {
 const PAYMENT = ["unpaid", "paid", "comp"] as const;
 
 const FIELD =
-  "mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2 text-[13px] outline-none focus:border-tide-400";
+  "mt-1 w-full rounded-lg border border-white/10 bg-base/70 px-3 py-2 text-[13px] outline-none focus:border-accent-hover";
 const LABEL = "block text-[11.5px] font-bold uppercase tracking-wide text-tertiary";
 
 const blank = {
@@ -137,14 +137,14 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
       {/* ---- Add ---- */}
       <div className="glass rounded-2xl p-5">
         <div className="flex items-center justify-between">
-          <h2 className="display text-[18px] font-extrabold text-sand-100">
+          <h2 className="display text-[18px] font-extrabold text-primary">
             {rows.length ? `${rows.length} partner${rows.length === 1 ? "" : "s"}` : "No partners yet"}
           </h2>
           <button
             type="button"
             onClick={() => setAdding((v) => !v)}
             aria-expanded={adding}
-            className="rounded-full bg-tide-500 px-3 py-1.5 text-[12px] font-extrabold text-on-accent hover:bg-tide-400"
+            className="rounded-full bg-accent px-3 py-1.5 text-[12px] font-extrabold text-on-accent hover:bg-accent-hover"
           >
             {adding ? "Cancel" : "+ Add Partner"}
           </button>
@@ -212,7 +212,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                 type="button"
                 onClick={() => void create()}
                 disabled={busy !== null}
-                className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50"
+                className="rounded-full bg-accent px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-accent-hover disabled:opacity-50"
               >
                 {busy === "create" ? "Saving…" : "Save partner"}
               </button>
@@ -226,7 +226,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
         <p
           role={msg.ok ? "status" : "alert"}
           aria-live={msg.ok ? "polite" : "assertive"}
-          className={`rounded-lg px-3 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}
+          className={`rounded-lg px-3 py-2 text-[12.5px] ${msg.ok ? "bg-accent/12 text-text-accent" : "bg-danger-500/15 text-danger-500"}`}
         >
           {msg.text}
         </p>
@@ -247,17 +247,17 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
               ) : (
                 <>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                    <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-sand-100">
+                    <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-primary">
                       {p.organisation}
                     </span>
                     <span className="text-[12px] text-secondary">{p.parish}</span>
                     <span
                       className={`rounded-full px-2 py-0.5 text-[11.5px] font-bold ${
                         p.paymentStatus === "paid"
-                          ? "bg-tide-500/20 text-tide-300"
+                          ? "bg-accent/20 text-text-accent"
                           : p.paymentStatus === "comp"
-                            ? "bg-sun-500/20 text-sun-400"
-                            : "bg-conch-500/20 text-conch-400"
+                            ? "bg-warn-500/20 text-warn-400"
+                            : "bg-danger-500/20 text-danger-400"
                       }`}
                     >
                       {p.paymentStatus}
@@ -267,25 +267,25 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                   <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px] sm:grid-cols-4">
                     <div>
                       <dt className="text-tertiary">Contact</dt>
-                      <dd className="text-sand-100">{p.contactName}</dd>
+                      <dd className="text-primary">{p.contactName}</dd>
                     </div>
                     <div className="col-span-2 min-w-0">
                       <dt className="text-tertiary">Email</dt>
-                      <dd className="truncate font-mono text-sand-100">{p.email}</dd>
+                      <dd className="truncate font-mono text-primary">{p.email}</dd>
                     </div>
                     <div>
                       <dt className="text-tertiary">Plan</dt>
-                      <dd className="text-sand-100">{p.planInterval}ly</dd>
+                      <dd className="text-primary">{p.planInterval}ly</dd>
                     </div>
                     <div>
                       <dt className="text-tertiary">Last payment</dt>
-                      <dd className="text-sand-100">
+                      <dd className="text-primary">
                         {p.lastPaymentAt ? new Date(p.lastPaymentAt).toLocaleDateString() : "never"}
                       </dd>
                     </div>
                     <div className="col-span-3">
                       <dt className="text-tertiary">Categories</dt>
-                      <dd className="text-sand-100">{p.categories || "everything"}</dd>
+                      <dd className="text-primary">{p.categories || "everything"}</dd>
                     </div>
                   </dl>
 
@@ -300,8 +300,8 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                         aria-pressed={p.paymentStatus === s}
                         className={`rounded-full px-2.5 py-1 text-[11.5px] font-bold transition disabled:opacity-50 ${
                           p.paymentStatus === s
-                            ? "bg-tide-500 text-on-accent"
-                            : "border hairline text-ink-300 hover:bg-white/8"
+                            ? "bg-accent text-on-accent"
+                            : "border hairline text-tertiary hover:bg-white/8"
                         }`}
                       >
                         {s}
@@ -311,7 +311,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                       <button
                         type="button"
                         onClick={() => setEditing(p.id)}
-                        className="rounded-full border hairline px-3 py-1 text-[11.5px] font-bold text-tide-300 hover:bg-white/8"
+                        className="rounded-full border hairline px-3 py-1 text-[11.5px] font-bold text-text-accent hover:bg-white/8"
                       >
                         Edit
                       </button>
@@ -319,7 +319,7 @@ export function PartnersAdmin({ initialPartners }: { initialPartners: PartnerRow
                         type="button"
                         onClick={() => void remove(p.id, p.organisation)}
                         disabled={busy !== null}
-                        className="rounded-full border border-conch-500/40 px-3 py-1 text-[11.5px] font-bold text-conch-400 hover:bg-conch-500/15 disabled:opacity-50"
+                        className="rounded-full border border-danger-500/40 px-3 py-1 text-[11.5px] font-bold text-danger-400 hover:bg-danger-500/15 disabled:opacity-50"
                       >
                         Delete
                       </button>
@@ -416,14 +416,14 @@ function EditRow({
           type="button"
           onClick={() => onSave(form)}
           disabled={busy}
-          className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50"
+          className="rounded-full bg-accent px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-accent-hover disabled:opacity-50"
         >
           {busy ? "Saving…" : "Save changes"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-full border hairline px-4 py-2 text-[13px] font-bold text-ink-300 hover:bg-white/8"
+          className="rounded-full border hairline px-4 py-2 text-[13px] font-bold text-tertiary hover:bg-white/8"
         >
           Cancel
         </button>

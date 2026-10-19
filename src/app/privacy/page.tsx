@@ -74,9 +74,9 @@ export default function PrivacyPage() {
       <div className="glass space-y-5 rounded-2xl p-5">
         {SECTIONS.map((s) => (
           <section key={s.h} id={s.h.toLowerCase().replace(/[^a-z0-9]+/g, "-")} className="scroll-mt-24">
-            <h2 className="display text-[15px] font-extrabold text-sand-100">{s.h}</h2>
+            <h2 className="display text-[15px] font-extrabold text-primary">{s.h}</h2>
             {s.p.map((t, i) => (
-              <p key={i} className="mt-1.5 text-[13px] leading-relaxed text-ink-300">
+              <p key={i} className="mt-1.5 text-[13px] leading-relaxed text-tertiary">
                 {t}
               </p>
             ))}

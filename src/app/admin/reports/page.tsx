@@ -81,7 +81,7 @@ export default async function ReportsAdmin({ searchParams }: { searchParams: Pro
                   <Pill tone={r.status === "active" ? "sun" : r.status === "archived" ? "conch" : "slate"}>{r.status === "archived" ? "hidden" : r.status}</Pill>
                   <span className="text-[11.5px] text-tertiary">{timeAgo(r.createdAt)}</span>
                 </div>
-                <Link href={`/incident/${r.id}`} className="mt-1 block text-[14.5px] font-bold text-sand-100 hover:text-tide-300">
+                <Link href={`/incident/${r.id}`} className="mt-1 block text-[14.5px] font-bold text-primary hover:text-text-accent">
                   {r.title}
                 </Link>
                 <p className="mt-0.5 text-[12px] text-secondary">

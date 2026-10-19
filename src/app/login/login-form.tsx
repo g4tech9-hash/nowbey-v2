@@ -158,28 +158,28 @@ export function LoginForm() {
           <span className="nb-eyebrow-dot" aria-hidden />
           Your account
         </p>
-        <h1 className="display mt-3 text-[clamp(1.9rem,5vw,2.75rem)] font-extrabold leading-[1.03] tracking-[-0.06em] text-sand-100">
+        <h1 className="display mt-3 text-[clamp(1.9rem,5vw,2.75rem)] font-extrabold leading-[1.03] tracking-[-0.06em] text-primary">
           {mode === "signup" ? (
             <>
-              Join your neighbours on <em className="text-tide-500 not-italic">NowBey</em>
+              Join your neighbours on <em className="text-accent not-italic">NowBey</em>
             </>
           ) : (
             "Welcome back"
           )}
         </h1>
-        <p className="mt-3 max-w-[52ch] text-[13.5px] leading-[1.75] text-ink-300">
+        <p className="mt-3 max-w-[52ch] text-[13.5px] leading-[1.75] text-tertiary">
           You can read the map, confirm reports and Report a hazard without an account. An account puts your handle on the reports
           you file, keeps your alert settings, and brings your plan with you to any device.
         </p>
-        <ul className="mt-4 space-y-2 text-[12.5px] text-ink-400">
+        <ul className="mt-4 space-y-2 text-[12.5px] text-tertiary">
           <li className="flex gap-2">
-            <span className="text-tide-500">→</span> Your email is only used for account help and the alerts you ask for.
+            <span className="text-accent">→</span> Your email is only used for account help and the alerts you ask for.
           </li>
           <li className="flex gap-2">
-            <span className="text-tide-500">→</span> Forget your password? We email you a link to choose a new one.
+            <span className="text-accent">→</span> Forget your password? We email you a link to choose a new one.
           </li>
           <li className="flex gap-2">
-            <span className="text-tide-500">→</span> Delete your account any time. Your reports stay up, without your name.
+            <span className="text-accent">→</span> Delete your account any time. Your reports stay up, without your name.
           </li>
         </ul>
       </div>
@@ -206,11 +206,11 @@ export function LoginForm() {
               </svg>
               {mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
             </button>
-            <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-400">
+            <p className="mt-1.5 text-[11.5px] leading-relaxed text-tertiary">
               One button for both. Google tells us your name and email address — we never see your Google password, and we do
               not post anything.
             </p>
-            <div className="my-4 flex items-center gap-2 text-[11.5px] font-bold uppercase tracking-[0.14em] text-ink-400">
+            <div className="my-4 flex items-center gap-2 text-[11.5px] font-bold uppercase tracking-[0.14em] text-tertiary">
               <span className="h-px flex-1 bg-white/10" />
               or
               <span className="h-px flex-1 bg-white/10" />
@@ -230,7 +230,7 @@ export function LoginForm() {
                 setError(null);
               }}
               className={`min-h-[40px] flex-1 rounded-full text-[12.5px] font-extrabold transition duration-200 ease-standard ${
-                mode === v ? "bg-tide-500 text-on-accent shadow-glow-tide" : "text-ink-300 hover:bg-white/8"
+                mode === v ? "bg-accent text-on-accent shadow-glow-tide" : "text-tertiary hover:bg-white/8"
               }`}
             >
               {v === "signup" ? "Create account" : "Sign in"}
@@ -239,13 +239,13 @@ export function LoginForm() {
         </div>
 
         {googleMessage ? (
-          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${googleMessage.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
+          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${googleMessage.ok ? "bg-accent/12 text-text-accent" : "bg-danger-500/15 text-danger-500"}`}>
             {googleMessage.text}
           </p>
         ) : null}
 
         {banner ? (
-          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${banner.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>{banner.text}</p>
+          <p className={`mb-3 rounded-lg px-2.5 py-2 text-[12px] ${banner.ok ? "bg-accent/12 text-text-accent" : "bg-danger-500/15 text-danger-500"}`}>{banner.text}</p>
         ) : null}
 
         {mode === "signin" ? (
@@ -265,7 +265,7 @@ export function LoginForm() {
               <PasswordField label="Password" value={password} onChange={setPassword} autoComplete="current-password" />
             </div>
             <p className="mt-2 text-right text-[12px]">
-              <Link href="/forgot-password" className="font-bold text-tide-300 hover:underline">
+              <Link href="/forgot-password" className="font-bold text-text-accent hover:underline">
                 Forgot your password?
               </Link>
             </p>
@@ -274,8 +274,8 @@ export function LoginForm() {
           <>
             <label className="block">
               <span className={LABEL}>Handle</span>
-              <div className="mt-1 flex items-center rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 focus-within:border-tide-400">
-                <span className="text-[13px] text-ink-400">@</span>
+              <div className="mt-1 flex items-center rounded-lg border border-white/10 bg-base/70 px-2.5 focus-within:border-accent-hover">
+                <span className="text-[13px] text-tertiary">@</span>
                 <input
                   value={handle}
                   onChange={(e) => setHandle(e.target.value.replace(/[^a-zA-Z0-9_]/g, "").toLowerCase())}
@@ -287,7 +287,7 @@ export function LoginForm() {
               </div>
               <p
                 className={`mt-1 min-h-[16px] text-[11.5px] ${
-                  handleState.kind === "ok" ? "text-tide-300" : handleState.kind === "bad" ? "text-danger-500" : "text-ink-400"
+                  handleState.kind === "ok" ? "text-text-accent" : handleState.kind === "bad" ? "text-danger-500" : "text-tertiary"
                 }`}
                 aria-live="polite"
               >
@@ -349,12 +349,12 @@ export function LoginForm() {
         <button type="submit" disabled={busy} className="nb-btn nb-btn-primary mt-4 w-full">
           {busy ? "Working…" : mode === "signup" ? "Create my account" : "Sign in"}
         </button>
-        <p className="mt-2 text-[11.5px] text-ink-400">
-          <Link href="/feed" className="font-bold text-tide-300 hover:underline">
+        <p className="mt-2 text-[11.5px] text-tertiary">
+          <Link href="/feed" className="font-bold text-text-accent hover:underline">
             Continue without an account
           </Link>{" "}
           — the map, feed and news wire are open to everyone. You can still{" "}
-          <Link href="/report" className="font-bold text-tide-300 hover:underline">
+          <Link href="/report" className="font-bold text-text-accent hover:underline">
             report a hazard anonymously
           </Link>
           .

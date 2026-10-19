@@ -38,7 +38,7 @@ export default async function WireAdmin() {
       />
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Possible alerts{candidates.length ? ` (${candidates.length})` : ""}</p>
+        <p className="display text-[15px] font-bold text-primary">Possible alerts{candidates.length ? ` (${candidates.length})` : ""}</p>
         <p className="mt-0.5 text-[12px] text-secondary">
           Stories the scanner thinks people should hear about. <b>High</b> means a warning, evacuation or emergency. <b>Watch</b> means it affects people but may not need an alert. Open the story, then send only if it is accurate and current.
         </p>
@@ -47,10 +47,10 @@ export default async function WireAdmin() {
             {candidates.map((n) => (
               <li key={n.id} className="flex flex-wrap items-start justify-between gap-3 py-2.5">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-semibold text-sand-100">
+                  <p className="text-[13px] font-semibold text-primary">
                     <Pill tone={n.alertLevel === "high" ? "violet" : "slate"}>{n.alertLevel === "high" ? "High" : "Watch"}</Pill> {n.title}
                   </p>
-                  <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate text-[11.5px] text-tide-300 underline">
+                  <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate text-[11.5px] text-text-accent underline">
                     {n.url}
                   </a>
                   <p className="text-[11.5px] text-tertiary">
@@ -67,16 +67,16 @@ export default async function WireAdmin() {
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Links waiting for review{pending.length ? ` (${pending.length})` : ""}</p>
+        <p className="display text-[15px] font-bold text-primary">Links waiting for review{pending.length ? ` (${pending.length})` : ""}</p>
         <p className="mt-0.5 text-[12px] text-secondary">Readers send these in. Nothing shows publicly until you approve it. Open the link and check it before you do.</p>
         {pending.length ? (
           <ul className="mt-2 divide-y divide-white/5">
             {pending.map((n) => (
               <li key={n.id} className="flex flex-wrap items-start justify-between gap-3 py-2.5">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-semibold text-sand-100">{n.title}</p>
+                  <p className="text-[13px] font-semibold text-primary">{n.title}</p>
                   {n.summary && n.summary !== n.title ? <p className="mt-0.5 text-[12px] text-secondary">{n.summary}</p> : null}
-                  <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate text-[11.5px] text-tide-300 underline">
+                  <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate text-[11.5px] text-text-accent underline">
                     {n.url}
                   </a>
                   <p className="text-[11.5px] text-tertiary">
@@ -93,13 +93,13 @@ export default async function WireAdmin() {
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">On the wire now</p>
+        <p className="display text-[15px] font-bold text-primary">On the wire now</p>
         <p className="mt-0.5 text-[12px] text-secondary">The 30 newest public stories. Remove anything that should not be there.</p>
         <ul className="mt-2 divide-y divide-white/5">
           {live.map((n) => (
             <li key={n.id} className="flex flex-wrap items-start justify-between gap-3 py-2.5">
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-semibold text-sand-100">{n.title}</p>
+                <p className="text-[13px] font-semibold text-primary">{n.title}</p>
                 <p className="mt-0.5 text-[11.5px] text-secondary">
                   <Pill tone={n.sourceName === "Reader tip" ? "violet" : "slate"}>{n.sourceName}</Pill> {n.parish ?? "no island"} · {timeAgo(n.publishedAt)}
                 </p>

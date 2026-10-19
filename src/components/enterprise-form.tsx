@@ -10,8 +10,8 @@ const SIZES = [
 ];
 
 const FIELD =
-  "mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-3 py-2.5 text-[14px] outline-none focus:border-tide-400";
-const LABEL = "text-[11.5px] font-bold uppercase tracking-wide text-tide-400";
+  "mt-1 w-full rounded-lg border border-white/10 bg-base/70 px-3 py-2.5 text-[14px] outline-none focus:border-accent-hover";
+const LABEL = "text-[11.5px] font-bold uppercase tracking-wide text-accent-hover";
 
 export function EnterpriseForm() {
   const [organisation, setOrganisation] = useState("");
@@ -28,11 +28,11 @@ export function EnterpriseForm() {
   if (sent) {
     return (
       <div className="py-4 text-center">
-        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-tide-500 text-[20px] font-black text-on-accent">
+        <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-accent text-[20px] font-black text-on-accent">
           ✓
         </span>
-        <p className="display mt-3 text-[17px] font-extrabold text-sand-100">Thanks, we have your details</p>
-        <p className="mx-auto mt-1.5 max-w-[34ch] text-[13px] leading-relaxed text-ink-300">
+        <p className="display mt-3 text-[17px] font-extrabold text-primary">Thanks, we have your details</p>
+        <p className="mx-auto mt-1.5 max-w-[34ch] text-[13px] leading-relaxed text-tertiary">
           Someone from NowBey will reply to {email} to talk about what your team needs.
         </p>
       </div>
@@ -143,11 +143,11 @@ export function EnterpriseForm() {
       <button
         type="submit"
         disabled={busy}
-        className="w-full rounded-xl bg-sand-100 py-3 text-[14px] font-extrabold text-on-accent hover:bg-white disabled:opacity-50"
+        className="w-full rounded-xl bg-primary py-3 text-[14px] font-extrabold text-on-accent hover:bg-white disabled:opacity-50"
       >
         {busy ? "Sending…" : "Talk to us"}
       </button>
-      <p className="text-[11.5px] leading-snug text-ink-400">
+      <p className="text-[11.5px] leading-snug text-tertiary">
         We only use these details to reply about Enterprise. We will not add you to a mailing list.
       </p>
     </form>

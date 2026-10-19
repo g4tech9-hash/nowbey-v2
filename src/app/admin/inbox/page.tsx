@@ -23,7 +23,7 @@ export default async function InboxPage() {
   return (
     <div className="space-y-6">
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Enterprise enquiries</p>
+        <p className="display text-[15px] font-bold text-primary">Enterprise enquiries</p>
         <p className="mt-0.5 text-[12px] text-secondary">Mark each one as you deal with it, so you can see at a glance what is still waiting.</p>
         {inquiries.length ? (
           <ul className="mt-2 divide-y divide-white/5">
@@ -31,20 +31,20 @@ export default async function InboxPage() {
               <li key={q.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[14px] font-bold text-sand-100">{q.organisation}</span>
+                    <span className="text-[14px] font-bold text-primary">{q.organisation}</span>
                     <Pill tone={q.status === "new" ? "sun" : q.status === "contacted" ? "tide" : "slate"}>{q.status}</Pill>
                     {q.teamSize ? <span className="text-[11.5px] text-secondary">{q.teamSize} people</span> : null}
                     <span className="text-[11.5px] text-tertiary">{timeAgo(q.createdAt)}</span>
                   </div>
                   <p className="mt-0.5 text-[12.5px] text-primary">
                     {q.contactName} ·{" "}
-                    <a href={`mailto:${q.email}`} className="text-tide-300 underline">
+                    <a href={`mailto:${q.email}`} className="text-text-accent underline">
                       {q.email}
                     </a>
                     {q.phone ? ` · ${q.phone}` : ""}
                   </p>
                   {q.message ? <p className="mt-1 max-w-[70ch] text-[12.5px] leading-relaxed text-secondary">{q.message}</p> : null}
-                  {!q.notifiedAt && q.notifyError ? <p className="mt-1 text-[11.5px] text-sun-400">We were not emailed about this one: {q.notifyError}</p> : null}
+                  {!q.notifiedAt && q.notifyError ? <p className="mt-1 text-[11.5px] text-warn-400">We were not emailed about this one: {q.notifyError}</p> : null}
                 </div>
                 <EnquiryStatus id={q.id} status={q.status} />
               </li>
@@ -56,7 +56,7 @@ export default async function InboxPage() {
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Recent emails</p>
+        <p className="display text-[15px] font-bold text-primary">Recent emails</p>
         <p className="mt-0.5 text-[12px] text-secondary">
           {failed ? `${failed} of the last ${mails.length} failed. ` : ""}Every confirmation, password reset and alert email is listed here, including ones that could not be sent.
         </p>

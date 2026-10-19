@@ -152,6 +152,8 @@
   --color-tide-200: var(--text-accent);
   --color-accent: var(--accent);
   --color-accent-muted: var(--accent-muted);
+  --color-accent-hover: var(--accent-hover);
+  --color-text-accent: var(--text-accent);
 
   /* ---- Signals --------------------------------------------------------- */
   --color-conch-600: var(--danger);
@@ -164,8 +166,12 @@
   --color-ok-500: var(--success);
   --color-ok-600: var(--success);
   --color-ok-400: var(--success);
+  --color-success-600: var(--success);
+  --color-success-500: var(--success);
+  --color-success-400: var(--success);
   --color-warn-500: var(--warning);
   --color-warn-600: var(--warning);
+  --color-warn-400: var(--warning);
   --color-danger-500: var(--danger);
   --color-danger-400: var(--danger);
   --color-danger-600: var(--danger);

@@ -80,13 +80,13 @@ export function ReportAssist({
   const placeDiff =
     data?.place && pick && Math.abs(data.place.lat - pick.lat) + Math.abs(data.place.lng - pick.lng) > 0.002 ? data.place : null;
 
-  const applyBtn = "rounded-full bg-tide-500 px-2.5 py-1 text-[11.5px] font-extrabold text-on-accent";
+  const applyBtn = "rounded-full bg-accent px-2.5 py-1 text-[11.5px] font-extrabold text-on-accent";
 
   return (
     <div className="rounded-2xl border border-violet/30 bg-violet/10 p-3.5">
       <div className="flex flex-wrap items-center gap-2">
-        <p className="display text-[13.5px] font-bold text-sand-100">✨ Check my report</p>
-        <span className="text-[11.5px] text-ink-400">optional — 5 seconds</span>
+        <p className="display text-[13.5px] font-bold text-primary">✨ Check my report</p>
+        <span className="text-[11.5px] text-tertiary">optional — 5 seconds</span>
         <button
           type="button"
           onClick={check}
@@ -96,28 +96,28 @@ export function ReportAssist({
           {busy ? "Checking…" : data ? "Check again" : "Check it"}
         </button>
       </div>
-      <p className="mt-1 text-[11.5px] leading-relaxed text-ink-300">
+      <p className="mt-1 text-[11.5px] leading-relaxed text-tertiary">
         Looks for the best category, a clearer headline, the place in your words, and whether neighbours already reported this — you
         accept or ignore each idea.
       </p>
 
-      {failed ? <p className="mt-2 text-[12px] font-semibold text-sun-600">The check could not run just now. Publishing works without it.</p> : null}
+      {failed ? <p className="mt-2 text-[12px] font-semibold text-warn-600">The check could not run just now. Publishing works without it.</p> : null}
 
       {data && !data.ai && !data.duplicates.length && !data.place ? (
-        <p className="mt-2 text-[12px] text-ink-300">Nothing to suggest — no similar reports nearby. (AI wording help is not switched on for this site yet.)</p>
+        <p className="mt-2 text-[12px] text-tertiary">Nothing to suggest — no similar reports nearby. (AI wording help is not switched on for this site yet.)</p>
       ) : null}
 
       {data ? (
         <div className="mt-2 space-y-2">
           {data.duplicates.map((d) => (
             <div key={d.id} className={`rounded-xl px-3 py-2 text-[12.5px] ${d.strength === "exact" ? "bg-danger-500/15" : "bg-white/5"}`}>
-              <p className="font-bold text-sand-100">
+              <p className="font-bold text-primary">
                 {d.strength === "exact" ? "This exact spot is already on the map:" : "Sounds like one already on the map:"}{" "}
-                <Link href={`/incident/${d.id}`} className="text-tide-300 underline" target="_blank">
+                <Link href={`/incident/${d.id}`} className="text-text-accent underline" target="_blank">
                   {d.title}
                 </Link>
               </p>
-              <p className="mt-0.5 text-ink-300">
+              <p className="mt-0.5 text-tertiary">
                 {CATEGORIES[d.category as CategoryKey]?.label ?? d.category} · confirmed ×{d.confirmations}
                 {d.distanceM !== null ? ` · ~${d.distanceM} m from your pin` : ""}. Same thing? Open it and tap “confirm” instead of filing a second
                 pin — one strong pin alerts neighbours better than two weak ones.
@@ -126,32 +126,32 @@ export function ReportAssist({
           ))}
 
           {categoryDiff ? (
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-300">
-              This reads as <strong className="text-sand-100">{CATEGORIES[categoryDiff].label}</strong> ({s?.confidence} confidence)
+            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-tertiary">
+              This reads as <strong className="text-primary">{CATEGORIES[categoryDiff].label}</strong> ({s?.confidence} confidence)
               <button type="button" className={applyBtn} onClick={() => onCategory(categoryDiff)}>
                 Use {CATEGORIES[categoryDiff].label}
               </button>
             </p>
           ) : null}
           {severityDiff ? (
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-300">
-              Severity looks more like <strong className="text-sand-100">{SEVERITY_LABELS[severityDiff - 1]} ({severityDiff}/4)</strong>
+            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-tertiary">
+              Severity looks more like <strong className="text-primary">{SEVERITY_LABELS[severityDiff - 1]} ({severityDiff}/4)</strong>
               <button type="button" className={applyBtn} onClick={() => onSeverity(severityDiff)}>
                 Set {severityDiff}/4
               </button>
             </p>
           ) : null}
           {headlineDiff ? (
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-300">
-              Clearer headline: <strong className="text-sand-100">“{headlineDiff}”</strong>
+            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-tertiary">
+              Clearer headline: <strong className="text-primary">“{headlineDiff}”</strong>
               <button type="button" className={applyBtn} onClick={() => onHeadline(headlineDiff)}>
                 Use it
               </button>
             </p>
           ) : null}
           {placeDiff ? (
-            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-ink-300">
-              Your words name <strong className="text-sand-100">{placeDiff.street}, {placeDiff.parish}</strong> — not where the pin is.
+            <p className="flex flex-wrap items-center gap-2 text-[12.5px] text-tertiary">
+              Your words name <strong className="text-primary">{placeDiff.street}, {placeDiff.parish}</strong> — not where the pin is.
               <button
                 type="button"
                 className={applyBtn}
@@ -162,18 +162,18 @@ export function ReportAssist({
             </p>
           ) : null}
           {s?.missingInfo.length ? (
-            <div className="text-[12.5px] text-ink-300">
-              <p className="font-bold text-sand-100">Neighbours would ask:</p>
+            <div className="text-[12.5px] text-tertiary">
+              <p className="font-bold text-primary">Neighbours would ask:</p>
               <ul className="mt-0.5 list-disc space-y-0.5 pl-5">
                 {s.missingInfo.map((q) => (
                   <li key={q}>{q}</li>
                 ))}
               </ul>
-              <p className="mt-0.5 text-[11.5px] text-ink-400">Add what you know to “What neighbours should know” — or publish as is.</p>
+              <p className="mt-0.5 text-[11.5px] text-tertiary">Add what you know to “What neighbours should know” — or publish as is.</p>
             </div>
           ) : null}
           {data.ai && !categoryDiff && !severityDiff && !headlineDiff && !s?.missingInfo.length && !data.duplicates.length ? (
-            <p className="text-[12.5px] font-semibold text-tide-300">✓ This reads clearly as-is. Good to publish.</p>
+            <p className="text-[12.5px] font-semibold text-text-accent">✓ This reads clearly as-is. Good to publish.</p>
           ) : null}
         </div>
       ) : null}

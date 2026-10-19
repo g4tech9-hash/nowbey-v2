@@ -39,7 +39,7 @@ export function CrashDismissButton({ id }: { id: number }) {
   const [failed, setFailed] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  if (done) return <span className="text-[11.5px] text-ink-400">dismissed</span>;
+  if (done) return <span className="text-[11.5px] text-tertiary">dismissed</span>;
 
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -69,7 +69,7 @@ export function CrashDismissButton({ id }: { id: number }) {
             }
           })
         }
-        className="rounded-full border hairline px-2.5 py-1 text-[11.5px] font-bold text-ink-400 hover:bg-white/8 disabled:opacity-50"
+        className="rounded-full border hairline px-2.5 py-1 text-[11.5px] font-bold text-tertiary hover:bg-white/8 disabled:opacity-50"
       >
         {pending ? "…" : "Dismiss"}
       </button>

@@ -6,13 +6,13 @@ import { INPUT, LABEL } from "@/components/password-field";
 
 type Msg = { ok: boolean; text: string } | null;
 
-const SAVE = "rounded-xl bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-50";
+const SAVE = "rounded-xl bg-accent px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-50";
 const BIO_MAX = 200;
 
 function Note({ msg }: { msg: Msg }) {
   if (!msg) return null;
   return (
-    <p role={msg.ok ? "status" : "alert"} className={`mt-2.5 rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
+    <p role={msg.ok ? "status" : "alert"} className={`mt-2.5 rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-accent/12 text-text-accent" : "bg-danger-500/15 text-danger-500"}`}>
       {msg.text}
     </p>
   );
@@ -68,7 +68,7 @@ export function ProfileForm({ settings }: { settings: ProfileSettingsInput }) {
           className={`${INPUT} mt-1 resize-none`}
         />
       </label>
-      <p className="mt-1 text-[11.5px] text-ink-400">
+      <p className="mt-1 text-[11.5px] text-tertiary">
         {BIO_MAX - bio.length} characters left. It appears at the top of your profile.
       </p>
 
@@ -77,18 +77,18 @@ export function ProfileForm({ settings }: { settings: ProfileSettingsInput }) {
         <div className="mt-1.5 space-y-2">
           <label className="flex items-start gap-2.5">
             <input type="radio" name="visibility" checked={visibility === "open"} onChange={() => setVisibility("open")} className="mt-0.5" />
-            <span className="text-[13px] text-sand-100">
+            <span className="text-[13px] text-primary">
               <span className="font-bold">Open</span>
-              <span className="block text-[12px] text-ink-400">
+              <span className="block text-[12px] text-tertiary">
                 Anyone can open your profile and see your reports, your badge and, if you switch it on below, how many islands your alerts cover.
               </span>
             </span>
           </label>
           <label className="flex items-start gap-2.5">
             <input type="radio" name="visibility" checked={visibility === "private"} onChange={() => setVisibility("private")} className="mt-0.5" />
-            <span className="text-[13px] text-sand-100">
+            <span className="text-[13px] text-primary">
               <span className="font-bold">Private</span>
-              <span className="block text-[12px] text-ink-400">
+              <span className="block text-[12px] text-tertiary">
                 Your handle still appears on the reports you file, but nobody can open a profile page about you. Your reports stay on the map either way.
               </span>
             </span>
@@ -98,9 +98,9 @@ export function ProfileForm({ settings }: { settings: ProfileSettingsInput }) {
 
       <label className="mt-4 flex items-start gap-2.5">
         <input type="checkbox" checked={showAlertSummary} onChange={(e) => setShowAlertSummary(e.target.checked)} className="mt-0.5" />
-        <span className="text-[13px] text-sand-100">
+        <span className="text-[13px] text-primary">
           <span className="font-bold">Show how many islands my alerts cover</span>
-          <span className="block text-[12px] text-ink-400">
+          <span className="block text-[12px] text-tertiary">
             Just the number. Your email address and the kinds of alerts you chose are never shown to anyone.
           </span>
         </span>
@@ -142,7 +142,7 @@ export function HideReportButton({ incidentId, hidden, title }: { incidentId: st
           }
         }}
         className={`rounded-full border hairline px-3 py-1.5 text-[11.5px] font-bold ${
-          hidden ? "bg-sand-100 text-on-accent hover:bg-white" : "text-sand-100 hover:bg-white/8"
+          hidden ? "bg-primary text-on-accent hover:bg-white" : "text-primary hover:bg-white/8"
         } disabled:opacity-50`}
       >
         {busy ? "Saving…" : hidden ? "Show on profile" : "Hide from profile"}

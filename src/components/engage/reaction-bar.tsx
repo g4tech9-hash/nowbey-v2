@@ -68,7 +68,7 @@ export function ReactionBar({ type, id, initial, signedIn, variant = "full" }: P
             aria-label={`${REACTIONS[k].label}${n ? `, ${n}` : ""}`}
             title={REACTIONS[k].label}
             className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-[13px] font-bold transition ${
-              on ? "bg-tide-500/25 text-tide-300 ring-1 ring-tide-400/60" : "bg-white/8 text-ink-200 hover:bg-white/14"
+              on ? "bg-accent/25 text-text-accent ring-1 ring-accent-hover/60" : "bg-white/8 text-secondary hover:bg-white/14"
             }`}
           >
             <span className="text-[16px] leading-none" aria-hidden="true">
@@ -105,7 +105,7 @@ export function ReactionBar({ type, id, initial, signedIn, variant = "full" }: P
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3 text-[12.5px] font-bold transition ${
-            eng.mine ? "bg-tide-500/25 text-tide-300" : "bg-white/8 text-ink-200 hover:bg-white/14"
+            eng.mine ? "bg-accent/25 text-text-accent" : "bg-white/8 text-secondary hover:bg-white/14"
           }`}
         >
           {eng.mine ? (
@@ -117,7 +117,7 @@ export function ReactionBar({ type, id, initial, signedIn, variant = "full" }: P
           )}
         </button>
         {eng.total > 0 ? (
-          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-ink-300" aria-label={`${eng.total} ${eng.total === 1 ? "reaction" : "reactions"}`}>
+          <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-tertiary" aria-label={`${eng.total} ${eng.total === 1 ? "reaction" : "reactions"}`}>
             <span aria-hidden="true">{top.map((k) => REACTIONS[k].emoji).join("")}</span>
             {eng.total}
           </span>

@@ -12,7 +12,7 @@
  *  it already handles busy state and errors correctly. But the line that shows
  *  the outcome is a plain <p>:
  *
- *      {note ? <p className="text-[11.5px] text-sun-600">{note}</p> : null}
+ *      {note ? <p className="text-[11.5px] text-warn-600">{note}</p> : null}
  *
  *  A sighted user sees "Still there" or "Could not reach the wire". A
  *  screen-reader user hears nothing: the text is injected after the fact with
@@ -93,7 +93,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
           onClick={() => send("confirm")}
           disabled={busy !== null}
           aria-label={busy === "confirm" ? PENDING.confirm : undefined}
-          className="rounded-full bg-tide-500/15 px-2.5 py-1 font-bold text-tide-300 ring-1 ring-tide-400/35 hover:bg-tide-500 hover:text-on-accent disabled:opacity-50"
+          className="rounded-full bg-accent/15 px-2.5 py-1 font-bold text-text-accent ring-1 ring-accent-hover/35 hover:bg-accent hover:text-on-accent disabled:opacity-50"
         >
           {busy === "confirm" ? "Saving…" : `Still there · ${n}`}
         </button>
@@ -102,7 +102,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
           onClick={() => send("photo", { note: "I saw it too." })}
           disabled={busy !== null}
           aria-label={busy === "photo" ? PENDING.photo : undefined}
-          className="rounded-full bg-white/8 px-2.5 py-1 font-bold text-ink-200 hover:bg-white/16 disabled:opacity-50"
+          className="rounded-full bg-white/8 px-2.5 py-1 font-bold text-secondary hover:bg-white/16 disabled:opacity-50"
         >
           {busy === "photo" ? "Saving…" : "Saw it too"}
         </button>
@@ -112,7 +112,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
             onClick={() => send("clear")}
             disabled={busy !== null}
             aria-label={busy === "clear" ? PENDING.clear : undefined}
-            className="rounded-full bg-white/8 px-2.5 py-1 font-bold text-ink-200 hover:bg-white/16 disabled:opacity-50"
+            className="rounded-full bg-white/8 px-2.5 py-1 font-bold text-secondary hover:bg-white/16 disabled:opacity-50"
           >
             {busy === "clear" ? "Saving…" : "Cleared up"}
           </button>
@@ -123,7 +123,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
             onClick={() => send("escalate")}
             disabled={busy !== null}
             aria-label={busy === "escalate" ? PENDING.escalate : undefined}
-            className="rounded-full bg-danger-500/15 px-2.5 py-1 font-bold text-danger-500 hover:bg-conch-500/28 disabled:opacity-50"
+            className="rounded-full bg-danger-500/15 px-2.5 py-1 font-bold text-danger-500 hover:bg-danger-500/28 disabled:opacity-50"
           >
             {busy === "escalate" ? "Saving…" : "Getting worse"}
           </button>
@@ -139,7 +139,7 @@ export function IncidentActions({ id, confirmations, status, handle, compact = f
         <p
           role={note.ok ? "status" : "alert"}
           aria-live={note.ok ? "polite" : "assertive"}
-          className={`text-[11.5px] ${note.ok ? "text-tide-300" : "text-danger-500"}`}
+          className={`text-[11.5px] ${note.ok ? "text-text-accent" : "text-danger-500"}`}
         >
           {note.text}
         </p>

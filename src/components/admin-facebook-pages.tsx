@@ -6,7 +6,7 @@ import type { FbIngestStatus } from "@/lib/facebook-ingest-core";
 
 const BTN = "rounded-full px-3 py-1.5 text-[12px] font-bold disabled:opacity-50";
 const INPUT =
-  "min-h-[40px] w-full rounded-xl border hairline bg-white/5 px-3 text-[13px] text-sand-100 placeholder:text-ink-400 focus:border-tide-500 focus:outline-none";
+  "min-h-[40px] w-full rounded-xl border hairline bg-white/5 px-3 text-[13px] text-primary placeholder:text-tertiary focus:border-accent focus:outline-none";
 
 async function send(url: string, method: string, body?: unknown) {
   const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
@@ -124,12 +124,12 @@ export function FacebookPagesAdmin({
     <section className="glass rounded-2xl p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="display text-[15px] font-bold text-sand-100">Facebook pages on the wire{pages.length ? ` (${pages.length})` : ""}</p>
+          <p className="display text-[15px] font-bold text-primary">Facebook pages on the wire{pages.length ? ` (${pages.length})` : ""}</p>
           <p className="mt-0.5 text-[12px] text-secondary">
             Paste a public Facebook page link and its posts are converted to stories on the wire — same cards, categories and map pins as the news outlets.
           </p>
         </div>
-        <button type="button" disabled={checking || busy} onClick={checkNow} className={`${BTN} border hairline text-sand-100 hover:bg-white/8`}>
+        <button type="button" disabled={checking || busy} onClick={checkNow} className={`${BTN} border hairline text-primary hover:bg-white/8`}>
           {checking ? "Checking…" : "Check now"}
         </button>
       </div>
@@ -147,12 +147,12 @@ export function FacebookPagesAdmin({
               <li key={p.username} className="py-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-[13px] font-semibold text-sand-100">{p.pageName}</p>
+                    <p className="text-[13px] font-semibold text-primary">{p.pageName}</p>
                     <a
                       href={`https://www.facebook.com/${p.username}/`}
                       target="_blank"
                       rel="noopener noreferrer nofollow"
-                      className="block truncate text-[11.5px] text-tide-300 underline"
+                      className="block truncate text-[11.5px] text-text-accent underline"
                     >
                       facebook.com/{p.username}
                     </a>
@@ -174,7 +174,7 @@ export function FacebookPagesAdmin({
                     className={INPUT}
                     inputMode="url"
                   />
-                  <button type="button" disabled={busy} onClick={() => saveBridge(p.username)} className={`${BTN} shrink-0 border hairline text-sand-100 hover:bg-white/8`}>
+                  <button type="button" disabled={busy} onClick={() => saveBridge(p.username)} className={`${BTN} shrink-0 border hairline text-primary hover:bg-white/8`}>
                     {busy ? "…" : "Save bridge"}
                   </button>
                 </div>
@@ -205,12 +205,12 @@ export function FacebookPagesAdmin({
           inputMode="url"
         />
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name (optional)" className={`${INPUT} sm:max-w-[200px]`} />
-        <button type="button" disabled={busy || !url.trim()} onClick={add} className={`${BTN} bg-tide-600 text-sand-100 hover:bg-tide-500`}>
+        <button type="button" disabled={busy || !url.trim()} onClick={add} className={`${BTN} bg-accent text-primary hover:bg-accent`}>
           {busy ? "…" : "Add page"}
         </button>
       </div>
       {err ? <p className="mt-1.5 text-[11.5px] text-danger-500">{err}</p> : null}
-      {notice ? <p className="mt-1.5 text-[11.5px] text-ok-500">{notice}</p> : null}
+      {notice ? <p className="mt-1.5 text-[11.5px] text-success-500">{notice}</p> : null}
     </section>
   );
 }

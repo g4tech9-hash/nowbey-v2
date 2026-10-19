@@ -44,11 +44,11 @@ export default async function AdminOverview() {
         </section>
         <p className="text-[13px] text-secondary">
           As an editor you can resolve, hide or restore reports and decide which reader links go on the wire. Open{" "}
-          <Link href="/admin/reports" className="font-bold text-tide-300 underline">
+          <Link href="/admin/reports" className="font-bold text-text-accent underline">
             Reports
           </Link>{" "}
           or{" "}
-          <Link href="/admin/wire" className="font-bold text-tide-300 underline">
+          <Link href="/admin/wire" className="font-bold text-text-accent underline">
             Wire
           </Link>{" "}
           to start.
@@ -141,10 +141,10 @@ export default async function AdminOverview() {
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Crashes</p>
+        <p className="display text-[15px] font-bold text-primary">Crashes</p>
         <p className="mt-1 text-[13px] text-secondary">
           Browser, server and app errors, grouped — one row per bug. If a beta tester says “the map died”, the answer is here. Needs add-client-errors.sql run first.{" "}
-          <Link href="/admin/logs" className="font-bold text-tide-300 underline">
+          <Link href="/admin/logs" className="font-bold text-text-accent underline">
             Open Logs &amp; AI fixes →
           </Link>{" "}
           for breadcrumbs, AI diagnoses and approving a fix.
@@ -153,8 +153,8 @@ export default async function AdminOverview() {
           <ul className="mt-3 space-y-1.5">
             {crashes.map((e) => (
               <li key={e.id} className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-lg bg-white/4 px-3 py-2 text-[12px]">
-                <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11.5px] font-extrabold uppercase ${e.kind === "server" ? "bg-conch-500/20 text-conch-400" : e.kind === "boundary" ? "bg-sun-500/20 text-sun-400" : "bg-tide-500/18 text-tide-300"}`}>{e.kind}</span>
-                <span className="min-w-0 flex-1 truncate font-semibold text-sand-100" title={e.message}>{e.message}</span>
+                <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11.5px] font-extrabold uppercase ${e.kind === "server" ? "bg-danger-500/20 text-danger-400" : e.kind === "boundary" ? "bg-warn-500/20 text-warn-400" : "bg-accent/18 text-text-accent"}`}>{e.kind}</span>
+                <span className="min-w-0 flex-1 truncate font-semibold text-primary" title={e.message}>{e.message}</span>
                 <span className="shrink-0 font-mono text-[11.5px] text-tertiary">{e.url ?? "—"}</span>
                 <span className="shrink-0 text-secondary">×{e.count}</span>
                 {e.handle ? <span className="shrink-0 text-secondary">@{e.handle}</span> : null}
@@ -169,7 +169,7 @@ export default async function AdminOverview() {
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Island Life places</p>
+        <p className="display text-[15px] font-bold text-primary">Island Life places</p>
         <p className="mt-1 text-[13px] text-secondary">Fills the place directory with bars, restaurants, cafes and beaches from OpenStreetMap. Run it once, and again whenever you want new venues.</p>
         <div className="mt-3">
           <PlaceImportButton />
@@ -177,15 +177,15 @@ export default async function AdminOverview() {
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Setup checklist</p>
+        <p className="display text-[15px] font-bold text-primary">Setup checklist</p>
         <ul className="mt-2 space-y-2">
           {checks.map(([label, ok, help, optional]) => (
             <li key={label} className="flex items-start gap-2.5 text-[13px]">
-              <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11.5px] font-black ${ok ? "bg-tide-500 text-on-accent" : optional ? "bg-hover text-secondary" : "bg-sun-500/25 text-sun-400"}`}>
+              <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11.5px] font-black ${ok ? "bg-accent text-on-accent" : optional ? "bg-hover text-secondary" : "bg-warn-500/25 text-warn-400"}`}>
                 {ok ? "✓" : optional ? "–" : "!"}
               </span>
               <span>
-                <span className="font-bold text-sand-100">{label}</span>
+                <span className="font-bold text-primary">{label}</span>
                 <span className="block text-[12px] text-secondary">{ok ? "Set up." : optional ? `Optional, not in use. ${help}` : help}</span>
               </span>
             </li>

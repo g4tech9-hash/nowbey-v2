@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export function ProfileAvatar({ handle, version = "" }: { handle: string; version?: string }) {
   const [failed, setFailed] = useState(false);
-  return <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-abyss-900 bg-tide-500/20 text-3xl font-extrabold text-tide-300 shadow-lg">
+  return <div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-raised bg-accent/20 text-3xl font-extrabold text-text-accent shadow-lg">
     {failed ? <span aria-label={`@${handle} profile initials`}>{handle.slice(0, 2).toUpperCase()}</span> :
       // Same-origin privacy-checked endpoint; not an external image URL.
       // eslint-disable-next-line @next/next/no-img-element
@@ -34,11 +34,11 @@ export function AvatarEditor({ handle }: { handle: string }) {
     <div className="flex flex-wrap items-center gap-4">
       <ProfileAvatar key={version} handle={handle} version={String(version)} />
       <div className="min-w-0 flex-1 space-y-2">
-        <h2 className="font-bold text-sand-100">Your profile photo</h2>
-        <p className="text-sm text-ink-400">Optional · JPEG, PNG or WebP under 3 MB. Photos are cropped square; location metadata is removed. Your profile visibility applies to your photo too.</p>
+        <h2 className="font-bold text-primary">Your profile photo</h2>
+        <p className="text-sm text-tertiary">Optional · JPEG, PNG or WebP under 3 MB. Photos are cropped square; location metadata is removed. Your profile visibility applies to your photo too.</p>
         <input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} aria-label="Upload profile photo" className="block w-full max-w-full text-sm" onChange={(e) => { const file = e.target.files?.[0]; if (file) void save(file); e.target.value = ""; }} />
         <button type="button" disabled={busy} onClick={() => void save()} className="min-h-[44px] rounded-full border hairline px-3 text-sm font-bold disabled:opacity-50">Remove photo</button>
-        <p role="status" className="text-sm text-tide-300">{busy ? "Saving…" : message}</p>
+        <p role="status" className="text-sm text-text-accent">{busy ? "Saving…" : message}</p>
       </div>
     </div>
   </section>;

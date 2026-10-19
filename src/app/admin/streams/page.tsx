@@ -34,7 +34,7 @@ export default async function StreamsAdmin() {
   if (missingTable) {
     return (
       <div className="glass rounded-2xl p-5 text-[13px] text-secondary">
-        Live broadcasts are not switched on yet. Run <span className="font-mono text-sand-100">add-live-streams.sql</span> on the
+        Live broadcasts are not switched on yet. Run <span className="font-mono text-primary">add-live-streams.sql</span> on the
         database first (see TODO_HUMAN.md), then reload this page.
       </div>
     );
@@ -42,11 +42,11 @@ export default async function StreamsAdmin() {
 
   return (
     <div className="space-y-4">
-      <Link href="/broadcast" className="inline-block rounded-full bg-tide-500 px-4 py-2 font-bold text-on-accent">Open broadcast studio / viewer</Link>
+      <Link href="/broadcast" className="inline-block rounded-full bg-accent px-4 py-2 font-bold text-on-accent">Open broadcast studio / viewer</Link>
       <p className="text-[12px] text-secondary">
         {live.length} {live.length === 1 ? "broadcast" : "broadcasts"} live now. Killing a broadcast cuts viewers off immediately and
         records who stopped it and why. Going live is limited to members with the broadcaster badge — grant it on a{" "}
-        <Link href="/admin/users" className="font-bold text-tide-300 underline">member page</Link>.
+        <Link href="/admin/users" className="font-bold text-text-accent underline">member page</Link>.
       </p>
 
       {live.length === 0 ? (
@@ -55,7 +55,7 @@ export default async function StreamsAdmin() {
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {live.map((s) => (
             <li key={s.id} className="glass space-y-2 rounded-2xl p-3.5">
-              <div className="overflow-hidden rounded-xl bg-abyss-900/80">
+              <div className="overflow-hidden rounded-xl bg-raised/80">
                 {s.playbackUrl ? (
                   <video key={s.playbackUrl} src={s.playbackUrl} controls playsInline className="aspect-video w-full" />
                 ) : (
@@ -68,16 +68,16 @@ export default async function StreamsAdmin() {
                 <Pill tone="conch">● live</Pill>
                 <span className="text-[11.5px] text-tertiary">{timeAgo(s.startedAt)}</span>
               </div>
-              <p className="text-[14px] font-bold text-sand-100">{s.title}</p>
+              <p className="text-[14px] font-bold text-primary">{s.title}</p>
               <p className="text-[12px] text-secondary">
                 by @{s.authorHandle}
                 {s.incidentId ? (
                   <>
-                    {" "}· covering <Link href={`/admin/reports/${s.incidentId}`} className="font-bold text-tide-300 underline">a report</Link>
+                    {" "}· covering <Link href={`/admin/reports/${s.incidentId}`} className="font-bold text-text-accent underline">a report</Link>
                   </>
                 ) : null}
               </p>
-              {s.playbackUrl === null ? <Link href="/broadcast" className="block text-sm font-bold text-tide-300 underline">Open live viewer</Link> : null}
+              {s.playbackUrl === null ? <Link href="/broadcast" className="block text-sm font-bold text-text-accent underline">Open live viewer</Link> : null}
               <KillStreamButton id={s.id} />
             </li>
           ))}
@@ -86,7 +86,7 @@ export default async function StreamsAdmin() {
 
       {recent.length ? (
         <div className="glass rounded-2xl p-4">
-          <h3 className="mb-2 text-[13px] font-extrabold uppercase tracking-wide text-sand-100">Recently killed</h3>
+          <h3 className="mb-2 text-[13px] font-extrabold uppercase tracking-wide text-primary">Recently killed</h3>
           <ul className="space-y-1.5">
             {recent.map((s) => (
               <li key={s.id} className="text-[12.5px] text-secondary">

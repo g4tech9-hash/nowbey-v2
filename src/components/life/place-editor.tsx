@@ -12,8 +12,8 @@ type Props = {
   initial: { address: string | null; hours: Partial<Record<Day, string>>; menuText: string | null };
 };
 
-const field = "mt-1 w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2.5 py-2 text-[13px] outline-none focus:border-tide-400";
-const label = "text-[11.5px] font-bold uppercase tracking-wide text-tide-400";
+const field = "mt-1 w-full rounded-lg border border-white/10 bg-base/70 px-2.5 py-2 text-[13px] outline-none focus:border-accent-hover";
+const label = "text-[11.5px] font-bold uppercase tracking-wide text-accent-hover";
 
 export function PlaceEditor({ placeId, kind, signedIn, initial }: Props) {
   const router = useRouter();
@@ -88,7 +88,7 @@ export function PlaceEditor({ placeId, kind, signedIn, initial }: Props) {
                 value={hours[d] ?? ""}
                 onChange={(e) => setHours({ ...hours, [d]: e.target.value })}
                 placeholder="9:00 AM - 5:00 PM or Closed"
-                className="w-full rounded-lg border border-white/10 bg-abyss-950/70 px-2 py-1.5 text-[12.5px] outline-none focus:border-tide-400"
+                className="w-full rounded-lg border border-white/10 bg-base/70 px-2 py-1.5 text-[12.5px] outline-none focus:border-accent-hover"
                 maxLength={60}
               />
             </label>
@@ -100,14 +100,14 @@ export function PlaceEditor({ placeId, kind, signedIn, initial }: Props) {
         <span className={label}>Menu or popular items (one per line)</span>
         <textarea value={menu} onChange={(e) => setMenu(e.target.value)} rows={5} placeholder={"Cracked conch - $24\nGrouper sandwich - $16"} className={field} maxLength={4000} />
       </label>
-      <button type="button" disabled={busy !== null} onClick={save} className="rounded-full bg-tide-400 px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-60">
+      <button type="button" disabled={busy !== null} onClick={save} className="rounded-full bg-accent-hover px-4 py-2 text-[13px] font-extrabold text-on-accent disabled:opacity-60">
         {busy === "save" ? "Saving..." : "Save details"}
       </button>
 
       <div className="border-t border-white/10 pt-4">
         <p className={label}>Add photos</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
-          <select value={photoKind} onChange={(e) => setPhotoKind(e.target.value as "photo" | "menu")} className="rounded-lg border border-white/10 bg-abyss-950/80 px-2 py-1.5 text-[12.5px]">
+          <select value={photoKind} onChange={(e) => setPhotoKind(e.target.value as "photo" | "menu")} className="rounded-lg border border-white/10 bg-base/80 px-2 py-1.5 text-[12.5px]">
             <option value="photo">Photo of the place</option>
             <option value="menu">Photo of the menu</option>
           </select>
@@ -116,7 +116,7 @@ export function PlaceEditor({ placeId, kind, signedIn, initial }: Props) {
         {busy === "upload" ? <p className="mt-1 text-[12px] text-sand-200">Uploading...</p> : null}
       </div>
 
-      {msg ? <p className={`text-[12px] ${msg.ok ? "text-tide-300" : "text-red-300"}`}>{msg.text}</p> : null}
+      {msg ? <p className={`text-[12px] ${msg.ok ? "text-text-accent" : "text-red-300"}`}>{msg.text}</p> : null}
     </div>
   );
 }

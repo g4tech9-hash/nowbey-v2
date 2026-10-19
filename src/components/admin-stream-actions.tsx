@@ -37,11 +37,11 @@ export function KillStreamButton({ id }: { id: string }) {
             setBusy(false);
           }
         }}
-        className={`${BTN} bg-conch-500 font-extrabold text-on-accent`}
+        className={`${BTN} bg-danger-500 font-extrabold text-on-accent`}
       >
         {busy ? "Killing…" : "Kill stream"}
       </button>
-      {err ? <p className="text-[11.5px] text-conch-400">{err}</p> : null}
+      {err ? <p className="text-[11.5px] text-danger-400">{err}</p> : null}
     </div>
   );
 }

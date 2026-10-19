@@ -86,18 +86,18 @@ export function BroadcastStudio({ canPublish }: { canPublish: boolean }) {
   return <div className="space-y-5">
     <section className="nb-surface space-y-3 p-4">
       <h1 className="display text-2xl font-bold">NowBey broadcasts</h1>
-      <p className="text-sm text-ink-300">Live camera and audio from trusted community broadcasters. No recording is enabled by this integration. Not an emergency service.</p>
+      <p className="text-sm text-tertiary">Live camera and audio from trusted community broadcasters. No recording is enabled by this integration. Not an emergency service.</p>
       {canPublish && !id ? <div className="flex flex-wrap gap-2">
-        <input value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} placeholder="What are you covering?" aria-label="Broadcast title" className="min-h-[44px] min-w-0 flex-1 rounded-xl border hairline bg-abyss-950 px-3" />
-        <button disabled={busy || title.trim().length < 4} onClick={() => void start()} className="rounded-full bg-tide-500 px-4 py-2 font-bold text-on-accent disabled:opacity-50">Go live with camera & audio</button>
+        <input value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} placeholder="What are you covering?" aria-label="Broadcast title" className="min-h-[44px] min-w-0 flex-1 rounded-xl border hairline bg-base px-3" />
+        <button disabled={busy || title.trim().length < 4} onClick={() => void start()} className="rounded-full bg-accent px-4 py-2 font-bold text-on-accent disabled:opacity-50">Go live with camera & audio</button>
       </div> : null}
-      {!canPublish ? <p className="text-sm text-ink-400">Watching is open to everyone. Publishing requires staff access or an active Broadcaster grant.</p> : null}
-      <p role="status" className="text-sm text-tide-300">{message}</p>
+      {!canPublish ? <p className="text-sm text-tertiary">Watching is open to everyone. Publishing requires staff access or an active Broadcaster grant.</p> : null}
+      <p role="status" className="text-sm text-text-accent">{message}</p>
       <div ref={media} className="overflow-hidden rounded-xl bg-black" />
       {id ? <div className="flex flex-wrap gap-2"><button disabled={busy} onClick={() => void leave()} className="rounded-full border hairline px-4 py-2 font-bold">{publishing ? "End broadcast" : "Leave broadcast"}</button><button onClick={() => void room.current?.startAudio()} className="rounded-full border hairline px-4 py-2">Enable audio</button></div> : null}
     </section>
     <section className="nb-surface space-y-3 p-4"><h2 className="font-bold">Live now</h2>
-      {!streams.length ? <p className="text-sm text-ink-400">No broadcasts listed.</p> : streams.filter((s) => s.watchUrl).map((s) => <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border hairline p-3"><span>{s.title} · @{s.handle}</span><button disabled={busy || !!id} onClick={async () => { setBusy(true); try { await connect(s.id); } catch { await room.current?.disconnect(); setMessage("Could not join this broadcast."); } finally { setBusy(false); } }} className="rounded-full bg-tide-500 px-4 py-2 font-bold text-on-accent disabled:opacity-50">Watch / rejoin</button></div>)}
+      {!streams.length ? <p className="text-sm text-tertiary">No broadcasts listed.</p> : streams.filter((s) => s.watchUrl).map((s) => <div key={s.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border hairline p-3"><span>{s.title} · @{s.handle}</span><button disabled={busy || !!id} onClick={async () => { setBusy(true); try { await connect(s.id); } catch { await room.current?.disconnect(); setMessage("Could not join this broadcast."); } finally { setBusy(false); } }} className="rounded-full bg-accent px-4 py-2 font-bold text-on-accent disabled:opacity-50">Watch / rejoin</button></div>)}
     </section>
   </div>;
 }

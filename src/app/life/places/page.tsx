@@ -31,7 +31,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
         title="Places"
         blurb="Restaurants, bars, beaches, events and things to do, listed by the members who have been there. Ratings and prices come only from NowBey members."
         actions={
-          <Link href="/life/new" className="rounded-full bg-sun-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
+          <Link href="/life/new" className="rounded-full bg-warn-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
             Review a place
           </Link>
         }
@@ -55,7 +55,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           scroll
         />
 
-        <p className="text-[12px] text-ink-400">
+        <p className="text-[12px] text-tertiary">
           {total} {total === 1 ? "place" : "places"}
           {kind ? ` in ${KINDS[kind].label}` : ""}
           {parish ? ` on ${parish}` : ""}, best rated first.
@@ -71,13 +71,13 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                     {k.label}
                     {p.parish ? ` · ${p.parish}` : ""}
                   </p>
-                  <h2 className="display mt-1 break-words text-[17px] font-extrabold text-sand-100">
+                  <h2 className="display mt-1 break-words text-[17px] font-extrabold text-primary">
                     <Link href={`/life/place/${p.id}`} className="hover:underline">
                       {p.name}
                     </Link>
                   </h2>
-                  {p.address ? <p className="mt-0.5 break-words text-[12px] text-ink-400">{p.address}</p> : null}
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-ink-200">
+                  {p.address ? <p className="mt-0.5 break-words text-[12px] text-tertiary">{p.address}</p> : null}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-secondary">
                     {p.avg ? (
                       <>
                         <Stars value={Math.round(p.avg)} size={13} />
@@ -86,7 +86,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                         </span>
                       </>
                     ) : (
-                      <span className="text-ink-400">Not rated yet</span>
+                      <span className="text-tertiary">Not rated yet</span>
                     )}
                     <span aria-hidden="true">·</span>
                     <span>{dollars(p.price)}</span>
@@ -101,7 +101,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                       </>
                     ) : null}
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] font-medium text-ink-400">
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] font-medium text-tertiary">
                     {p.hours ? (
                       <span className="flex items-center gap-1">
                         <span className="opacity-50">🕒</span> {p.hours}
@@ -113,7 +113,7 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
                       </span>
                     ) : null}
                     {p.website ? (
-                      <a href={p.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-tide-300 hover:underline">
+                      <a href={p.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-text-accent hover:underline">
                         <span className="opacity-50">🌐</span> Website
                       </a>
                     ) : null}
@@ -124,8 +124,8 @@ export default async function PlacesPage({ searchParams }: { searchParams: Promi
           </div>
         ) : (
           <div className="nb-surface rounded-xl2 p-7 text-center">
-            <p className="display text-[17px] font-bold text-sand-100">No places here yet</p>
-            <p className="mx-auto mt-1.5 max-w-[44ch] text-[13px] leading-relaxed text-ink-300">
+            <p className="display text-[17px] font-bold text-primary">No places here yet</p>
+            <p className="mx-auto mt-1.5 max-w-[44ch] text-[13px] leading-relaxed text-tertiary">
               {viewer.signedIn ? "Try another filter. Places appear once an admin imports them, or a member reviews one." : "Sign in and review a place to start the list."}
             </p>
           </div>

@@ -32,25 +32,25 @@ export default function ForgotPassword() {
 
   return (
     <div className="mx-auto max-w-[460px] py-6">
-      <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">Account help</p>
-      <h1 className="display mt-1.5 text-[clamp(1.6rem,4vw,2.1rem)] font-extrabold leading-tight text-sand-100">Forgot your password?</h1>
+      <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-accent-hover">Account help</p>
+      <h1 className="display mt-1.5 text-[clamp(1.6rem,4vw,2.1rem)] font-extrabold leading-tight text-primary">Forgot your password?</h1>
 
       {sent ? (
         <div className="glass mt-4 rounded-2xl p-4">
-          <p className="display text-[15px] font-bold text-sand-100">Check your email</p>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-ink-300">
-            If an account uses <strong className="text-sand-100">{email}</strong>, we have sent a link to choose a new password. It works for one hour.
+          <p className="display text-[15px] font-bold text-primary">Check your email</p>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-tertiary">
+            If an account uses <strong className="text-primary">{email}</strong>, we have sent a link to choose a new password. It works for one hour.
           </p>
-          <p className="mt-2 text-[12px] leading-relaxed text-ink-400">
+          <p className="mt-2 text-[12px] leading-relaxed text-tertiary">
             Nothing after a few minutes? Check your spam folder. If you never added an email to your account, ask a NowBey admin to help you back in.
           </p>
-          <Link href="/login?mode=signin" className="mt-3 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">
+          <Link href="/login?mode=signin" className="mt-3 inline-block text-[12.5px] font-bold text-text-accent hover:underline">
             Back to sign in
           </Link>
         </div>
       ) : (
         <form onSubmit={submit} className="glass mt-4 rounded-2xl p-4" noValidate>
-          <p className="text-[13px] leading-relaxed text-ink-300">Enter the email you signed up with and we will send you a link to choose a new password.</p>
+          <p className="text-[13px] leading-relaxed text-tertiary">Enter the email you signed up with and we will send you a link to choose a new password.</p>
           <label className="mt-3 block">
             <span className={LABEL}>Email</span>
             <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" placeholder="you@example.com" className={`${INPUT} mt-1`} />
@@ -60,11 +60,11 @@ export default function ForgotPassword() {
               {error}
             </p>
           ) : null}
-          <button type="submit" disabled={busy || !email.trim()} className="mt-3 w-full rounded-xl bg-tide-500 py-2.5 text-[13.5px] font-extrabold text-on-accent disabled:opacity-50">
+          <button type="submit" disabled={busy || !email.trim()} className="mt-3 w-full rounded-xl bg-accent py-2.5 text-[13.5px] font-extrabold text-on-accent disabled:opacity-50">
             {busy ? "Sending…" : "Send me a reset link"}
           </button>
           <p className="mt-3 text-center text-[12px]">
-            <Link href="/login?mode=signin" className="font-bold text-tide-300 hover:underline">
+            <Link href="/login?mode=signin" className="font-bold text-text-accent hover:underline">
               Back to sign in
             </Link>
           </p>

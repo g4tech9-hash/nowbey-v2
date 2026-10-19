@@ -131,7 +131,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                 <span className="display mt-2 block text-[14px] font-extrabold" style={{ color: on ? KINDS[k].color : "#fff0d9" }}>
                   {KINDS[k].label}
                 </span>
-                <span className="mt-0.5 block text-[11.5px] leading-snug text-ink-400">{KINDS[k].blurb}</span>
+                <span className="mt-0.5 block text-[11.5px] leading-snug text-tertiary">{KINDS[k].blurb}</span>
               </button>
             );
           })}
@@ -168,7 +168,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                     aria-pressed={rating >= n}
                     aria-label={`${n} star${n > 1 ? "s" : ""}`}
                     onClick={() => setRating(rating === n ? 0 : n)}
-                    className={`text-[30px] leading-none transition ${rating >= n ? "text-sun-600" : "text-white/20 hover:text-white/40"}`}
+                    className={`text-[30px] leading-none transition ${rating >= n ? "text-warn-600" : "text-white/20 hover:text-white/40"}`}
                   >
                     ★
                   </button>
@@ -186,7 +186,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
                     type="button"
                     aria-pressed={price === n}
                     onClick={() => setPrice(price === n ? 0 : n)}
-                    className={`min-h-[40px] min-w-[44px] rounded-lg px-2 text-[13px] font-extrabold ${price === n ? "bg-tide-500 text-on-accent" : "bg-white/8 text-ink-200 hover:bg-white/14"}`}
+                    className={`min-h-[40px] min-w-[44px] rounded-lg px-2 text-[13px] font-extrabold ${price === n ? "bg-accent text-on-accent" : "bg-white/8 text-secondary hover:bg-white/14"}`}
                   >
                     {"$".repeat(n)}
                   </button>
@@ -212,7 +212,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
             placeholder={def.bodyHint}
             className={`${INPUT} mt-1 resize-y leading-relaxed`}
           />
-          <span className="mt-1 block text-right text-[11.5px] text-ink-400">
+          <span className="mt-1 block text-right text-[11.5px] text-tertiary">
             {body.length}/{LIMITS.body}
           </span>
         </label>
@@ -222,14 +222,14 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
         <p className={LABEL}>Photos (optional, up to {LIMITS.photos})</p>
         <div className="mt-1.5 flex flex-wrap gap-2.5">
           {photos.map((p) => (
-            <div key={p.key} className="relative h-24 w-24 overflow-hidden rounded-xl border hairline bg-abyss-800">
+            <div key={p.key} className="relative h-24 w-24 overflow-hidden rounded-xl border hairline bg-hover">
               {/* eslint-disable-next-line @next/next/no-img-element -- a local preview that exists only in this browser */}
               <img src={p.url} alt="Your photo" className="h-full w-full object-cover" />
               <button
                 type="button"
                 onClick={() => removePhoto(p.key)}
                 aria-label="Remove this photo"
-                className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-abyss-950/85 text-[13px] font-bold text-sand-100 hover:bg-conch-500 hover:text-on-accent"
+                className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-base/85 text-[13px] font-bold text-primary hover:bg-danger-500 hover:text-on-accent"
               >
                 ×
               </button>
@@ -240,14 +240,14 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
               type="button"
               disabled={prep}
               onClick={() => fileRef.current?.click()}
-              className="grid h-24 w-24 place-items-center rounded-xl border border-dashed border-tide-400/40 bg-white/[.03] text-center text-[11.5px] font-bold text-tide-300 hover:bg-white/8 disabled:opacity-50"
+              className="grid h-24 w-24 place-items-center rounded-xl border border-dashed border-accent-hover/40 bg-white/[.03] text-center text-[11.5px] font-bold text-text-accent hover:bg-white/8 disabled:opacity-50"
             >
               {prep ? "Preparing…" : "+ Add a photo"}
             </button>
           ) : null}
         </div>
         <input ref={fileRef} type="file" accept="image/*" multiple className="sr-only" tabIndex={-1} onChange={(e) => void addFiles(e.target.files)} aria-label="Choose photos" />
-        <p className="mt-1.5 text-[11.5px] leading-snug text-ink-400">
+        <p className="mt-1.5 text-[11.5px] leading-snug text-tertiary">
           Photos are shrunk on your device, and hidden details such as the location your phone saved inside them are removed.
         </p>
       </section>
@@ -257,12 +257,12 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
           type="button"
           onClick={() => setShowMap((v) => !v)}
           aria-expanded={showMap}
-          className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/8"
+          className="rounded-full border hairline px-3.5 py-2 text-[12.5px] font-bold text-primary hover:bg-white/8"
         >
           {pin ? "Change the map pin" : "Add a map pin (optional)"}
         </button>
         {pin ? (
-          <span className="ml-2 text-[12px] text-tide-300">
+          <span className="ml-2 text-[12px] text-text-accent">
             Pinned{pin.street ? ` near ${pin.street}` : ""} ·{" "}
             <button type="button" onClick={() => setPin(null)} className="font-bold underline">
               remove
@@ -270,7 +270,7 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
           </span>
         ) : null}
         {showMap ? (
-          <div className="mt-2.5 overflow-hidden rounded-2xl border border-tide-500/20">
+          <div className="mt-2.5 overflow-hidden rounded-2xl border border-accent/20">
             <MapPanel
               mode="pick"
               value={pin ? { lat: pin.lat, lng: pin.lng } : null}
@@ -295,10 +295,10 @@ export function PostForm({ defaultParish }: { defaultParish: string | null }) {
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="submit" disabled={busy || prep} className="rounded-xl bg-tide-500 px-6 py-3 text-[14px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50">
+        <button type="submit" disabled={busy || prep} className="rounded-xl bg-accent px-6 py-3 text-[14px] font-extrabold text-on-accent hover:bg-accent-hover disabled:opacity-50">
           {busy ? "Sharing…" : "Share with the islands"}
         </button>
-        <p className="text-[11.5px] text-ink-400">Your handle appears with your post. Be kind and honest.</p>
+        <p className="text-[11.5px] text-tertiary">Your handle appears with your post. Be kind and honest.</p>
       </div>
     </form>
   );

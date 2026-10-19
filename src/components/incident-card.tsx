@@ -92,64 +92,64 @@ export function IncidentCard({
         </span>
         <SeverityMeter level={row.severity} tone={meta.color} />
         {row.status !== "active" ? (
-          <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-ink-300">{row.status}</span>
+          <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-tertiary">{row.status}</span>
         ) : stale ? (
-          <span className="rounded-full border border-sun-500/30 bg-sun-500/12 px-2.5 py-1 text-[11.5px] text-sun-600">
+          <span className="rounded-full border border-warn-500/30 bg-warn-500/12 px-2.5 py-1 text-[11.5px] text-warn-600">
             {fresh.level === "stale" ? "may be out of date" : "needs a re-check"} · {ageLabel(fresh.hoursAgo)}
           </span>
         ) : null}
         {row.sourceKind === "news" ? (
-          <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-ink-300">from the wire</span>
+          <span className="rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[11.5px] text-tertiary">from the wire</span>
         ) : null}
-        <span className="ml-auto text-[11.5px] font-semibold text-ink-400">
+        <span className="ml-auto text-[11.5px] font-semibold text-tertiary">
           {timeAgo(row.createdAt)}
         </span>
       </div>
 
-      <h3 className="display mt-2.5 text-[17px] font-extrabold leading-snug tracking-[-0.04em] text-sand-100">
-        <Link href={`/incident/${row.id}`} className="transition duration-200 ease-standard hover:text-tide-300">
+      <h3 className="display mt-2.5 text-[17px] font-extrabold leading-snug tracking-[-0.04em] text-primary">
+        <Link href={`/incident/${row.id}`} className="transition duration-200 ease-standard hover:text-text-accent">
           {row.title}
         </Link>
       </h3>
 
-      {row.details ? <p className="mt-1.5 line-clamp-2 text-[13px] leading-[1.75] text-ink-300">{row.details}</p> : null}
+      {row.details ? <p className="mt-1.5 line-clamp-2 text-[13px] leading-[1.75] text-tertiary">{row.details}</p> : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px] text-ink-400">
-        <span className="font-bold text-ink-200">{row.street ?? "Unmapped spot"}</span>
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11.5px] text-tertiary">
+        <span className="font-bold text-secondary">{row.street ?? "Unmapped spot"}</span>
         {row.parish ? <span>· {row.parish}</span> : null}
-        <span className="num font-mono text-[11.5px] text-ink-400">
+        <span className="num font-mono text-[11.5px] text-tertiary">
           {formatCoord(row.lat, "lat")} {formatCoord(row.lng, "lng")}
         </span>
         {row.accuracyMeters ? (
           <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[11.5px]">± {Math.round(row.accuracyMeters)} m</span>
         ) : null}
-        <Link href={`/map?focus=${row.id}`} className="ml-auto font-bold text-tide-300 hover:underline">
+        <Link href={`/map?focus=${row.id}`} className="ml-auto font-bold text-text-accent hover:underline">
           Open on map
         </Link>
       </div>
 
       {row.address && row.address !== row.street ? (
-        <p className="mt-1.5 text-[11.5px] text-ink-400">{row.address}</p>
+        <p className="mt-1.5 text-[11.5px] text-tertiary">{row.address}</p>
       ) : null}
 
       {latest ? (
-        <p className="mt-2 text-[12.5px] leading-[1.75] text-ink-200">
-          <span className="font-bold text-sand-100">Latest: {UPDATE_LABELS[latest.kind] ?? latest.kind}</span>
+        <p className="mt-2 text-[12.5px] leading-[1.75] text-secondary">
+          <span className="font-bold text-primary">Latest: {UPDATE_LABELS[latest.kind] ?? latest.kind}</span>
           {latest.note ? <span> — {latest.note}</span> : null}
-          <span className="text-ink-400"> · {timeAgo(latest.createdAt)}</span>
+          <span className="text-tertiary"> · {timeAgo(latest.createdAt)}</span>
         </p>
       ) : null}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11.5px] font-bold text-ink-200">
+        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11.5px] font-bold text-secondary">
           {row.confirmations} confirm{row.confirmations === 1 ? "" : "s"}
         </span>
         {row.sightings > 0 ? (
-          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11.5px] font-bold text-ink-200">
+          <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11.5px] font-bold text-secondary">
             {row.sightings} “saw it too”
           </span>
         ) : null}
-        <span className="text-[11.5px] text-ink-400">reported by @{row.authorHandle ?? "someone"}</span>
+        <span className="text-[11.5px] text-tertiary">reported by @{row.authorHandle ?? "someone"}</span>
         <BadgeMark kind={badge} />
       </div>
 
@@ -169,7 +169,7 @@ export function IncidentCard({
 }
 
 export function IncidentRail({ rows, empty }: { rows: IncidentRow[]; empty: string }) {
-  if (!rows.length) return <p className="px-1 text-[12.5px] text-ink-400">{empty}</p>;
+  if (!rows.length) return <p className="px-1 text-[12.5px] text-tertiary">{empty}</p>;
   return (
     <ul className="space-y-2">
       {rows.map((row) => {
@@ -179,8 +179,8 @@ export function IncidentRail({ rows, empty }: { rows: IncidentRow[]; empty: stri
             <Link href={`/incident/${row.id}`} className="group flex gap-2.5 rounded-xl px-2 py-1.5 hover:bg-white/5">
               <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: meta.color }} />
               <span className="min-w-0">
-                <span className="block truncate text-[13px] font-semibold text-sand-100 group-hover:text-tide-300">{row.title}</span>
-                <span className="block truncate text-[11.5px] text-ink-400">
+                <span className="block truncate text-[13px] font-semibold text-primary group-hover:text-text-accent">{row.title}</span>
+                <span className="block truncate text-[11.5px] text-tertiary">
                   {row.street ?? row.parish ?? "The Bahamas"} · {timeAgo(row.createdAt)}
                 </span>
               </span>

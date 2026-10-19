@@ -34,7 +34,7 @@ export function SimpleViewToggle() {
       aria-pressed={on}
       title="Simple view: larger words and buttons, less clutter"
       className={`hidden min-h-[36px] items-center rounded-full border px-2.5 py-1 text-[12px] font-bold md:inline-flex ${
-        on ? "border-tide-400 bg-tide-500/18 text-tide-300" : "hairline text-ink-200 hover:bg-white/5"
+        on ? "border-accent-hover bg-accent/18 text-text-accent" : "hairline text-secondary hover:bg-white/5"
       }`}
     >
       Simple view

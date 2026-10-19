@@ -16,8 +16,8 @@ export function ResetForm({ token }: { token: string }) {
   if (!token) {
     return (
       <div className="glass mt-4 rounded-2xl p-4">
-        <p className="text-[13px] text-ink-200">This page needs the link from your email.</p>
-        <Link href="/forgot-password" className="mt-2 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">
+        <p className="text-[13px] text-secondary">This page needs the link from your email.</p>
+        <Link href="/forgot-password" className="mt-2 inline-block text-[12.5px] font-bold text-text-accent hover:underline">
           Ask for a new link
         </Link>
       </div>
@@ -63,10 +63,10 @@ export function ResetForm({ token }: { token: string }) {
           ) : null}
         </p>
       ) : null}
-      <button type="submit" disabled={busy} className="mt-3 w-full rounded-xl bg-tide-500 py-2.5 text-[13.5px] font-extrabold text-on-accent disabled:opacity-50">
+      <button type="submit" disabled={busy} className="mt-3 w-full rounded-xl bg-accent py-2.5 text-[13.5px] font-extrabold text-on-accent disabled:opacity-50">
         {busy ? "Saving…" : "Save new password"}
       </button>
-      <p className="mt-2 text-[11.5px] text-ink-400">Saving signs you out on every device, so you can sign in fresh.</p>
+      <p className="mt-2 text-[11.5px] text-tertiary">Saving signs you out on every device, so you can sign in fresh.</p>
     </form>
   );
 }

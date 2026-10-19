@@ -216,9 +216,9 @@ export default function ReportWizard() {
           <span className="pulse-success-ring" data-tone="warning" aria-hidden>
             !
           </span>
-          <h1 className="display mt-4 text-[24px] font-extrabold tracking-[-0.05em] text-sand-100">Someone already reported this</h1>
-          <p className="mx-auto mt-2.5 max-w-[48ch] text-[13.5px] leading-[1.75] text-ink-300">{duplicate.message}</p>
-          <p className="mx-auto mt-2 max-w-[48ch] text-[12.5px] leading-[1.75] text-ink-400">
+          <h1 className="display mt-4 text-[24px] font-extrabold tracking-[-0.05em] text-primary">Someone already reported this</h1>
+          <p className="mx-auto mt-2.5 max-w-[48ch] text-[13.5px] leading-[1.75] text-tertiary">{duplicate.message}</p>
+          <p className="mx-auto mt-2 max-w-[48ch] text-[12.5px] leading-[1.75] text-tertiary">
             Nothing new was published, so your text is still here. Open the existing report to confirm it or add to it, or go
             back and change what you wrote.
           </p>
@@ -250,8 +250,8 @@ export default function ReportWizard() {
           <span className="pulse-success-ring" aria-hidden>
             ✓
           </span>
-          <h1 className="display mt-4 text-[24px] font-extrabold tracking-[-0.05em] text-sand-100">It is on the map</h1>
-          <p className="mx-auto mt-2.5 max-w-[48ch] text-[13.5px] leading-[1.75] text-ink-300">
+          <h1 className="display mt-4 text-[24px] font-extrabold tracking-[-0.05em] text-primary">It is on the map</h1>
+          <p className="mx-auto mt-2.5 max-w-[48ch] text-[13.5px] leading-[1.75] text-tertiary">
             Your report is live for everyone in {pick?.parish ?? island}. Neighbours can confirm it, add “saw it too”, or mark
             it cleared. The pin is shown a short distance from the exact spot to protect homes.
           </p>
@@ -366,10 +366,10 @@ export default function ReportWizard() {
             })}
           </div>
           {category === "power" ? (
-            <p className="mt-3 rounded-xl border hairline p-3 text-[12.5px] leading-relaxed text-ink-300">
+            <p className="mt-3 rounded-xl border hairline p-3 text-[12.5px] leading-relaxed text-tertiary">
               Power out? NowBey shows what neighbours see, but only the utility can restore supply. Report the outage to Bahamas
               Power and Light as well:{" "}
-              <a href="https://bplco.com/services/outages" className="font-bold text-tide-300 underline-offset-2 hover:underline">
+              <a href="https://bplco.com/services/outages" className="font-bold text-text-accent underline-offset-2 hover:underline">
                 bplco.com/services/outages
               </a>
               .
@@ -411,12 +411,12 @@ export default function ReportWizard() {
             center={[25.0629, -77.3417]}
             zoom={15}
             initialLayer="hybrid"
-            className="h-[58dvh] min-h-[340px] w-full overflow-hidden rounded-[20px] border border-tide-500/20 lg:h-[clamp(400px,64vh,620px)]"
+            className="h-[58dvh] min-h-[340px] w-full overflow-hidden rounded-[20px] border border-accent/20 lg:h-[clamp(400px,64vh,620px)]"
           />
           <div className="space-y-3">
             <div className="nb-surface rounded-[20px] p-4">
-              <p className="display text-[15px] font-extrabold tracking-[-0.045em] text-sand-100">Where exactly?</p>
-              <p className="mt-1.5 text-[12px] leading-[1.75] text-ink-300">
+              <p className="display text-[15px] font-extrabold tracking-[-0.045em] text-primary">Where exactly?</p>
+              <p className="mt-1.5 text-[12px] leading-[1.75] text-tertiary">
                 Tap the road, junction or spot, then drag the pin tip onto it. Pin the road, not a house: the published pin
                 is moved a short distance from the exact spot, so a home cannot be pinpointed. The readout shows how wide
                 the screen is in metres.
@@ -424,12 +424,12 @@ export default function ReportWizard() {
               <div className="mt-3 space-y-1.5 rounded-[14px] border border-white/8 bg-white/[.04] p-3 text-[12px]">
                 {pick ? (
                   <>
-                    <p className="num font-mono text-[11.5px] text-tide-300">
+                    <p className="num font-mono text-[11.5px] text-text-accent">
                       {pick.lat.toFixed(6)}, {pick.lng.toFixed(6)}
                     </p>
-                    <p className="font-bold text-sand-100">{pick.street ?? "Finding the street…"}</p>
-                    <p className="text-[11.5px] text-ink-400">{pick.address ?? "No matched address yet"}</p>
-                    <p className="text-[11.5px] text-ink-400">
+                    <p className="font-bold text-primary">{pick.street ?? "Finding the street…"}</p>
+                    <p className="text-[11.5px] text-tertiary">{pick.address ?? "No matched address yet"}</p>
+                    <p className="text-[11.5px] text-tertiary">
                       Parish {pick.parish ?? island} · accuracy estimate ± {pick.precisionM.toFixed(1)} m
                     </p>
                     {pick.precisionM >= 100 ? (
@@ -439,7 +439,7 @@ export default function ReportWizard() {
                     ) : null}
                   </>
                 ) : (
-                  <p className="text-ink-400">Nothing pinned yet.</p>
+                  <p className="text-tertiary">Nothing pinned yet.</p>
                 )}
               </div>
               <label className="mt-3 block">
@@ -451,7 +451,7 @@ export default function ReportWizard() {
                   className="nb-field"
                 />
               </label>
-              <label className="mt-2.5 flex items-start gap-2 text-[11.5px] leading-snug text-ink-400">
+              <label className="mt-2.5 flex items-start gap-2 text-[11.5px] leading-snug text-tertiary">
                 <input
                   type="checkbox"
                   checked={prefillOn}
@@ -461,7 +461,7 @@ export default function ReportWizard() {
                     const a = e.target.checked && pick ? areaFor(pick) : null;
                     if (a) setArea(a);
                   }}
-                  className="mt-0.5 h-4 w-4 accent-tide-500"
+                  className="mt-0.5 h-4 w-4 accent-accent"
                 />
                 <span>
                   Prefill from the pin
@@ -500,9 +500,9 @@ export default function ReportWizard() {
 
       {step === 2 ? (
         <div className="mt-5 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-[16px] border border-tide-500/25 bg-tide-500/8 p-3.5 text-[12px] leading-[1.75] text-tide-300 lg:hidden">
+          <div className="rounded-[16px] border border-accent/25 bg-accent/8 p-3.5 text-[12px] leading-[1.75] text-text-accent lg:hidden">
             <p className="font-bold">Pinned at {pick ? `${pick.lat.toFixed(5)}, ${pick.lng.toFixed(5)}` : "nothing yet"}.</p>
-            <p className="text-ink-200">Scroll for the form — a thumbnail of the pin is at the bottom.</p>
+            <p className="text-secondary">Scroll for the form — a thumbnail of the pin is at the bottom.</p>
           </div>
           <div className="space-y-3.5">
             <label className="block">
@@ -582,13 +582,13 @@ export default function ReportWizard() {
           <div className="space-y-3">
             <div className="nb-surface rounded-[20px] p-4">
               <p className="nb-eyebrow">Preview</p>
-              <p className="display mt-2 text-[17px] font-extrabold leading-snug tracking-[-0.045em] text-sand-100">
+              <p className="display mt-2 text-[17px] font-extrabold leading-snug tracking-[-0.045em] text-primary">
                 {title.trim() || "Your headline appears here"}
               </p>
-              <p className="mt-1.5 text-[12.5px] leading-[1.75] text-ink-300">
+              <p className="mt-1.5 text-[12.5px] leading-[1.75] text-tertiary">
                 {details.trim() || CATEGORIES[category].blurb}
               </p>
-              <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11.5px] text-ink-400">
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11.5px] text-tertiary">
                 <span className="rounded-full px-2.5 py-1 font-bold" style={{ background: `${CATEGORIES[category].color}26`, color: CATEGORIES[category].color }}>
                   {CATEGORIES[category].label}
                 </span>
@@ -598,7 +598,7 @@ export default function ReportWizard() {
               </div>
             </div>
             {pick ? (
-              <div className="overflow-hidden rounded-[20px] border border-tide-500/20 shadow-l2">
+              <div className="overflow-hidden rounded-[20px] border border-accent/20 shadow-l2">
                 <MapPanel
                   mode="browse"
                   pins={[
@@ -636,10 +636,10 @@ export default function ReportWizard() {
                 <span className="nb-eyebrow-dot" aria-hidden />
                 Going out now
               </p>
-              <h2 className="display mt-2 text-[20px] font-extrabold leading-snug tracking-[-0.05em] text-sand-100">
+              <h2 className="display mt-2 text-[20px] font-extrabold leading-snug tracking-[-0.05em] text-primary">
                 {title.trim() || "Your headline appears here"}
               </h2>
-              <p className="mt-2 text-[13px] leading-[1.75] text-ink-200">
+              <p className="mt-2 text-[13px] leading-[1.75] text-secondary">
                 {details.trim() || "No extra detail — neighbours will see the headline and the pin only."}
               </p>
               {photoNote.trim() ? <p className="nb-hint mt-2">Photo description: {photoNote.trim()}</p> : null}
@@ -652,32 +652,32 @@ export default function ReportWizard() {
                 </div>
                 <div>
                   <dt className="nb-label">Severity</dt>
-                  <dd className="mt-1 text-[13px] font-bold text-sand-100">
+                  <dd className="mt-1 text-[13px] font-bold text-primary">
                     {SEVERITY_LABELS[Math.min(4, Math.max(1, severity)) - 1]} · {severity}/4
                   </dd>
                 </div>
                 <div>
                   <dt className="nb-label">Pin</dt>
-                  <dd className="mt-1 font-mono text-[12px] text-ink-300 tabular-nums">
+                  <dd className="mt-1 font-mono text-[12px] text-tertiary tabular-nums">
                     {pick ? `${pick.lat.toFixed(5)}, ${pick.lng.toFixed(5)}` : "not pinned"} · ± {pick ? pick.precisionM.toFixed(1) : "0"} m
                   </dd>
                 </div>
                 <div>
                   <dt className="nb-label">Island</dt>
-                  <dd className="mt-1 text-[13px] font-bold text-sand-100">{pick?.parish ?? island}</dd>
+                  <dd className="mt-1 text-[13px] font-bold text-primary">{pick?.parish ?? island}</dd>
                 </div>
                 <div>
                   <dt className="nb-label">Area</dt>
-                  <dd className="mt-1 text-[13px] text-ink-200">{area || pick?.street || "read from the pin"}</dd>
+                  <dd className="mt-1 text-[13px] text-secondary">{area || pick?.street || "read from the pin"}</dd>
                 </div>
                 <div>
                   <dt className="nb-label">Filed by</dt>
-                  <dd className="mt-1 text-[13px] text-ink-200">
+                  <dd className="mt-1 text-[13px] text-secondary">
                     {anonymous ? "someone (anonymous)" : handle !== "neighbour" ? `@${handle}` : "@neighbour"}
                   </dd>
                 </div>
               </dl>
-              <label className="mt-3.5 flex items-start gap-2 text-[12.5px] leading-snug text-ink-300">
+              <label className="mt-3.5 flex items-start gap-2 text-[12.5px] leading-snug text-tertiary">
                 <input
                   type="checkbox"
                   checked={anonymous}
@@ -685,7 +685,7 @@ export default function ReportWizard() {
                     setAnonymous(e.target.checked);
                     setAnonTouched(true);
                   }}
-                  className="mt-0.5 h-4 w-4 accent-tide-500"
+                  className="mt-0.5 h-4 w-4 accent-accent"
                 />
                 {handle !== "neighbour"
                   ? "Post anonymously instead of as @" + handle
@@ -725,7 +725,7 @@ export default function ReportWizard() {
 
           <div className="space-y-3">
             {pick ? (
-              <div className="overflow-hidden rounded-[20px] border border-tide-500/20 shadow-l2">
+              <div className="overflow-hidden rounded-[20px] border border-accent/20 shadow-l2">
                 <MapPanel
                   mode="browse"
                   pins={[
