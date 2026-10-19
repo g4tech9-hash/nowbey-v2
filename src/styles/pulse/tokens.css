@@ -112,15 +112,18 @@
   --pulse-hue-ink-800: #18262c;
   --pulse-hue-ink-900: #0b161b;
 
-  --pulse-hue-night-000: #000000;
-  --pulse-hue-night-050: #050b0f;
-  --pulse-hue-night-100: #0a1116;
-  --pulse-hue-night-200: #101b22;
-  --pulse-hue-night-300: #16252e;
-  --pulse-hue-night-400: #1e313c;
-  --pulse-hue-night-500: #27404d;
-  --pulse-hue-night-600: #345463;
-  --pulse-hue-night-700: #48697a;
+  /* Night ramp (2026-10-18): lifted one notch from the original true-black
+     OLED ramp — #000000…#48697a read too dark on a bright screen. Same
+     deep-teal night cast, every step raised by roughly +11–20 per channel. */
+  --pulse-hue-night-000: #0b1218;
+  --pulse-hue-night-050: #101821;
+  --pulse-hue-night-100: #15212b;
+  --pulse-hue-night-200: #1b2a35;
+  --pulse-hue-night-300: #223340;
+  --pulse-hue-night-400: #2a3f4d;
+  --pulse-hue-night-500: #334c5c;
+  --pulse-hue-night-600: #415f70;
+  --pulse-hue-night-700: #547488;
 
   /* warm-sand family for the light theme — its own hues, not a desaturated dark */
   --pulse-hue-sand-000: #ffffff;
@@ -215,29 +218,30 @@
 /* ===========================================================================
    LAYER 2 — SEMANTIC TOKENS (theme-aware)
    Meaning, not material. A component says "this is the sunken surface", never
-   "this is #0a1116". Both themes fill the same names with different hues,
+   "this is #15212b". Both themes fill the same names with different hues,
    which is why light mode is a design and not an inversion.
    ========================================================================= */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Surfaces — OLED-first: the page itself is true black so a phone on a
-     phone battery during an outage drops to ~0 light output on the void. */
+  /* Surfaces — deep-slate night, one notch above pure black: dark enough to
+     feel like night during an outage, lifted enough to read comfortably on a
+     bright screen (the original true-black void tested too dark). */
   --bg-base: var(--pulse-hue-night-000);
-  --bg-sunken: #000000;
+  --bg-sunken: var(--pulse-hue-night-000);
   --bg-raised: var(--pulse-hue-night-100);
-  --bg-overlay: rgba(5, 11, 15, 0.88);
+  --bg-overlay: rgba(16, 24, 33, 0.88);
   --bg-elevated: var(--pulse-hue-night-200);
-  --bg-glass: rgba(10, 17, 22, 0.62);
+  --bg-glass: rgba(21, 33, 43, 0.62);
   --bg-hover: var(--pulse-hue-night-300);
   --bg-active: var(--pulse-hue-night-400);
   --bg-selected: rgba(63, 214, 192, 0.14);
 
   /* Type */
-  --text-primary: #f3f1ea; /* 18.5:1 on base */
+  --text-primary: #f3f1ea; /* 16.7:1 on base */
   --text-secondary: #b9c8c9; /* 10.9:1 */
-  --text-tertiary: #92a6a9; /* 6.9:1 — still AA for body copy */
+  --text-tertiary: #92a6a9; /* 7.4:1 on base / 6.4:1 on cards — still AA for body copy */
   --text-inverse: #06141b;
   --text-accent: var(--pulse-hue-teal-300);
   --text-on-accent: #04211d;
@@ -296,7 +300,7 @@
   --pulse-elev-2: 0 12px 30px -12px rgba(0, 0, 0, 0.78), 0 1px 0 rgba(255, 255, 255, 0.055) inset;
   --pulse-elev-3: 0 30px 70px -22px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.075) inset;
 
-  --meta-theme-color: #000000;
+  --meta-theme-color: #0b1218;
 }
 
 :root[data-theme="light"] {
@@ -434,15 +438,15 @@
    ========================================================================= */
 @supports not (background: color-mix(in srgb, red 50%, blue)) {
   :root {
-    --bg-base: #000000;
-    --bg-raised: #0a1116;
-    --bg-elevated: #101b22;
+    --bg-base: #0b1218;
+    --bg-raised: #15212b;
+    --bg-elevated: #1b2a35;
     --text-primary: #f3f1ea;
     --text-secondary: #b9c8c9;
     --text-tertiary: #92a6a9;
     --border-default: rgba(148, 206, 202, 0.18);
     --accent: #3fd6c0;
-    --skeleton-shine: linear-gradient(100deg, #0a1116 20%, #24333a 50%, #0a1116 80%);
+    --skeleton-shine: linear-gradient(100deg, #15212b 20%, #2e414c 50%, #15212b 80%);
   }
   :root[data-theme="light"] {
     --bg-base: #f7f3ec;
@@ -460,7 +464,7 @@
    `var(--card-bg, …)` with these values, so a token that failed to resolve
    degrades to the dark theme rather than to transparent-on-transparent. */
 :root {
-  --pulse-fallback-card-bg: #0a1116;
+  --pulse-fallback-card-bg: #15212b;
   --pulse-fallback-text: #f3f1ea;
   --pulse-fallback-muted: #b9c8c9;
   --pulse-fallback-border: rgba(148, 206, 202, 0.18);
