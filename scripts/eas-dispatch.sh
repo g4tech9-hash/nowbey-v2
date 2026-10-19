@@ -9,6 +9,7 @@
 #   scripts/eas-dispatch.sh web              # web deploy (usually unnecessary — Vercel App deploys master)
 #   scripts/eas-dispatch.sh all              # web + mobile
 #   scripts/eas-dispatch.sh cancel           # cancel every in-flight EAS build
+#   scripts/eas-dispatch.sh account          # which Expo account EXPO_TOKEN is, and what quota is left
 #
 # NowBey ships Android APKs only (no Play Store, no iOS yet). `mobile` means one Android preview
 # APK: EAS first, and the same job falls back to a local Gradle build when EAS refuses or errors.
@@ -31,8 +32,12 @@ case "$target" in
     event_type="eas-cancel"
     target=""
     ;;
+  account|whoami|quota)
+    event_type="expo-account"
+    target=""
+    ;;
   *)
-    echo "usage: $0 {mobile|fallback|web|all|smoke|cancel}" >&2
+    echo "usage: $0 {mobile|fallback|web|all|smoke|cancel|account}" >&2
     exit 2
     ;;
 esac
@@ -44,6 +49,11 @@ if [ "$event_type" = "deploy" ]; then
     -f "client_payload[target]=$target"
   echo "Dispatched. Watch:"
   echo "  https://github.com/$repo/actions/workflows/deploy.yml"
+elif [ "$event_type" = "expo-account" ]; then
+  echo "Asking expo.dev who EXPO_TOKEN is and what build quota is left …"
+  gh api "repos/$repo/dispatches" -f event_type="expo-account"
+  echo "Dispatched. The verdict is in the run's annotations and summary:"
+  echo "  https://github.com/$repo/actions/workflows/expo-account.yml"
 else
   echo "Cancelling every in-flight EAS build of $repo …"
   gh api "repos/$repo/dispatches" -f event_type="eas-cancel"
