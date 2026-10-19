@@ -75,6 +75,14 @@ test("it asks whoami first, then authorization, then quota, and reports one verd
   assert.match(workflow, /if: always\(\)\s*\n\s*env:[\s\S]{0,400}Report the verdict|Report the verdict/,
     "the verdict runs whatever the steps above did");
   assert.match(workflow, /name: expo-account-log/, "the raw CLI output is uploaded as an artifact");
+
+  // `eas project:info` loads the Expo config, which resolves the plugins array in app.json
+  // (expo-router, etc.). That resolution needs node_modules, so the workflow must install them
+  // before running project:info. Without this, project:info fails with "Failed to resolve plugin
+  // for module 'expo-router'" and the authorization check never runs.
+  const npmCi = at("npm ci");
+  const projectCommand = at("eas project:info 2>&1");
+  assert.ok(npmCi < projectCommand, "npm ci runs before eas project:info (the plugins need node_modules)");
 });
 
 test("the account it compares against comes from expo/app.json, not from this file", () => {

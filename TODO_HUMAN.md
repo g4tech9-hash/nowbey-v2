@@ -397,6 +397,31 @@ its monthly Android builds. Until **2026-11-01** an APK comes from the local Gra
 or from upgrading the Expo plan / adding build credits on expo.dev. Nothing in Git can restore the
 EAS quota.
 
+**Status 2026-10-19 (later) — the token has been swapped again; the mismatch has returned.** Account
+check workflow run `39293048085` (fired by `scripts/eas-dispatch.sh account`) reports:
+`eas whoami` authenticates as **`nowbey242`**, with reachable accounts `nowbey242, nowbey242s-team`.
+The project in `expo/app.json` is still under `oasistech242`, so the token cannot reach the project
+owner — the same mismatch the workflow exists to name. Two additional findings from this run:
+
+1. `eas project:info` failed with `Failed to resolve plugin for module "expo-router"` — the workflow
+   did not install the expo project's `node_modules`, and the plugin resolution needs them. Fixed in
+   PR #54 (the workflow now runs `npm ci` in `expo/` before `eas project:info`).
+2. `eas account:usage` failed with `Account "oasistech242" not found or you don't have access` —
+   expected, since `nowbey242` cannot reach `oasistech242`'s billing.
+
+The three expo.dev options from above apply unchanged:
+
+* **Keep the project where it is:** expo.dev → `oasistech242` → NowBey → Members → invite `nowbey242`.
+* **Move the app to the account the token owns:** transfer or recreate under `nowbey242s-team`, then
+  update `expo/app.json` — `owner` to `nowbey242s-team`, `extra.eas.projectId` to the new UUID, and
+  `updates.url` to `https://u.expo.dev/<new-UUID>`. All three must change together.
+* **Replace the token:** create a fresh access token while logged in as `oasistech242` and replace
+  the `EXPO_TOKEN` repository secret.
+
+Until one of those is done, the Expo account workflow will report the mismatch (which is correct —
+it names the problem instead of hiding it). The local Gradle fallback still works:
+`scripts/eas-dispatch.sh fallback` builds the APK without EAS and needs no EXPO_TOKEN.
+
 **The pipeline now builds an APK without EAS when it has to.** `build-apk` runs the EAS step with
 `continue-on-error: true`; when EAS refuses, errors, is cancelled or is skipped, the same job runs
 `scripts/build-apk-local.sh` (`expo prebuild --platform android` → `./gradlew assembleRelease`) and

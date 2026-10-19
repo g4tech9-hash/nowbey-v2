@@ -46,10 +46,11 @@ jobs:
         with:
           node-version: 22
 
-      # Installed once and reused by every step below. Only the CLI is needed: `eas` resolves the
-      # project from expo/app.json + expo/eas.json, so this workflow never runs `npm ci` and never
-      # touches the build queue. (deploy.yml uses `npx --yes eas-cli@latest`, which re-downloads the
-      # CLI per step; that is worth it there because a build follows anyway.)
+      # The CLI is global; the project's node_modules are installed below only for `eas project:info`,
+      # which must resolve the plugins listed in expo/app.json (expo-router, etc.) when it loads the
+      # config. `whoami` and `account:usage` do not need node_modules. This workflow never builds.
+      # (deploy.yml uses `npx --yes eas-cli@latest`, which re-downloads the CLI per step; that is
+      # worth it there because a build follows anyway.)
       - name: Install the EAS CLI
         run: npm install --global eas-cli@latest --no-audit --no-fund --loglevel=error
 
@@ -160,7 +161,15 @@ jobs:
       # step fails on with "AppEntity[<uuid>] … You don't have the required permissions" — asked
       # here on its own, with nothing queued and nothing uploaded first. continue-on-error is
       # deliberate: the verdict step at the bottom reports every refusal in one place.
+      #
+      # `eas project:info` loads the Expo config, which resolves the plugins array in app.json
+      # (expo-router, expo-secure-store, etc.). That resolution needs node_modules, so we install
+      # them here. The whoami step above does not need them; account:usage below does not either.
       # -------------------------------------------------------------------------------------------
+      - name: Install the Expo project dependencies (for config resolution)
+        working-directory: expo
+        run: npm ci --no-audit --no-fund --loglevel=error
+
       - name: Check the token can read this project
         id: project
         continue-on-error: true
