@@ -50,7 +50,6 @@ function validateLink(config, { owner: expectedOwner } = {}) {
 
   if (!projectId) problems.push('extra.eas.projectId is missing: run `eas init` to create or link the project');
   else if (!UUID.test(projectId)) problems.push(`extra.eas.projectId "${projectId}" is not a project UUID`);
-  else if (projectId !== projectId.toLowerCase()) problems.push(`extra.eas.projectId "${projectId}" is not lowercase (EAS writes lowercase UUIDs)`);
 
   if (!updatesUrl) problems.push('updates.url is missing: OTA updates have nowhere to go');
   else if (!projectId || !UUID.test(projectId)) problems.push('updates.url cannot be checked until the project ID is valid');

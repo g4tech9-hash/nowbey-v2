@@ -276,8 +276,14 @@ jobs:
           if [ "$DRY_RUN" = "true" ]; then
             set +e
             node scripts/eas-relink.js --check --owner "$OWNER"
+            link_status=$?
             set -e
-            echo "Dry run: app.json is untouched. Run again with dry_run=false to create/link and open the PR."
+            if [ "$link_status" -ne 0 ]; then
+              echo "::notice title=The move is still needed::app.json does not yet name @${OWNER}. A run with dry_run=false creates or links the project and opens the PR."
+            else
+              echo "::notice title=Already linked::app.json already names @${OWNER}; no change to propose."
+            fi
+            echo "Dry run: app.json is untouched."
             exit 0
           fi
           node scripts/eas-relink.js --owner "$OWNER" --project-id "${INIT_PROJECT_ID:?eas init did not report a project UUID}"
