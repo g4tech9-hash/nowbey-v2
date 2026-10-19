@@ -16,7 +16,7 @@ body {
   max-width: 100%;
   overflow-x: hidden; /* fallback for browsers without overflow: clip */
   overflow-x: clip;
-  background: var(--bg-base, #1a2733);
+  background: var(--bg-base, #22323f);
   color: var(--text-primary, #f3f1ea);
   font-family: var(--font-sans);
   min-height: 100%;
@@ -465,7 +465,7 @@ canvas {
   --border-default: rgba(160, 214, 210, 0.5);
   --border-subtle: rgba(160, 214, 210, 0.38);
   --text-tertiary: #c6d6d7;
-  --bg-raised: #10191e;
+  --bg-raised: var(--pulse-hue-night-200); /* one step lighter than cards, tracking the ramp */
 }
 :root[data-contrast="more"][data-theme="light"] {
   --border-default: rgba(20, 14, 4, 0.45);
@@ -560,7 +560,7 @@ canvas {
   border: 1px solid var(--border-default);
   background:
     radial-gradient(80% 130% at 8% -20%, var(--pulse-ambient-a), transparent 62%),
-    var(--card-bg, #243443);
+    var(--card-bg, #2e4052);
   box-shadow: var(--card-shadow);
   padding: var(--pulse-space-5);
 }

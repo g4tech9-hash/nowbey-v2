@@ -227,7 +227,7 @@
 .nb-surface,
 .pulse-card {
   position: relative;
-  background: var(--card-bg, #243443);
+  background: var(--card-bg, #2e4052);
   border: var(--card-border);
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
@@ -631,7 +631,7 @@
   z-index: 950;
   display: flex;
   flex-direction: column;
-  background: var(--bg-elevated, #2c3d4e);
+  background: var(--bg-elevated, #364a5e);
   border: 1px solid var(--border-default);
   box-shadow: var(--pulse-elev-3);
   animation: nb-slide-in var(--pulse-duration-enter) var(--pulse-ease-spring) both;
@@ -2215,7 +2215,7 @@ kbd {
   padding: var(--pulse-space-3) var(--pulse-space-4);
   border-radius: var(--pulse-shape-md);
   border: 1px solid var(--border-default);
-  background: var(--card-bg, #243443);
+  background: var(--card-bg, #2e4052);
 }
 .pulse-demo-shimmer {
   position: relative;

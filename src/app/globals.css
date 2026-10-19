@@ -472,9 +472,11 @@ input[type="range"] {
    dark|light. src/lib/themes.ts owns the mapping.)
    ============================================================================= */
 :root[data-look="island"] {
-  --bg-base: #000205;
-  --bg-raised: #07202c;
-  --bg-elevated: #0b2d3d;
+  /* The look axis is ORTHOGONAL to brightness (see tokens.css). Island used
+     to force --bg-base #000205 / --bg-raised #07202c here, which silently
+     overrode every dark-theme brightness lift (and made light mode
+     near-black too). It now only re-tunes the decorative ambience; surfaces
+     always come from the theme ramp. */
   --pulse-ambient-a: rgba(20, 209, 192, 0.2);
   --pulse-ambient-b: rgba(255, 130, 111, 0.14);
   --pulse-grid: rgba(134, 246, 232, 0.07);

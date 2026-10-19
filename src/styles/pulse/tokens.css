@@ -113,18 +113,19 @@
   --pulse-hue-ink-900: #0b161b;
 
   /* Night ramp (2026-10-18): lifted off the original true-black OLED ramp
-     (#000000…#48697a) — first one notch, then further when the page
-     background still tested too dark. Now a standard legible dark slate with
-     the same deep-teal night cast: base #1a2733, cards #243443. */
-  --pulse-hue-night-000: #1a2733;
-  --pulse-hue-night-050: #1f2d3a;
-  --pulse-hue-night-100: #243443;
-  --pulse-hue-night-200: #2c3d4e;
-  --pulse-hue-night-300: #36495c;
-  --pulse-hue-night-400: #40556a;
-  --pulse-hue-night-500: #4b6379;
-  --pulse-hue-night-600: #597488;
-  --pulse-hue-night-700: #6d8a9f;
+     (#000000…#48697a) across three passes — the Island look was also
+     overriding surfaces to near-black on top (fixed in globals.css), so each
+     lift has to be judged against what actually paints. Now a comfortably
+     legible dim-slate night: base #22323f, cards #2e4052. */
+  --pulse-hue-night-000: #22323f;
+  --pulse-hue-night-050: #273846;
+  --pulse-hue-night-100: #2e4052;
+  --pulse-hue-night-200: #364a5e;
+  --pulse-hue-night-300: #3f566c;
+  --pulse-hue-night-400: #486278;
+  --pulse-hue-night-500: #547086;
+  --pulse-hue-night-600: #628098;
+  --pulse-hue-night-700: #7694ab;
 
   /* warm-sand family for the light theme — its own hues, not a desaturated dark */
   --pulse-hue-sand-000: #ffffff;
@@ -219,30 +220,31 @@
 /* ===========================================================================
    LAYER 2 — SEMANTIC TOKENS (theme-aware)
    Meaning, not material. A component says "this is the sunken surface", never
-   "this is #243443". Both themes fill the same names with different hues,
+   "this is #2e4052". Both themes fill the same names with different hues,
    which is why light mode is a design and not an inversion.
    ========================================================================= */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Surfaces — lifted dark slate: dark enough to feel like night during an
-     outage, bright enough to read comfortably (true black tested too dark,
-     then the first lift still left the page background too dark). */
+  /* Surfaces — dim-slate night: dark enough to feel like night during an
+     outage, light enough to read comfortably. (True black tested too dark —
+     then twice more, and a near-black Island-look override was shadowing the
+     ramp; all three issues fixed.) */
   --bg-base: var(--pulse-hue-night-000);
   --bg-sunken: var(--pulse-hue-night-000);
   --bg-raised: var(--pulse-hue-night-100);
-  --bg-overlay: rgba(31, 45, 58, 0.88);
+  --bg-overlay: rgba(39, 56, 70, 0.88);
   --bg-elevated: var(--pulse-hue-night-200);
-  --bg-glass: rgba(36, 52, 67, 0.62);
+  --bg-glass: rgba(46, 64, 82, 0.62);
   --bg-hover: var(--pulse-hue-night-300);
   --bg-active: var(--pulse-hue-night-400);
   --bg-selected: rgba(63, 214, 192, 0.14);
 
   /* Type */
-  --text-primary: #f3f1ea; /* 13.4:1 on base */
-  --text-secondary: #b9c8c9; /* 8.8:1 */
-  --text-tertiary: #92a6a9; /* 6.0:1 on base / 5.0:1 on cards — still AA for body copy */
+  --text-primary: #f3f1ea; /* 11.6:1 on base */
+  --text-secondary: #b9c8c9; /* 7.6:1 */
+  --text-tertiary: #a3b6ba; /* 6.2:1 on base / 5.1:1 on cards — still AA for body copy */
   --text-inverse: #06141b;
   --text-accent: var(--pulse-hue-teal-300);
   --text-on-accent: #04211d;
@@ -260,7 +262,7 @@
   --accent-ink: var(--text-on-accent);
 
   /* Signals */
-  --danger: var(--pulse-hue-coral-400);
+  --danger: var(--pulse-hue-coral-300); /* coral-400 fell to 4.3:1 on the lighter cards */
   --danger-muted: rgba(255, 127, 107, 0.16);
   --warning: var(--pulse-hue-amber-300);
   --warning-muted: rgba(248, 207, 107, 0.16);
@@ -301,7 +303,7 @@
   --pulse-elev-2: 0 12px 30px -12px rgba(0, 0, 0, 0.78), 0 1px 0 rgba(255, 255, 255, 0.055) inset;
   --pulse-elev-3: 0 30px 70px -22px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.075) inset;
 
-  --meta-theme-color: #1a2733;
+  --meta-theme-color: #22323f;
 }
 
 :root[data-theme="light"] {
@@ -439,15 +441,15 @@
    ========================================================================= */
 @supports not (background: color-mix(in srgb, red 50%, blue)) {
   :root {
-    --bg-base: #1a2733;
-    --bg-raised: #243443;
-    --bg-elevated: #2c3d4e;
+    --bg-base: #22323f;
+    --bg-raised: #2e4052;
+    --bg-elevated: #364a5e;
     --text-primary: #f3f1ea;
     --text-secondary: #b9c8c9;
-    --text-tertiary: #92a6a9;
+    --text-tertiary: #a3b6ba;
     --border-default: rgba(148, 206, 202, 0.18);
     --accent: #3fd6c0;
-    --skeleton-shine: linear-gradient(100deg, #243443 20%, #3d5262 50%, #243443 80%);
+    --skeleton-shine: linear-gradient(100deg, #2e4052 20%, #465c6e 50%, #2e4052 80%);
   }
   :root[data-theme="light"] {
     --bg-base: #f7f3ec;
@@ -465,7 +467,7 @@
    `var(--card-bg, …)` with these values, so a token that failed to resolve
    degrades to the dark theme rather than to transparent-on-transparent. */
 :root {
-  --pulse-fallback-card-bg: #243443;
+  --pulse-fallback-card-bg: #2e4052;
   --pulse-fallback-text: #f3f1ea;
   --pulse-fallback-muted: #b9c8c9;
   --pulse-fallback-border: rgba(148, 206, 202, 0.18);
