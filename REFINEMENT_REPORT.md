@@ -109,12 +109,59 @@
 9. **Demo/seed canned notes in the DB** — display of known canned notes is suppressed; a data migration to delete them is owner-run (prod DB).
 10. **Two pre-existing lint warnings** (detail-drawer exhaustive-deps, incident-card window.location) predate this work and were left untouched.
 
+## Addendum — post-refinement work (2026-10-19)
+
+Everything below landed after the phase report above was written; the changelog
+ends at `a8b8224`, this section covers up to the reconciliation commits.
+
+**Theme calibration — "Ocean Night v2" (5 commits).** The default dark theme was
+repeatedly reported too dark, then washed out. The arc: one lift off the original
+true-black OLED ramp → two further lifts (which the user never saw — see bug
+below) → a mid-slate overshoot ("washed out") → a rebuilt tonal architecture →
+two converging darkening steps. The calibrated landing, all in
+`src/styles/pulse/tokens.css`:
+
+| Role | Token | Value | Notes |
+|---|---|---|---|
+| Canvas | `--pulse-hue-night-000` | `#0c151d` | page + sunken |
+| Cards | `--pulse-hue-night-100` | `#152230` | raised |
+| Elevated | `--pulse-hue-night-200` | `#1c2b39` | menus |
+| Hover / chips | `--pulse-hue-night-300` | `#243546` | |
+| Text steps | primary/secondary/tertiary | `#f3f1ea` / `#b9c8c9` / `#9aafb3` | 16.3:1 / 10.7:1 / 7.0:1 on cards |
+| Danger | `--danger` | coral-400 `#ff7f6b` | 6.5:1 on cards |
+
+Category picker cards carry a whisper of their category hue (7% rest / 12% hover
+/ 18% selected) so the 13 cards read as a spectrum rather than identical slabs.
+
+**Bug fixed: the Island look was overriding the theme.** `:root[data-look="island"]`
+(the default look) hard-coded `--bg-base #000205` etc. in `globals.css`, silently
+shadowing every brightness lift (and forcing light mode near-black). The look
+axis is orthogonal to brightness — Island now only re-tunes ambient glows and
+the grid. Screenshot pixel-forensics matched the override exactly; that is why
+earlier lifts "did nothing".
+
+**Preview database — `NOWBEY_EMBEDDED_DB=1` (1 commit).** `src/instrumentation.ts`
+now boots the embedded PGlite database (`src/db/dev.ts`: migrations + demo
+Nassau seed, files in `.data/pglite/`) under `next start` when the flag is set
+explicitly — for sandboxes/previews with no real Postgres. Default production
+behaviour is unchanged: without the flag or a `DATABASE_URL`, a deployment still
+shows the honest "setup not finished" pages. `npm run dev` continues to boot it
+automatically.
+
+**Reconciliation (this report's companion: `RECONCILIATION_REPORT.md`).** Also
+landed: `geo.ts` category data now derives from `src/lib/categories.ts` (single
+source of truth, cross-checked in content-lint), `CoverageBadge` mounted on
+`/alerts` rendering `COVERAGE_COPY` (one copy of the coverage strings).
+
 ## How to verify
 
 ```bash
-npm test          # 152/152 incl. content-lint
+npm test          # 154/154 incl. content-lint guards
 npx tsc --noEmit  # clean
 npm run lint      # 0 errors
 npm run build     # green
 npm run audit:contrast && BASE=http://localhost:3000 npm run audit:mobile
+
+# preview with the embedded database (no Postgres needed):
+NOWBEY_EMBEDDED_DB=1 npx next start -p 3100
 ```
