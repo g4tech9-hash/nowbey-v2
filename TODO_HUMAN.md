@@ -476,6 +476,18 @@ can grant the account access. The Gradle fallback (`scripts/eas-dispatch.sh fall
 unaffected and needs no Expo account at all. Note there is no `eas switch` command in eas-cli
 25.2.0 — account selection is `eas login` plus `--account`, or the `owner` field (see the doc).
 
+**Status 2026-10-19 18:51 UTC — the token is now authorized on the existing project; only the
+quota is left.** Account check run `39306081301` (read-only) reports the same robot token
+(`GitHub App · @g4tech9-hash`) with `oasistech242 (Role: Developer)`, and its `eas project:info` step
+**succeeded**: the token reads `oasistech242/nowbey`. That is the call that used to fail as
+`AppEntity[…] Not Authorized`, so the October migration is no longer needed to unblock a build —
+the single remaining refusal is `This account has used its Android builds from the Free plan this
+month` (15/15, resets 2026-11-01). Two consequences: (1) rotating `EXPO_TOKEN` again cannot help and
+will only re-open the mismatch; (2) the local Gradle fallback
+(`scripts/eas-dispatch.sh fallback`) produces an APK today without any Expo account. If ownership
+still moves later, use **transfer** (expo.dev → project → Settings → Transfer project), which keeps
+the UUID so `expo/app.json` needs no change at all — see `docs/EAS_ACCOUNT_RELINK.md` §3C.
+
 **To resume, only when the owner says so:** Actions → Deploy (Vercel + EAS) → Run workflow → `mobile`, or
 
 ```bash

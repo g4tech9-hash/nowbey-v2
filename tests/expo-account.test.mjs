@@ -24,6 +24,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const workflow = read(".github/workflows/expo-account.yml");
@@ -145,4 +149,31 @@ test("the dispatch script can fire it without Actions tab access", () => {
   assert.match(dispatch, /account\|whoami\|quota\)/, "`eas-dispatch.sh account` is a target");
   assert.match(dispatch, /event_type="expo-account"/, "and it posts the event this workflow listens for");
   assert.match(dispatch, /workflows\/expo-account\.yml/, "pointing at the run that will answer");
+});
+
+test('the readable-project annotation names the project (eas-cli pads the label, there is no colon)', () => {
+  // Observed in run 39304899284: the step succeeded and the annotation still said "unknown".
+  // eas-cli 25.2.0 prints project:info through formatFields, which pads `fullName` to the width of
+  // `ID` and separates with two spaces — `fullName  @owner/slug` — so a `s/^fullName:/` sed can
+  // never match. The parse is executed here against that exact shape rather than asserted as text.
+  const snippet = workflow.match(/full_name="\$\(node -e '([^']+)'/);
+  assert.ok(snippet, 'the workflow parses project-info.txt with node');
+
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'nowbey-project-info-'));
+  const run = (body) => {
+    fs.writeFileSync(path.join(dir, 'project-info.txt'), body);
+    return spawnSync(process.execPath, ['-e', snippet[1]], { cwd: dir, encoding: 'utf8' }).stdout.trim();
+  };
+  try {
+    assert.equal(run('fullName  @oasistech242/nowbey\nID        10e4a677-274e-43b1-99e6-33a2b32ccd23\n'),
+      '@oasistech242/nowbey', 'the padded two-space format is read, not reported as unknown');
+    assert.equal(run('fullName  @nowbey-v3s-team/nowbey\nID        aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee\n'),
+      '@nowbey-v3s-team/nowbey', 'and it follows the project when it moves accounts');
+    assert.equal(run(''), '', 'nothing to report stays empty rather than throwing');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+
+  assert.doesNotMatch(workflow, /sed -n 's\/\^fullName:/,
+    'and the colon-anchored sed that produced "unknown" is gone');
 });

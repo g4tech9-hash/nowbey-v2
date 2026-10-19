@@ -189,7 +189,12 @@ jobs:
           set -e
           cat project-info.txt
 
-          full_name="$(sed -n 's/^fullName:[[:space:]]*//p' project-info.txt | tail -n 1 | tr -d '\r' | cut -c1-200)"
+          # eas-cli prints `fullName  @owner/slug` — two spaces and *no colon*: formatFields pads the
+          # label to the width of `ID` (checked against eas-cli 25.2.0's own formatter). A
+          # colon-anchored sed therefore matched nothing and reported every healthy project as
+          # "unknown", which is the one sentence a person reads to decide whether the token is
+          # authorized. Parsed in node, tolerant of the padding and of a missing line.
+          full_name="$(node -e 'const fs=require("fs");const m=fs.readFileSync("project-info.txt","utf8").match(/^fullName[ \t]+(.+)$/m);process.stdout.write(m?m[1].trim():"")' | cut -c1-200)"
           echo "full_name=$full_name" >> "$GITHUB_OUTPUT"
 
           if [ "$code" -ne 0 ]; then
