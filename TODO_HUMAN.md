@@ -334,14 +334,39 @@ operation. This can sometimes happen if you are logged in as incorrect user.
 `AppEntity[10e4a677…]` is the NowBey Expo project (`extra.eas.projectId` in `expo/app.json`,
 `owner: oasistech242`). The token behind the `EXPO_TOKEN` secret authenticated, but as a user who is
 not authorized on that project — the secret's token changed or its account lost access since the
-2026-10-17 build. Owner fix (expo.dev account work — never paste a token anywhere but the secret):
+2026-10-17 build.
 
-* **Preferred:** expo.dev → account `oasistech242` → project NowBey → Members → invite the account
-  behind the current `EXPO_TOKEN` (see the failing run's *EAS credentials* step log for `eas whoami`).
-* **Or:** create a fresh access token while logged in as `oasistech242` (expo.dev → Account settings →
-  Access tokens) and replace the `EXPO_TOKEN` repository secret with it.
+**Status 2026-10-19 (later) — the mismatch is now identified, not guessed.** The *Check EAS
+credentials* step now publishes `eas whoami` as a check-run annotation, so the answer is readable
+without opening a job log or downloading the `eas-build-log` artifact. Runs `39246338465` and
+`39247134986` (both `mobile` dispatches, both green through the gate and the APK preflight) report:
 
-Then re-run the `mobile` dispatch below — the app source is already synced with master.
+| | |
+| --- | --- |
+| `EXPO_TOKEN` authenticates as | `nowbey242s-team` (Role: Owner) |
+| the project it must reach | `oasistech242/nowbey` |
+| `extra.eas.projectId` | `10e4a677-274e-43b1-99e6-33a2b32ccd23` |
+| viewer in the refusal | `09b5a115-f3cc-4096-a6a9-72ccf462d1dd` |
+
+So the secret is **not** broken and the pipeline is **not** broken: the token is a valid Owner token,
+but for a *different* Expo account than the one that owns the NowBey project. The viewer UUID is
+identical in every failure since `39240916798`, i.e. the secret has not changed between attempts.
+Nothing in the repository can fix this — it is an expo.dev account decision. Owner fix (never paste a
+token anywhere but the secret):
+
+* **Keep the project where it is:** expo.dev → account `oasistech242` → project NowBey → Members →
+  invite `nowbey242s-team`. Nothing in Git changes; the next `mobile` dispatch builds.
+* **Or move the app to the account the token already owns:** on expo.dev, transfer or recreate the
+  NowBey project under `nowbey242s-team`, then update `expo/app.json` — `owner` to `nowbey242s-team`
+  and `extra.eas.projectId` to the new project's UUID (from `eas init` under that account). Both
+  fields must change together; changing `owner` alone still resolves the app by the old `projectId`
+  and fails the same way.
+* **Or point the secret back at the project's owner:** create a fresh access token while logged in as
+  `oasistech242` (expo.dev → Account settings → Access tokens) and replace the `EXPO_TOKEN`
+  repository secret with it.
+
+Then re-run the `mobile` dispatch below — the app source is already synced with master. If it is
+refused again, the annotation names the account, so there is nothing left to dig for.
 
 **To resume, only when the owner says so:** Actions → Deploy (Vercel + EAS) → Run workflow → `mobile`, or
 
