@@ -29,6 +29,39 @@ project was never created.
 extra.eas.projectId (move both together)`), and `tests/preflight-apk.test.mjs` keeps it that way.
 So the move happens in one commit, after expo.dev hands over a real UUID.
 
+## 1b. Three identities, and the invite trap that looks like "the account disappeared"
+
+Expo ties an account to an **email**, and a team invitation is addressed to an email, not to
+whoever has the link open. On 2026-10-19 the invitations kept "vanishing" for exactly this reason:
+the invite page read
+
+> Join `nowbey-v3s-team`'s team — **Email address mismatch**: you can proceed to accept the
+> invitation, but the user account you're currently logged in to (`supermario022@…`) is different
+> from the email that was invited (`oasistechology242@…`).
+
+Accepting in that state attaches the membership to the **signed-in** account (or is refused), never
+to the invited one — so the person who thinks they just approved the account finds nothing where
+they expected it. It is not a bug and no amount of re-sending fixes it; the session has to match the
+invitation's address, or the invitation has to be dropped in favour of a token.
+
+The three identities seen in this repository's CI, and what each one is for:
+
+| Identity | Seen as | Role where it matters |
+| --- | --- | --- |
+| `supermario022@…` — personal account `nowbey-v3` | `eas whoami` in run `39300394698` | **Owner** of `nowbey-v3` and `nowbey-v3s-team` |
+| `oasistechology242@…` — personal account `oasistech242` | project owner in `expo/app.json` | owns `nowbey` (the project a build would use today) |
+| `GitHub App · @g4tech9-hash` | `eas whoami` with today's `EXPO_TOKEN` | **Developer** in `oasistech242` only |
+
+A token authenticates as the account that **created** it. So the fix is never "invite the robot":
+it is to mint the token from the identity that already holds the role. `nowbey-v3` is Owner of the
+target team, and creating a project needs only the `PUBLISH` permission (which Owner and Developer
+both carry — `eas-cli/build/user/roles.js`), so a token created while signed in as `nowbey-v3` can
+create the project with no invitation at all.
+
+**Do not accept an invitation while the warning is showing.** If the invitation is unwanted, close
+the tab and let it expire rather than attaching it to the wrong account — and treat the link itself
+as a credential: it grants team access to whoever holds it.
+
 ## 2. Before anything: which account can the token actually reach?
 
 Run the read-only account check — it never builds and never spends quota:
