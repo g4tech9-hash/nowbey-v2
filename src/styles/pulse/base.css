@@ -16,7 +16,7 @@ body {
   max-width: 100%;
   overflow-x: hidden; /* fallback for browsers without overflow: clip */
   overflow-x: clip;
-  background: var(--bg-base, #0b1218);
+  background: var(--bg-base, #1a2733);
   color: var(--text-primary, #f3f1ea);
   font-family: var(--font-sans);
   min-height: 100%;
@@ -560,7 +560,7 @@ canvas {
   border: 1px solid var(--border-default);
   background:
     radial-gradient(80% 130% at 8% -20%, var(--pulse-ambient-a), transparent 62%),
-    var(--card-bg, #15212b);
+    var(--card-bg, #243443);
   box-shadow: var(--card-shadow);
   padding: var(--pulse-space-5);
 }
