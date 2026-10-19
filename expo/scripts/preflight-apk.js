@@ -23,7 +23,7 @@ const profile = eas.build.preview;
 // asked, so check the shape of the link instead of who it points at.
 const owner = typeof app.owner === 'string' ? app.owner.trim() : '';
 const projectId = typeof app.extra?.eas?.projectId === 'string' ? app.extra.eas.projectId.trim().toLowerCase() : '';
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12,14}$/i;
 const updatesUrl = typeof app.updates?.url === 'string' ? app.updates.url.trim().replace(/\/+$/, '') : '';
 
 check(owner.length > 0, 'owner is set (Expo account links the project)');
