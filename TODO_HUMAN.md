@@ -377,6 +377,43 @@ the repository stopped the run before EAS was asked — and the secret still aut
 three expo.dev options above are unchanged, and the next `mobile` dispatch after one of them is the
 test.
 
+**Status 2026-10-19 — the token is fixed and authorized; EAS is out of free-plan builds.** The
+owner replaced `EXPO_TOKEN`. The re-fired dispatch, run `39261531295`, passed the gate, the APK
+preflight and the credential check; `eas whoami` now reports **`oasistech242` (Role: Developer)** —
+the account that owns the project — and EAS accepted the archive, resolved the `preview`
+environment, read the remote Android keystore and computed the project fingerprint. The build then
+stopped before a worker started:
+
+```
+This account has used its Android builds from the Free plan this month, which will reset in 12 days
+(on Sun Nov 01 2026). Upgrade your plan for more builds with shorter wait times and longer timeouts,
+and to run more builds concurrently with a subscription plan.
+Run eas billing:subscribe starter --account oasistech242 to upgrade to the Starter plan.
+Error: build command failed.
+```
+
+So the token, the project and the workflow are no longer the problem: the Expo account has spent
+its monthly Android builds. Until **2026-11-01** an APK comes from the local Gradle fallback below
+or from upgrading the Expo plan / adding build credits on expo.dev. Nothing in Git can restore the
+EAS quota.
+
+**The pipeline now builds an APK without EAS when it has to.** `build-apk` runs the EAS step with
+`continue-on-error: true`; when EAS refuses, errors, is cancelled or is skipped, the same job runs
+`scripts/build-apk-local.sh` (`expo prebuild --platform android` → `./gradlew assembleRelease`) and
+uploads the result as the `nowbey-apk-fallback` artifact. A verdict step keeps the run green when
+either path produced an APK, and red only when both failed. The fallback APK is signed with the
+generated debug keystore: Android installs it on a test device, but it is not a Play Store upload
+key (NowBey ships direct APKs only).
+
+```bash
+scripts/eas-dispatch.sh fallback    # skip EAS entirely: build the APK on the runner with Gradle
+scripts/eas-dispatch.sh mobile      # EAS first, then the same local fallback
+```
+
+`mobile-fallback` also skips the `eas whoami` check, so a missing or rejected `EXPO_TOKEN` cannot
+block a local build. `.github/workflows/build.yml` (**NowBey Local APK Build (fallback)**) is the
+same script behind a manual button.
+
 **To resume, only when the owner says so:** Actions → Deploy (Vercel + EAS) → Run workflow → `mobile`, or
 
 ```bash

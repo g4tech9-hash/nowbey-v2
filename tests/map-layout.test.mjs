@@ -200,3 +200,33 @@ test("APK workflow runs a real preflight before the preview build", () => {
   assert.match(preflightScript, /expo export --platform android/);
   assert.match(preflightScript, /Android package is/);
 });
+
+test("the APK pipeline falls back to a local Gradle build when EAS produces nothing", () => {
+  const workflow = read(".github/workflows/deploy.yml");
+  const easStep = workflow.indexOf("id: eas");
+  assert.ok(easStep >= 0, "the EAS step is identified");
+
+  // The EAS step must not be allowed to end the job: its outcome is what starts the fallback.
+  const continueOnError = workflow.indexOf("continue-on-error: true", easStep);
+  const fallbackId = workflow.indexOf("id: fallback", easStep);
+  const fallbackScript = workflow.indexOf("bash scripts/build-apk-local.sh", easStep);
+  assert.ok(continueOnError > easStep, "the EAS step continues on error");
+  assert.ok(fallbackId > easStep, "the fallback step exists after the EAS step");
+  assert.ok(fallbackScript > fallbackId, "the fallback runs the shared local build script");
+  assert.match(workflow, /if: steps\.eas\.outcome == 'failure' \|\| steps\.eas\.outcome == 'skipped'/,
+    "the fallback runs when EAS failed or was skipped outright");
+  assert.match(workflow, /name: nowbey-apk-fallback/, "the fallback APK is uploaded as an artifact");
+  assert.match(workflow, /title=No APK was produced/, "a run without either APK still fails");
+  assert.match(workflow, /- mobile-fallback/, "the manual fallback target is a dispatch option");
+
+  // The button in the Actions tab runs the same script, so the two paths cannot drift.
+  const manual = read(".github/workflows/build.yml");
+  assert.match(manual, /\.\/scripts\/build-apk-local\.sh/, "build.yml uses the shared script");
+  assert.match(manual, /FIREBASE_GOOGLE_SERVICES_JSON/, "and writes the Firebase config Gradle needs");
+
+  const script = read("scripts/build-apk-local.sh");
+  assert.match(script, /expo prebuild --platform android/, "the fallback prebuilds the native project");
+  assert.match(script, /assembleRelease/, "and compiles a release APK with Gradle");
+  assert.match(script, /google-services\.json/, "refusing to start without the Firebase config");
+  assert.match(read("scripts/eas-dispatch.sh"), /mobile-fallback/, "the dispatch script knows the fallback target");
+});
