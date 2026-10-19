@@ -73,7 +73,7 @@ Measured and still open: **55** `!important` declarations across CSS, **1010** a
 
 ## 4. Action plan
 
-**Status:** P0 and both P1 items are **done** — executed in `c02bb11` (category SSOT + CoverageBadge) and `ca21924` (report addendum + README database docs). The `git` chunks below are kept for the record; P2/P3 remain open.
+**Status:** P0 and both P1 items are **done** — executed in `c02bb11` (category SSOT + CoverageBadge) and `ca21924` (report addendum + README database docs). P3 partly executed in `18fc3a6` (lint warnings fixed, `--sev-5` retired), `0b656ab` (sitemap incident URLs) and `7103354` (mobile copy bridge, canned-note migration). **Remaining:** the `V2_UI_Backup/expo` promotion decision (P2), owner-run `TODO_HUMAN.md` steps (P2), the Phase 3 mechanical sweep (alias codemod / `!important` / arbitrary values — deferred to its own pass for visual safety), CI suites (sandbox cannot download browser binaries), and the GEMINI recategoriser (needs `GEMINI_API_KEY`). The `git` chunks below are kept for the record.
 
 ### 4.1 Git commands
 There is **nothing to `git add` today** — the tree is clean and synced. The commands below are the exact chunks for the fixes above, ready when you want them executed:
