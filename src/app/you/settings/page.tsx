@@ -137,19 +137,19 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <div className="mb-4 flex flex-wrap items-center gap-2">
               {viewer.email ? (
                 <>
-                  <span className="num rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[12px] font-semibold text-sand-100">
+                  <span className="num rounded-full border border-white/12 bg-white/5 px-2.5 py-1 text-[12px] font-semibold text-primary">
                     {viewer.email}
                   </span>
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11.5px] font-extrabold uppercase tracking-[0.08em] ${
-                      viewer.emailVerified ? "border border-tide-500/35 bg-tide-500/12 text-tide-300" : "border border-sun-500/35 bg-sun-500/12 text-sun-600"
+                      viewer.emailVerified ? "border border-accent/35 bg-accent/12 text-text-accent" : "border border-warn-500/35 bg-warn-500/12 text-warn-600"
                     }`}
                   >
                     {viewer.emailVerified ? "Confirmed" : "Not confirmed yet"}
                   </span>
                 </>
               ) : (
-                <span className="text-[12px] text-sun-600">
+                <span className="text-[12px] text-warn-600">
                   No email on this account, so a forgotten password could not be reset by email.
                 </span>
               )}
@@ -171,7 +171,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </Section>
 
           <Section id="plan" title="Your plan">
-            <p className="text-[12.5px] leading-[1.75] text-ink-300">
+            <p className="text-[12.5px] leading-[1.75] text-tertiary">
               Plans and billing live on your{" "}
               <TextLink href="/you">account page</TextLink>.
             </p>

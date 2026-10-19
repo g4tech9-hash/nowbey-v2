@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { passwordStrength } from "@/lib/password";
 
-const SEGMENT = ["", "bg-conch-500", "bg-sun-500", "bg-tide-400", "bg-tide-400"];
+const SEGMENT = ["", "bg-danger-500", "bg-warn-500", "bg-accent-hover", "bg-accent-hover"];
 
 export const INPUT = "nb-field";
 export const LABEL = "nb-field-label";
@@ -51,7 +51,7 @@ export function PasswordField({
           type="button"
           onClick={() => setShow((v) => !v)}
           aria-label={show ? "Hide password" : "Show password"}
-          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-[11.5px] font-bold text-tide-300 hover:bg-white/8"
+          className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-[11.5px] font-bold text-text-accent hover:bg-white/8"
         >
           {show ? "Hide" : "Show"}
         </button>
@@ -63,10 +63,10 @@ export function PasswordField({
               <span key={i} className={`h-1 flex-1 rounded-full ${i <= s.score ? SEGMENT[s.score] : "bg-white/10"}`} />
             ))}
           </div>
-          <p className={`mt-1 text-[11.5px] ${s.problem ? "text-danger-500" : "text-ink-400"}`}>{s.problem ?? s.label}</p>
+          <p className={`mt-1 text-[11.5px] ${s.problem ? "text-danger-500" : "text-tertiary"}`}>{s.problem ?? s.label}</p>
         </div>
       ) : hint ? (
-        <p className="mt-1 text-[11.5px] text-ink-400">{hint}</p>
+        <p className="mt-1 text-[11.5px] text-tertiary">{hint}</p>
       ) : null}
     </div>
   );

@@ -20,7 +20,7 @@ function Fact({ k, children }: { k: string; children: React.ReactNode }) {
   return (
     <div>
       <dt className="text-[11.5px] font-bold uppercase tracking-wide text-tertiary">{k}</dt>
-      <dd className="mt-0.5 text-[13px] text-sand-100">{children}</dd>
+      <dd className="mt-0.5 text-[13px] text-primary">{children}</dd>
     </div>
   );
 }
@@ -61,17 +61,17 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
 
   return (
     <div className="space-y-4">
-      <Link href="/admin/users" className="text-[12px] font-bold text-tide-300 hover:underline">
+      <Link href="/admin/users" className="text-[12px] font-bold text-text-accent hover:underline">
         ← All members
       </Link>
 
       <div className="flex flex-wrap items-center gap-2">
-        <h2 className="display text-[clamp(1.4rem,3.6vw,1.9rem)] font-extrabold text-sand-100">@{u.handle}</h2>
+        <h2 className="display text-[clamp(1.4rem,3.6vw,1.9rem)] font-extrabold text-primary">@{u.handle}</h2>
         <Pill tone={access.isAdmin ? "violet" : u.role === "editor" ? "tide" : "slate"}>{access.isAdmin ? "admin" : u.role}</Pill>
         {u.status === "suspended" ? <Pill tone="conch">Suspended</Pill> : null}
       </div>
       {u.status === "suspended" ? (
-        <p className="rounded-xl bg-conch-500/12 px-3 py-2 text-[12.5px] text-conch-400">
+        <p className="rounded-xl bg-danger-500/12 px-3 py-2 text-[12.5px] text-danger-400">
           Suspended {date(u.suspendedAt)}
           {u.suspendedReason ? `: ${u.suspendedReason}` : "."}
         </p>
@@ -79,7 +79,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <section className="glass rounded-2xl p-4">
-          <p className="display text-[15px] font-bold text-sand-100">Details</p>
+          <p className="display text-[15px] font-bold text-primary">Details</p>
           <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3">
             <Fact k="Name">{u.displayName}</Fact>
             <Fact k="Home island">{u.parish ?? "not set"}</Fact>
@@ -90,7 +90,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
                   <span className="mt-1 block">{u.emailVerifiedAt ? <Pill tone="tide">Confirmed</Pill> : <Pill tone="sun">Not confirmed</Pill>}</span>
                 </>
               ) : (
-                <span className="text-sun-400">none on file</span>
+                <span className="text-warn-400">none on file</span>
               )}
             </Fact>
             <Fact k="Plan">
@@ -116,7 +116,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
         </section>
 
         <section className="glass rounded-2xl p-4">
-          <p className="display text-[15px] font-bold text-sand-100">Manage</p>
+          <p className="display text-[15px] font-bold text-primary">Manage</p>
           <div className="mt-3">
             <AdminUserActions
               handle={u.handle}
@@ -142,15 +142,15 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
 
       {/* Why this account is (or is not) staff — the same verdict the member sees on /admin-access,
           so an admin answering "why can't they open /admin?" is never guessing. */}
-      <section className={`rounded-2xl p-4 ${access.isAdmin ? "bg-tide-500/12" : "bg-sun-500/12"}`}>
-        <p className="display text-[15px] font-bold text-sand-100">
+      <section className={`rounded-2xl p-4 ${access.isAdmin ? "bg-accent/12" : "bg-warn-500/12"}`}>
+        <p className="display text-[15px] font-bold text-primary">
           {access.isAdmin ? "Admin access" : "No admin access"}
         </p>
-        <p className="mt-1.5 text-[12.5px] leading-relaxed text-sand-100/90">{access.reason}</p>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-primary/90">{access.reason}</p>
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Recent reports</p>
+        <p className="display text-[15px] font-bold text-primary">Recent reports</p>
         {reports.length ? (
           <ul className="mt-2 divide-y divide-white/5">
             {reports.map((r) => {
@@ -158,7 +158,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
               return (
                 <li key={r.id} className="flex items-center gap-2.5 py-2">
                   <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: c.color }} />
-                  <Link href={`/incident/${r.id}`} className="min-w-0 flex-1 truncate text-[13px] font-semibold text-sand-100 hover:text-tide-300">
+                  <Link href={`/incident/${r.id}`} className="min-w-0 flex-1 truncate text-[13px] font-semibold text-primary hover:text-text-accent">
                     {r.title}
                   </Link>
                   <span className="shrink-0 text-[11.5px] text-secondary">
@@ -174,7 +174,7 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Staff notes</p>
+        <p className="display text-[15px] font-bold text-primary">Staff notes</p>
         <p className="mt-0.5 text-[12.5px] text-secondary">
           Sentences a person wrote about this member. Append-only, admin-only, and never shown to them — add a note in the Manage panel above.
         </p>
@@ -195,12 +195,12 @@ export default async function MemberPage({ params }: { params: Promise<{ handle:
       </section>
 
       <section className="glass rounded-2xl p-4">
-        <p className="display text-[15px] font-bold text-sand-100">Staff activity on this member</p>
+        <p className="display text-[15px] font-bold text-primary">Staff activity on this member</p>
         {history.length ? (
           <ul className="mt-2 divide-y divide-white/5 text-[12.5px]">
             {history.map((h) => (
               <li key={h.id} className="py-2">
-                <span className="font-mono text-[11.5px] text-tide-300">{h.action}</span> <span className="text-primary">by @{h.actorHandle}</span>
+                <span className="font-mono text-[11.5px] text-text-accent">{h.action}</span> <span className="text-primary">by @{h.actorHandle}</span>
                 {h.detail ? <span className="text-secondary"> · {h.detail}</span> : null}
                 <span className="block text-[11.5px] text-tertiary">{timeAgo(h.createdAt)}</span>
               </li>

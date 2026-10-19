@@ -26,7 +26,7 @@ export function PostModActions({ id, status, flagged, canDelete }: { id: string;
     }
   }
 
-  const soft = `${BTN} bg-white/10 text-sand-100 hover:bg-white/16`;
+  const soft = `${BTN} bg-white/10 text-primary hover:bg-white/16`;
   return (
     <div className="flex flex-col items-start gap-1">
       <div className="flex flex-wrap gap-1.5">
@@ -35,7 +35,7 @@ export function PostModActions({ id, status, flagged, canDelete }: { id: string;
             {busy === "hide" ? "…" : "Hide"}
           </button>
         ) : (
-          <button type="button" disabled={busy !== null} onClick={() => go("restore")} className={`${BTN} bg-tide-500 font-extrabold text-on-accent`}>
+          <button type="button" disabled={busy !== null} onClick={() => go("restore")} className={`${BTN} bg-accent font-extrabold text-on-accent`}>
             {busy === "restore" ? "…" : "Restore"}
           </button>
         )}
@@ -49,7 +49,7 @@ export function PostModActions({ id, status, flagged, canDelete }: { id: string;
             type="button"
             disabled={busy !== null}
             onClick={() => go("delete", "Delete this post, its photos and its comments for good? This cannot be undone.")}
-            className={`${BTN} border border-conch-500/40 text-danger-500 hover:bg-conch-500/10`}
+            className={`${BTN} border border-danger-500/40 text-danger-500 hover:bg-danger-500/10`}
           >
             {busy === "delete" ? "…" : "Delete for good"}
           </button>

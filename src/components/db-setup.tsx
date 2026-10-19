@@ -13,23 +13,23 @@ export function DatabaseSetup({ eyebrow, title, blurb }: { eyebrow: string; titl
   return (
     <div className="mx-auto max-w-[760px]">
       <div className="nb-surface rounded-xl2 p-6 sm:p-8">
-        <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">{eyebrow}</p>
-        <h1 className="display mt-1.5 text-[clamp(1.45rem,4.5vw,2.1rem)] font-extrabold leading-tight tracking-tight text-sand-100">
+        <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-accent-hover">{eyebrow}</p>
+        <h1 className="display mt-1.5 text-[clamp(1.45rem,4.5vw,2.1rem)] font-extrabold leading-tight tracking-tight text-primary">
           {title}
         </h1>
-        <p className="mt-2 max-w-[60ch] text-[14px] leading-relaxed text-ink-300">{blurb}</p>
+        <p className="mt-2 max-w-[60ch] text-[14px] leading-relaxed text-tertiary">{blurb}</p>
 
         <div className="mt-5 flex flex-wrap gap-2">
-          <Link href="/" className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-tide-400">
+          <Link href="/" className="rounded-full bg-accent px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-accent-hover">
             Back to the homepage
           </Link>
-          <Link href="/map" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold text-ink-200 hover:bg-white/5">
+          <Link href="/map" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold text-secondary hover:bg-white/5">
             Open the map
           </Link>
         </div>
 
-        <div className="mt-5 rounded-xl border border-sun-500/35 bg-sun-500/10 p-4 text-[13px] leading-relaxed text-ink-200">
-          <p className="font-extrabold text-sun-600">Site setup — one step left</p>
+        <div className="mt-5 rounded-xl border border-warn-500/35 bg-warn-500/10 p-4 text-[13px] leading-relaxed text-secondary">
+          <p className="font-extrabold text-warn-600">Site setup — one step left</p>
           <ol className="mt-1.5 list-decimal space-y-1 pl-5">
             <li>
               Copy the connection string from your Postgres host (Neon → Project → <span className="font-semibold">Connection string</span>).
@@ -39,7 +39,7 @@ export function DatabaseSetup({ eyebrow, title, blurb }: { eyebrow: string; titl
               Environment Variables, ticked for <span className="font-semibold">every</span> environment you deploy.
             </li>
             <li>
-              Redeploy. The <Link href="/api/health" className="font-bold text-tide-300 underline">readiness check</Link> then reports{" "}
+              Redeploy. The <Link href="/api/health" className="font-bold text-text-accent underline">readiness check</Link> then reports{" "}
               <code className="rounded bg-white/10 px-1 py-px text-[12px]">&quot;database&quot;: true</code> and this page fills in by itself.
             </li>
           </ol>

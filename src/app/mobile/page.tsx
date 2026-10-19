@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Get the mobile app" };
 
 const STEPS = [
-  ["Get the project", "Ask the NowBey team for the nowbey-expo folder. It is not published as a download yet. You need Node.js 20 or newer on your computer."],
+  ["Get the project", "The Expo project lives in this repository at expo/ — copy that folder to your computer. It is the source the Android APK is built from and talks to this site's API. You need Node.js 20 or newer."],
   ["Install", "Open a terminal in the unzipped folder and run npm install."],
   ["Point it at this site", "The app reads its data from this website, so you do not run a second server."],
   ["Start it", "Run the command below, then scan the QR code with the free Expo Go app on your phone."],
@@ -27,35 +27,35 @@ export default async function MobilePage() {
 
       <section aria-labelledby="install" className="glass space-y-3 rounded-2xl p-4">
         <div>
-          <h2 id="install" className="display text-[16px] font-extrabold text-sand-100">
+          <h2 id="install" className="display text-[16px] font-extrabold text-primary">
             Add NowBey to your home screen
           </h2>
-          <p className="mt-0.5 text-[12.5px] text-ink-300">
+          <p className="mt-0.5 text-[12.5px] text-tertiary">
             No app store and no download. It opens full screen like an app, and it keeps the last saved feed for when the signal drops.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border hairline p-3">
-            <p className="text-[13px] font-bold text-sand-100">Android (Chrome)</p>
-            <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-[12.5px] text-ink-300">
+            <p className="text-[13px] font-bold text-primary">Android (Chrome)</p>
+            <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-[12.5px] text-tertiary">
               <li>Open this site in Chrome.</li>
               <li>Tap the menu (⋮) and choose “Install app” or “Add to Home screen”.</li>
             </ol>
           </div>
           <div className="rounded-xl border hairline p-3">
-            <p className="text-[13px] font-bold text-sand-100">iPhone (Safari)</p>
-            <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-[12.5px] text-ink-300">
+            <p className="text-[13px] font-bold text-primary">iPhone (Safari)</p>
+            <ol className="mt-1.5 list-decimal space-y-1 pl-5 text-[12.5px] text-tertiary">
               <li>Open this site in Safari.</li>
               <li>Tap Share, then “Add to Home Screen”.</li>
             </ol>
           </div>
         </div>
-        <p className="text-[11.5px] text-ink-400">Push alerts on the phone are switched on from the Alerts page when the site has them enabled.</p>
+        <p className="text-[11.5px] text-tertiary">Push alerts on the phone are switched on from the Alerts page when the site has them enabled.</p>
       </section>
 
       <div className="pt-2">
-        <h2 className="display text-[16px] font-extrabold text-sand-100">For developers: the Expo app</h2>
-        <p className="mt-0.5 text-[12.5px] text-ink-300">
+        <h2 className="display text-[16px] font-extrabold text-primary">For developers: the Expo app</h2>
+        <p className="mt-0.5 text-[12.5px] text-tertiary">
           An Expo project you can run today and publish to the app stores later. It is not on the app stores yet, and no download is published.
         </p>
       </div>
@@ -63,14 +63,14 @@ export default async function MobilePage() {
       <ol className="space-y-3">
         {STEPS.map(([title, text], i) => (
           <li key={title} className="glass flex gap-3 rounded-2xl p-3.5">
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-tide-500/20 text-[12px] font-extrabold text-tide-300">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/20 text-[12px] font-extrabold text-text-accent">
               {i + 1}
             </span>
             <div className="min-w-0">
-              <p className="text-[13.5px] font-bold text-sand-100">{title}</p>
-              <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-300">{text}</p>
+              <p className="text-[13.5px] font-bold text-primary">{title}</p>
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-tertiary">{text}</p>
               {i === 2 || i === 3 ? (
-                <pre className="nb-scroll mt-2 overflow-x-auto rounded-lg bg-abyss-950/80 p-2.5 text-[12px] text-tide-300">
+                <pre className="nb-scroll mt-2 overflow-x-auto rounded-lg bg-base/80 p-2.5 text-[12px] text-text-accent">
                   {i === 2 ? `EXPO_PUBLIC_API_BASE=${site}` : `EXPO_PUBLIC_API_BASE=${site} npx expo start`}
                 </pre>
               ) : null}
@@ -79,8 +79,8 @@ export default async function MobilePage() {
         ))}
       </ol>
 
-      <div className="rounded-2xl border hairline p-4 text-[12.5px] leading-relaxed text-ink-300">
-        <p className="font-bold text-sand-100">Good to know</p>
+      <div className="rounded-2xl border hairline p-4 text-[12.5px] leading-relaxed text-tertiary">
+        <p className="font-bold text-primary">Good to know</p>
         <ul className="mt-1.5 list-disc space-y-1 pl-5">
           <li>The interactive map runs on iPhone and Android. In a desktop browser the app shows the pin list instead.</li>
           <li>Plans are bought on the website, not inside the app. Your plan shows up in the app after you sign in.</li>

@@ -112,15 +112,23 @@
   --pulse-hue-ink-800: #18262c;
   --pulse-hue-ink-900: #0b161b;
 
-  --pulse-hue-night-000: #000000;
-  --pulse-hue-night-050: #050b0f;
-  --pulse-hue-night-100: #0a1116;
-  --pulse-hue-night-200: #101b22;
-  --pulse-hue-night-300: #16252e;
-  --pulse-hue-night-400: #1e313c;
-  --pulse-hue-night-500: #27404d;
-  --pulse-hue-night-600: #345463;
-  --pulse-hue-night-700: #48697a;
+  /* Night ramp — "Ocean Night v2" (2026-10-18): a tonal ARCHITECTURE, not just
+     a brightness. The canvas is deep (#14202b) so text and accents pop; each
+     surface rises by a clear, even step (canvas → cards → elevated → hover)
+     so the UI reads as layered planes instead of one washed mid-slate. Deep
+     teal-ocean cast throughout. History: the true-black OLED ramp
+     (#000000…#48697a) tested too dark; three lifts then overshot into a wash;
+     an Island-look override (fixed in globals.css) had been masking all of it.
+     This is the calibrated landing. */
+  --pulse-hue-night-000: #0c151d;
+  --pulse-hue-night-050: #111b24;
+  --pulse-hue-night-100: #152230;
+  --pulse-hue-night-200: #1c2b39;
+  --pulse-hue-night-300: #243546;
+  --pulse-hue-night-400: #2c4052;
+  --pulse-hue-night-500: #374c60;
+  --pulse-hue-night-600: #445c72;
+  --pulse-hue-night-700: #55728b;
 
   /* warm-sand family for the light theme — its own hues, not a desaturated dark */
   --pulse-hue-sand-000: #ffffff;
@@ -144,6 +152,9 @@
   --pulse-space-6: 24px;
   --pulse-space-8: 32px;
   --pulse-space-10: 40px;
+  --pulse-space-12: 48px;
+  --pulse-space-16: 64px;
+  --pulse-space-20: 80px;
 
   /* ---- Shape ------------------------------------------------------------- */
   --pulse-shape-xs: 8px;
@@ -212,29 +223,30 @@
 /* ===========================================================================
    LAYER 2 — SEMANTIC TOKENS (theme-aware)
    Meaning, not material. A component says "this is the sunken surface", never
-   "this is #0a1116". Both themes fill the same names with different hues,
+   "this is #152230". Both themes fill the same names with different hues,
    which is why light mode is a design and not an inversion.
    ========================================================================= */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Surfaces — OLED-first: the page itself is true black so a phone on a
-     phone battery during an outage drops to ~0 light output on the void. */
+  /* Surfaces — Ocean Night v2: deep canvas, stepped planes. Dark enough to
+     feel like night during an outage, structured enough to read at a glance —
+     no near-black, no washed mid-slate. */
   --bg-base: var(--pulse-hue-night-000);
-  --bg-sunken: #000000;
+  --bg-sunken: var(--pulse-hue-night-000);
   --bg-raised: var(--pulse-hue-night-100);
-  --bg-overlay: rgba(5, 11, 15, 0.88);
+  --bg-overlay: rgba(17, 27, 36, 0.88);
   --bg-elevated: var(--pulse-hue-night-200);
-  --bg-glass: rgba(10, 17, 22, 0.62);
+  --bg-glass: rgba(21, 34, 48, 0.62);
   --bg-hover: var(--pulse-hue-night-300);
   --bg-active: var(--pulse-hue-night-400);
   --bg-selected: rgba(63, 214, 192, 0.14);
 
-  /* Type */
-  --text-primary: #f3f1ea; /* 18.5:1 on base */
-  --text-secondary: #b9c8c9; /* 10.9:1 */
-  --text-tertiary: #92a6a9; /* 6.9:1 — still AA for body copy */
+  /* Type — three clear steps: body copy, support copy, quiet labels. */
+  --text-primary: #f3f1ea; /* 16.3:1 on base */
+  --text-secondary: #b9c8c9; /* 10.7:1 */
+  --text-tertiary: #9aafb3; /* 8.0:1 on base / 7.0:1 on cards — AA body text */
   --text-inverse: #06141b;
   --text-accent: var(--pulse-hue-teal-300);
   --text-on-accent: #04211d;
@@ -281,7 +293,6 @@
   --sev-2: var(--pulse-hue-amber-300);
   --sev-3: #ff9a52;
   --sev-4: var(--pulse-hue-coral-400);
-  --sev-5: #ff4d4d;
 
   /* Ambient decoration */
   --pulse-grid: rgba(122, 186, 190, 0.085);
@@ -293,7 +304,7 @@
   --pulse-elev-2: 0 12px 30px -12px rgba(0, 0, 0, 0.78), 0 1px 0 rgba(255, 255, 255, 0.055) inset;
   --pulse-elev-3: 0 30px 70px -22px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.075) inset;
 
-  --meta-theme-color: #000000;
+  --meta-theme-color: #0c151d;
 }
 
 :root[data-theme="light"] {
@@ -356,7 +367,6 @@
   --sev-2: #8a5b06;
   --sev-3: #b45310;
   --sev-4: #b03328;
-  --sev-5: #8c1d12;
 
   --pulse-grid: rgba(52, 38, 20, 0.07);
   --pulse-noise-opacity: 0.03;
@@ -431,15 +441,15 @@
    ========================================================================= */
 @supports not (background: color-mix(in srgb, red 50%, blue)) {
   :root {
-    --bg-base: #000000;
-    --bg-raised: #0a1116;
-    --bg-elevated: #101b22;
+    --bg-base: #0c151d;
+    --bg-raised: #152230;
+    --bg-elevated: #1c2b39;
     --text-primary: #f3f1ea;
     --text-secondary: #b9c8c9;
-    --text-tertiary: #92a6a9;
+    --text-tertiary: #9aafb3;
     --border-default: rgba(148, 206, 202, 0.18);
     --accent: #3fd6c0;
-    --skeleton-shine: linear-gradient(100deg, #0a1116 20%, #24333a 50%, #0a1116 80%);
+    --skeleton-shine: linear-gradient(100deg, #152230 20%, #2f4256 50%, #152230 80%);
   }
   :root[data-theme="light"] {
     --bg-base: #f7f3ec;
@@ -457,7 +467,7 @@
    `var(--card-bg, …)` with these values, so a token that failed to resolve
    degrades to the dark theme rather than to transparent-on-transparent. */
 :root {
-  --pulse-fallback-card-bg: #0a1116;
+  --pulse-fallback-card-bg: #152230;
   --pulse-fallback-text: #f3f1ea;
   --pulse-fallback-muted: #b9c8c9;
   --pulse-fallback-border: rgba(148, 206, 202, 0.18);

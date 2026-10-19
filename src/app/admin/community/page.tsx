@@ -79,20 +79,20 @@ export default async function CommunityAdmin({ searchParams }: { searchParams: P
                   ) : null}
                   <span className="text-[11.5px] text-tertiary">{timeAgo(p.createdAt)}</span>
                 </div>
-                <Link href={`/life/${p.id}`} className="mt-1 block text-[14.5px] font-bold text-sand-100 hover:text-tide-300">
+                <Link href={`/life/${p.id}`} className="mt-1 block text-[14.5px] font-bold text-primary hover:text-text-accent">
                   {p.title}
                 </Link>
                 <p className="mt-0.5 text-[12px] text-secondary">
                   by{" "}
-                  <Link href={`/admin/users/${p.authorHandle}`} className="font-semibold text-tide-300 hover:underline">
+                  <Link href={`/admin/users/${p.authorHandle}`} className="font-semibold text-text-accent hover:underline">
                     @{p.authorHandle}
                   </Link>{" "}
                   · {p.parish ?? "no island"} · {p.photoCount} {p.photoCount === 1 ? "photo" : "photos"} · {(engMap.get(p.id) ?? NO_ENGAGEMENT).comments} comments · {(engMap.get(p.id) ?? NO_ENGAGEMENT).total} reactions
                 </p>
                 {reasons ? (
-                  <p className="mt-0.5 text-[12px] text-sun-400">
+                  <p className="mt-0.5 text-[12px] text-warn-400">
                     Reported as: {reasons}
-                    {aiFlagged ? <span className="ml-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI flag</span> : null}
+                    {aiFlagged ? <span className="ml-1.5 rounded bg-accent/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-text-accent">AI flag</span> : null}
                   </p>
                 ) : null}
               </div>

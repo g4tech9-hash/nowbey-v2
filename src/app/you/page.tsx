@@ -56,10 +56,10 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         {/* Account hero — landing hero grammar, smaller. */}
         <div className="glass relative isolate overflow-hidden rounded-[24px] p-5 sm:p-6">
           <Eyebrow>@{viewer.handle}</Eyebrow>
-          <h1 className="display mt-2.5 text-[clamp(1.7rem,4.4vw,2.45rem)] font-extrabold leading-[1.05] tracking-[-0.055em] text-sand-100">
+          <h1 className="display mt-2.5 text-[clamp(1.7rem,4.4vw,2.45rem)] font-extrabold leading-[1.05] tracking-[-0.055em] text-primary">
             {viewer.displayName ?? viewer.handle}
           </h1>
-          <p className="mt-2 text-[13px] leading-[1.75] text-ink-300">
+          <p className="mt-2 text-[13px] leading-[1.75] text-tertiary">
             Home island {viewer.parish ?? "not set"} · {mine.length} report{mine.length === 1 ? "" : "s"} filed
           </p>
           {verifiedByPerson || viewer.isEditor ? (
@@ -87,28 +87,28 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
           <StatTile
             label="Confirmed"
             value={mine.reduce((s, r) => s + r.confirmations, 0).toLocaleString("en-US")}
-            tone="var(--color-ok-500)"
+            tone="var(--color-success-500)"
           />
-          <StatTile label="Home island" value={viewer.parish ?? "Not set"} tone="var(--color-sand-100)" />
-          <StatTile label="Plan" value={tier?.name ?? "Free"} tone={tier?.tone ?? "var(--color-ink-200)"} />
+          <StatTile label="Home island" value={viewer.parish ?? "Not set"} tone="var(--color-primary)" />
+          <StatTile label="Plan" value={tier?.name ?? "Free"} tone={tier?.tone ?? "var(--color-secondary)"} />
         </section>
 
         {welcome ? (
-          <Panel className="rounded-[20px] border-tide-400/40 p-5">
+          <Panel className="rounded-[20px] border-accent-hover/40 p-5">
             <SectionTitle>Welcome to NowBey, @{viewer.handle}</SectionTitle>
-            <ol className="mt-2.5 space-y-2 text-[13px] text-ink-200">
+            <ol className="mt-2.5 space-y-2 text-[13px] text-secondary">
               <li>
-                <span className="font-bold text-tide-300">1.</span> Confirm your email{viewer.emailVerified ? " (done)" : " using the link we just sent you"}.
+                <span className="font-bold text-text-accent">1.</span> Confirm your email{viewer.emailVerified ? " (done)" : " using the link we just sent you"}.
               </li>
               <li>
-                <span className="font-bold text-tide-300">2.</span>{" "}
+                <span className="font-bold text-text-accent">2.</span>{" "}
                 <Link href="/alerts" className="font-bold underline">
                   Set up alerts
                 </Link>{" "}
                 for your island.
               </li>
               <li>
-                <span className="font-bold text-tide-300">3.</span>{" "}
+                <span className="font-bold text-text-accent">3.</span>{" "}
                 <Link href="/report" className="font-bold underline">
                   File your first report
                 </Link>{" "}
@@ -119,17 +119,17 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         ) : null}
 
         {!viewer.email ? (
-          <Panel className="rounded-[20px] border-sun-500/35 p-4 text-[13px] leading-[1.75] text-ink-200">
+          <Panel className="rounded-[20px] border-warn-500/35 p-4 text-[13px] leading-[1.75] text-secondary">
             Your account has no email address, so we could not help you back in if you forgot your password.{" "}
-            <Link href="/you/settings" className="font-bold text-sun-600 underline">
+            <Link href="/you/settings" className="font-bold text-warn-600 underline">
               Add one
             </Link>
             .
           </Panel>
         ) : !viewer.emailVerified ? (
-          <Panel className="rounded-[20px] border-sun-500/35 p-4">
-            <p className="text-[13px] leading-[1.75] text-ink-200">
-              Confirm <strong className="text-sand-100">{viewer.email}</strong> so we can help if you forget your password.
+          <Panel className="rounded-[20px] border-warn-500/35 p-4">
+            <p className="text-[13px] leading-[1.75] text-secondary">
+              Confirm <strong className="text-primary">{viewer.email}</strong> so we can help if you forget your password.
             </p>
             <div className="mt-2.5">
               <ResendVerification />
@@ -160,10 +160,10 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
                     <div className="flex items-start gap-2.5">
                       <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: c.color, boxShadow: `0 0 8px ${c.color}80` }} />
                       <span className="min-w-0 flex-1">
-                        <Link href={`/incident/${r.id}`} className="block text-[13.5px] font-bold tracking-[-0.02em] text-sand-100 transition duration-200 ease-standard hover:text-tide-300">
+                        <Link href={`/incident/${r.id}`} className="block text-[13.5px] font-bold tracking-[-0.02em] text-primary transition duration-200 ease-standard hover:text-text-accent">
                           {r.title}
                         </Link>
-                        <span className="num mt-0.5 block text-[11.5px] text-ink-400">
+                        <span className="num mt-0.5 block text-[11.5px] text-tertiary">
                           {r.street ?? "unmapped"} · {r.parish ?? "Bahamas"} · {timeAgo(r.createdAt)} · {r.status} · {r.confirmations} ✓
                         </span>
                       </span>
@@ -196,7 +196,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
                 {tier.name}
                 {viewer.status === "comp" ? "" : ` · ${viewer.interval === "year" ? "yearly" : "monthly"}`}
               </p>
-              <p className="mt-1.5 text-[12px] leading-[1.75] text-ink-300">{planLine(viewer.status, viewer.renewsAt)}</p>
+              <p className="mt-1.5 text-[12px] leading-[1.75] text-tertiary">{planLine(viewer.status, viewer.renewsAt)}</p>
               <div className="mt-3.5 flex flex-wrap items-center gap-2">
                 {viewer.status !== "comp" ? <ManageBillingButton demo={viewer.status === "sandbox"} /> : null}
                 {viewer.tier === "admiral" ? (
@@ -210,7 +210,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
             </>
           ) : (
             <>
-              <p className="mt-1.5 text-[12px] leading-[1.75] text-ink-300">Free plan. House ads are showing.</p>
+              <p className="mt-1.5 text-[12px] leading-[1.75] text-tertiary">Free plan. House ads are showing.</p>
               <ButtonLink href="/support" variant="secondary" size="sm" className="mt-2.5">
                 Choose a plan
               </ButtonLink>
@@ -221,10 +221,10 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         <Panel className="rounded-[20px] p-4">
           <SectionTitle>Alert profiles</SectionTitle>
           {subs.length ? (
-            <ul className="mt-2.5 space-y-1.5 text-[12px] text-ink-300">
+            <ul className="mt-2.5 space-y-1.5 text-[12px] text-tertiary">
               {subs.map((s) => (
                 <li key={s.id} className="rounded-xl border border-white/8 bg-white/[.04] px-2.5 py-2">
-                  <span className={`font-bold ${s.verified ? "text-ok-600" : "text-sun-600"}`}>
+                  <span className={`font-bold ${s.verified ? "text-success-600" : "text-warn-600"}`}>
                     {s.verified ? "On" : "Unconfirmed"}
                   </span>{" "}
                   · {s.parishes.split(",").join(", ")}
@@ -232,7 +232,7 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-[12px] leading-[1.75] text-ink-400">No alert profile yet.</p>
+            <p className="mt-2 text-[12px] leading-[1.75] text-tertiary">No alert profile yet.</p>
           )}
           <TextLink href="/alerts" className="mt-2.5">
             Set up alerts
@@ -242,18 +242,18 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
         {viewer.isEditor ? (
           <Link
             href="/admin"
-            className="nb-surface nb-card-link block rounded-[20px] border-tide-400/30 px-4 py-3.5 text-[12.5px] font-bold text-tide-300"
+            className="nb-surface nb-card-link block rounded-[20px] border-accent-hover/30 px-4 py-3.5 text-[12.5px] font-bold text-text-accent"
           >
             Open {viewer.isAdmin ? "the admin area" : "the moderation area"} →
           </Link>
         ) : (
-          <Link href="/admin-access" className="nb-surface nb-card-link block rounded-[20px] px-4 py-3.5 text-[12.5px] font-bold text-ink-300">
+          <Link href="/admin-access" className="nb-surface nb-card-link block rounded-[20px] px-4 py-3.5 text-[12.5px] font-bold text-tertiary">
             Why can I not open the admin area?
           </Link>
         )}
 
         <div className="nb-surface flex items-center justify-between gap-2 rounded-[20px] px-3.5 py-2.5">
-          <p className="num text-[11.5px] text-ink-400">Signed in as @{viewer.handle}</p>
+          <p className="num text-[11.5px] text-tertiary">Signed in as @{viewer.handle}</p>
           <SignOut />
         </div>
       </aside>

@@ -137,8 +137,8 @@ export function PushToggle({ config, vapidKey, parishes }: Props) {
     <div className="nb-surface rounded-xl2 p-4">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div className="min-w-0 flex-1">
-          <p className="display text-[15px] font-bold text-sand-100">Push alerts on this device</p>
-          <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-300">
+          <p className="display text-[15px] font-bold text-primary">Push alerts on this device</p>
+          <p className="mt-0.5 text-[12.5px] leading-relaxed text-tertiary">
             {state === "needs-install"
               ? "On an iPhone, notifications reach the site only after it is added to the Home Screen: tap Share, then “Add to Home Screen”, and open NowBey from that new icon. Email alerts keep working in the meantime."
               : state === "on"
@@ -154,7 +154,7 @@ export function PushToggle({ config, vapidKey, parishes }: Props) {
             type="button"
             onClick={disable}
             disabled={busy}
-            className="rounded-full border border-tide-400/40 bg-tide-500/10 px-3 py-1.5 text-[12px] font-extrabold text-tide-300 hover:bg-tide-500/20 disabled:opacity-50"
+            className="rounded-full border border-accent-hover/40 bg-accent/10 px-3 py-1.5 text-[12px] font-extrabold text-text-accent hover:bg-accent/20 disabled:opacity-50"
           >
             {busy ? "Working…" : "On — tap to stop"}
           </button>
@@ -163,7 +163,7 @@ export function PushToggle({ config, vapidKey, parishes }: Props) {
             type="button"
             onClick={enable}
             disabled={busy}
-            className="rounded-full bg-tide-500 px-3.5 py-1.5 text-[12px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50"
+            className="rounded-full bg-accent px-3.5 py-1.5 text-[12px] font-extrabold text-on-accent hover:bg-accent-hover disabled:opacity-50"
           >
             {busy ? "Working…" : "Turn on push alerts"}
           </button>

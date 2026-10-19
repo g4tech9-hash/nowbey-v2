@@ -59,14 +59,14 @@ function PreferenceButton({ active, label, detail, onClick, compact }: { active:
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`${compact ? "rounded-full px-3 py-1.5 text-[12px]" : "flex min-h-[58px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left"} border font-bold transition ${active ? "border-tide-400/50 bg-tide-500/18 text-tide-300" : "hairline bg-white/5 text-sand-100 hover:bg-white/10"}`}
+      className={`${compact ? "rounded-full px-3 py-1.5 text-[12px]" : "flex min-h-[58px] w-full items-center gap-3 rounded-xl px-3 py-2 text-left"} border font-bold transition ${active ? "border-accent-hover/50 bg-accent/18 text-text-accent" : "hairline bg-white/5 text-primary hover:bg-white/10"}`}
     >
-      <span aria-hidden className={`${compact ? "inline-block" : "grid h-8 w-8 shrink-0 place-items-center"} rounded-full ${active ? "bg-tide-500 text-on-accent" : "bg-white/10"}`}>
+      <span aria-hidden className={`${compact ? "inline-block" : "grid h-8 w-8 shrink-0 place-items-center"} rounded-full ${active ? "bg-accent text-on-accent" : "bg-white/10"}`}>
         {active ? "✓" : "○"}
       </span>
       <span>
         <span className="block">{label}</span>
-        {!compact ? <span className="mt-0.5 block text-[12px] font-normal leading-snug text-ink-400">{detail}</span> : null}
+        {!compact ? <span className="mt-0.5 block text-[12px] font-normal leading-snug text-tertiary">{detail}</span> : null}
       </span>
     </button>
   );

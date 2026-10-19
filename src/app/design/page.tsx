@@ -278,7 +278,7 @@ export default async function DesignPage() {
               <EmptyState
                 title="Nothing filed under that yet"
                 blurb="Clear the filters, or be the first to report it."
-                primary={{ href: "/report", label: "Report a spot" }}
+                primary={{ href: "/report", label: "Report a hazard" }}
                 secondary={{ href: "/feed", label: "Clear filters" }}
               />
               <ErrorStateDemo />

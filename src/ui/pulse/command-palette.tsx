@@ -234,7 +234,7 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: { open?: 
           {entries.map((entry, i) => (
             <li key={entry.id} role="option" id={`pulse-cmd-${entry.id}`} aria-selected={i === cursor}>
               <button type="button" className="pulse-palette-item" data-selected={i === cursor ? "true" : undefined} onClick={() => { entry.run(); setOpen(false); }} onMouseEnter={() => setCursor(i)}>
-                {entry.kind === "incident" ? <CatBadge category={entry.category} size="sm" label="Report" /> : entry.icon}
+                {entry.kind === "incident" ? <CatBadge category={entry.category} size="sm" label="Report a hazard" /> : entry.icon}
                 <span className="min-w-0 flex-1 truncate text-start">{entry.label}</span>
                 {entry.hint ? <span className="font-mono text-[11.5px] text-tertiary">{entry.hint}</span> : null}
                 {i === cursor ? <CornerDownLeft size={13} aria-hidden /> : null}

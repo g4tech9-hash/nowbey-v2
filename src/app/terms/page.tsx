@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { PageHead } from "@/components/app-shell";
 import { LEGAL_UPDATED, SUPPORT_EMAIL } from "@/lib/legal";
-import { EmergencyNotice } from "@/components/emergency-notice";
+import { EmergencyStrip } from "@/components/emergency-notice";
 
 export const metadata = { title: "Terms of use" };
 
@@ -60,21 +61,38 @@ const SECTIONS: { h: string; p: string[] }[] = [
 
 export default function TermsPage() {
   return (
-    <div className="mx-auto max-w-[720px]">
+    <div className="mx-auto max-w-[72ch]">
       <PageHead eyebrow="Legal" title="Terms of use" blurb={`Last updated ${LEGAL_UPDATED}.`} />
-      <div className="mb-4"><EmergencyNotice /></div>
+      <nav aria-label="On this page" className="glass mb-5 rounded-2xl p-4">
+        <p className="nb-label mb-2 text-tertiary">On this page</p>
+        <ul className="grid gap-1.5 text-[13px]">
+          {SECTIONS.map((s) => (
+            <li key={s.h}>
+              <a href={`#${s.h.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} className="font-semibold text-secondary underline-offset-2 hover:text-primary hover:underline">
+                {s.h}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
       <div className="glass space-y-5 rounded-2xl p-5">
         {SECTIONS.map((s) => (
-          <section key={s.h}>
-            <h2 className="display text-[15px] font-extrabold text-sand-100">{s.h}</h2>
+          <section key={s.h} id={s.h.toLowerCase().replace(/[^a-z0-9]+/g, "-")} className="scroll-mt-24">
+            <h2 className="display text-[15px] font-extrabold text-primary">{s.h}</h2>
             {s.p.map((t, i) => (
-              <p key={i} className="mt-1.5 text-[13px] leading-relaxed text-ink-300">
+              <p key={i} className="mt-1.5 text-[13px] leading-relaxed text-tertiary">
                 {t}
               </p>
             ))}
           </section>
         ))}
       </div>
+      <div className="mt-5">
+        <EmergencyStrip />
+      </div>
+      <p className="mt-4 text-[12.5px] text-tertiary">
+        Questions about these terms? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="font-bold text-secondary underline">{SUPPORT_EMAIL}</a> or read the <Link href="/privacy" className="font-bold text-secondary underline">privacy policy</Link>.
+      </p>
     </div>
   );
 }

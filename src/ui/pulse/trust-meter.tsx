@@ -72,17 +72,20 @@ export function TrustCard({
   href?: string;
 }) {
   const tone = TRUST_TOKEN[trust.tier];
+  const chipTone = trust.tier === "well" ? "success" : trust.tier === "partly" ? "info" : trust.tier === "recheck" ? "warning" : "danger";
   return (
     <CardLayeredSection label="Why you can believe this" icon={<ShieldCheck size={14} aria-hidden />}>
       <div className="flex flex-wrap items-center gap-2">
         <TrustMeter value={trust.value} tier={trust.tier} label={TRUST_LABEL[trust.tier]} />
-        <MetaChip tone={trust.tier === "verified" ? "success" : trust.tier === "solid" ? "info" : trust.tier === "shaky" ? "warning" : "danger"}>
+        <MetaChip tone={chipTone as any}>
           {TRUST_LABEL[trust.tier]}
         </MetaChip>
         {sourceKind === "official" ? <MetaChip tone="accent">Official source</MetaChip> : null}
         {sourceKind === "news" ? <MetaChip tone="info">From the wire</MetaChip> : null}
       </div>
-      <p className="mt-2 text-[13px] leading-[1.7] text-secondary">{TRUST_BLURB[trust.tier]}</p>
+      {trust.leadReason ? <p className="mt-2 text-[13px] font-semibold text-primary">{trust.leadReason}</p> : null}
+      <p className="mt-1 text-[13px] leading-[1.7] text-secondary">{TRUST_BLURB[trust.tier]}</p>
+      <p className="mt-1 text-[12px] text-tertiary">Verify before you act — conditions may have changed.</p>
       {trust.reasons.length ? (
         <ul className="mt-2.5 grid gap-1.5">
           {trust.reasons.map((r) => (

@@ -9,7 +9,7 @@ import { IngestButton } from "@/components/client-actions";
 import { SubmitLink } from "@/components/wire-forms";
 import { MapPanel, type MapPin } from "@/components/map/map-panel";
 import { CATEGORIES, timeAgo, type CategoryKey } from "@/lib/geo";
-import { configuredFeeds, refreshIfStale } from "@/lib/ingest";
+import { configuredFeeds, refreshIfStale, isJunkTitle } from "@/lib/ingest";
 import { getViewer } from "@/lib/viewer";
 import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
@@ -34,7 +34,7 @@ import { pulseCategoryMeta } from "@/ui/pulse/glyph";
  */
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "News wire" };
+export const metadata = { title: "News wire — Bahamian headlines on the map" };
 
 export default async function WirePage() {
   // No database configured at all: show the setup notice instead of crashing on the first
@@ -49,13 +49,16 @@ export default async function WirePage() {
     );
   }
   after(() => refreshIfStale());
-  const [rows, lastRun, viewer] = await Promise.all([
-    db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(40),
+  const [rawRows, lastRun, viewer] = await Promise.all([
+    db.select().from(newsItems).where(eq(newsItems.review, "approved")).orderBy(desc(newsItems.publishedAt)).limit(60),
     db.execute(sql`select max(ingested_at) as at, count(*)::int as n from news_items where review = 'approved'`),
     getViewer(),
   ]);
+  // SSR budget (5.2): first ~20 stories only; the total count stays honest below.
+  const rows = rawRows.filter((n) => !isJunkTitle(n.title)).slice(0, 20);
   const adFree = viewer.adFree;
   const engMap = await engagementFor("news", rows.map((n) => n.id), viewer.userId);
+  const totalWire = (lastRun.rows?.[0] as any)?.n ?? rows.length;
   const meta = (lastRun.rows?.[0] ?? { at: null, n: rows.length }) as { at: string | null; n: number };
   const feeds = configuredFeeds();
 
@@ -130,34 +133,33 @@ export default async function WirePage() {
                           </div>
 
                           <h3 className="pulse-card-title">
+                            {/* The headline is a real link; the whole card opens the story too. */}
                             <a href={n.url} target="_blank" rel="noreferrer">
                               {n.title}
+                              <span aria-hidden className="ml-1.5 inline-block align-baseline">↗</span>
+                              <span className="sr-only"> (opens the publisher in a new tab)</span>
                             </a>
                           </h3>
 
                           {n.aiSummary ? (
-                            <p className="pulse-card-body">
+                            <p className="pulse-card-body line-clamp-3">
                               <span className="pulse-ai-brief">AI brief</span>
                               {n.aiSummary}
                             </p>
                           ) : n.summary ? (
                             <p
-                              className="pulse-card-body"
+                              className="pulse-card-body line-clamp-3"
                               dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(n.summary) }}
                             />
                           ) : null}
 
                           <div className="mt-3 flex flex-wrap items-center gap-2">
                             {n.lat != null && n.lng != null ? (
-                              <Chip tone="neutral">
-                                <span className="font-mono tabular-nums">
-                                  Pinned · {(n.lat as number).toFixed(4)}, {(n.lng as number).toFixed(4)}
-                                </span>
-                              </Chip>
-                            ) : (
-                              <Chip tone="neutral">No place named in the text — unpinned</Chip>
-                            )}
-                            <FreshnessPill freshness={i === 0 ? "live" : "watching"} time={n.publishedAt} label={timeAgo(n.publishedAt)} />
+                              <Chip tone="neutral">Pinned: {n.parish ?? "The Bahamas"}</Chip>
+                            ) : n.parish ? (
+                              <Chip tone="neutral">Island-wide</Chip>
+                            ) : null}
+                            <span className="font-mono text-[11.5px] text-tertiary">Published {timeAgo(n.publishedAt)}</span>
                             <a href={n.url} target="_blank" rel="noreferrer" className="nb-textlink ml-auto">
                               Read at {(() => {
                                 try {
@@ -172,7 +174,6 @@ export default async function WirePage() {
 
                           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-default pt-3">
                             <AvatarStack seed={n.sourceName} size={22} label={n.sourceName} />
-                            <span className="text-[12px] text-tertiary">{CATEGORIES[(n.category as CategoryKey) ?? "notice"]?.blurb}</span>
                             {eng.total + eng.comments > 0 ? (
                               <EngagementSummary eng={eng} href={`/wire/${n.id}`} />
                             ) : null}
@@ -208,7 +209,7 @@ export default async function WirePage() {
           <Panel className="pulse-card-pad">
             <SectionTitle>Where stories come from</SectionTitle>
             <p className="mt-1.5 font-mono text-[12px] leading-snug text-tertiary tabular-nums">
-              {meta.n} {meta.n === 1 ? "story" : "stories"} on the wire
+              Showing {rows.length} of {totalWire} {totalWire === 1 ? "story" : "stories"} on the wire
               {meta.at ? `, last updated ${timeAgo(meta.at)}` : ""}.
             </p>
             <ul className="mt-3 grid gap-2 text-[12.5px]">

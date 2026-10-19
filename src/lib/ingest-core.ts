@@ -139,13 +139,79 @@ function safeChar(code: number): string {
  * Directory profile pages ("Profile : xoso66ne"), section labels ("Photo", "Blog")
  * and login/register pages slip in through Google News fallbacks. They are never stories.
  */
+/**
+ * Publisher allowlist — known Bahamian / regional outlets that produce real news.
+ */
+export const PUBLISHER_ALLOWLIST = [
+  "Our News",
+  "Eyewitness News",
+  "Nassau Guardian",
+  "Tribune 242",
+  "Bahamas Press",
+  "Bahamas Weekly",
+  "Loop Bahamas",
+  "ZNS Bahamas",
+  "Bahamas Information Services",
+  "Bahamas Investor",
+  "Bahamas Local",
+  "Bahamas Power and Light",
+  "The Nassau Guardian",
+  "The Tribune",
+  "EyeWitness News Bahamas",
+  "Our News Bahamas",
+] as const;
+
+const SPAM_TOKENS = /(taixiu|iwin|sc88|mm99|bl555|nohu|llwin|poker|casino|betting|crypto\s*pump)/i;
+const E_EDITION_CUTOUT = /segment\s*\d+\s*cutout\s*\|\s*e-?edition/i;
+
+/* NOTE: the colon patterns must NOT end in \b — \b after ':' never matches (':' is a
+   non-word char), which is exactly how "Profile : x" junk reached production. */
 const JUNK_TITLE =
-  /^\s*(profile\s*:|log\s?in|sign\s?in|register|subscribe|advertis|classified|sponsored|404|page not found)\b/i;
+  /^\s*(profile\s*:|search results for\s*:|your local search engine\b|log\s?in\b|sign\s?in\b|register\b|subscribe\b|advertis\w*\b|classified\b|sponsored\b|404\b|page not found\b)/i;
 
 export function isJunkTitle(title: string): boolean {
-  if (JUNK_TITLE.test(title)) return true;
-  // A real headline has at least two words; a lone token is a section label.
-  return title.replace(/[^a-z0-9]+/gi, " ").trim().split(/\s+/).filter(Boolean).length < 2;
+  const t = title.trim();
+  if (!t) return true;
+  if (JUNK_TITLE.test(t)) return true;
+  if (E_EDITION_CUTOUT.test(t)) return true;
+  if (/e-?edition\s+(cutout|pages?|segment)/i.test(t)) return true;
+  if (/\b(cutout|segment\s*\d+)\b.*e-?edition/i.test(t)) return true;
+  if (SPAM_TOKENS.test(t)) return true;
+  if (/(?:88|99)\w*(?:hiphop|v\d*|com|net|poker|slot|casino)/i.test(t)) return true;
+  const words = t.replace(/[^a-z0-9]+/gi, " ").trim().split(/\s+/).filter(Boolean);
+  if (words.length < 4) return true;
+  return false;
+}
+
+export function isAllowedPublisher(sourceName: string, url: string): boolean {
+  if (!/news\.google\.com/.test(url)) return true;
+  if (sourceName && sourceName.trim() && sourceName.toLowerCase() !== "google news") return true;
+  return false;
+}
+
+export function cleanSnippet(raw: string): string {
+  return raw
+    .replace(/\bAdvertisement\b/gi, "")
+    .replace(/\s*\[\.\.\.\]\s*$/g, "")
+    .replace(/\s*…\s*$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function dedupKey(title: string, publisher: string): string {
+  const normTitle = title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const normPub = publisher.toLowerCase().trim();
+  return `${normTitle}::${normPub}`;
+}
+
+export async function resolveGoogleNewsUrl(googleUrl: string): Promise<string> {
+  if (!/news\.google\.com/.test(googleUrl)) return googleUrl;
+  try {
+    const res = await fetch(googleUrl, { method: "HEAD", redirect: "manual", signal: AbortSignal.timeout(4000) });
+    const loc = res.headers.get("location");
+    if (loc && /^https?:\/\//.test(loc)) return loc;
+  } catch {}
+  return googleUrl;
 }
 
 export type ParsedItem = {
@@ -172,11 +238,15 @@ export function parseFeed(xml: string, sourceName: string): ParsedItem[] {
       grab("guid") ||
       "";
     if (!title || isJunkTitle(title) || !/^https?:\/\//.test(link)) continue;
+    const gSourceRaw = grab("source");
+    const sourceForCheck = gSourceRaw && /news\.google\.com/.test(link) ? gSourceRaw : sourceName;
+    if (!isAllowedPublisher(sourceForCheck, link)) continue;
+    if (/e-?edition|cutout|segment.*\d+/i.test(link) && /tribune242|guardian/i.test(link)) {
+      if (E_EDITION_CUTOUT.test(title)) continue;
+    }
     const dateRaw = grab("pubDate") || grab("dc:date") || grab("published") || grab("updated");
     let publishedAt = dateRaw ? new Date(dateRaw) : new Date();
-    // A missing or nonsense date, or one in the future, would pin a story to the top forever.
     if (Number.isNaN(publishedAt.getTime()) || publishedAt.getTime() > Date.now() + 3600_000) publishedAt = new Date();
-    // The full body (content:encoded) often has text and a picture when <description> is empty.
     const body = raw("content:encoded") || raw("content") || raw("description") || raw("summary");
     const bodyHtml = body.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1");
     const imageMatch =
@@ -184,11 +254,12 @@ export function parseFeed(xml: string, sourceName: string): ParsedItem[] {
       chunk.match(/<media:(?:content|thumbnail)[^>]*url="([^"]+)"/i)?.[1] ??
       bodyHtml.match(/<img[^>]*\ssrc=["']([^"']+)["']/i)?.[1] ??
       null;
-    const gSource = grab("source");
+    const gSource = gSourceRaw;
+    const summaryRaw = decode(bodyHtml).slice(0, 480);
     out.push({
       title: title.replace(gSource ? new RegExp(`\\s+[-\u2013|]\\s+${escapeRe(gSource)}$`) : /$^/, "").slice(0, 300),
       url: link.slice(0, 600),
-      summary: decode(bodyHtml).slice(0, 480),
+      summary: cleanSnippet(summaryRaw),
       publishedAt,
       sourceName: gSource && /news\.google\.com/.test(link) ? gSource : sourceName,
       imageUrl: imageMatch && /^https?:\/\//.test(imageMatch) ? imageMatch : null,

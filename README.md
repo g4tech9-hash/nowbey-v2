@@ -65,6 +65,22 @@ GOOGLE_OAUTH_BASE=http://127.0.0.1:4466   # test hook: leave unset in production
 What that suite *cannot* prove is Google's side of the bargain: the consent screen, the real client id
 and the redirect-URI registration. `TODO_HUMAN.md` §0c has those steps.
 
+## Local database
+
+With no `DATABASE_URL`, `npm run dev` boots an embedded Postgres (PGlite) by itself: migrations from
+`drizzle/` applied, demo Nassau pins and wire stories seeded into `.data/pglite/` (gitignored). To run
+the **production** server against the same embedded database — for sandboxes and previews where a real
+Postgres is disproportionate:
+
+```bash
+NOWBEY_EMBEDDED_DB=1 npx next start -p 3100
+```
+
+The flag is explicit on purpose: without it (and without `DATABASE_URL`), a production deployment keeps
+showing the honest "setup not finished" pages instead of silently pretending to work. A real
+`DATABASE_URL` always wins and the embedded database never starts. Delete `.data/pglite` to reset the
+demo content.
+
 ## Deploying
 
 `.github/workflows/deploy.yml` deploys to Vercel on a push to `master`, but only after the `gate` job

@@ -57,41 +57,41 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <article className="min-w-0">
-        <Link href="/wire" className="text-[12px] font-bold text-tide-300 hover:underline">
+        <Link href="/wire" className="text-[12px] font-bold text-text-accent hover:underline">
           ← News wire
         </Link>
 
-        {!open ? <p className="mt-2 rounded-xl bg-sun-500/12 px-3.5 py-2.5 text-[12.5px] text-sun-600">This link is waiting for review, so only staff can see it.</p> : null}
+        {!open ? <p className="mt-2 rounded-xl bg-warn-500/12 px-3.5 py-2.5 text-[12.5px] text-warn-600">This link is waiting for review, so only staff can see it.</p> : null}
 
         <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11.5px] font-bold uppercase tracking-wide">
           <span style={{ color: c.color }}>{c.label}</span>
-          <span className="normal-case tracking-normal text-ink-400">
+          <span className="normal-case tracking-normal text-tertiary">
             {story.sourceName} · {timeAgo(story.publishedAt)}
           </span>
-          {story.parish ? <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] normal-case tracking-normal text-ink-200">{story.parish}</span> : null}
+          {story.parish ? <span className="rounded-full bg-white/8 px-2 py-0.5 text-[11.5px] normal-case tracking-normal text-secondary">{story.parish}</span> : null}
         </div>
 
-        <h1 className="display mt-2 text-[clamp(1.5rem,4vw,2.1rem)] font-extrabold leading-[1.1] text-sand-100">{story.title}</h1>
+        <h1 className="display mt-2 text-[clamp(1.5rem,4vw,2.1rem)] font-extrabold leading-[1.1] text-primary">{story.title}</h1>
         {story.aiSummary ? (
-          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-ink-200">
-            <span className="mr-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI brief</span>
+          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-secondary">
+            <span className="mr-1.5 rounded bg-accent/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-text-accent">AI brief</span>
             {story.aiSummary}
           </p>
         ) : story.summary ? (
-          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-ink-200">{story.summary}</p>
+          <p className="mt-3 max-w-[68ch] text-[14.5px] leading-relaxed text-secondary">{story.summary}</p>
         ) : null}
 
         <a
           href={story.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 inline-block rounded-full bg-sand-100 px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-white"
+          className="mt-4 inline-block rounded-full bg-primary px-4 py-2 text-[13px] font-extrabold text-on-accent hover:bg-white"
         >
           Read the full story at {host} ↗
         </a>
 
         {story.lat !== null && story.lng !== null ? (
-          <div className="mt-5 overflow-hidden rounded-2xl border border-tide-500/20">
+          <div className="mt-5 overflow-hidden rounded-2xl border border-accent/20">
             <MapPanel
               mode="browse"
               center={[story.lat, story.lng]}
@@ -105,7 +105,7 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
 
         {open ? (
           <div className="mt-5">
-            <p className="mb-1.5 text-[11.5px] font-bold uppercase tracking-wide text-tide-400">What do you think?</p>
+            <p className="mb-1.5 text-[11.5px] font-bold uppercase tracking-wide text-accent-hover">What do you think?</p>
             <ReactionBar type="news" id={story.id} initial={eng} signedIn={viewer.signedIn} />
           </div>
         ) : null}
@@ -116,8 +116,8 @@ export default async function StoryPage({ params }: { params: Promise<{ id: stri
       </article>
 
       <aside className="space-y-4">
-        <div className="nb-surface rounded-xl2 p-3.5 text-[12.5px] leading-relaxed text-ink-300">
-          <p className="display text-[14.5px] font-bold text-sand-100">About this story</p>
+        <div className="nb-surface rounded-xl2 p-3.5 text-[12.5px] leading-relaxed text-tertiary">
+          <p className="display text-[14.5px] font-bold text-primary">About this story</p>
           <p className="mt-1.5">
             NowBey shows the headline and a short summary, and links to the outlet for the full story. The conversation here is between NowBey members, so please keep it kind.
           </p>

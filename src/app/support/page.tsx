@@ -34,45 +34,47 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
       />
 
       {checkout === "success" ? (
-        <p className="rounded-xl border border-tide-400/40 bg-tide-500/10 px-4 py-3 text-[13px] text-tide-300">
+        <p className="rounded-xl border border-accent-hover/40 bg-accent/10 px-4 py-3 text-[13px] text-text-accent">
           Thank you! Your plan switches on within a few seconds. If you still see ads, refresh this page.
         </p>
       ) : null}
       {checkout === "cancelled" ? (
-        <p className="rounded-xl border hairline bg-white/5 px-4 py-3 text-[13px] text-ink-200">
+        <p className="rounded-xl border hairline bg-white/5 px-4 py-3 text-[13px] text-secondary">
           Checkout was cancelled and you were not charged. Pick a plan whenever you are ready.
         </p>
       ) : null}
 
       <section aria-label="Plans" className="-mt-2">
-        <PlanGrid live={live} purchasable={purchasable} signedIn={viewer.signedIn} currentTier={viewer.tier} currentInterval={viewer.interval} complimentary={viewer.status === "comp"} />
-
-        <div className="mt-3">
-          {live ? (
-            <p className="text-[12px] leading-snug text-ink-400">
-              Payments are handled securely by Stripe. Cancel any time from your account page and your plan runs to the end of
-              the period you paid for. To switch plans, cancel from your account page and choose the new plan when the old one ends. Perks marked <span className="font-bold text-ink-200">Soon</span> are on the way.
-            </p>
-          ) : demo ? (
-            <p className="text-[12px] leading-snug text-ink-400">
-              <span className="font-bold text-sun-600">Payments are not live yet.</span> You can try a plan with your account to
-              switch the ads off. You will not be charged. Perks marked <span className="font-bold text-ink-200">Soon</span> are
-              on the way.
-            </p>
-          ) : (
-            <p className="text-[12px] leading-snug text-ink-400">
-              <span className="font-bold text-sun-600">Plans open soon.</span> Payments are not set up yet, so nothing can be bought
-              today and nobody is charged. Everything free on NowBey stays free. Want a plan for your group now?{" "}
-              <a href="#enterprise" className="font-bold text-tide-300 underline-offset-2 hover:underline">
-                Get in touch
-              </a>
-              .
-            </p>
-          )}
-          <p className="mt-1 text-[11.5px] text-ink-400">
-            Prices are in US dollars. The Bahamian dollar is pegged one to one, so $10 is B$10.
-          </p>
+        {/* Free live — always visible */}
+        <div className="rounded-2xl border border-accent/30 bg-raised p-4">
+          <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-accent">Free — live now</p>
+          <h2 className="mt-1 text-[18px] font-extrabold text-primary">Everything free stays free</h2>
+          <p className="mt-1.5 text-[13px] leading-relaxed text-secondary">Reading the map, filing reports, confirming neighbours, the news wire and email alerts for your island cost nothing. Storm warnings are never paywalled.</p>
+          {viewer.signedIn ? <p className="mt-2 text-[12px] text-tertiary">You are on the Free plan.</p> : null}
         </div>
+        {/* Paid waitlist — replaces 4-tier grid when not live */}
+        {!live ? (
+          <div className="mt-3 rounded-2xl border border-default bg-raised p-4">
+            <p className="text-[11.5px] font-bold uppercase tracking-[0.14em] text-tertiary">Paid plans — join the waitlist</p>
+            <ul className="mt-2 grid gap-1.5 text-[12.5px] text-secondary">
+              <li>• Ad-free browsing</li>
+              <li>• Extra alert filters and early features</li>
+              <li>• Support the map for everyone — storm warnings stay free</li>
+            </ul>
+            <p className="mt-2 text-[12px] text-tertiary">Leave your email and we will tell you when paid plans open. No charge today.</p>
+            <a href="mailto:support@nowbey.com?subject=Waitlist%20for%20paid%20plans" className="mt-2 inline-flex min-h-[44px] items-center rounded-full border border-accent px-4 py-2 text-[13px] font-bold text-accent">Join the waitlist</a>
+          </div>
+        ) : (
+          <>
+            <div className="mt-3">
+              <PlanGrid live={live} purchasable={purchasable} signedIn={viewer.signedIn} currentTier={viewer.tier} currentInterval={viewer.interval} complimentary={viewer.status === "comp"} />
+            </div>
+            <p className="mt-3 text-[12px] leading-snug text-tertiary">
+              Payments are handled securely by Stripe. Cancel any time from your account page and your plan runs to the end of the period you paid for. Perks marked <span className="font-bold text-secondary">Soon</span> are on the way.
+            </p>
+          </>
+        )}
+        <p className="mt-2 text-[11.5px] text-tertiary">Prices are in US dollars. The Bahamian dollar is pegged one to one, so $10 is B$10.</p>
       </section>
 
       <section id="enterprise" aria-label="Enterprise" className="scroll-mt-24">
@@ -81,21 +83,21 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
             <p className="text-[11.5px] font-bold uppercase tracking-[0.16em]" style={{ color: ENTERPRISE.tone }}>
               {ENTERPRISE.name}
             </p>
-            <h2 className="display mt-1 text-[clamp(1.4rem,3.6vw,1.9rem)] font-extrabold leading-tight text-sand-100">
+            <h2 className="display mt-1 text-[clamp(1.4rem,3.6vw,1.9rem)] font-extrabold leading-tight text-primary">
               NowBey for your whole team
             </h2>
-            <p className="mt-1.5 max-w-[52ch] text-[13.5px] leading-relaxed text-ink-300">{ENTERPRISE.blurb}</p>
+            <p className="mt-1.5 max-w-[52ch] text-[13.5px] leading-relaxed text-tertiary">{ENTERPRISE.blurb}</p>
             <p className="mt-3 flex items-baseline gap-2">
-              <span className="display text-[26px] font-extrabold text-sand-100">{ENTERPRISE.price}</span>
-              <span className="text-[12px] text-ink-400">priced to fit your team</span>
+              <span className="display text-[26px] font-extrabold text-primary">{ENTERPRISE.price}</span>
+              <span className="text-[12px] text-tertiary">priced to fit your team</span>
             </p>
             <PerkList perks={ENTERPRISE.perks} tone={ENTERPRISE.tone} />
-            <p className="mt-4 text-[12px] leading-relaxed text-ink-400">
+            <p className="mt-4 text-[12px] leading-relaxed text-tertiary">
               Tell us what you need and someone from NowBey will reply with a quote. No commitment to ask.
             </p>
           </div>
-          <div className="rounded-2xl border hairline bg-abyss-900/60 p-4">
-            <p className="display text-[15px] font-bold text-sand-100">Talk to us</p>
+          <div className="rounded-2xl border hairline bg-raised/60 p-4">
+            <p className="display text-[15px] font-bold text-primary">Talk to us</p>
             <div className="relative mt-3">
               <EnterpriseForm />
             </div>
@@ -105,25 +107,25 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
 
       <section className="grid gap-3 sm:grid-cols-2">
         <div className="nb-surface rounded-xl2 p-4">
-          <p className="display text-[15px] font-bold text-sand-100">Where the money goes</p>
-          <ul className="mt-2 space-y-2 text-[12.5px] leading-relaxed text-ink-300">
+          <p className="display text-[15px] font-bold text-primary">Where the money goes</p>
+          <ul className="mt-2 space-y-2 text-[12.5px] leading-relaxed text-tertiary">
             {COSTS.map(([k, v]) => (
               <li key={k}>
-                <span className="font-bold text-ink-200">{k}.</span> {v}
+                <span className="font-bold text-secondary">{k}.</span> {v}
               </li>
             ))}
           </ul>
         </div>
         <div className="nb-surface rounded-xl2 p-4">
-          <p className="display text-[15px] font-bold text-sand-100">Ads, honestly</p>
-          <p className="mt-2 text-[12.5px] leading-relaxed text-ink-300">
+          <p className="display text-[15px] font-bold text-primary">Ads, honestly</p>
+          <p className="mt-2 text-[12.5px] leading-relaxed text-tertiary">
             NowBey shows a few ads from Bahamian businesses, with no trackers and nothing that follows you between pages.
             Ads never appear as reports, and every paid listing is marked “Promoted”.
           </p>
-          <p className="mt-2 text-[12.5px] leading-relaxed text-ink-300">
+          <p className="mt-2 text-[12.5px] leading-relaxed text-tertiary">
             In the mobile app, plans are bought here on the website and follow your account to your phone.
           </p>
-          <Link href="/feed" className="mt-3 inline-block text-[12.5px] font-bold text-tide-300 hover:underline">
+          <Link href="/feed" className="mt-3 inline-block text-[12.5px] font-bold text-text-accent hover:underline">
             Back to the feed →
           </Link>
         </div>

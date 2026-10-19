@@ -1,10 +1,17 @@
-import { CatBadge, CheckRow, Dot, NumBadge, Pill, SampleMap, Toggle } from "./kit";
+"use client";
+
+import { useState } from "react";
+import { Btn, CatBadge, Dot, NumBadge, Pill, SampleMap, Toggle } from "./kit";
 
 /* =====================================================================
    Landing-page sample screens — rebuilt from the four references.
    These reproduce, structure-for-structure, the mockup interiors in
    1002177501 (community map), 1002177500 (email alerts),
-   1002177499 (news wire) and 1002177491 (report a hazard).
+   1002177499 (news wire) and 1002177491 (report a hazard), plus a feed
+   screen for the tab the bar always had. The controls hold real state
+   (toggles flip, the stepper advances) so the sample behaves like an
+   app; every card stays labelled "Example" — this is a demo, never
+   presented as live data.
    ===================================================================== */
 
 /** Community map sample (hero mockup + section 02). */
@@ -71,8 +78,10 @@ export function MockCommunityMap() {
   );
 }
 
-/** Email alerts sample (reference 1002177500). */
+/** Email alerts sample (reference 1002177500). The toggles are real. */
 export function MockEmailAlerts() {
+  const [alerts, setAlerts] = useState({ flooding: true, roads: true, power: false });
+  const flip = (key: keyof typeof alerts) => setAlerts((a) => ({ ...a, [key]: !a[key] }));
   return (
     <div className="flex flex-col gap-4 px-6 pb-6 pt-5">
       <div>
@@ -93,11 +102,11 @@ export function MockEmailAlerts() {
           </span>
         </div>
         <hr className="nb-divider" />
-        <AlertRow label="Flooding" on />
+        <AlertRow label="Flooding" on={alerts.flooding} onToggle={() => flip("flooding")} />
         <hr className="nb-divider" />
-        <AlertRow label="Road hazards" on />
+        <AlertRow label="Road hazards" on={alerts.roads} onToggle={() => flip("roads")} />
         <hr className="nb-divider" />
-        <AlertRow label="Power outages" on={false} />
+        <AlertRow label="Power outages" on={alerts.power} onToggle={() => flip("power")} />
       </div>
 
       <div className="nb-card-gold">
@@ -137,13 +146,13 @@ export function MockEmailAlerts() {
   );
 }
 
-function AlertRow({ label, on }: { label: string; on: boolean }) {
+function AlertRow({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
   return (
     <div className="flex items-center justify-between py-3.5">
       <span className="text-[15px] font-semibold" style={{ color: "var(--nb-text)" }}>
         {label}
       </span>
-      <Toggle on={on} label={label} />
+      <Toggle on={on} onClick={onToggle} label={label} />
     </div>
   );
 }
@@ -213,19 +222,22 @@ export function MockNewsWire() {
   );
 }
 
-/** Report a hazard sample (reference 1002177491). */
+/** Report a hazard sample (reference 1002177491). The stepper advances. */
 export function MockReportHazard() {
+  const steps = ["What", "Where", "Details"] as const;
+  const [step, setStep] = useState(0);
   return (
     <div className="flex flex-col gap-4 px-6 pb-6 pt-5">
       <p className="display text-[24px] font-extrabold leading-tight">Report a hazard</p>
 
       {/* stepper */}
       <div className="flex items-stretch rounded-2xl border" style={{ borderColor: "var(--nb-stroke-soft)", background: "rgba(12,34,45,.6)" }}>
-        <StepCell n={1} label="What" active />
-        <span className="my-3 w-px" style={{ background: "var(--nb-stroke-soft)" }} />
-        <StepCell n={2} label="Where" />
-        <span className="my-3 w-px" style={{ background: "var(--nb-stroke-soft)" }} />
-        <StepCell n={3} label="Details" />
+        {steps.map((label, i) => (
+          <span key={label} className="contents">
+            {i > 0 ? <span className="my-3 w-px" style={{ background: "var(--nb-stroke-soft)" }} /> : null}
+            <StepCell n={i + 1} label={label} active={i === step} />
+          </span>
+        ))}
       </div>
 
       <SampleMap height={188} />
@@ -239,12 +251,12 @@ export function MockReportHazard() {
         <p className="mt-3.5 text-[12px]" style={{ color: "var(--nb-faint)" }}>
           Choose a clear spot. Add what neighbours need to know.
         </p>
-        <div className="nb-btn nb-btn-primary nb-btn-block" style={{ marginTop: 16 }}>
+        <Btn block onClick={() => setStep((s) => (s + 1) % steps.length)} style={{ marginTop: 16 }}>
           Continue
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M4 12h15M13 5.5 19.5 12 13 18.5" />
           </svg>
-        </div>
+        </Btn>
       </div>
     </div>
   );
@@ -261,13 +273,73 @@ function StepCell({ n, label, active }: { n: number; label: string; active?: boo
   );
 }
 
-/** Feature bullet list used beside the mockups. */
-export function MockBullets({ items }: { items: string[] }) {
+/** Feed sample — the fifth tab. Same example story as the map screen. */
+export function MockFeed() {
   return (
-    <div className="flex flex-col gap-3.5">
-      {items.map((t) => (
-        <CheckRow key={t}>{t}</CheckRow>
-      ))}
+    <div className="flex flex-col gap-4 px-6 pb-6 pt-5">
+      <div>
+        <p className="nb-label">Island feed</p>
+        <p className="display mt-1.5 text-[24px] font-extrabold leading-tight">New Providence</p>
+        <p className="mt-1.5 text-[13.5px]" style={{ color: "var(--nb-muted)" }}>
+          Today · sample reports from around the island.
+        </p>
+      </div>
+
+      <div className="nb-card nb-card-tight" style={{ background: "rgba(17,39,50,.85)" }}>
+        <div className="flex items-center gap-2.5">
+          <CatBadge>Flooding</CatBadge>
+          <span className="nb-label ml-auto" style={{ fontSize: 9.5 }}>
+            Example
+          </span>
+        </div>
+        <p className="display mt-2.5 text-[17px] font-bold leading-snug">Water across the lane</p>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--nb-muted)" }}>
+          Bay Street · Nassau
+        </p>
+        <div className="mt-3 flex items-center gap-2 text-[11.5px] font-semibold" style={{ color: "var(--nb-faint)" }}>
+          <Dot color="var(--nb-coral)" glow />
+          Example report · awaiting confirmation
+        </div>
+      </div>
+
+      <div className="nb-card nb-card-tight" style={{ background: "rgba(17,39,50,.85)" }}>
+        <div className="flex items-center gap-2.5">
+          <CatBadge>Power</CatBadge>
+          <span className="nb-label ml-auto" style={{ fontSize: 9.5 }}>
+            Example
+          </span>
+        </div>
+        <p className="display mt-2.5 text-[17px] font-bold leading-snug">Lines down on Prince Charles</p>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--nb-muted)" }}>
+          Prince Charles Drive · Nassau
+        </p>
+        <div className="mt-3 flex items-center gap-2 text-[11.5px] font-semibold" style={{ color: "var(--nb-faint)" }}>
+          <Dot color="var(--nb-mint)" />
+          Example report · a neighbour confirmed
+        </div>
+      </div>
+
+      <div className="nb-card nb-card-tight" style={{ background: "rgba(17,39,50,.85)" }}>
+        <div className="flex items-center gap-2.5">
+          <CatBadge>Road</CatBadge>
+          <span className="nb-label ml-auto" style={{ fontSize: 9.5 }}>
+            Example
+          </span>
+        </div>
+        <p className="display mt-2.5 text-[17px] font-bold leading-snug">Debris across the corner</p>
+        <p className="mt-1 text-[13px]" style={{ color: "var(--nb-muted)" }}>
+          Blake Road · Nassau
+        </p>
+        <div className="mt-3 flex items-center gap-2 text-[11.5px] font-semibold" style={{ color: "var(--nb-faint)" }}>
+          <Dot color="var(--nb-gold)" />
+          Example report · seen by neighbours
+        </div>
+      </div>
+
+      <p className="flex items-center gap-2.5 text-[12px]" style={{ color: "var(--nb-faint)" }}>
+        <Dot color="var(--nb-mint)" />
+        Sample feed — demo reports
+      </p>
     </div>
   );
 }

@@ -49,6 +49,35 @@ test("the phone map is short and the pin list sits under it", async () => {
   assert.match(source, /the pin list under it \(the phone default, so the list is above the fold\)/, "the phone default must stay the split layout");
 });
 
+test("the landing phone demo is interactive: real tabs, scroll panes, honest samples", async () => {
+  const res = await phone("/");
+  assert.equal(res.status, 200);
+  const html = res.text;
+
+  // Five phones (hero + four sections), each with a working five-tab bar.
+  assert.equal((html.match(/role="tablist"/g) ?? []).length, 5, "every phone needs a tab bar");
+  assert.equal((html.match(/role="tab"/g) ?? []).length, 25, "five tabs per phone, as real buttons");
+  assert.equal((html.match(/role="tabpanel"/g) ?? []).length, 25, "each tab controls its own screen");
+
+  // ARIA wiring: the tab points at its pane, the pane labels back.
+  assert.match(html, /role="tab"[^>]*aria-controls="[^"]+-pane-feed"/, "tabs must control their panes");
+  assert.match(html, /id="[^"]+-pane-feed" role="tabpanel" aria-labelledby="[^"]+-tab-feed"/, "panes must label back to their tab");
+  assert.match(html, /role="tab"[^>]*aria-selected="true"/, "the starting tab is selected");
+  assert.match(html, /role="tab"[^>]*tabindex="-1"/, "inactive tabs leave the tab order (roving tabindex)");
+
+  // Phone-like scrolling is CSS: a bounded device viewport and per-screen panes.
+  const css = read("src/styles/pulse/components.css");
+  assert.match(css, /\.nb-phone-screen\s*\{[^}]*height:\s*620px/, "the device viewport must be bounded");
+  assert.match(css, /\.nb-phone-pane\s*\{[^}]*overflow-y:\s*auto/, "screens must scroll inside the frame");
+  assert.match(css, /\.nb-phone-tab\s*\{[^}]*min-height:\s*48px/, "tab buttons need phone-sized hit targets");
+
+  // Screens lazy-mount — the feed sample must be absent until someone taps it.
+  assert.ok(!html.includes("Island feed"), "untouched tabs must not mount their screen at SSR");
+
+  // The demo stays labelled as a demo.
+  assert.ok(html.includes("Sample view"), "the sample phone must keep its Sample view pill");
+});
+
 test("the alerts page is the Nassau MVP form", async () => {
   const res = await phone("/alerts");
   assert.equal(res.status, 200);

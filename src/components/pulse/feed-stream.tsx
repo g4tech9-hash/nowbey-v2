@@ -32,6 +32,8 @@ import { IncidentDetailDrawer } from "./detail-drawer";
  *  4. One card crashing costs one card (ErrorBoundary per item).
  */
 
+import { getFreshness } from "@/lib/freshness";
+
 export type FeedRow = PulseCardRow;
 
 type Engs = Record<string, Engagement>;
@@ -90,6 +92,17 @@ export function FeedStream({
   }, [rows]);
 
   const items = useMemo(() => merged.filter((r) => r && typeof r.id === "string"), [merged]);
+  // Stale (>72h since last confirmation) is labelled, never hidden — it just folds
+  // under "Show older reports" so the default view is what is true now.
+  const { fresh, stale } = useMemo(() => {
+    const f: FeedRow[] = [];
+    const s: FeedRow[] = [];
+    for (const r of items) {
+      (getFreshness(r.updatedAt, "report").isStale ? s : f).push(r);
+    }
+    return { fresh: f, stale: s };
+  }, [items]);
+  const [showOlder, setShowOlder] = useState(false);
   const openIndex = openId ? items.findIndex((r) => r.id === openId) : -1;
   const openRow = openIndex >= 0 ? items[openIndex] : null;
 
@@ -278,7 +291,7 @@ export function FeedStream({
           }}
           data-refreshing={refreshing ? "true" : undefined}
         >
-          {items.map((row, i) => (
+          {(showOlder ? [...fresh, ...stale] : fresh).map((row, i) => (
             <ErrorBoundary key={row.id} label={`Report ${row.id.slice(0, 8)}`}>
               <PulseIncidentCard
                 row={row}
@@ -297,6 +310,16 @@ export function FeedStream({
             </ErrorBoundary>
           ))}
         </ul>
+        {stale.length ? (
+          <button
+            type="button"
+            onClick={() => setShowOlder((v) => !v)}
+            className="nb-btn nb-btn-ghost nb-btn-sm mt-3"
+            aria-expanded={showOlder}
+          >
+            {showOlder ? "Hide older reports" : `Show older reports (${stale.length})`}
+          </button>
+        ) : null}
         </>
       )}
 

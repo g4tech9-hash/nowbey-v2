@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // microphone is kept: the /broadcast LiveKit studio captures it.
   { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=(self)" },
   // One year. No includeSubDomains: that would also pin every subdomain, which this repo cannot vouch for.
   { key: "Strict-Transport-Security", value: "max-age=31536000" },

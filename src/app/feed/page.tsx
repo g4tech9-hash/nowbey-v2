@@ -23,6 +23,7 @@ import { FeedMap } from "@/components/pulse/feed-map";
 import { IncidentRowMini } from "@/components/pulse/incident-card";
 import { CardLayered, CategoryLegend, TrustMeter } from "@/ui/pulse";
 import { trustFor } from "@/lib/pulse/trust";
+import { clusterDuplicateReports, isCannedPhotoNote, shouldCollapseTitleBody } from "@/lib/report-utils";
 import { pulseCategoryMeta } from "@/ui/pulse/glyph";
 
 /**
@@ -178,7 +179,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
   const engMap = await engagementFor("incident", rows.map((r) => r.id), viewer.userId);
 
   const sorted = sort === "recent" ? rows : sortRows(rows, sort);
-  const stream: FeedRow[] = sorted.map((r) => ({
+  // Cluster duplicate neighbour reports (same normalised title within 150 m / 24 h) into ONE
+  // card. The primary keeps its id; the card shows "x3 neighbours reported this".
+  const groups = clusterDuplicateReports(sorted as unknown as { id: string; title: string; lat: number; lng: number; createdAt: string | Date }[]);
+  const clusterCountById: Record<string, number> = {};
+  for (const g of groups) clusterCountById[g.primary.id] = g.count;
+  const clustered = sorted.filter((r) => clusterCountById[r.id] !== undefined);
+  const stream: FeedRow[] = clustered.map((r) => ({
     id: r.id,
     title: r.title,
     details: r.details,
@@ -201,12 +208,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
     anonymous: r.anonymous,
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
+    clusterCount: clusterCountById[r.id] ?? 1,
   }));
   // The card components want plain objects keyed by id / handle — a Map cannot
   // cross the server → client boundary.
   const badges: Record<string, Badge | null> = {};
   const engs: Record<string, Engagement> = {};
-  for (const r of sorted) {
+  for (const r of clustered) {
     const key = r.anonymous ? "" : (r.authorHandle ?? "");
     badges[key] = badgeMap.get(key) ?? null;
     engs[r.id] = engMap.get(r.id) ?? NO_ENGAGEMENT;
@@ -242,13 +250,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
         actions={
           <>
             <span className="nb-num" aria-hidden>
-              {activeCount}
+              {stream.length}
             </span>
             <span className="text-[12.5px] font-bold uppercase tracking-[0.14em] text-tertiary">
-              live report{activeCount === 1 ? "" : "s"} · {Number(wireTotal?.n ?? 0)} on the wire
+              Showing {stream.length} of {activeCount} live report{activeCount === 1 ? "" : "s"} · {Number(wireTotal?.n ?? 0)} on the wire
             </span>
             <ButtonLink href="/report" variant="primary" size="sm">
-              Drop a pin
+              Report a hazard
             </ButtonLink>
           </>
         }
@@ -283,7 +291,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             emptyActions={
               <>
                 <ButtonLink href="/report" variant="primary" size="sm">
-                  Report a spot
+                  Report a hazard
                 </ButtonLink>
                 <Link href={feedHref({ category: "", island: "", q: "", status: "" })} className="nb-btn nb-btn-secondary nb-btn-sm">
                   Clear filters

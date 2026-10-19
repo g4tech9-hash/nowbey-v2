@@ -9,8 +9,8 @@ export default async function ResetPasswordPage({ searchParams }: { searchParams
 
   return (
     <div className="mx-auto max-w-[460px] py-6">
-      <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-tide-400">Account help</p>
-      <h1 className="display mt-1.5 text-[clamp(1.6rem,4vw,2.1rem)] font-extrabold leading-tight text-sand-100">Choose a new password</h1>
+      <p className="text-[11.5px] font-bold uppercase tracking-[0.18em] text-accent-hover">Account help</p>
+      <h1 className="display mt-1.5 text-[clamp(1.6rem,4vw,2.1rem)] font-extrabold leading-tight text-primary">Choose a new password</h1>
       <ResetForm token={token} />
     </div>
   );

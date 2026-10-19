@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = { title: "Sign in — NowBey" };
 import { safeNext } from "@/lib/redirect";
 import { getViewer } from "@/lib/viewer";
 import { LoginForm } from "./login-form";

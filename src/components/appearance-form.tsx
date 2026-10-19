@@ -47,14 +47,14 @@ export function AppearanceForm(props: Props) {
   return (
     <div className="space-y-5">
       <fieldset>
-        <legend className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Look</legend>
+        <legend className="text-[11.5px] font-bold uppercase tracking-wide text-accent-hover">Look</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
           {THEME_KEYS.map((key) => {
             const on = theme === key;
             return (
               <label
                 key={key}
-                className={`block cursor-pointer overflow-hidden rounded-2xl border transition ${on ? "border-tide-400 ring-1 ring-tide-400/60" : "border-white/10 hover:border-white/25"} ${props.themeLocked ? "opacity-70" : ""}`}
+                className={`block cursor-pointer overflow-hidden rounded-2xl border transition ${on ? "border-accent-hover ring-1 ring-accent-hover/60" : "border-white/10 hover:border-white/25"} ${props.themeLocked ? "opacity-70" : ""}`}
               >
                 <input type="radio" name="theme" value={key} checked={on} disabled={props.themeLocked} onChange={() => setTheme(key)} className="sr-only" />
                 <div
@@ -67,32 +67,32 @@ export function AppearanceForm(props: Props) {
                   aria-hidden="true"
                 />
                 <div className="p-3">
-                  <p className="display flex items-center gap-2 text-[15px] font-extrabold text-sand-100">
+                  <p className="display flex items-center gap-2 text-[15px] font-extrabold text-primary">
                     {THEMES[key].label}
-                    {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
+                    {on ? <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-text-accent">Selected</span> : null}
                   </p>
-                  <p className="mt-0.5 text-[12.5px] leading-snug text-ink-300">{THEMES[key].blurb}</p>
+                  <p className="mt-0.5 text-[12.5px] leading-snug text-tertiary">{THEMES[key].blurb}</p>
                 </div>
               </label>
             );
           })}
         </div>
         {props.themeLocked ? (
-          <p className="mt-2 text-[12px] text-sun-600">
+          <p className="mt-2 text-[12px] text-warn-600">
             The look is fixed by <code className="rounded bg-white/10 px-1">NOWBEY_THEME</code> in the server settings. Remove that setting to choose it here.
           </p>
         ) : null}
       </fieldset>
 
       <fieldset>
-        <legend className="text-[11.5px] font-bold uppercase tracking-wide text-tide-400">Brightness (default for new visitors)</legend>
+        <legend className="text-[11.5px] font-bold uppercase tracking-wide text-accent-hover">Brightness (default for new visitors)</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2">
           {MODE_KEYS.map((key) => {
             const on = mode === key;
             return (
               <label
                 key={key}
-                className={`block cursor-pointer overflow-hidden rounded-2xl border transition ${on ? "border-tide-400 ring-1 ring-tide-400/60" : "border-white/10 hover:border-white/25"} ${props.modeLocked ? "opacity-70" : ""}`}
+                className={`block cursor-pointer overflow-hidden rounded-2xl border transition ${on ? "border-accent-hover ring-1 ring-accent-hover/60" : "border-white/10 hover:border-white/25"} ${props.modeLocked ? "opacity-70" : ""}`}
               >
                 <input type="radio" name="mode" value={key} checked={on} disabled={props.modeLocked} onChange={() => setMode(key)} className="sr-only" />
                 <div
@@ -101,27 +101,27 @@ export function AppearanceForm(props: Props) {
                   aria-hidden="true"
                 />
                 <div className="p-3">
-                  <p className="display flex items-center gap-2 text-[15px] font-extrabold text-sand-100">
+                  <p className="display flex items-center gap-2 text-[15px] font-extrabold text-primary">
                     {MODES[key].label}
-                    {on ? <span className="rounded-full bg-tide-500/20 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-tide-300">Selected</span> : null}
+                    {on ? <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[11.5px] font-extrabold uppercase tracking-wide text-text-accent">Selected</span> : null}
                   </p>
-                  <p className="mt-0.5 text-[12.5px] leading-snug text-ink-300">{MODES[key].blurb}</p>
+                  <p className="mt-0.5 text-[12.5px] leading-snug text-tertiary">{MODES[key].blurb}</p>
                 </div>
               </label>
             );
           })}
         </div>
         {props.modeLocked ? (
-          <p className="mt-2 text-[12px] text-sun-600">
+          <p className="mt-2 text-[12px] text-warn-600">
             The brightness is fixed by <code className="rounded bg-white/10 px-1">NOWBEY_MODE</code> in the server settings. Remove that setting to choose it here.
           </p>
         ) : (
-          <p className="mt-2 text-[12px] text-ink-400">Visitors can still switch anytime with the sun/moon button in the header.</p>
+          <p className="mt-2 text-[12px] text-tertiary">Visitors can still switch anytime with the sun/moon button in the header.</p>
         )}
       </fieldset>
 
       <div>
-        <label className={`flex items-start gap-2.5 text-[13px] text-sand-100 ${theme !== "island" || props.splashLocked ? "opacity-60" : ""}`}>
+        <label className={`flex items-start gap-2.5 text-[13px] text-primary ${theme !== "island" || props.splashLocked ? "opacity-60" : ""}`}>
           <input
             type="checkbox"
             checked={splash}
@@ -131,34 +131,34 @@ export function AppearanceForm(props: Props) {
           />
           <span>
             <span className="font-bold">Show the opening splash screen</span>
-            <span className="block text-[12px] text-ink-400">
+            <span className="block text-[12px] text-tertiary">
               A short welcome with the NowBey mark and tagline, once per visit. Visitors can tap to skip it.
               {theme !== "island" ? " It only appears in the Island look." : ""}
             </span>
           </span>
         </label>
         {props.splashLocked ? (
-          <p className="mt-1.5 text-[12px] text-sun-600">
+          <p className="mt-1.5 text-[12px] text-warn-600">
             The splash is fixed by <code className="rounded bg-white/10 px-1">NOWBEY_SPLASH</code> in the server settings.
           </p>
         ) : null}
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <button type="button" onClick={save} disabled={busy || !dirty} className="rounded-xl bg-tide-500 px-5 py-2.5 text-[13.5px] font-extrabold text-on-accent hover:bg-tide-400 disabled:opacity-50">
+        <button type="button" onClick={save} disabled={busy || !dirty} className="rounded-xl bg-accent px-5 py-2.5 text-[13.5px] font-extrabold text-on-accent hover:bg-accent-hover disabled:opacity-50">
           {busy ? "Saving…" : "Save appearance"}
         </button>
         <button
           type="button"
           onClick={previewSplash}
           disabled={props.theme !== "island" || !props.splashPref}
-          className="rounded-xl border hairline px-4 py-2.5 text-[13px] font-bold text-sand-100 hover:bg-white/8 disabled:opacity-40"
+          className="rounded-xl border hairline px-4 py-2.5 text-[13px] font-bold text-primary hover:bg-white/8 disabled:opacity-40"
         >
           Preview the splash screen
         </button>
       </div>
       {msg ? (
-        <p role="status" className={`rounded-lg px-3 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-danger-500/15 text-danger-500"}`}>
+        <p role="status" className={`rounded-lg px-3 py-2 text-[12.5px] ${msg.ok ? "bg-accent/12 text-text-accent" : "bg-danger-500/15 text-danger-500"}`}>
           {msg.text}
         </p>
       ) : null}

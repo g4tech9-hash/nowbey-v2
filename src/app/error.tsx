@@ -18,13 +18,13 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
 
   return (
     <div className="mx-auto max-w-[520px] py-14 text-center">
-      <h1 className="display text-[28px] font-extrabold text-sand-100">Something went wrong on our side</h1>
-      <p className="mx-auto mt-2 max-w-[44ch] text-[13.5px] leading-relaxed text-ink-300">
+      <h1 className="display text-[28px] font-extrabold text-primary">Something went wrong on our side</h1>
+      <p className="mx-auto mt-2 max-w-[44ch] text-[13.5px] leading-relaxed text-tertiary">
         That page hit a problem. It is not you. Try again, and if it keeps happening please come back in a few minutes.
       </p>
-      {error.digest ? <p className="mt-2 text-[11.5px] text-ink-400">Reference: {error.digest}</p> : null}
+      {error.digest ? <p className="mt-2 text-[11.5px] text-tertiary">Reference: {error.digest}</p> : null}
       <div className="mt-4 flex flex-wrap justify-center gap-2">
-        <button type="button" onClick={reset} className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
+        <button type="button" onClick={reset} className="rounded-full bg-accent px-4 py-2 text-[13px] font-extrabold text-on-accent">
           Try again
         </button>
         <Link href="/" className="rounded-full border hairline px-4 py-2 text-[13px] font-bold hover:bg-white/5">

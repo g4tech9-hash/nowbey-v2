@@ -36,7 +36,7 @@ type Props = {
 
 const shortDate = (d: Date | string) => new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 
-const BTN = "rounded-lg bg-white/10 px-3 py-2 text-[12.5px] font-bold text-sand-100 hover:bg-white/16 disabled:opacity-50";
+const BTN = "rounded-lg bg-white/10 px-3 py-2 text-[12.5px] font-bold text-primary hover:bg-white/16 disabled:opacity-50";
 
 export function AdminUserActions(p: Props) {
   const router = useRouter();
@@ -85,7 +85,7 @@ export function AdminUserActions(p: Props) {
     <div className="space-y-5">
       <div>
         <p className={LABEL}>Effective role</p>
-        <p className="mt-1 text-[13px] font-bold text-sand-100">
+        <p className="mt-1 text-[13px] font-bold text-primary">
           {p.role === "admin" || (p.envAdmin && p.emailVerified) ? "Admin (manages everything)" : p.role === "editor" ? "Editor (moderates reports and the wire)" : "Resident"}
         </p>
         <p className={`${LABEL} mt-3`}>Stored database role</p>
@@ -145,7 +145,7 @@ export function AdminUserActions(p: Props) {
               onClick={() => {
                 if (window.confirm(`Suspend @${p.handle}? They will be signed out everywhere and cannot sign in.`)) void run("suspend", { reason }, "Account suspended.");
               }}
-              className="rounded-lg bg-conch-500/90 px-3 py-2 text-[12.5px] font-extrabold text-on-accent hover:bg-conch-500 disabled:opacity-50"
+              className="rounded-lg bg-danger-500/90 px-3 py-2 text-[12.5px] font-extrabold text-on-accent hover:bg-danger-500 disabled:opacity-50"
             >
               Suspend
             </button>
@@ -170,7 +170,7 @@ export function AdminUserActions(p: Props) {
           ) : null}
         </div>
         {link ? (
-          <div className="mt-2 rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
+          <div className="mt-2 rounded-lg border border-accent-hover/30 bg-accent/8 p-2.5">
             <p className="text-[11.5px] text-secondary">One hour, one use. Shown only now, and not kept in the activity log.</p>
             <div className="mt-1.5 flex gap-2">
               <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} className={`${INPUT} min-w-0 flex-1 font-mono text-[11.5px]`} aria-label="Password reset link" />
@@ -193,8 +193,8 @@ export function AdminUserActions(p: Props) {
         {liveVerified.length ? (
           <ul className="mt-1 space-y-2">
             {liveVerified.map((b) => (
-              <li key={b.id} className="rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
-                <p className="text-[12.5px] text-sand-100">“{b.reason}”</p>
+              <li key={b.id} className="rounded-lg border border-accent-hover/30 bg-accent/8 p-2.5">
+                <p className="text-[12.5px] text-primary">“{b.reason}”</p>
                 <p className="mt-0.5 text-[11.5px] text-secondary">
                   granted by @{b.grantedBy} {shortDate(b.grantedAt)}
                   {b.expiresAt ? ` · runs until ${shortDate(b.expiresAt)}` : ""}
@@ -265,7 +265,7 @@ export function AdminUserActions(p: Props) {
             {p.devices.map((d) => (
               <li key={`${d.kind}-${d.id}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/[.05] p-2.5">
                 <div>
-                  <p className="font-mono text-[12px] text-sand-100">{d.label}</p>
+                  <p className="font-mono text-[12px] text-primary">{d.label}</p>
                   <p className="text-[11.5px] text-secondary">last seen {shortDate(d.at)}</p>
                 </div>
                 <button
@@ -276,7 +276,7 @@ export function AdminUserActions(p: Props) {
                     if (reason === null) return;
                     void run("banDevice", { kind: d.kind, id: d.id, reason }, "Device banned.");
                   }}
-                  className="rounded-lg bg-conch-500/90 px-3 py-2 text-[12.5px] font-extrabold text-on-accent hover:bg-conch-500 disabled:opacity-50"
+                  className="rounded-lg bg-danger-500/90 px-3 py-2 text-[12.5px] font-extrabold text-on-accent hover:bg-danger-500 disabled:opacity-50"
                 >
                   Ban device
                 </button>
@@ -291,9 +291,9 @@ export function AdminUserActions(p: Props) {
             <p className="text-[11.5px] font-bold uppercase tracking-wide text-tertiary">Banned</p>
             <ul className="mt-1 space-y-2">
               {p.bans.map((b) => (
-                <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-conch-500/30 p-2.5">
+                <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-danger-500/30 p-2.5">
                   <div>
-                    <p className="text-[12px] text-sand-100">{b.platform ?? "device"} · {b.reason ?? "no reason given"}</p>
+                    <p className="text-[12px] text-primary">{b.platform ?? "device"} · {b.reason ?? "no reason given"}</p>
                     <p className="text-[11.5px] text-secondary">banned {shortDate(b.at)}</p>
                   </div>
                   <button type="button" disabled={busy !== null} onClick={() => void run("unbanDevice", { id: b.id }, "Ban lifted.")} className={BTN}>
@@ -313,8 +313,8 @@ export function AdminUserActions(p: Props) {
       <div>
         <p className={LABEL}>Verified broadcaster status</p>
         {liveBroadcaster ? (
-          <div className="mt-1 rounded-lg border border-tide-400/30 bg-tide-500/8 p-2.5">
-            <p className="text-[12.5px] text-sand-100">“{liveBroadcaster.reason}”</p>
+          <div className="mt-1 rounded-lg border border-accent-hover/30 bg-accent/8 p-2.5">
+            <p className="text-[12.5px] text-primary">“{liveBroadcaster.reason}”</p>
             <p className="mt-0.5 text-[11.5px] text-secondary">
               granted by @{liveBroadcaster.grantedBy} {shortDate(liveBroadcaster.grantedAt)}
               {liveBroadcaster.expiresAt ? ` · runs until ${shortDate(liveBroadcaster.expiresAt)}` : ""}
@@ -384,7 +384,7 @@ export function AdminUserActions(p: Props) {
       </div>
 
       {msg ? (
-        <p role={msg.ok ? "status" : "alert"} className={`rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-tide-500/12 text-tide-300" : "bg-conch-500/15 text-conch-400"}`}>
+        <p role={msg.ok ? "status" : "alert"} className={`rounded-lg px-2.5 py-2 text-[12.5px] ${msg.ok ? "bg-accent/12 text-text-accent" : "bg-danger-500/15 text-danger-400"}`}>
           {msg.text}
         </p>
       ) : null}

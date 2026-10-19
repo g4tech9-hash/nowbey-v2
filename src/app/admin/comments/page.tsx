@@ -74,21 +74,21 @@ export default async function CommentsAdmin({ searchParams }: { searchParams: Pr
                   {c.parentId ? <span className="text-[11.5px] text-secondary">a reply</span> : null}
                   <span className="text-[11.5px] text-tertiary">{timeAgo(c.createdAt)}</span>
                 </div>
-                <p className="mt-1.5 whitespace-pre-line break-words text-[13.5px] leading-relaxed text-sand-100">{c.body || "(blank)"}</p>
+                <p className="mt-1.5 whitespace-pre-line break-words text-[13.5px] leading-relaxed text-primary">{c.body || "(blank)"}</p>
                 <p className="mt-1 text-[12px] text-secondary">
                   by{" "}
-                  <Link href={`/admin/users/${c.authorHandle}`} className="font-semibold text-tide-300 hover:underline">
+                  <Link href={`/admin/users/${c.authorHandle}`} className="font-semibold text-text-accent hover:underline">
                     @{c.authorHandle}
                   </Link>{" "}
                   on{" "}
-                  <Link href={`${t.href}#comments`} className="font-semibold text-tide-300 hover:underline">
+                  <Link href={`${t.href}#comments`} className="font-semibold text-text-accent hover:underline">
                     {t.label}
                   </Link>
                 </p>
                 {reasons ? (
-                  <p className="mt-0.5 text-[12px] text-sun-400">
+                  <p className="mt-0.5 text-[12px] text-warn-400">
                     Reported as: {reasons}
-                    {aiFlagged ? <span className="ml-1.5 rounded bg-tide-500/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-tide-300">AI flag</span> : null}
+                    {aiFlagged ? <span className="ml-1.5 rounded bg-accent/15 px-1 py-px align-middle text-[9.5px] font-extrabold uppercase tracking-wide text-text-accent">AI flag</span> : null}
                   </p>
                 ) : null}
               </div>

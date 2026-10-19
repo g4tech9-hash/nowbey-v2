@@ -90,39 +90,46 @@ export const PARISHES = [
   "Cay Sal Bank",
 ] as const;
 
-export type CategoryKey =
-  | "flood"
-  | "storm"
-  | "power"
-  | "water"
-  | "crime"
-  | "road"
-  | "marine"
-  | "fire"
-  | "health"
-  | "trash"
-  | "event"
-  | "notice"
-  | "accident";
+import { CATEGORIES as CATEGORY_DEFS, CATEGORY_IDS, type CategoryId } from "./categories.ts";
+
+export type CategoryKey = CategoryId;
+
+/**
+ * Presentation-only extras the map and pin glyphs need beyond the shared
+ * category list: an inline-style hex colour and a glyph name. Labels,
+ * descriptions and two-letter pin codes live in src/lib/categories.ts — the
+ * single source of truth — so this file can no longer drift from it.
+ */
+const CATEGORY_PRESENTATION: Record<CategoryId, { color: string; glyph: string }> = {
+  flood: { color: "#38bdf8", glyph: "wave" },
+  storm: { color: "#fbbf24", glyph: "cloud" },
+  power: { color: "#facc15", glyph: "bolt" },
+  water: { color: "#22d3ee", glyph: "drop" },
+  crime: { color: "#fb7185", glyph: "shield" },
+  road: { color: "#f97316", glyph: "cone" },
+  marine: { color: "#2dd4bf", glyph: "anchor" },
+  fire: { color: "#ef4444", glyph: "flame" },
+  health: { color: "#a78bfa", glyph: "cross" },
+  trash: { color: "#84cc16", glyph: "bin" },
+  event: { color: "#f472b6", glyph: "star" },
+  notice: { color: "#94a3b8", glyph: "info" },
+  accident: { color: "#ef4444", glyph: "car" },
+};
 
 export const CATEGORIES: Record<
   CategoryKey,
   { label: string; color: string; glyph: string; blurb: string; pin: string }
-> = {
-  flood: { label: "Flooding", color: "#38bdf8", glyph: "wave", pin: "FL", blurb: "Standing water, washover, flash flood" },
-  storm: { label: "Storm", color: "#fbbf24", glyph: "cloud", pin: "ST", blurb: "Squall, surge, hurricane watch" },
-  power: { label: "Power", color: "#facc15", glyph: "bolt", pin: "PW", blurb: "Outage, lines down, generator" },
-  water: { label: "Water", color: "#22d3ee", glyph: "drop", pin: "WA", blurb: "No water, main break, boil notice" },
-  crime: { label: "Safety", color: "#fb7185", glyph: "shield", pin: "SF", blurb: "Theft, break-in, suspicious" },
-  road: { label: "Road", color: "#f97316", glyph: "cone", pin: "RD", blurb: "Pothole, blockage, closure" },
-  marine: { label: "Marine", color: "#2dd4bf", glyph: "anchor", pin: "MR", blurb: "Debris, grounding, sea state" },
-  fire: { label: "Fire", color: "#ef4444", glyph: "flame", pin: "FR", blurb: "Brush or structure fire, smoke" },
-  health: { label: "Health", color: "#a78bfa", glyph: "cross", pin: "HL", blurb: "Assistance, medical, rescue" },
-  trash: { label: "Sanitation", color: "#84cc16", glyph: "bin", pin: "TR", blurb: "Missed pickup, dumping" },
-  event: { label: "Community", color: "#f472b6", glyph: "star", pin: "EV", blurb: "Junkanoo, regatta, fundraiser" },
-  notice: { label: "Notice", color: "#94a3b8", glyph: "info", pin: "NT", blurb: "General heads-up" },
-  accident: { label: "Car Accident", color: "#ef4444", glyph: "car", pin: "AC", blurb: "Traffic accident, road blockage, or vehicle hazard" },
-};
+> = Object.fromEntries(
+  CATEGORY_IDS.map((id) => [
+    id,
+    {
+      label: CATEGORY_DEFS[id].label,
+      blurb: CATEGORY_DEFS[id].description,
+      pin: CATEGORY_DEFS[id].legacyPin,
+      ...CATEGORY_PRESENTATION[id],
+    },
+  ]),
+) as Record<CategoryKey, { label: string; color: string; glyph: string; blurb: string; pin: string }>;
 
 export const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];
 

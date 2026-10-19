@@ -13,22 +13,22 @@ function Row({ c, type, id, viewer, open }: { c: CommentNode; type: TargetType; 
   return (
     <li className="rounded-xl bg-white/[.045] px-3.5 py-2.5">
       {c.placeholder ? (
-        <p className="text-[12.5px] italic text-ink-400">{c.status === "hidden" ? "This comment was hidden by a moderator." : "This comment was deleted."}</p>
+        <p className="text-[12.5px] italic text-tertiary">{c.status === "hidden" ? "This comment was hidden by a moderator." : "This comment was deleted."}</p>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2 text-[12px]">
-            <span className="font-bold text-sand-100">@{c.authorHandle}</span>
+            <span className="font-bold text-primary">@{c.authorHandle}</span>
             <BadgeMark kind={c.badge} />
-            <span className="text-ink-400">{timeAgo(c.createdAt)}</span>
+            <span className="text-tertiary">{timeAgo(c.createdAt)}</span>
             {staff && c.status === "hidden" ? <span className={`${TAG} bg-danger-500/15 text-danger-500`}>Hidden</span> : null}
-            {staff && c.status === "removed" ? <span className={`${TAG} bg-white/10 text-ink-200`}>Deleted by author</span> : null}
+            {staff && c.status === "removed" ? <span className={`${TAG} bg-white/10 text-secondary`}>Deleted by author</span> : null}
             {staff && c.flagCount > 0 ? (
-              <span className={`${TAG} bg-sun-500/15 text-sun-600`}>
+              <span className={`${TAG} bg-warn-500/15 text-warn-600`}>
                 {c.flagCount} {c.flagCount === 1 ? "report" : "reports"}
               </span>
             ) : null}
           </div>
-          <p className="mt-1 whitespace-pre-line break-words text-[13.5px] leading-relaxed text-ink-200">{c.body || "(deleted)"}</p>
+          <p className="mt-1 whitespace-pre-line break-words text-[13.5px] leading-relaxed text-secondary">{c.body || "(deleted)"}</p>
           {c.status !== "removed" ? (
             <CommentTools
               type={type}
@@ -62,7 +62,7 @@ export async function Discussion({ type, id, viewer, open }: { type: TargetType;
   const { nodes, total, truncated } = await listComments(type, id, viewer);
   return (
     <section id="comments" className="scroll-mt-24">
-      <p className="display text-[15px] font-extrabold text-sand-100">
+      <p className="display text-[15px] font-extrabold text-primary">
         {total} {total === 1 ? "comment" : "comments"}
       </p>
       {open ? (
@@ -70,15 +70,15 @@ export async function Discussion({ type, id, viewer, open }: { type: TargetType;
           <CommentComposer type={type} id={id} signedIn={viewer.signedIn} />
         </div>
       ) : (
-        <p className="mt-2 text-[12.5px] text-ink-400">Comments are closed while this is hidden.</p>
+        <p className="mt-2 text-[12.5px] text-tertiary">Comments are closed while this is hidden.</p>
       )}
       <ol className="mt-3 space-y-2.5">
         {nodes.map((c) => (
           <Row key={c.id} c={c} type={type} id={id} viewer={viewer} open={open} />
         ))}
-        {nodes.length === 0 ? <li className="text-[12.5px] text-ink-400">No comments yet. Be the first.</li> : null}
+        {nodes.length === 0 ? <li className="text-[12.5px] text-tertiary">No comments yet. Be the first.</li> : null}
       </ol>
-      {truncated ? <p className="mt-2 text-[11.5px] text-ink-400">Showing the 200 most recent conversations. Older ones are not shown.</p> : null}
+      {truncated ? <p className="mt-2 text-[11.5px] text-tertiary">Showing the 200 most recent conversations. Older ones are not shown.</p> : null}
     </section>
   );
 }

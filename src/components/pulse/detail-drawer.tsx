@@ -52,23 +52,25 @@ export function IncidentDetailDrawer({
 }) {
   const [updates, setUpdates] = useState<Update[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const rowId = row?.id ?? null;
   const { send, pending } = useIncidentUpdate(row?.id ?? "", handle, stub);
   const watch = useWatchList();
 
   // The timeline is the one thing a card cannot carry, so it is fetched on open
-  // from the endpoint that already exists — /api/incidents/:id.
+  // from the endpoint that already exists — /api/incidents/:id. Keyed on the id
+  // (not the row object) so re-renders of the same open report never refetch.
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect -- Opening a different report must not show the previous report's timeline for a frame, so the reset is
     synchronous with the key change. Deriving it instead would mean caching per-row content in a component
     that deliberately owns none. */
-    if (!row || stub) {
+    if (!rowId || stub) {
       setUpdates(null);
       return;
     }
     let live = true;
     setUpdates(null);
     setFailed(false);
-    fetch(`/api/incidents/${row.id}`)
+    fetch(`/api/incidents/${rowId}`)
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("gone"))))
       .then((d) => live && setUpdates(Array.isArray(d?.updates) ? (d.updates as Update[]) : []))
       .catch(() => live && setFailed(true));
@@ -76,7 +78,7 @@ export function IncidentDetailDrawer({
       live = false;
     };
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [row?.id, stub]);
+  }, [rowId, stub]);
 
   // ← / → move through the stream without closing the sheet.
   useEffect(() => {

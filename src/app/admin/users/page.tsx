@@ -133,7 +133,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
             {rows.map((r) => (
               <tr key={r.handle} className="border-t hairline align-top">
                 <td className="px-3 py-2">
-                  <Link href={`/admin/users/${r.handle}`} className="font-bold text-sand-100 hover:text-tide-300">
+                  <Link href={`/admin/users/${r.handle}`} className="font-bold text-primary hover:text-text-accent">
                     @{r.handle}
                   </Link>
                   <span className="block text-[11.5px] text-secondary">{r.displayName}</span>
@@ -166,7 +166,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                 </td>
                 <td className="px-2 py-2 text-secondary">{timeAgo(r.joined)}</td>
                 <td className="px-2 py-2 text-secondary">{r.lastLogin ? timeAgo(r.lastLogin) : "never"}</td>
-                <td className="px-3 py-2 text-right font-bold text-sand-100">{r.reports}</td>
+                <td className="px-3 py-2 text-right font-bold text-primary">{r.reports}</td>
               </tr>
             ))}
             {rows.length === 0 ? (

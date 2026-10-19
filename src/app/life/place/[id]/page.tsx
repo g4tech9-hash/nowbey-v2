@@ -88,17 +88,17 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
 
       <div className="mb-5 flex flex-wrap items-center gap-3">
         {s.avg ? (
-          <span className="flex items-center gap-2 text-[13px] text-sand-100">
+          <span className="flex items-center gap-2 text-[13px] text-primary">
             <Stars value={Math.round(s.avg)} size={14} />
             {s.avg.toFixed(1)} from {s.ratings} {s.ratings === 1 ? "rating" : "ratings"}
           </span>
         ) : (
-          <span className="text-[13px] text-ink-400">Not rated yet</span>
+          <span className="text-[13px] text-tertiary">Not rated yet</span>
         )}
-        <a href={directions} target="_blank" rel="noopener noreferrer" className="rounded-full bg-tide-500 px-4 py-2 text-[13px] font-extrabold text-on-accent">
+        <a href={directions} target="_blank" rel="noopener noreferrer" className="rounded-full bg-accent px-4 py-2 text-[13px] font-extrabold text-on-accent">
           Directions
         </a>
-        <Link href="/life/new" className="rounded-full bg-white/10 px-4 py-2 text-[13px] font-bold text-sand-100 hover:bg-white/15">
+        <Link href="/life/new" className="rounded-full bg-white/10 px-4 py-2 text-[13px] font-bold text-primary hover:bg-white/15">
           Review this place
         </Link>
       </div>
@@ -107,7 +107,7 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
         <div className="min-w-0 space-y-5">
           {generalPhotos.length ? (
             <section className="nb-surface rounded-xl2 p-4">
-              <h2 className="display text-[15px] font-bold text-sand-100">Photos</h2>
+              <h2 className="display text-[15px] font-bold text-primary">Photos</h2>
               <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {generalPhotos.map((p) => (
                   // eslint-disable-next-line @next/next/no-img-element -- place photos are served by our own route
@@ -119,7 +119,7 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
 
           {showMenu ? (
             <section className="nb-surface rounded-xl2 p-4">
-              <h2 className="display text-[15px] font-bold text-sand-100">Menu</h2>
+              <h2 className="display text-[15px] font-bold text-primary">Menu</h2>
               {menuPhotos.length ? (
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   {menuPhotos.map((p) => (
@@ -131,18 +131,18 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
               {menuLines.length ? (
                 <ul className="mt-3 divide-y divide-white/5">
                   {menuLines.map((l, i) => (
-                    <li key={i} className="py-1.5 text-[13.5px] text-ink-200">
+                    <li key={i} className="py-1.5 text-[13.5px] text-secondary">
                       {l}
                     </li>
                   ))}
                 </ul>
               ) : null}
-              {!hasMenu ? <p className="mt-2 text-[13px] text-ink-400">No menu added yet. Add a photo or the popular items below.</p> : null}
+              {!hasMenu ? <p className="mt-2 text-[13px] text-tertiary">No menu added yet. Add a photo or the popular items below.</p> : null}
             </section>
           ) : null}
 
           <section className="space-y-3">
-            <h2 className="display text-[15px] font-bold text-sand-100">Reviews</h2>
+            <h2 className="display text-[15px] font-bold text-primary">Reviews</h2>
             {reviews.rows.length ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {reviews.rows.map((p) => (
@@ -150,52 +150,52 @@ export default async function PlacePage({ params }: { params: Promise<{ id: stri
                 ))}
               </div>
             ) : (
-              <p className="text-[13px] text-ink-400">No reviews yet. Be the first to review {place.name}.</p>
+              <p className="text-[13px] text-tertiary">No reviews yet. Be the first to review {place.name}.</p>
             )}
           </section>
         </div>
 
         <aside className="space-y-4">
           <div className="nb-surface rounded-xl2 p-4">
-            <h2 className="display text-[15px] font-bold text-sand-100">Opening hours</h2>
+            <h2 className="display text-[15px] font-bold text-primary">Opening hours</h2>
             {note && Object.keys(hours).length === 0 ? (
-              <p className="mt-2 text-[13px] font-bold text-sun-600">{note}</p>
+              <p className="mt-2 text-[13px] font-bold text-warn-600">{note}</p>
             ) : null}
             <ul className="mt-2 space-y-1 text-[13px]">
               {DAYS.map((d) => (
                 <li key={d} className="flex justify-between gap-3">
                   <span className="text-sand-200">{DAY_LABELS[d]}</span>
-                  <span className="text-right text-ink-200">{hours[d] ?? "Not added"}</span>
+                  <span className="text-right text-secondary">{hours[d] ?? "Not added"}</span>
                 </li>
               ))}
             </ul>
           </div>
 
           <div className="nb-surface rounded-xl2 p-4 text-[13px]">
-            <h2 className="display text-[15px] font-bold text-sand-100">Address</h2>
-            <p className="mt-2 text-ink-200">{place.address ?? "Not added yet."}</p>
+            <h2 className="display text-[15px] font-bold text-primary">Address</h2>
+            <p className="mt-2 text-secondary">{place.address ?? "Not added yet."}</p>
             {place.contactNumber ? (
               <p className="mt-1.5">
-                <a href={`tel:${place.contactNumber.replace(/[^+\d]/g, "")}`} className="font-bold text-tide-300 underline">
+                <a href={`tel:${place.contactNumber.replace(/[^+\d]/g, "")}`} className="font-bold text-text-accent underline">
                   {place.contactNumber}
                 </a>
               </p>
             ) : null}
             {website ? (
               <p className="mt-1.5">
-                <a href={website} target="_blank" rel="noopener noreferrer" className="font-bold text-tide-300 underline">
+                <a href={website} target="_blank" rel="noopener noreferrer" className="font-bold text-text-accent underline">
                   Website
                 </a>
               </p>
             ) : null}
-            <a href={directions} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-bold text-tide-300 underline">
+            <a href={directions} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block font-bold text-text-accent underline">
               Get directions
             </a>
           </div>
 
           <div className="nb-surface rounded-xl2 p-4">
-            <h2 className="display text-[15px] font-bold text-sand-100">Add details</h2>
-            <p className="mt-1 text-[12px] text-ink-400">Anyone signed in can add or correct hours, the address, the menu and photos.</p>
+            <h2 className="display text-[15px] font-bold text-primary">Add details</h2>
+            <p className="mt-1 text-[12px] text-tertiary">Anyone signed in can add or correct hours, the address, the menu and photos.</p>
             <div className="mt-3">
               <PlaceEditor
                 placeId={place.id}

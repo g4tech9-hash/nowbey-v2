@@ -189,21 +189,24 @@ export function Field({ label, style, ...rest }: { label: string } & TextInputPr
 
 export function CategoryBadge({ category, severity }: { category: string; severity?: number }) {
   const meta = categoryOf(category);
+  // One 4-level scale. A stored 5 is retired data (the web maps it to "Not
+  // rated"), so it shows no dots rather than inventing a fifth step.
+  const level = severity && severity >= 1 && severity <= 4 ? severity : null;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <View style={{ backgroundColor: `${meta.color}26`, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
         <Text style={{ color: meta.color, fontSize: 11.5, fontWeight: "800", letterSpacing: 0.6 }}>{meta.label.toUpperCase()}</Text>
       </View>
-      {severity ? (
-        <View style={{ flexDirection: "row", gap: 2 }} accessibilityLabel={`Severity ${Math.min(Math.max(severity, 1), 5)} of 5`}>
-          {[1, 2, 3, 4, 5].map((i) => (
+      {level ? (
+        <View style={{ flexDirection: "row", gap: 2 }} accessibilityLabel={`Severity ${level} of 4`}>
+          {[1, 2, 3, 4].map((i) => (
             <View
               key={i}
               style={{
                 width: 8,
                 height: 4,
                 borderRadius: 2,
-                backgroundColor: i <= Math.min(Math.max(severity, 1), 5) ? sevColor(severity) : "rgba(255,255,255,0.12)",
+                backgroundColor: i <= level ? sevColor(level) : "rgba(255,255,255,0.12)",
               }}
             />
           ))}

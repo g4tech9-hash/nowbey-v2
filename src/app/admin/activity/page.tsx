@@ -33,19 +33,19 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
     const label = r.targetLabel ?? r.targetId ?? "";
     if (r.targetType === "user" && r.targetLabel) {
       return (
-        <Link href={`/admin/users/${r.targetLabel}`} className="font-bold text-sand-100 hover:text-tide-300">
+        <Link href={`/admin/users/${r.targetLabel}`} className="font-bold text-primary hover:text-text-accent">
           @{label}
         </Link>
       );
     }
     if (r.targetType === "report" && r.targetId) {
       return (
-        <Link href={`/incident/${r.targetId}`} className="font-bold text-sand-100 hover:text-tide-300">
+        <Link href={`/incident/${r.targetId}`} className="font-bold text-primary hover:text-text-accent">
           {label}
         </Link>
       );
     }
-    return <span className="font-bold text-sand-100">{label}</span>;
+    return <span className="font-bold text-primary">{label}</span>;
   };
 
   return (
@@ -68,9 +68,9 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
             {rows.map((r) => (
               <tr key={r.id} className="border-t hairline align-top">
                 <td className="whitespace-nowrap px-3 py-2 text-secondary">{timeAgo(r.createdAt)}</td>
-                <td className="px-2 py-2 font-bold text-sand-100">@{r.actorHandle}</td>
+                <td className="px-2 py-2 font-bold text-primary">@{r.actorHandle}</td>
                 <td className="px-2 py-2">
-                  <span className="font-mono text-[11.5px] text-tide-300">{r.action}</span>
+                  <span className="font-mono text-[11.5px] text-text-accent">{r.action}</span>
                 </td>
                 <td className="max-w-[260px] truncate px-2 py-2">{target(r)}</td>
                 <td className="px-3 py-2 text-secondary">{r.detail ?? ""}</td>

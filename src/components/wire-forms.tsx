@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CATEGORIES, PARISHES, type CategoryKey } from "@/lib/geo";
+import { CATEGORY_GROUPS } from "@/lib/categories";
 import { trackFunnel } from "@/lib/funnel-client";
 import type { TierKey } from "@/lib/tiers";
-import { Toggle } from "@/ui/kit";
 
 /* =====================================================================
    Wire forms — rebuilt 2026-10-17.
@@ -86,7 +86,6 @@ export function SubmitLink() {
   );
 }
 
-const DEFAULT_CATS: CategoryKey[] = ["flood", "storm", "power", "water", "fire"];
 /** The island the Nassau launch covers. Everything is matched per island, so this is the only one that is live. */
 const LAUNCH_ISLAND = "New Providence";
 
@@ -100,7 +99,8 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
   const router = useRouter();
   const [target, setTarget] = useState(defaultEmail);
   const [islands, setIslands] = useState<string[]>([LAUNCH_ISLAND]);
-  const [cats, setCats] = useState<CategoryKey[]>(DEFAULT_CATS);
+  // Empty = "All reports" — the explicit default (spec 2.4/Phase 4 /alerts).
+  const [cats, setCats] = useState<CategoryKey[]>([]);
   const [radiusKm, setRadiusKm] = useState(12);
   const [centre, setCentre] = useState<{ lat: number; lng: number } | null>(null);
   const [locBusy, setLocBusy] = useState(false);
@@ -163,7 +163,7 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
           trackFunnel("alert_set_up");
           setMsg(
             data.mail === "sent"
-              ? { ok: true, text: `Check ${target} for a confirmation email and tap the link to switch alerts on. It can take a few minutes and often lands in spam or promotions, so look there too.` }
+              ? { ok: true, text: `Check your inbox at ${target} for a confirmation email and tap the link to switch alerts on. It can take a few minutes and often lands in spam or promotions, so look there too.` }
               : { ok: false, text: "We saved your alert profile but could not send the confirmation email just now. Please try again in a little while." },
           );
           router.refresh();
@@ -251,25 +251,47 @@ export function AlertForm({ plan, defaultEmail = "" }: { plan: TierKey | null; d
         ) : null}
       </div>
 
-      {/* 3 · What is worth waking you up — one toggle row per report type. */}
+      {/* 3 · What is worth waking you up — grouped chips, with "All reports" as the explicit default. */}
       <div className="nb-card-inner" style={{ padding: "6px 18px" }}>
         <div className="py-3.5">
           <span className="nb-label">Kinds of report</span>
         </div>
-        {(Object.keys(CATEGORIES) as CategoryKey[]).map((k) => (
-          <div key={k}>
-            <hr className="nb-divider" />
-            <div className="flex items-center justify-between gap-3 py-3">
-              <span className="flex items-center gap-2.5 text-[15px] font-semibold" style={{ color: "var(--nb-text)" }}>
-                <span className="nb-dot" style={{ background: CATEGORIES[k].color }} aria-hidden />
-                {CATEGORIES[k].label}
-              </span>
-              <Toggle on={cats.includes(k)} onClick={() => toggleCat(k)} label={CATEGORIES[k].label} />
+        <div className="flex flex-wrap gap-1.5 pb-2">
+          <button
+            type="button"
+            onClick={() => setCats([])}
+            aria-pressed={cats.length === 0}
+            data-on={cats.length === 0 ? "true" : undefined}
+            className="nb-chip"
+          >
+            All reports
+          </button>
+        </div>
+        {CATEGORY_GROUPS.map((g) => (
+          <div key={g.label} className="pb-2">
+            <p className="nb-label pb-1.5 pt-1" style={{ color: "var(--nb-muted)" }}>{g.label}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {g.ids.map((k) => {
+                const on = cats.includes(k);
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => toggleCat(k)}
+                    aria-pressed={on}
+                    data-on={on ? "true" : undefined}
+                    className="nb-chip"
+                  >
+                    <span className="nb-dot" style={{ background: CATEGORIES[k].color }} aria-hidden />
+                    {CATEGORIES[k].label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
         <p className="nb-hint" style={{ paddingBottom: 14 }}>
-          Leave everything unselected to hear about every report. Reports rated “annoying” never trigger an email.
+          “All reports” is the default. Tap it again to hear about everything; otherwise only the chips you pick wake you up. Minor reports never trigger an email.
         </p>
       </div>
 

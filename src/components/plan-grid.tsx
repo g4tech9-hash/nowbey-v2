@@ -7,7 +7,7 @@ import { FREE_PLAN, TIERS, money, yearlySaving, type Interval, type Perk, type T
 
 export function PerkList({ perks, tone }: { perks: Perk[]; tone: string }) {
   return (
-    <ul className="mt-3 flex-1 space-y-1.5 text-[12.5px] text-ink-200">
+    <ul className="mt-3 flex-1 space-y-1.5 text-[12.5px] text-secondary">
       {perks.map((p) => (
         <li key={p.text} className="flex gap-2 leading-snug">
           <span className="mt-[1px] font-bold" style={{ color: tone }} aria-hidden>
@@ -16,7 +16,7 @@ export function PerkList({ perks, tone }: { perks: Perk[]; tone: string }) {
           <span>
             {p.text}
             {p.soon ? (
-              <span className="ml-1.5 whitespace-nowrap rounded-full bg-white/10 px-1.5 py-[1px] text-[9.5px] font-bold uppercase tracking-wide text-ink-200">
+              <span className="ml-1.5 whitespace-nowrap rounded-full bg-white/10 px-1.5 py-[1px] text-[9.5px] font-bold uppercase tracking-wide text-secondary">
                 Soon
               </span>
             ) : null}
@@ -82,14 +82,14 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
 
   return (
     <div>
-      <div className="mb-4 inline-flex rounded-full border hairline bg-abyss-900/60 p-1 text-[12.5px] font-bold" role="group" aria-label="Billing period">
+      <div className="mb-4 inline-flex rounded-full border hairline bg-raised/60 p-1 text-[12.5px] font-bold" role="group" aria-label="Billing period">
         {(["month", "year"] as const).map((v) => (
           <button
             key={v}
             type="button"
             onClick={() => setBilling(v)}
             aria-pressed={billing === v}
-            className={`rounded-full px-3.5 py-1.5 transition ${billing === v ? "bg-tide-500 text-on-accent" : "text-ink-200 hover:bg-white/8"}`}
+            className={`rounded-full px-3.5 py-1.5 transition ${billing === v ? "bg-accent text-on-accent" : "text-secondary hover:bg-white/8"}`}
           >
             {v === "month" ? "Monthly" : "Yearly"}
             {v === "year" ? <span className="ml-1.5 text-[11.5px] opacity-80">2 months free</span> : null}
@@ -103,15 +103,15 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
             {FREE_PLAN.name}
           </p>
           <p className="mt-1 flex items-baseline gap-1">
-            <span className="display text-[28px] font-extrabold text-sand-100">$0</span>
-            <span className="text-[11.5px] text-ink-400">forever</span>
+            <span className="display text-[28px] font-extrabold text-primary">$0</span>
+            <span className="text-[11.5px] text-tertiary">forever</span>
           </p>
           <p className="mt-1 min-h-[16px] text-[11.5px] text-transparent" aria-hidden>
             .
           </p>
-          <p className="mt-0.5 text-[12px] leading-snug text-ink-300">{FREE_PLAN.blurb}</p>
+          <p className="mt-0.5 text-[12px] leading-snug text-tertiary">{FREE_PLAN.blurb}</p>
           <PerkList perks={FREE_PLAN.perks} tone={FREE_PLAN.tone} />
-          <p className="mt-3 rounded-lg bg-white/8 px-2 py-1.5 text-center text-[11.5px] font-bold text-ink-200">
+          <p className="mt-3 rounded-lg bg-white/8 px-2 py-1.5 text-center text-[11.5px] font-bold text-secondary">
             {onFree ? "Your current plan" : "Always available"}
           </p>
         </div>
@@ -129,29 +129,29 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
                 {t.name}
               </p>
               <p className="mt-1 flex items-baseline gap-1">
-                <span className="display text-[28px] font-extrabold text-sand-100">${money(price)}</span>
-                <span className="text-[11.5px] text-ink-400">{billing === "year" ? "per year" : "per month"}</span>
+                <span className="display text-[28px] font-extrabold text-primary">${money(price)}</span>
+                <span className="text-[11.5px] text-tertiary">{billing === "year" ? "per year" : "per month"}</span>
               </p>
-              <p className="mt-1 min-h-[16px] text-[11.5px] font-semibold text-tide-300">
+              <p className="mt-1 min-h-[16px] text-[11.5px] font-semibold text-text-accent">
                 {billing === "year" ? `$${money(t.yearly / 12)} a month · save $${money(yearlySaving(t))}` : ""}
               </p>
-              <p className="mt-0.5 text-[12px] leading-snug text-ink-300">{t.blurb}</p>
+              <p className="mt-0.5 text-[12px] leading-snug text-tertiary">{t.blurb}</p>
               <PerkList perks={t.perks} tone={t.tone} />
 
               {current ? (
-                <div className="mt-3 rounded-lg bg-tide-500/18 px-2 py-1.5 text-center text-[11.5px] font-bold text-tide-300">
+                <div className="mt-3 rounded-lg bg-accent/18 px-2 py-1.5 text-center text-[11.5px] font-bold text-text-accent">
                   Your current plan
                 </div>
               ) : managed ? (
                 <Link
                   href="/you"
-                  className="mt-3 rounded-xl border hairline py-2.5 text-center text-[12.5px] font-bold text-sand-100 hover:bg-white/8"
+                  className="mt-3 rounded-xl border hairline py-2.5 text-center text-[12.5px] font-bold text-primary hover:bg-white/8"
                 >
                   Manage your plan
                 </Link>
               ) : !purchasable ? (
                 <p
-                  className="mt-3 rounded-xl border hairline py-2.5 text-center text-[12.5px] font-bold text-ink-300"
+                  className="mt-3 rounded-xl border hairline py-2.5 text-center text-[12.5px] font-bold text-tertiary"
                   aria-label={`${t.name} opens soon`}
                 >
                   Opening soon
@@ -161,13 +161,13 @@ export function PlanGrid({ live, purchasable = live, signedIn, currentTier, curr
                   type="button"
                   disabled={busy !== null}
                   onClick={() => choose(t.key)}
-                  className="mt-3 w-full rounded-xl bg-sand-100 py-2.5 text-[13px] font-extrabold text-on-accent hover:bg-white disabled:opacity-50"
+                  className="mt-3 w-full rounded-xl bg-primary py-2.5 text-[13px] font-extrabold text-on-accent hover:bg-white disabled:opacity-50"
                 >
                   {busy === t.key ? "One moment…" : signedIn ? `Get ${t.name}` : "Sign in to choose"}
                 </button>
               )}
               {note?.tier === t.key ? (
-                <p className={`mt-1.5 text-[11.5px] leading-snug ${note.ok ? "text-tide-300" : "text-danger-500"}`}>{note.text}</p>
+                <p className={`mt-1.5 text-[11.5px] leading-snug ${note.ok ? "text-text-accent" : "text-danger-500"}`}>{note.text}</p>
               ) : null}
             </div>
           );

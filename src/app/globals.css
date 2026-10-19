@@ -152,6 +152,8 @@
   --color-tide-200: var(--text-accent);
   --color-accent: var(--accent);
   --color-accent-muted: var(--accent-muted);
+  --color-accent-hover: var(--accent-hover);
+  --color-text-accent: var(--text-accent);
 
   /* ---- Signals --------------------------------------------------------- */
   --color-conch-600: var(--danger);
@@ -164,8 +166,12 @@
   --color-ok-500: var(--success);
   --color-ok-600: var(--success);
   --color-ok-400: var(--success);
+  --color-success-600: var(--success);
+  --color-success-500: var(--success);
+  --color-success-400: var(--success);
   --color-warn-500: var(--warning);
   --color-warn-600: var(--warning);
+  --color-warn-400: var(--warning);
   --color-danger-500: var(--danger);
   --color-danger-400: var(--danger);
   --color-danger-600: var(--danger);
@@ -176,7 +182,6 @@
   --color-sev-2: var(--sev-2);
   --color-sev-3: var(--sev-3);
   --color-sev-4: var(--sev-4);
-  --color-sev-5: var(--sev-5);
 
   /* ---- Category ramp: both the fill tier and the text tier resolve to the
      theme-aware category hue, so old code that painted `--color-cat-flood`
@@ -472,9 +477,11 @@ input[type="range"] {
    dark|light. src/lib/themes.ts owns the mapping.)
    ============================================================================= */
 :root[data-look="island"] {
-  --bg-base: #000205;
-  --bg-raised: #07202c;
-  --bg-elevated: #0b2d3d;
+  /* The look axis is ORTHOGONAL to brightness (see tokens.css). Island used
+     to force --bg-base #000205 / --bg-raised #07202c here, which silently
+     overrode every dark-theme brightness lift (and made light mode
+     near-black too). It now only re-tunes the decorative ambience; surfaces
+     always come from the theme ramp. */
   --pulse-ambient-a: rgba(20, 209, 192, 0.2);
   --pulse-ambient-b: rgba(255, 130, 111, 0.14);
   --pulse-grid: rgba(134, 246, 232, 0.07);
@@ -537,7 +544,7 @@ html[data-splash-seen] #nb-splash {
   overflow: hidden;
   cursor: pointer;
   background: var(--bg-base);
-  animation: nb-splash-out 0.8s var(--pulse-ease-out) 2.9s both;
+  animation: nb-splash-out 0.6s var(--pulse-ease-out) 0.9s both;
 }
 .nb-splash.is-leaving {
   animation: none;
