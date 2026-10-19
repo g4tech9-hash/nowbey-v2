@@ -570,19 +570,33 @@ export default function MapWorkspace() {
           </ul>
         </details>
 
-        {/* The pin just tapped: one clear line and the way into its report. */}
+        {/* The pin just tapped: a bottom sheet on phones — in thumb reach, over
+            the map, above the bottom nav — and the same card inline in the rail
+            on desktop. CSS picks the shape; this block only describes the pin. */}
         {current ? (
-          <div className="nb-glass mx-3 mt-2 flex flex-none items-center gap-2 rounded-xl px-2.5 py-2 lg:mx-0">
-            <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: CATEGORIES[current.category]?.color }} />
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[12.5px] font-bold text-sand-100">{current.title}</span>
-              <span className="block truncate text-[11.5px] text-ink-400">
-                {current.street ?? "unmapped"} · {timeAgo(current.createdAt)} · {current.confirmations} ✓
+          <div className="nb-pin-sheet mx-3 mt-2 lg:mx-0">
+            <span className="nb-pin-sheet-grabber" aria-hidden />
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 flex-none rounded-full" style={{ background: CATEGORIES[current.category]?.color }} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[12.5px] font-bold text-sand-100">{current.title}</span>
+                <span className="block truncate text-[11.5px] text-ink-400">
+                  {current.street ?? "unmapped"} · {timeAgo(current.createdAt)} · {current.confirmations} ✓
+                </span>
               </span>
-            </span>
-            <Link href={`/incident/${current.id}`} className="min-h-[44px] lg:min-h-[40px] flex-none rounded-full bg-tide-500/20 px-3 py-2 text-[11.5px] font-extrabold text-tide-300">
-              Open
-            </Link>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href={`/incident/${current.id}`} className="nb-btn nb-btn-primary flex min-h-[44px] flex-1 items-center justify-center rounded-full px-3 py-2 text-[12px] font-extrabold">
+                View report
+              </Link>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                className="min-h-[44px] flex-none rounded-full border border-default px-3 py-2 text-[12px] font-bold text-ink-300 hover:text-sand-100"
+              >
+                Close
+              </button>
+            </div>
           </div>
         ) : null}
 

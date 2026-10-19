@@ -2092,6 +2092,46 @@ kbd {
   color: var(--text-accent);
   border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
+/* ------------------------------------------------- selected-pin bottom sheet --
+  The pin you just tapped, in reach of your thumb. On phones/tablets it floats
+  over the map just above the bottom navigation (where the rail's one-line card
+  used to sit off-screen); on desktop it stays an inline card in the rail.
+  CSS decides which — same markup, no JS viewport logic. */
+.nb-pin-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pulse-space-2);
+}
+.nb-pin-sheet-grabber {
+  display: none;
+}
+@media (max-width: 1023.98px) {
+  .nb-pin-sheet {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(var(--pulse-navbar-h) + var(--pulse-safe-bottom) + 8px);
+    z-index: 620;
+    max-height: 38vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--border-default);
+    border-radius: var(--pulse-shape-lg);
+    background: var(--bg-elevated);
+    box-shadow: var(--pulse-elev-3);
+    padding: var(--pulse-space-2) var(--pulse-space-3) var(--pulse-space-3);
+  }
+  .nb-pin-sheet-grabber {
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 2px auto 0;
+    border-radius: var(--pulse-shape-pill);
+    background: var(--border-strong);
+    flex: none;
+  }
+}
+
 .pulse-pick {
   position: relative;
   display: block;
