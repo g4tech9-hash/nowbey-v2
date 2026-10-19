@@ -368,6 +368,15 @@ token anywhere but the secret):
 Then re-run the `mobile` dispatch below — the app source is already synced with master. If it is
 refused again, the annotation names the account, so there is nothing left to dig for.
 
+**Status 2026-10-19 12:52 UTC — dispatch re-fired after PR #49; the same account refusal.** Run
+`39255505305`, from master `2d7b205` (the merge of PR #49): `gate` green, `APK preflight` green,
+`Check EAS credentials` green, then EAS refused with the identical `AppEntity[10e4a677…]` /
+viewer `09b5a115-f3cc-4096-a6a9-72ccf462d1dd` error. The unpinned preflight did its job — nothing in
+the repository stopped the run before EAS was asked — and the secret still authenticates as
+`nowbey242s-team`, which still cannot read `oasistech242/nowbey`. Nothing in Git changes that; the
+three expo.dev options above are unchanged, and the next `mobile` dispatch after one of them is the
+test.
+
 **To resume, only when the owner says so:** Actions → Deploy (Vercel + EAS) → Run workflow → `mobile`, or
 
 ```bash
