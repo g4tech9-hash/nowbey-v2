@@ -64,7 +64,7 @@ The changelog/verify sections predate: the five night-ramp commits, the `:root[d
 - `TODO_HUMAN.md` carries the matching manual checklist (34 steps: Facebook bridge-feed paste, run `add-live-streams.sql`/`add-banned-devices.sql`/`add-error-ai.sql`/`add-ai-usage.sql` on Neon, `GITHUB_TOKEN`/`GITHUB_REPO`/`GEMINI_API_KEY` env, broadcaster grants, …). These are unfinished **human** steps by design, not forgotten code.
 
 ### 3.6 Documented Phase 3–5 debt (unchanged since the report; P3)
-Measured and still open: **55** `!important` declarations across CSS, **1010** arbitrary-value utilities (`text-[11.5px]` …), abyss-/tide-/conch- alias codemod not run, `--sev-5` token still defined, map bottom sheet not built, sitemap lacks incident URLs (needs DB/ISR), no Playwright/axe/Lighthouse CI (`lighthouserc.json` untouched), news categorisation still "Notice"-heavy without `GEMINI_API_KEY`, canned demo notes suppressed in UI but not deleted by data migration, 2 pre-existing lint warnings.
+Measured and still open: **55** `!important` declarations across CSS, **1010** arbitrary-value utilities (`text-[11.5px]` …), no Playwright/axe/Lighthouse CI (`lighthouserc.json` untouched), news categorisation still "Notice"-heavy without `GEMINI_API_KEY`. Closed since the audit: the abyss-/tide-/conch- alias codemod ran (`8e6506c`, 1097 pixel-identical class renames), `--sev-5` retired (`18fc3a6`), map bottom sheet built (`30542fb`), sitemap serves incident URLs (`0b656ab`), lint warnings fixed (`18fc3a6`), canned-note cleanup shipped as an owner-run migration (`7103354`).
 
 ### 3.7 Minor gaps (P3)
 - `NOWBEY_EMBEDDED_DB=1` exists only in `src/instrumentation.ts` and the commit message — not in `README`/`TODO_HUMAN.md`/`REFINEMENT_REPORT.md`.
@@ -73,7 +73,7 @@ Measured and still open: **55** `!important` declarations across CSS, **1010** a
 
 ## 4. Action plan
 
-**Status:** P0 and both P1 items are **done** — executed in `c02bb11` (category SSOT + CoverageBadge) and `ca21924` (report addendum + README database docs). P3 partly executed in `18fc3a6` (lint warnings fixed, `--sev-5` retired), `0b656ab` (sitemap incident URLs) and `7103354` (mobile copy bridge, canned-note migration). **Remaining:** the `V2_UI_Backup/expo` promotion decision (P2), owner-run `TODO_HUMAN.md` steps (P2), the Phase 3 mechanical sweep (alias codemod / `!important` / arbitrary values — deferred to its own pass for visual safety), CI suites (sandbox cannot download browser binaries), and the GEMINI recategoriser (needs `GEMINI_API_KEY`). The `git` chunks below are kept for the record.
+**Status:** P0 and both P1 items are **done** — executed in `c02bb11` (category SSOT + CoverageBadge) and `ca21924` (report addendum + README database docs). P3 executed in `18fc3a6` (lint warnings fixed, `--sev-5` retired), `0b656ab` (sitemap incident URLs), `7103354` (mobile copy bridge, canned-note migration), `30542fb` (map selected-pin bottom sheet) and `8e6506c` (alias codemod: 1097 pixel-identical class renames to the semantic vocabulary). **Remaining:** the `V2_UI_Backup/expo` promotion decision (P2), owner-run `TODO_HUMAN.md` steps (P2), the `!important`/arbitrary-value half of the Phase 3 sweep (deferred to its own pass), CI suites (sandbox cannot download browser binaries), and the GEMINI recategoriser (needs `GEMINI_API_KEY`). The `git` chunks below are kept for the record.
 
 ### 4.1 Git commands
 There is **nothing to `git add` today** — the tree is clean and synced. The commands below are the exact chunks for the fixes above, ready when you want them executed:
