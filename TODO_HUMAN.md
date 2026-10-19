@@ -439,6 +439,55 @@ scripts/eas-dispatch.sh mobile      # EAS first, then the same local fallback
 block a local build. `.github/workflows/build.yml` (**NowBey Local APK Build (fallback)**) is the
 same script behind a manual button.
 
+**Status 2026-10-19 (session: move to `nowbey-v3s-team`) — the move is now one click, but the
+account has to exist first.** The owner chose **`nowbey-v3s-team`** as the new account and no EAS
+project exists under it yet. `expo/app.json` is intentionally unchanged: `owner`,
+`extra.eas.projectId` and `updates.url` are one fact and EAS resolves the app by the UUID, so
+editing the owner alone would still point at `oasistech242/nowbey` and fail identically, and a made-up
+UUID would replace a readable refusal with `Project not found`. Full procedure:
+`docs/EAS_ACCOUNT_RELINK.md`. What was added for it:
+
+* `.github/workflows/eas-link.yml` (**Link EAS project**, also `scripts/eas-dispatch.sh link
+  [owner] [project-id]`). Runs `eas whoami`, refuses if the token cannot reach the requested
+  account (naming the accounts it can), runs `eas init --account <owner> --force --json`, then
+  `expo/scripts/eas-relink.js` to write `updates.url`, re-reads the config through
+  `npx expo config --type public`, runs the APK preflight and `eas project:info`, and opens a PR
+  with the three-field change. It never builds (creating a project spends no build quota) and it
+  never pushes to master. `dry_run=true` reports without touching anything.
+* `expo/scripts/eas-relink.js` (`npm run eas:relink` / `npm run eas:check` inside `expo/`) — the
+  only writer of the three fields, with `--check` for "is the link intact?" and
+  `--check --owner nowbey-v3s-team` for "has the move landed?". It refuses an invalid UUID, a
+  display name in place of an account slug, a half-move, and a dynamic `app.config.js` that could
+  override the link, and writes atomically.
+* 10 tests (`tests/eas-relink.test.mjs`) and the workflow contract tests (`tests/eas-link.test.mjs`).
+
+**What only the owner can do, in order:** (1) make sure the `EXPO_TOKEN` secret is a token created
+while logged in as an account that can create projects in `nowbey-v3s-team`. The account check run
+`39304899284` (18:47 UTC, read-only) reports: token = `GitHub App · @g4tech9-hash` (robot),
+reachable accounts = `oasistech242 (Role: Developer)` only, the old project is readable, and the
+Android quota is `15/15` on the Free plan (resets 2026-11-01). That token is therefore authorized
+on the project being left and cannot touch the target account — replace it with
+`gh secret set EXPO_TOKEN --repo g4tech9-hash/nowbey-v2` using a token from an account that owns
+or administers `nowbey-v3s-team` (run `39300394698` at 18:11 saw `nowbey-v3`, Owner, reaching both
+`nowbey-v3` and `nowbey-v3s-team`). (2) Run **Actions → Link EAS project → Run workflow**, owner
+`nowbey-v3s-team` (`dry_run` first if you want the report). (3) Merge the PR it opens. Until then
+do not fire a `mobile` dispatch: it would upload an archive only to be refused, and nothing in Git
+can grant the account access. The Gradle fallback (`scripts/eas-dispatch.sh fallback`) is
+unaffected and needs no Expo account at all. Note there is no `eas switch` command in eas-cli
+25.2.0 — account selection is `eas login` plus `--account`, or the `owner` field (see the doc).
+
+**Status 2026-10-19 18:51 UTC — the token is now authorized on the existing project; only the
+quota is left.** Account check run `39306081301` (read-only) reports the same robot token
+(`GitHub App · @g4tech9-hash`) with `oasistech242 (Role: Developer)`, and its `eas project:info` step
+**succeeded**: the token reads `oasistech242/nowbey`. That is the call that used to fail as
+`AppEntity[…] Not Authorized`, so the October migration is no longer needed to unblock a build —
+the single remaining refusal is `This account has used its Android builds from the Free plan this
+month` (15/15, resets 2026-11-01). Two consequences: (1) rotating `EXPO_TOKEN` again cannot help and
+will only re-open the mismatch; (2) the local Gradle fallback
+(`scripts/eas-dispatch.sh fallback`) produces an APK today without any Expo account. If ownership
+still moves later, use **transfer** (expo.dev → project → Settings → Transfer project), which keeps
+the UUID so `expo/app.json` needs no change at all — see `docs/EAS_ACCOUNT_RELINK.md` §3C.
+
 **To resume, only when the owner says so:** Actions → Deploy (Vercel + EAS) → Run workflow → `mobile`, or
 
 ```bash
