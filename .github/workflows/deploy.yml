@@ -12,8 +12,9 @@ on:
   # master, and still has to pass the gate.
   repository_dispatch:
     types: [deploy]
-  # Manual knob in the Actions tab: web (Vercel prod), mobile (EAS Android APK), all (both),
-  # or smoke.
+  # Manual knob in the Actions tab: web (Vercel prod), mobile (EAS Android APK, with the local
+  # Gradle build as the automatic fallback), mobile-fallback (skip EAS and build the APK on the
+  # runner with Gradle), all (web + mobile), or smoke.
   workflow_dispatch:
     inputs:
       target:
@@ -24,6 +25,7 @@ on:
         options:
           - web
           - mobile
+          - mobile-fallback
           - all
           - smoke
 
@@ -243,12 +245,20 @@ jobs:
           EXPECT_SHA: ${{ (github.event_name == 'push' || inputs.target == 'web' || inputs.target == 'all' || github.event.client_payload.target == 'web' || github.event.client_payload.target == 'all') && github.sha || '' }}
         run: node scripts/smoke-prod.mjs
 
-  # EAS Android APK (preview / internal distribution). No iOS or Play Store yet — APK only,
-  # distributed via the artifact URL Expo returns on a finished build.
+  # Android APK (preview / internal distribution). No iOS or Play Store yet — APK only.
+  #
+  # Two ways to get one, tried in this order:
+  #   1. EAS Build (`preview` profile → APK). The real path, and what a `mobile` dispatch runs.
+  #   2. A local Gradle build on this runner (scripts/build-apk-local.sh), run automatically when
+  #      EAS refuses the build, errors on the worker, times out, or is skipped outright
+  #      (`mobile-fallback`). That APK is signed with the generated debug keystore: it installs
+  #      on a test device, but it is not a Play Store upload key.
+  # The job is green when either path produced an APK, and red only when both failed.
   build-apk:
     needs: gate
-    if: inputs.target == 'mobile' || inputs.target == 'all' || github.event.client_payload.target == 'mobile' || github.event.client_payload.target == 'all'
+    if: inputs.target == 'mobile' || inputs.target == 'mobile-fallback' || inputs.target == 'all' || github.event.client_payload.target == 'mobile' || github.event.client_payload.target == 'mobile-fallback' || github.event.client_payload.target == 'all'
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -287,7 +297,10 @@ jobs:
         run: npm run preflight:apk:full
 
       # Needs repo secret: EXPO_TOKEN (expo.dev > Account settings > Access tokens).
+      # Skipped on a forced `mobile-fallback` run: that target exists precisely for when the token
+      # or the EAS account is the problem, and the local build needs neither.
       - name: Check EAS credentials
+        if: inputs.target != 'mobile-fallback' && github.event.client_payload.target != 'mobile-fallback'
         working-directory: expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -318,8 +331,13 @@ jobs:
             echo ""
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # continue-on-error is deliberate: a refusal here is not the end of the job any more, it is
+      # the trigger for the Gradle fallback below. `steps.eas.outcome` keeps the real result, and
+      # the verdict step at the bottom of the job decides whether the run is green.
       - name: Send Android build to EAS (preview profile → APK)
         id: eas
+        if: inputs.target != 'mobile-fallback' && github.event.client_payload.target != 'mobile-fallback'
+        continue-on-error: true
         working-directory: expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -356,17 +374,17 @@ jobs:
               exit 0
               ;;
             CANCELED|PENDING_CANCEL)
-              echo "::error title=EAS build was cancelled::Build $id was cancelled on Expo's servers, so there is no APK. ${page}"
+              echo "::warning title=EAS build was cancelled::Build $id was cancelled on Expo's servers, so there is no APK. ${page}"
               ;;
             ERRORED)
-              echo "::error title=EAS build failed on the worker::${error:-the build record has no error message} ${page}"
+              echo "::warning title=EAS build failed on the worker::${error:-the build record has no error message} ${page}"
               ;;
             "")
               first="$(grep -v '^[[:space:]]*$' eas-build.log | tail -n 1 | tr -d '\r' | cut -c1-300 || true)"
-              echo "::error title=EAS build failed (exit $code)::$first"
+              echo "::warning title=EAS build failed (exit $code)::$first"
               ;;
             *)
-              echo "::error title=EAS build ended $status::Build $id did not finish, so there is no APK. ${page}"
+              echo "::warning title=EAS build ended $status::Build $id did not finish, so there is no APK. ${page}"
               ;;
           esac
           echo "--- full output ---"
@@ -386,7 +404,7 @@ jobs:
             expo/eas-whoami.log
 
       - name: Report why the EAS build failed
-        if: failure()
+        if: steps.eas.outcome == 'failure'
         working-directory: expo
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -431,9 +449,71 @@ jobs:
           case "$reason" in
             *"Not Authorized"*|*"not authorized"*)
               proj="$(node -e 'const a=require("./app.json");const e=a.expo||a;console.log((e.owner||"?")+"/"+(e.slug||"?")+" (projectId "+((e.extra&&e.extra.eas&&e.extra.eas.projectId)||"?")+")")' 2>/dev/null || echo unknown)"
-              printf '::error title=EXPO_TOKEN is not authorized on this project::EXPO_TOKEN authenticates as %s, which cannot read project %s. Either invite %s to that project (expo.dev > project > Members), or replace the EXPO_TOKEN repository secret with a token created while logged in as the account that owns it.\n' "${EAS_WHOAMI:-unknown}" "$proj" "${EAS_WHOAMI:-unknown}"
+              printf '::warning title=EXPO_TOKEN is not authorized on this project::EXPO_TOKEN authenticates as %s, which cannot read project %s. Either invite %s to that project (expo.dev > project > Members), or replace the EXPO_TOKEN repository secret with a token created while logged in as the account that owns it.\n' "${EAS_WHOAMI:-unknown}" "$proj" "${EAS_WHOAMI:-unknown}"
               ;;
           esac
 
           payload="$(printf '%s' "$reason" | awk 'BEGIN{ORS=""} {gsub(/%/,"%25"); gsub(/\r/,"%0D"); printf "%s%%0A", $0}')"
-          printf '::error title=EAS build output::%s\n' "$payload"
+          printf '::warning title=EAS build output::%s\n' "$payload"
+
+      # ---------------------------------------------------------------------------------------
+      # Fallback APK. Reached when EAS produced nothing: refused the build, errored on the
+      # worker, was cancelled, or was skipped outright by the `mobile-fallback` target.
+      # Everything the build needs (node_modules, the Firebase config, the tested JS bundle) is
+      # already in place above; the only missing piece is a JDK.
+      # ---------------------------------------------------------------------------------------
+      - name: Set up JDK 17 for the fallback APK
+        if: steps.eas.outcome == 'failure' || steps.eas.outcome == 'skipped'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Accept Android SDK licences (Gradle may fetch a platform or NDK)
+        if: steps.eas.outcome == 'failure' || steps.eas.outcome == 'skipped'
+        run: yes | sdkmanager --licenses >/dev/null 2>&1 || true
+
+      - name: Fallback — build the APK locally with Gradle
+        id: fallback
+        if: steps.eas.outcome == 'failure' || steps.eas.outcome == 'skipped'
+        env:
+          EXPO_PUBLIC_API_BASE: https://nowbey-v2.vercel.app
+        run: bash scripts/build-apk-local.sh
+
+      - name: Upload the fallback APK
+        if: steps.fallback.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nowbey-apk-fallback
+          path: expo/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+      # One green run means "an APK exists", whichever path built it. A red run means neither
+      # path did — and the annotations above say why each one stopped.
+      - name: Verdict — a green run must carry an APK
+        if: always()
+        env:
+          EAS_OUTCOME: ${{ steps.eas.outcome }}
+          FALLBACK_OUTCOME: ${{ steps.fallback.outcome }}
+        run: |
+          set -uo pipefail
+          echo "EAS: ${EAS_OUTCOME:-unknown} / local fallback: ${FALLBACK_OUTCOME:-skipped}"
+          {
+            echo "### APK result"
+            echo ""
+            echo "| path | outcome |"
+            echo "| --- | --- |"
+            echo "| EAS Build | \`${EAS_OUTCOME:-unknown}\` |"
+            echo "| Gradle fallback | \`${FALLBACK_OUTCOME:-skipped}\` |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$EAS_OUTCOME" = "success" ]; then
+            echo "::notice title=APK built by EAS::The EAS preview build finished; its APK link is in the run summary."
+            exit 0
+          fi
+          if [ "$FALLBACK_OUTCOME" = "success" ]; then
+            echo "::warning title=APK built by the local fallback::EAS produced no APK, so the Gradle fallback built one. Download the 'nowbey-apk-fallback' artifact. The EAS reason is in the annotations above."
+            exit 0
+          fi
+          echo "::error title=No APK was produced::Neither EAS nor the local Gradle fallback produced an APK; the annotations above say why each stopped."
+          exit 1

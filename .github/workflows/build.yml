@@ -1,12 +1,18 @@
-name: NowBey Local APK Build
+name: NowBey Local APK Build (fallback)
 
+# The manual fallback for the mobile pipeline: it builds the same APK the `mobile` dispatch
+# builds, on the runner, with Gradle — no EAS, no Expo account, no EXPO_TOKEN.
+#
+# The automatic fallback lives in `.github/workflows/deploy.yml` (`build-apk`): when EAS refuses
+# or errors, that job runs `scripts/build-apk-local.sh` itself. This workflow is the same script
+# with a button, for rebuilding by hand when EAS is unavailable or before/without a dispatch.
 on:
   workflow_dispatch:
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -20,36 +26,43 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
+          cache-dependency-path: expo/package-lock.json
 
       - name: Install Dependencies
-        run: |
-          cd expo
-          npm install
+        working-directory: expo
+        run: npm ci --no-audit --no-fund
 
-      - name: Expo Prebuild
+      # google-services.json is a credential and never lives in Git. Gradle fails without it, so
+      # it is written from the same repository secret the EAS path uses.
+      - name: Install Firebase Android configuration
+        working-directory: expo
+        env:
+          FIREBASE_GOOGLE_SERVICES_JSON: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON }}
         run: |
-          cd expo
-          npx expo prebuild --platform android --no-install
+          set -euo pipefail
+          : "${FIREBASE_GOOGLE_SERVICES_JSON:?Add the FIREBASE_GOOGLE_SERVICES_JSON repository secret}"
+          printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON" > google-services.json
+          node -e 'const f=require("./google-services.json"); if (!f.project_info?.project_id || !f.client?.some(c => c.client_info?.android_client_info?.package_name === "app.nowbey.mobile")) throw new Error("google-services.json does not contain app.nowbey.mobile")'
+          test -s google-services.json
+          echo "google-services.json ($(wc -c < google-services.json) bytes) is in place."
 
-      - name: Accept Android SDK Licenses
-        run: |
-          yes | sdkmanager --licenses || echo "Licenses already accepted"
+      - name: APK preflight (profile, Firebase, types)
+        working-directory: expo
+        run: npm run preflight:apk
 
-      - name: Build Android APK (Low Memory Mode)
-        run: |
-          cd expo/android
-          chmod +x gradlew
-          # We set limited heap size and disable the daemon to prevent OOM hangs on GitHub runners
-          ./gradlew assembleRelease \
-            -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m" \
-            --no-daemon \
-            --stacktrace \
-            --info
+      - name: Accept Android SDK licences (Gradle may fetch a platform or NDK)
+        run: yes | sdkmanager --licenses >/dev/null 2>&1 || true
+
+      - name: Build the APK (expo prebuild → Gradle assembleRelease)
+        env:
+          EXPO_PUBLIC_API_BASE: https://nowbey-v2.vercel.app
+        run: ./scripts/build-apk-local.sh
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nowbey-apk
+          name: nowbey-apk-fallback
           path: expo/android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
