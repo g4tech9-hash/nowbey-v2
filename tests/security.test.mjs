@@ -58,11 +58,12 @@ test("a demo plan written before the fix no longer unlocks anything", async () =
   assert.equal((await api("/api/export", { cookie: m.cookie })).status, 403);
 });
 
-test("the plans page says plans open soon instead of offering a button that fails", async () => {
+test("the plans page offers the waitlist instead of a button that fails", async () => {
   const page = await api("/support");
   assert.equal(page.status, 200);
-  assert.match(page.text, /Plans open soon/);
-  assert.match(page.text, /Opening soon/);
+  assert.match(page.text, /Free to use\. Pay only to lose the ads\./);
+  assert.match(page.text, /join the waitlist/i);
+  assert.match(page.text, /No charge today/);
   assert.doesNotMatch(page.text, /You can try a plan with your account/);
 });
 
