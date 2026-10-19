@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Get the mobile app" };
 
 const STEPS = [
-  ["Get the project", "The Expo project lives in this repository at V2_UI_Backup/expo — copy that folder to your computer. It is kept as part of the design rollback point and talks to this site's API. You need Node.js 20 or newer."],
+  ["Get the project", "The Expo project lives in this repository at expo/ — copy that folder to your computer. It is the source the Android APK is built from and talks to this site's API. You need Node.js 20 or newer."],
   ["Install", "Open a terminal in the unzipped folder and run npm install."],
   ["Point it at this site", "The app reads its data from this website, so you do not run a second server."],
   ["Start it", "Run the command below, then scan the QR code with the free Expo Go app on your phone."],

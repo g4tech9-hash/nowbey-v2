@@ -10,14 +10,16 @@ export type CategoryKey =
   | "health"
   | "trash"
   | "event"
-  | "notice";
+  | "notice"
+  | "accident";
 
+/** Labels and blurbs follow the web source of truth (src/lib/categories.ts). */
 export const CATEGORIES: Record<CategoryKey, { label: string; color: string; blurb: string }> = {
   flood: { label: "Flooding", color: "#38bdf8", blurb: "Standing water, washover, flash flood" },
   storm: { label: "Storm", color: "#fbbf24", blurb: "Squall, surge, hurricane watch" },
   power: { label: "Power", color: "#facc15", blurb: "Outage, lines down, generator" },
   water: { label: "Water", color: "#22d3ee", blurb: "No water, main break, boil notice" },
-  crime: { label: "Safety", color: "#fb7185", blurb: "Theft, break-in, suspicious" },
+  crime: { label: "Safety", color: "#fb7185", blurb: "Theft, break-in, suspicious activity" },
   road: { label: "Road", color: "#f97316", blurb: "Pothole, blockage, closure" },
   marine: { label: "Marine", color: "#2dd4bf", blurb: "Debris, grounding, sea state" },
   fire: { label: "Fire", color: "#ef4444", blurb: "Brush or structure fire, smoke" },
@@ -25,6 +27,7 @@ export const CATEGORIES: Record<CategoryKey, { label: string; color: string; blu
   trash: { label: "Sanitation", color: "#84cc16", blurb: "Missed pickup, dumping" },
   event: { label: "Community", color: "#f472b6", blurb: "Junkanoo, regatta, fundraiser" },
   notice: { label: "Notice", color: "#94a3b8", blurb: "General heads-up" },
+  accident: { label: "Car Accident", color: "#ef4444", blurb: "Traffic accident, road blockage, or vehicle hazard" },
 };
 
 export const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];
@@ -88,7 +91,8 @@ export const PARISHES = [
 
 export const BAHAMAS_CENTER = { lat: 25.0629, lng: -77.3417 };
 
-export const SEVERITY = ["Annoying", "Blocking a lane", "Blocking a road", "Dangerous"];
+/** ONE severity scale — 4 levels, matching the web source of truth (src/lib/severity.ts). */
+export const SEVERITY = ["Minor", "Lane blocked", "Road blocked", "Dangerous"];
 
 export const TIER_NAMES: Record<string, string> = { conch: "Conch", rock: "Rock Sound", admiral: "Admiral" };
 
