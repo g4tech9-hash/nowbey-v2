@@ -304,6 +304,20 @@ jobs:
             exit "$code"
           fi
 
+          # A token that authenticates is not the same as a token that is authorized on this
+          # project: EAS answers "Entity Not Authorized" later, deep in the build step, naming
+          # only a project UUID. Name the account here instead — as an annotation, so it is
+          # readable without opening the job log — and export it for the failure report below.
+          account="$(grep -v '^[[:space:]]*$' eas-whoami.log | tail -n 1 | tr -d '\r' | cut -c1-120)"
+          echo "EAS_WHOAMI=$account" >> "$GITHUB_ENV"
+          echo "::notice title=EXPO_TOKEN authenticates as::${account:-unknown}"
+          {
+            echo "### EAS credentials"
+            echo ""
+            echo "The \`EXPO_TOKEN\` secret authenticates as **${account:-unknown}**."
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Send Android build to EAS (preview profile → APK)
         id: eas
         working-directory: expo
@@ -383,6 +397,7 @@ jobs:
             build_id="$(grep -Eo 'https://expo\.dev/accounts/[^/[:space:]]+/projects/[^/[:space:]]+/builds/[0-9A-Fa-f-]+' eas-build.log 2>/dev/null | tail -n 1 | sed 's#.*/##' || true)"
           fi
           echo "build id: ${build_id:-none found in the log}"
+          echo "EXPO_TOKEN authenticates as: ${EAS_WHOAMI:-unknown}"
 
           describe() { jq -r '(if type == "array" then .[0] else . end) | select(.) | [("status " + (.status // "unknown")), ((.error // {}) | [.errorCode, .message] | map(select(.)) | join(": "))] | map(select(. != "")) | join(" — ")' "$1" 2>/dev/null || true; }
           reason="$(describe eas-build.json)"
@@ -409,6 +424,16 @@ jobs:
             printf '%s\n' "$reason"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+          # The most common refusal is an account mismatch: the token belongs to an Expo account
+          # that has no access to the NowBey project. The raw EAS message names two UUIDs and
+          # nothing a person can act on, so translate it into the account and the project.
+          case "$reason" in
+            *"Not Authorized"*|*"not authorized"*)
+              proj="$(node -e 'const a=require("./app.json");const e=a.expo||a;console.log((e.owner||"?")+"/"+(e.slug||"?")+" (projectId "+((e.extra&&e.extra.eas&&e.extra.eas.projectId)||"?")+")")' 2>/dev/null || echo unknown)"
+              printf '::error title=EXPO_TOKEN is not authorized on this project::EXPO_TOKEN authenticates as %s, which cannot read project %s. Either invite %s to that project (expo.dev > project > Members), or replace the EXPO_TOKEN repository secret with a token created while logged in as the account that owns it.\n' "${EAS_WHOAMI:-unknown}" "$proj" "${EAS_WHOAMI:-unknown}"
+              ;;
+          esac
 
           payload="$(printf '%s' "$reason" | awk 'BEGIN{ORS=""} {gsub(/%/,"%25"); gsub(/\r/,"%0D"); printf "%s%%0A", $0}')"
           printf '::error title=EAS build output::%s\n' "$payload"
