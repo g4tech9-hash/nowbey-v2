@@ -21,7 +21,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12,14}$/i;
 // Expo account and team slugs: letters, digits, dash and underscore. Deliberately stricter than
 // "not empty" so a pasted display name ("NowBey Team") is rejected instead of written to config.
 const ACCOUNT = /^[a-z0-9][a-z0-9_-]*$/i;
