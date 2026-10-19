@@ -254,6 +254,12 @@ Run these once in the production Neon SQL Editor — the editor takes SQL statem
 
   Expect `indexes = 6` and `foreign_keys = 5`; if either is short, re-run the whole file and ask again.
 
+* `migrate-canned-photo-notes.sql` (repo root) — data cleanup, not schema: clears the demo canned
+  photo notes (`water up to the first step…`) from `incidents.photo_note`, matching the matcher in
+  `src/lib/report-utils.ts` exactly. The UI already suppresses these notes; this removes them from
+  the API and exports too. Run the `SELECT` at the top first to see what will change, then the
+  `UPDATE`. Idempotent — a repeat run changes nothing.
+
 ## 1. Firebase (required for actual push delivery)
 
 Token registration, channels, tap handling, Android package configuration, and the GitHub `FIREBASE_GOOGLE_SERVICES_JSON` secret are ready. The file was validated against Firebase project `nowbey-6a30f` (project number `437051839288`) and Android package `app.nowbey.mobile` on 2026-10-15.
