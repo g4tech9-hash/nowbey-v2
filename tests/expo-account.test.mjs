@@ -87,8 +87,15 @@ test("the account it compares against comes from expo/app.json, not from this fi
 
   const app = JSON.parse(read("expo/app.json"));
   const expo = app.expo ?? app;
-  assert.equal(expo.owner, "oasistech242", "the project still belongs to the account the docs name");
+  // The Expo account is an expo.dev decision, not a source decision: moving the project to the
+  // account the token already owns (TODO_HUMAN.md — the second fix for the mismatch) rewrites
+  // `owner`, `extra.eas.projectId` and `updates.url` together. Pinning the name here would turn
+  // that move into a test failure before expo.dev is ever asked, the same mistake 2717bef
+  // unpinned for the APK preflight.
+  assert.ok(typeof expo.owner === "string" && expo.owner.trim().length > 0, "the project has an owner (Expo account) — the workflow reads it at run time");
+  assert.match(expo.owner, /^[a-z0-9-_]+$/i, "owner looks like an Expo account name");
   assert.ok(expo.extra?.eas?.projectId, "and still carries the EAS projectId that gets refused");
+  assert.match(expo.extra.eas.projectId, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "projectId is a UUID");
 });
 
 test("the account-mismatch check cannot fire on a good token", () => {
