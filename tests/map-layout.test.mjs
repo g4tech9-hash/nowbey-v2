@@ -292,3 +292,43 @@ test("phone cards and the hazard grid follow the mobile geometry", () => {
   assert.match(comps, /\.pulse-pick-rail\s*\{[\s\S]{0,120}width: 100%;[\s\S]{0,80}height: 2px/, "with a 2px accent bar across the top");
   assert.match(comps, /\.pulse-pick:active\s*\{[\s\S]{0,120}opacity: 0\.7/, "and explicit press feedback");
 });
+
+/**
+ * The Expo app's parity with the 2026-10 mobile spec. Same reasoning as the web
+ * rules above: source assertions now, pixels on a device later. These are the
+ * four deltas the spec surfaced after the first APK shipped.
+ */
+test("the Expo tab bar raises the centre Report action", () => {
+  const tabs = read("expo/app/(tabs)/_layout.tsx");
+  assert.match(tabs, /function ReportTabButton/, "there is one custom centre button");
+  assert.match(tabs, /tabBarButton: \(props\) => <ReportTabButton \{\.\.\.props\} \/>/, "the Report tab renders it");
+  assert.match(tabs, /tabBarLabel: \(\) => null/, "and the bar does not print a second label under the disc");
+  assert.match(tabs, /marginTop: -18/, "the disc breaks the bar's top edge");
+  assert.match(tabs, /overflow: "visible"/, "and the bar is told not to clip it");
+  assert.match(tabs, /accessibilityState=\{accessibilityState\}/, "while staying a real tab for screen readers");
+});
+
+test("Expo cards use the spec's 16px geometry", () => {
+  const theme = read("expo/src/theme.ts");
+  const ui = read("expo/src/ui.tsx");
+  assert.match(theme, /card: 16,/, "a card radius token exists");
+  assert.match(ui, /borderRadius: radius\.card/, "cards take it");
+  assert.match(ui, /borderRadius: radius\.card,\s*\n\s*padding: 16,/, "with the spec's 16px inner padding");
+});
+
+test("the Expo report wizard is a hazard grid with a sticky action bar", () => {
+  const report = read("expo/app/(tabs)/report.tsx");
+  assert.match(report, /flexBasis: "47%"/, "categories are a two-column grid");
+  assert.match(report, /minHeight: 96/, "tiles clear the 48px touch target twice over");
+  assert.match(report, /height: 2, borderRadius: 1, backgroundColor: c\.color/, "each tile carries a 2px accent bar");
+  assert.match(report, /opacity: pressed \? 0\.7 : 1/, "and explicit press feedback");
+  assert.match(report, /paddingBottom: 128/, "the scroll clears the sticky bar");
+  assert.equal((report.match(/Next: put it on the map/g) || []).length, 1, "the primary action lives in the bar, not the flow");
+  assert.match(report, /label="Publish"/, "step 3 keeps Publish in the bar");
+});
+
+test("the Expo feed card header is one row", () => {
+  const feed = read("expo/app/(tabs)/index.tsx");
+  assert.match(feed, /flexShrink: 1[\s\S]{0,200}CategoryBadge/, "the badge may shrink");
+  assert.match(feed, /t\.subtle, \{ flexShrink: 0 \}/, "the timestamp never does");
+});

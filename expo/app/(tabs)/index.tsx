@@ -122,9 +122,14 @@ export default function Feed() {
         return (
           <Pressable onPress={() => router.push(`/incident/${item.id}`)} accessibilityRole="button">
             <Card accent={meta.color}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <CategoryBadge category={item.category} severity={item.severity} />
-                <Text style={t.subtle}>{timeAgo(item.createdAt)}</Text>
+              {/* Card header, one row as the spec draws it: category + severity
+                  left, relative time hard right. The badge may shrink (it never
+                  wraps to a second line); the timestamp never shrinks. */}
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                <View style={{ flexShrink: 1 }}>
+                  <CategoryBadge category={item.category} severity={item.severity} />
+                </View>
+                <Text style={[t.subtle, { flexShrink: 0 }]}>{timeAgo(item.createdAt)}</Text>
               </View>
               <Text style={[t.h3, { marginTop: 8 }]}>{item.title}</Text>
               {item.details ? (
