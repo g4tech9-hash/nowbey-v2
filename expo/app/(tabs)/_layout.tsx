@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { color } from "../../src/theme";
+import { color, useTheme } from "../../src/theme";
 
 // Nassau hazard/news MVP: stale individual flags cannot bypass the launch-stage gate.
 const EXPANDED = process.env.EXPO_PUBLIC_LAUNCH_STAGE === "expanded";
@@ -8,6 +8,7 @@ const SHOW_LIFE = EXPANDED && process.env.EXPO_PUBLIC_FEATURE_ISLAND_LIFE === "t
 const SHOW_GAS = EXPANDED && process.env.EXPO_PUBLIC_FEATURE_GAS_TRACKER === "true";
 
 export default function TabsLayout() {
+  useTheme(); // tab bar colours follow the scheme
   return (
     <Tabs
       screenOptions={{

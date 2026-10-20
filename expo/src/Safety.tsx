@@ -3,7 +3,7 @@ import { Alert, Pressable, Text, View } from "react-native";
 import { api, errMsg } from "./api";
 import { FLAG_REASONS } from "./geo";
 import { getBlocked, setBlocked } from "./storage";
-import { color } from "./theme";
+import { color, useTheme } from "./theme";
 import { Pill, t } from "./ui";
 
 /** People this phone's owner has blocked. Their reports, posts and comments are hidden everywhere in the app. */
@@ -47,6 +47,7 @@ export function useBlocked(): string[] {
 
 /** Report and Block for a report (pin) or an Island Life post. Comments have their own row in Engage.tsx. */
 export function ReportBlock({ kind, id, authorHandle }: { kind: "incident" | "post"; id: string; authorHandle?: string | null }) {
+  useTheme(); // repaint with the scheme
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const tool = { color: color.muted, fontSize: 12, fontWeight: "800" as const };

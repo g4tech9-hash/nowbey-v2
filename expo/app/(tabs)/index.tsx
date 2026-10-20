@@ -6,7 +6,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { api, errMsg, type Incident } from "../../src/api";
 import { CATEGORIES, CATEGORY_KEYS, PARISHES, categoryOf, timeAgo, type CategoryKey } from "../../src/geo";
 import { BRAND, THEME } from "../../src/brand";
-import { color } from "../../src/theme";
+import { color, useTheme } from "../../src/theme";
 import { BadgeMark, Btn, CategoryBadge, Card, Pill, t, useTopInset } from "../../src/ui";
 
 const SCENE = require("../../assets/splash-scene.jpg");
@@ -28,6 +28,7 @@ const STATUSES: { key: string; label: string }[] = [
 ];
 
 export default function Feed() {
+  useTheme(); // screens repaint with the scheme
   const router = useRouter();
   const top = useTopInset();
   const [rows, setRows] = useState<Incident[]>([]);

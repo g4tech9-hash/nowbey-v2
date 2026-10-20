@@ -4,9 +4,10 @@ import { useFocusEffect } from "expo-router";
 import { API_BASE, api, errMsg, type NewsItem } from "../../src/api";
 import { categoryOf, timeAgo } from "../../src/geo";
 import { stripMarkup } from "../../src/sanitize";
-import { Btn, Card, CategoryBadge, Field, t, useTopInset, color } from "../../src/ui";
+import { Btn, Card, CategoryBadge, Field, t, useTopInset, color, useTheme } from "../../src/ui";
 
 export default function Wire() {
+  useTheme(); // screens repaint with the scheme
   const top = useTopInset();
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);

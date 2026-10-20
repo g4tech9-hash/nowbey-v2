@@ -1,9 +1,10 @@
 import { Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Btn, t } from "../src/ui";
-import { color } from "../src/theme";
+import { color, useTheme } from "../src/theme";
 
 export default function NotFound() {
+  useTheme(); // screens repaint with the scheme
   const router = useRouter();
   return (
     <View style={{ flex: 1, backgroundColor: color.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>

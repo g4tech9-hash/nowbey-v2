@@ -1,3 +1,5 @@
+import { getScheme } from "./theme";
+
 export type CategoryKey =
   | "flood"
   | "storm"
@@ -14,20 +16,35 @@ export type CategoryKey =
   | "accident";
 
 /** Labels and blurbs follow the web source of truth (src/lib/categories.ts). */
+// Category colours are the web's --cat-* tokens (src/styles/pulse/tokens.css)
+// transcribed — BOTH themes, because Daylight has its own deep category hues and
+// is explicitly "not an inverted night". `color` resolves against the current
+// scheme when read, so category pins, badges and chips repaint on a theme switch.
+
+function cat(label: string, dark: string, light: string, blurb: string): { label: string; color: string; blurb: string } {
+  return {
+    label,
+    blurb,
+    get color() {
+      return getScheme() === "light" ? light : dark;
+    },
+  };
+}
+
 export const CATEGORIES: Record<CategoryKey, { label: string; color: string; blurb: string }> = {
-  flood: { label: "Flooding", color: "#38bdf8", blurb: "Standing water, washover, flash flood" },
-  storm: { label: "Storm", color: "#fbbf24", blurb: "Squall, surge, hurricane watch" },
-  power: { label: "Power", color: "#facc15", blurb: "Outage, lines down, generator" },
-  water: { label: "Water", color: "#22d3ee", blurb: "No water, main break, boil notice" },
-  crime: { label: "Safety", color: "#fb7185", blurb: "Theft, break-in, suspicious activity" },
-  road: { label: "Road", color: "#f97316", blurb: "Pothole, blockage, closure" },
-  marine: { label: "Marine", color: "#2dd4bf", blurb: "Debris, grounding, sea state" },
-  fire: { label: "Fire", color: "#ef4444", blurb: "Brush or structure fire, smoke" },
-  health: { label: "Health", color: "#a78bfa", blurb: "Assistance, medical, rescue" },
-  trash: { label: "Sanitation", color: "#84cc16", blurb: "Missed pickup, dumping" },
-  event: { label: "Community", color: "#f472b6", blurb: "Junkanoo, regatta, fundraiser" },
-  notice: { label: "Notice", color: "#94a3b8", blurb: "General heads-up" },
-  accident: { label: "Car Accident", color: "#ef4444", blurb: "Traffic accident, road blockage, or vehicle hazard" },
+  flood: cat("Flooding", "#6fd0ff", "#0a5f8c", "Standing water, washover, flash flood"), // --cat-flooding
+  storm: cat("Storm", "#ffe39a", "#7a5300", "Squall, surge, hurricane watch"), // --cat-storm
+  power: cat("Power", "#f8cf6b", "#7a5300", "Outage, lines down, generator"), // --cat-power
+  water: cat("Water", "#35d6e6", "#05606e", "No water, main break, boil notice"), // --cat-water
+  crime: cat("Safety", "#ff8ba6", "#a01c3c", "Theft, break-in, suspicious activity"), // --cat-safety
+  road: cat("Road", "#ff9d8a", "#8a4106", "Pothole, blockage, closure"), // --cat-road
+  marine: cat("Marine", "#6eeadb", "#0a6a5c", "Debris, grounding, sea state"), // --cat-marine
+  fire: cat("Fire", "#ff7f6b", "#a11d12", "Brush or structure fire, smoke"), // --cat-fire
+  health: cat("Health", "#b39cff", "#5b2ec4", "Assistance, medical, rescue"), // --cat-health
+  trash: cat("Sanitation", "#afe85f", "#45680b", "Missed pickup, dumping"), // --cat-sanitation
+  event: cat("Community", "#ff8fb8", "#a3265c", "Junkanoo, regatta, fundraiser"), // --cat-community
+  notice: cat("Notice", "#9fb4bb", "#4c5a61", "General heads-up"), // --cat-notice
+  accident: cat("Car Accident", "#ff9d8a", "#8a4106", "Traffic accident, road blockage, or vehicle hazard"), // --cat-accident
 };
 
 export const CATEGORY_KEYS = Object.keys(CATEGORIES) as CategoryKey[];

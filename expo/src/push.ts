@@ -48,8 +48,9 @@ export async function pushState(): Promise<PushState> {
   try {
     if (!supported()) return "unsupported";
     if (!(await getToken())) return "signedout";
-    if ((await permission()) === "granted") return (await getPushToken()) ? "on" : "off";
-    return (await permission()) === "denied" ? "denied" : "off";
+    const perm = await permission();
+    if (perm === "granted") return (await getPushToken()) ? "on" : "off";
+    return perm === "denied" ? "denied" : "off";
   } catch {
     return "unsupported";
   }
@@ -95,23 +96,30 @@ export async function enablePush(): Promise<PushState> {
 
 /**
  * Turns push off for this device: tell the server to forget the token first, then drop it here.
- * If the server cannot be reached the token is kept, so nothing is silently left delivering.
+ * If the server cannot be reached or does not confirm, the token is kept and the state stays
+ * "on" — reporting "off" while the server may still deliver is a lie the user pays for.
  */
 export async function disablePush(): Promise<PushState> {
   try {
     const token = await getPushToken();
     const auth = await getToken();
-    if (token && auth) {
-      await fetch(`${API_BASE}/api/push/unregister`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth}`, "x-nowbey-client": "native" },
-        body: JSON.stringify({ token }),
-      }).catch(() => undefined);
+    if (!token) return "off";
+    if (!auth) {
+      // No session left to unregister with — the server cannot accept a call, and this
+      // token is already orphaned. Dropping it locally is the only honest move.
+      await setPushToken(null);
+      return "off";
     }
+    const res = await fetch(`${API_BASE}/api/push/unregister`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth}`, "x-nowbey-client": "native" },
+      body: JSON.stringify({ token }),
+    }).catch(() => null);
+    if (!res || !res.ok) return "on"; // server never confirmed: still delivering, so still "on"
     await setPushToken(null);
     return "off";
   } catch {
-    return "off";
+    return "on";
   }
 }
 

@@ -3,7 +3,7 @@ import { ActivityIndicator, Linking, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { API_BASE } from "../src/api";
 import { useSession } from "../src/session";
-import { color } from "../src/theme";
+import { color, useTheme } from "../src/theme";
 import { Btn, t } from "../src/ui";
 
 /**
@@ -33,6 +33,7 @@ const MESSAGES: Record<string, string> = {
 };
 
 export default function GoogleReturn() {
+  useTheme(); // screens repaint with the scheme
   const params = useLocalSearchParams<{ code?: string; error?: string }>();
   const { signInWithGoogleCode } = useSession();
   const [error, setError] = useState<string | null>(null);

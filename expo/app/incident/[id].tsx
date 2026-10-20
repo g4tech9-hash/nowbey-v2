@@ -6,7 +6,7 @@ import { api, errMsg, type Incident, type Update } from "../../src/api";
 import { categoryOf, timeAgo } from "../../src/geo";
 import MapCanvas from "../../src/MapCanvas";
 import { Conversation } from "../../src/Engage";
-import { color } from "../../src/theme";
+import { color, useTheme } from "../../src/theme";
 import { BadgeMark, Btn, Card, CategoryBadge, Pill, t, useTopInset } from "../../src/ui";
 
 const LABELS: Record<string, string> = {
@@ -18,6 +18,7 @@ const LABELS: Record<string, string> = {
 };
 
 export default function IncidentScreen() {
+  useTheme(); // screens repaint with the scheme
   const router = useRouter();
   const top = useTopInset();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -88,7 +89,7 @@ export default function IncidentScreen() {
   const open = incident.status === "active";
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: color.bg }} contentContainerStyle={{ paddingTop: top + 8, paddingBottom: 40 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: color.bg }} contentContainerStyle={{ paddingTop: top + 8, paddingBottom: 48 }} automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
       <View style={{ paddingHorizontal: 16, gap: 10 }}>
         {back}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>

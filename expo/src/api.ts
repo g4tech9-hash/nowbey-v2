@@ -263,7 +263,15 @@ async function call<T>(path: string, init: { method?: string; body?: unknown } =
   } catch (e) {
     if (e instanceof ApiError) throw e;
     noteApiFailure(init.method ?? "GET", path, 0);
-    throw new ApiError(`Could not reach NowBey at ${API_BASE}. Open the You tab and set the Server address to where the NowBey website runs.`, 0);
+    // A timeout is not a wrong address: telling someone to reconfigure a working
+    // server (which signs them out) because their 3G dropped is how setups break.
+    const timedOut = e instanceof Error && (e.name === "AbortError" || e.name === "TimeoutError");
+    throw new ApiError(
+      timedOut
+        ? "NowBey took too long to answer. The connection here may be weak — try again."
+        : `Could not reach NowBey at ${API_BASE}. Check your connection; if this keeps happening, the You tab can point the app at a different server.`,
+      0,
+    );
   } finally {
     clearTimeout(timer);
   }

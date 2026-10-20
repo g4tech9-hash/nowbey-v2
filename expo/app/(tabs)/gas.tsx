@@ -4,13 +4,14 @@ import { useFocusEffect } from "expo-router";
 import { api, errMsg, type GasBoard } from "../../src/api";
 import { PARISHES, timeAgo } from "../../src/geo";
 import { useSession } from "../../src/session";
-import { color } from "../../src/theme";
+import { color, useTheme } from "../../src/theme";
 import { Btn, Card, Field, t, useTopInset } from "../../src/ui";
 
 const money = (c: number) => `B$${(c / 100).toFixed(2)}`;
 const FUELS = ["regular", "premium", "diesel"] as const;
 
 export default function Gas() {
+  useTheme(); // screens repaint with the scheme
   const top = useTopInset();
   const { user } = useSession();
   const [board, setBoard] = useState<GasBoard | null>(null);

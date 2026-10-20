@@ -6,7 +6,7 @@ import { api, errMsg, type Incident, type NewsItem } from "../../src/api";
 import { CATEGORIES, CATEGORY_KEYS, categoryOf, timeAgo, type CategoryKey } from "../../src/geo";
 import MapCanvas from "../../src/MapCanvas";
 import type { MapPinData } from "../../src/map-types";
-import { color, sevColor } from "../../src/theme";
+import { color, sevColor, useTheme } from "../../src/theme";
 import { Btn, Card, Pill, t, useTopInset } from "../../src/ui";
 
 /**
@@ -26,6 +26,7 @@ const MODES: { key: MapMode; label: string }[] = [
 type MapMode = "split" | "map" | "list";
 
 export default function MapTab() {
+  useTheme(); // screens repaint with the scheme
   const router = useRouter();
   const top = useTopInset();
   const { height: screenHeight } = useWindowDimensions();

@@ -51,6 +51,10 @@ export const PULSE_MOTION = {
 } as const;
 
 export const PULSE_ELEVATION = {
+  // Byte-identical to the DARK-theme values of --pulse-elev-1..3 — the
+  // [data-theme="dark"] override in src/styles/pulse/tokens.css (~line 303),
+  // which supersedes the lighter :root base layer. Light mode has its own warm
+  // shadows; this map resolves to dark, like everything else here.
   1: "0 1px 2px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.035) inset",
   2: "0 12px 30px -12px rgba(0,0,0,.78), 0 1px 0 rgba(255,255,255,.055) inset",
   3: "0 30px 70px -22px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.075) inset",
@@ -62,24 +66,26 @@ export const PULSE_ELEVATION = {
 /** Layer 2, per theme. Both themes must satisfy WCAG 2.2 AA from these values. */
 export const PULSE_THEME = {
   dark: {
-    "bg-base": "#000000",
-    "bg-sunken": "#000000",
-    "bg-raised": "#0a1116",
-    "bg-overlay": "rgba(5,11,15,0.88)",
-    "bg-elevated": "#101b22",
-    "bg-glass": "rgba(10,17,22,0.62)",
-    "bg-hover": "#16252e",
-    "bg-active": "#1e313c",
+    // Ocean Night v2 — must stay byte-identical to [data-theme="dark"] in
+    // src/styles/pulse/tokens.css (and to expo/src/theme.ts, the mobile mirror).
+    "bg-base": "#0c151d",
+    "bg-sunken": "#0c151d",
+    "bg-raised": "#152230",
+    "bg-overlay": "rgba(17,27,36,0.88)",
+    "bg-elevated": "#1c2b39",
+    "bg-glass": "rgba(21,34,48,0.62)",
+    "bg-hover": "#243546",
+    "bg-active": "#2c4052",
     "bg-selected": "rgba(63,214,192,0.14)",
     "text-primary": "#f3f1ea",
     "text-secondary": "#b9c8c9",
-    "text-tertiary": "#92a6a9",
+    "text-tertiary": "#9aafb3",
     "text-inverse": "#06141b",
     "text-accent": "#6eeadb",
     "text-on-accent": "#04211d",
     "border-subtle": "rgba(148,206,202,0.10)",
     "border-default": "rgba(148,206,202,0.18)",
-    "border-strong": "rgba(160,214,210,0.34)",
+    "border-strong": "rgba(160,214,210,0.62)",
     "border-accent": "rgba(63,214,192,0.55)",
     accent: "#3fd6c0",
     "accent-hover": "#6eeadb",
@@ -112,7 +118,7 @@ export const PULSE_THEME = {
     "text-on-accent": "#ffffff",
     "border-subtle": "rgba(52,38,20,0.10)",
     "border-default": "rgba(52,38,20,0.18)",
-    "border-strong": "rgba(52,38,20,0.32)",
+    "border-strong": "rgba(52,38,20,0.55)",
     "border-accent": "rgba(11,111,100,0.45)",
     accent: "#0b6f64",
     "accent-hover": "#095b52",
@@ -162,11 +168,13 @@ export type PulseSignal = (typeof PULSE_SIGNALS)[number];
 /** Layer 3, resolved for canvas consumers that need a concrete value. */
 export const PULSE_COMPONENT = {
   dark: {
-    "card-bg": "#0a1116",
-    "chip-bg": "#16252e",
+    // Resolutions of the Layer 3 aliases in tokens.css (--card-bg → --bg-raised,
+    // --chip-bg → --bg-hover, --input-bg → --bg-sunken) for the dark theme.
+    "card-bg": "#152230",
+    "chip-bg": "#243546",
     "btn-primary-bg": "#3fd6c0",
     "btn-primary-text": "#04211d",
-    "input-bg": "#000000",
+    "input-bg": "#0c151d",
     "nav-active": "rgba(63,214,192,0.14)",
   },
   light: {
