@@ -93,6 +93,6 @@ export function CardLayeredHeader({ title, kicker, right }: { title: ReactNode; 
 /** Sticky footer row inside a card or drawer: the actions, always in reach. */
 export function ActionBar({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`mt-3.5 flex flex-wrap items-center gap-2 border-t border-default pt-3 ${className}`.trim()}>{children}</div>
+    <div className={`pulse-action-bar mt-3.5 flex flex-wrap items-center gap-2 border-t border-default pt-3 ${className}`.trim()}>{children}</div>
   );
 }

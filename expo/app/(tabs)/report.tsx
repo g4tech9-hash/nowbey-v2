@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { api, errMsg, type Incident, type Place, type ReportAssist } from "../../src/api";
@@ -7,8 +7,9 @@ import { CATEGORIES, CATEGORY_KEYS, SEVERITY, inBahamas, type CategoryKey } from
 import MapCanvas from "../../src/MapCanvas";
 import type { LatLng } from "../../src/map-types";
 import { useSession } from "../../src/session";
-import { color, useTheme } from "../../src/theme";
+import { color, radius, useTheme } from "../../src/theme";
 import { Btn, Card, Field, Pill, t, useTopInset } from "../../src/ui";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const STEPS = ["What", "Where", "Details"];
 
@@ -16,6 +17,7 @@ export default function Report() {
   useTheme(); // screens repaint with the scheme
   const router = useRouter();
   const top = useTopInset();
+  const insets = useSafeAreaInsets();
   const { user } = useSession();
   const [step, setStep] = useState(0);
   const [category, setCategory] = useState<CategoryKey>("flood");
@@ -169,9 +171,12 @@ export default function Report() {
   }
 
   return (
+    <View style={{ flex: 1, backgroundColor: color.bg }}>
     <ScrollView
       style={{ flex: 1, backgroundColor: color.bg }}
-      contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 48 }}
+      /* 128px of clearance: the sticky bar floats over the last of the content,
+         so the final field and the AI card can still be scrolled into view. */
+      contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 128 }}
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
       keyboardDismissMode="interactive"
@@ -194,19 +199,48 @@ export default function Report() {
 
       {step === 0 ? (
         <View style={{ marginTop: 8 }}>
-          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-            {CATEGORY_KEYS.map((k) => (
-              <Pill key={k} label={CATEGORIES[k].label} tint={CATEGORIES[k].color} active={category === k} onPress={() => setCategory(k)} />
-            ))}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 6 }}>
+            {CATEGORY_KEYS.map((k) => {
+              const c = CATEGORIES[k];
+              const active = category === k;
+              return (
+                <Pressable
+                  key={k}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${c.label} — ${c.blurb}`}
+                  accessibilityState={{ selected: active }}
+                  onPress={() => setCategory(k)}
+                  style={({ pressed }) => ({
+                    flexBasis: "47%",
+                    flexGrow: 1,
+                    minHeight: 96,
+                    padding: 12,
+                    borderRadius: radius.card,
+                    borderWidth: 1,
+                    borderColor: active ? c.color : color.line,
+                    backgroundColor: active ? `${c.color}22` : color.panel2,
+                    opacity: pressed ? 0.7 : 1, // explicit press feedback
+                  })}
+                >
+                  {/* 2px accent bar across the top: the grid reads as a spectrum
+                      of kinds instead of 13 identical slabs. */}
+                  <View style={{ height: 2, borderRadius: 1, backgroundColor: c.color }} />
+                  <Text numberOfLines={1} style={{ marginTop: 8, color: active ? c.color : color.sand, fontSize: 13, fontWeight: "800" }}>
+                    {c.label}
+                  </Text>
+                  <Text numberOfLines={2} style={{ marginTop: 3, color: color.muted, fontSize: 11, lineHeight: 15 }}>
+                    {c.blurb}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
-          <Text style={[t.subtle, { marginTop: 2 }]}>{CATEGORIES[category].blurb}</Text>
           <Text style={[t.label, { marginTop: 16 }]}>How bad is it?</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 6 }}>
             {SEVERITY.map((label, i) => (
               <Pill key={label} label={label} tint={color.conch} active={severity === i + 1} onPress={() => setSeverity(i + 1)} />
             ))}
           </View>
-          <Btn label="Next: put it on the map" onPress={() => setStep(1)} style={{ marginTop: 16 }} />
         </View>
       ) : null}
 
@@ -232,10 +266,6 @@ export default function Report() {
             )}
           </Card>
           {error ? <Text style={t.error}>{error}</Text> : null}
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Btn label="Back" kind="ghost" onPress={() => setStep(0)} style={{ flex: 1 }} />
-            <Btn label="Next: write it up" disabled={!pick} onPress={() => setStep(2)} style={{ flex: 2 }} />
-          </View>
         </View>
       ) : null}
 
@@ -315,12 +345,46 @@ export default function Report() {
           </Card>
 
           {error ? <Text style={[t.error, { marginTop: 10 }]}>{error}</Text> : null}
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
-            <Btn label="Move the pin" kind="ghost" onPress={() => setStep(1)} style={{ flex: 1 }} />
-            <Btn label="Publish" busy={busy} disabled={!pick || title.trim().length < 5} onPress={submit} style={{ flex: 2 }} />
-          </View>
         </View>
       ) : null}
     </ScrollView>
+
+      {/* Sticky action bar. It sits in the tab screen, which already ends above
+          the tab bar, so bottom: 0 is "just above the tabs" on both platforms —
+          no magic offsets, and it can never cover the bar itself. */}
+      <View
+        style={{
+          borderTopWidth: 1,
+          borderTopColor: color.line,
+          backgroundColor: color.panel,
+          paddingHorizontal: 16,
+          paddingTop: 10,
+          paddingBottom: Math.max(insets.bottom, 10),
+          flexDirection: "row",
+          gap: 8,
+          shadowColor: "#000",
+          shadowOpacity: 0.35,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: -6 },
+          elevation: 12,
+        }}
+      >
+        {step === 0 ? (
+          <Btn label="Next: put it on the map" onPress={() => setStep(1)} style={{ flex: 1 }} />
+        ) : null}
+        {step === 1 ? (
+          <>
+            <Btn label="Back" kind="ghost" onPress={() => setStep(0)} style={{ flex: 1 }} />
+            <Btn label="Next: write it up" disabled={!pick} onPress={() => setStep(2)} style={{ flex: 2 }} />
+          </>
+        ) : null}
+        {step === 2 ? (
+          <>
+            <Btn label="Move the pin" kind="ghost" onPress={() => setStep(1)} style={{ flex: 1 }} />
+            <Btn label="Publish" busy={busy} disabled={!pick || title.trim().length < 5} onPress={submit} style={{ flex: 2 }} />
+          </>
+        ) : null}
+      </View>
+    </View>
   );
 }

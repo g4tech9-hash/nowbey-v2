@@ -230,3 +230,105 @@ test("the APK pipeline falls back to a local Gradle build when EAS produces noth
   assert.match(script, /google-services\.json/, "refusing to start without the Firebase config");
   assert.match(read("scripts/eas-dispatch.sh"), /mobile-fallback/, "the dispatch script knows the fallback target");
 });
+
+/**
+ * The phone app spec (2026-10 mobile overhaul). These are source assertions on
+ * purpose: the hermetic gate has no browser, so they pin the *rules* that the
+ * screenshots asked for — one app-bar row, five tabs, scroll tracks, a CTA that
+ * clears the bar — and leave pixels to scripts/mobile-audit.mjs.
+ */
+test("the phone header is one compact app-bar row, not the desktop chrome", () => {
+  const shell = read("src/components/app-shell.tsx");
+  const comps = read("src/styles/pulse/components.css");
+  const nextConfig = read("next.config.ts");
+
+  // The floating "N" over the Feed tab was Next's dev indicator, not our badge.
+  assert.match(nextConfig, /devIndicators:\s*false/, "the dev indicator is off, so nothing floats over Feed");
+
+  assert.match(shell, /pulse-header-row/, "the header opts into the app-bar row");
+  assert.match(shell, /nb-tagline nb-label mt-1 block truncate/, "brand + tagline stay on the left on every width");
+  assert.match(shell, /<span className="flex md:hidden">\s*<Link href="\/report" className="pulse-report-pill/, "one compact Report pill on a phone");
+  assert.match(shell, /<span className="hidden md:inline-flex">\s*<Link href="\/report"/, "and the full CTA only from md up");
+  // Gas ticker, theme toggle, Simple view and the account chip are desktop chrome.
+  assert.match(shell, /<div className="hidden md:block">\s*<LiveTicker \/>/, "the ticker is desktop-only");
+  assert.match(read("src/lib/csp.ts"), /opts\.development \? " 'unsafe-eval'" : ""/, "dev gets eval so no overlay issue badge sits over the app");
+  assert.match(shell, /<span className="hidden items-center gap-2 md:flex">[\s\S]*?<SessionChip/, "account controls are desktop-only");
+  assert.match(comps, /@media \(max-width: 767\.98px\)[\s\S]{0,400}--pulse-header-h: 56px/, "56px app bar on a phone");
+  assert.match(comps, /\.pulse-report-pill\s*\{[\s\S]{0,400}box-shadow: var\(--pulse-glow-teal\)/, "and the pill is the teal primary");
+});
+
+test("the phone bottom bar is the spec's five tabs, with You in the fifth slot", () => {
+  const links = read("src/components/nav-links.tsx");
+  assert.match(links, /export const ACCOUNT_NAV[\s\S]*?href: "\/you"/, "You is a first-class destination");
+  assert.match(links, /PRIMARY_NAV\[0\],\s*PRIMARY_NAV\[1\],\s*null,\s*PRIMARY_NAV\[2\],\s*ACCOUNT_NAV,/, "Feed · Map · Report · Wire · You");
+  assert.ok(!/pulse-navtab"\s+aria-expanded/.test(links), "the sixth More tab is gone from the bar");
+  assert.match(links, /className="pulse-sr-only"/, "but every other place is still one action away for assistive tech");
+  assert.match(links, /href: "\/alerts", label: "Alerts"/, "and Alerts leads the sheet");
+});
+
+test("feed filters are scroll tracks, not stacked selects", () => {
+  const controls = read("src/components/pulse/feed-controls.tsx");
+  const comps = read("src/styles/pulse/components.css");
+  assert.match(controls, /className="pulse-filter-tracks"/, "the three tracks exist");
+  assert.ok(!controls.includes("nb-select"), "the island dropdown is a pill track now");
+  assert.equal((controls.match(/pulse-filter-track/g) || []).length >= 3, true, "status, category and island each get a row");
+  assert.match(comps, /\.pulse-filter-track\s*\{[\s\S]{0,400}flex-wrap: nowrap;/, "a track never wraps into a cluster");
+  assert.match(comps, /\.pulse-filter-track\s*\{[\s\S]{0,400}overflow-x: auto;/, "it scrolls sideways instead");
+});
+
+test("a floating CTA clears the tab bar and sits below dialogs", () => {
+  const comps = read("src/styles/pulse/components.css");
+  const report = read("src/app/report/page.tsx");
+  assert.match(comps, /\.pulse-action-bar-sticky,\s*\.pulse-sticky-cta\s*\{[\s\S]{0,600}z-index: 690;/, "CTA stacks above content");
+  assert.match(comps, /bottom: calc\(var\(--pulse-navbar-h\) \+ var\(--pulse-safe-bottom\) \+ var\(--pulse-space-2\)\);/, "and above the nav, with a breath");
+  assert.match(report, /pulse-sticky-cta pulse-step-cta/, "the report wizard's severity + Next row is that bar");
+  assert.match(report, /pulse-step-cta-next/, "with one full-width primary action");
+});
+
+test("phone cards and the hazard grid follow the mobile geometry", () => {
+  const comps = read("src/styles/pulse/components.css");
+  assert.match(comps, /@media \(max-width: 639\.98px\)[\s\S]{0,200}\.pulse-card-pad\s*\{[\s\S]{0,120}padding: var\(--pulse-space-4\)/, "16px card padding");
+  assert.match(comps, /\.pulse-pick\s*\{[\s\S]{0,200}min-height: 96px/, "hazard cells clear the 48px touch target twice over");
+  assert.match(comps, /\.pulse-pick-rail\s*\{[\s\S]{0,120}width: 100%;[\s\S]{0,80}height: 2px/, "with a 2px accent bar across the top");
+  assert.match(comps, /\.pulse-pick:active\s*\{[\s\S]{0,120}opacity: 0\.7/, "and explicit press feedback");
+});
+
+/**
+ * The Expo app's parity with the 2026-10 mobile spec. Same reasoning as the web
+ * rules above: source assertions now, pixels on a device later. These are the
+ * four deltas the spec surfaced after the first APK shipped.
+ */
+test("the Expo tab bar raises the centre Report action", () => {
+  const tabs = read("expo/app/(tabs)/_layout.tsx");
+  assert.match(tabs, /function ReportTabButton/, "there is one custom centre button");
+  assert.match(tabs, /tabBarButton: \(props\) => <ReportTabButton \{\.\.\.props\} \/>/, "the Report tab renders it");
+  assert.match(tabs, /tabBarLabel: \(\) => null/, "and the bar does not print a second label under the disc");
+  assert.match(tabs, /marginTop: -18/, "the disc breaks the bar's top edge");
+  assert.match(tabs, /overflow: "visible"/, "and the bar is told not to clip it");
+  assert.match(tabs, /accessibilityState=\{accessibilityState\}/, "while staying a real tab for screen readers");
+});
+
+test("Expo cards use the spec's 16px geometry", () => {
+  const theme = read("expo/src/theme.ts");
+  const ui = read("expo/src/ui.tsx");
+  assert.match(theme, /card: 16,/, "a card radius token exists");
+  assert.match(ui, /borderRadius: radius\.card/, "cards take it");
+  assert.match(ui, /borderRadius: radius\.card,\s*\n\s*padding: 16,/, "with the spec's 16px inner padding");
+});
+
+test("the Expo report wizard is a hazard grid with a sticky action bar", () => {
+  const report = read("expo/app/(tabs)/report.tsx");
+  assert.match(report, /flexBasis: "47%"/, "categories are a two-column grid");
+  assert.match(report, /minHeight: 96/, "tiles clear the 48px touch target twice over");
+  assert.match(report, /height: 2, borderRadius: 1, backgroundColor: c\.color/, "each tile carries a 2px accent bar");
+  assert.match(report, /opacity: pressed \? 0\.7 : 1/, "and explicit press feedback");
+  assert.match(report, /paddingBottom: 128/, "the scroll clears the sticky bar");
+  assert.equal((report.match(/Next: put it on the map/g) || []).length, 1, "the primary action lives in the bar, not the flow");
+  assert.match(report, /label="Publish"/, "step 3 keeps Publish in the bar");
+});
+
+test("the Expo feed card header is one row", () => {
+  const feed = read("expo/app/(tabs)/index.tsx");
+  assert.match(feed, /flexShrink: 1[\s\S]{0,200}CategoryBadge/, "the badge may shrink");
+  assert.match(feed, /t\.subtle, \{ flexShrink: 0 \}/, "the timestamp never does");
+});

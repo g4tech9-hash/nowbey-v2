@@ -252,7 +252,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Sea
             <span className="nb-num" aria-hidden>
               {stream.length}
             </span>
-            <span className="text-[12.5px] font-bold uppercase tracking-[0.14em] text-tertiary">
+            <span className="pulse-intro-count text-[12.5px] font-bold uppercase tracking-[0.14em] text-tertiary">
               Showing {stream.length} of {activeCount} live report{activeCount === 1 ? "" : "s"} · {Number(wireTotal?.n ?? 0)} on the wire
             </span>
             <ButtonLink href="/report" variant="primary" size="sm">

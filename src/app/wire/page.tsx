@@ -112,7 +112,7 @@ export default async function WirePage() {
                         style={{ ["--spine" as string]: pulseCategoryMeta(n.category ?? "notice").token } as React.CSSProperties}
                       >
                         <CardLayered as="article" category={n.category ?? "notice"} spine interactive className="pulse-card-pad">
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className="pulse-wire-meta flex flex-wrap items-center gap-2">
                             <CatBadge category={n.category ?? "notice"} size="sm" />
                             <span className="font-mono text-[11.5px] text-tertiary tabular-nums">
                               {n.sourceName} · {timeAgo(n.publishedAt)}

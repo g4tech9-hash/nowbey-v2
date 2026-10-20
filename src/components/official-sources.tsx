@@ -4,7 +4,7 @@
  */
 export function OfficialSources() {
   return (
-    <aside aria-label="Official sources" className="nb-card nb-card-tight" style={{ fontSize: 12.5, color: "var(--nb-muted)" }}>
+    <aside aria-label="Official sources" className="pulse-official-sources nb-card nb-card-tight" style={{ fontSize: 12.5, color: "var(--nb-muted)" }}>
       <p className="text-[13px] font-bold" style={{ color: "var(--nb-cream)" }}>
         For official warnings and outages, check these first
       </p>

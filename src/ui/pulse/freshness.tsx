@@ -96,10 +96,14 @@ export function FreshnessPill({
        client's differed by however long the response took. `text` is the same
        sentence, produced by the minute-tick below, so the tip and the label can
        not disagree. */
-    <span className={`pulse-fresh ${className}`} data-freshness={level} title={text ? `${blurb} · ${text}` : blurb}>
+    /* suppressHydrationWarning on the two places the clock is printed: the age
+       is derived from Date.now() (server request time vs the client's first
+       frame), so a minute boundary crossed during hydration is expected and is
+       not a markup bug. The pill corrects itself on the next tick either way. */
+    <span className={`pulse-fresh ${className}`} data-freshness={level} title={text ? `${blurb} · ${text}` : blurb} suppressHydrationWarning>
       {level === "live" ? <span className="pulse-live-dot" aria-hidden /> : <Icon size={12} strokeWidth={2.4} aria-hidden />}
       <span className="font-mono">{COPY[level].label}</span>
-      {text ? <time dateTime={iso} className="font-mono opacity-80">
+      {text ? <time dateTime={iso} className="font-mono opacity-80" suppressHydrationWarning>
         {text}
       </time> : null}
       <span className="sr-only">

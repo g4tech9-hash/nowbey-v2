@@ -194,7 +194,7 @@ export function PulseIncidentCard({
                 <span className="pulse-chip" data-tone="accent">x{row.clusterCount} neighbours reported this</span>
               ) : null}
             </div>
-            <p className="mt-1 font-mono text-[11.5px] text-tertiary tabular-nums">{primaryTimeLine(row.createdAt, row.updatedAt, "report")}</p>
+            <p className="pulse-card-timeline mt-1 font-mono text-[11.5px] text-tertiary tabular-nums">{primaryTimeLine(row.createdAt, row.updatedAt, "report")}</p>
 
             <h3
               id={id ? `${id}-title` : undefined}
@@ -279,7 +279,7 @@ export function PulseIncidentCard({
                   <span className="font-mono tabular-nums">{eng.total + eng.comments}</span>
                 </Link>
               ) : null}
-              <span className="ml-auto flex items-center gap-2.5">
+              <span className="pulse-card-trust ml-auto flex items-center gap-2.5">
                 <AvatarStack seed={row.authorHandle ?? row.id} count={1 + Math.min(3, row.confirmations)} size={spotlight ? 28 : 24} />
                 <TrustMeter value={trust.value} tier={trust.tier} compact label={`Trust ${trust.value} of 100 — ${TRUST_LABEL[trust.tier] ?? trust.tier}`} />
               </span>

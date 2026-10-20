@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId } from "react";
+import { Plus } from "lucide-react";
 import { usePathname } from "next/navigation";
 import type { ModeKey } from "@/lib/themes";
 import type { ReactNode } from "react";
@@ -94,35 +95,63 @@ export function AppShell({
   return (
     <div className="pulse-shell">
       <header className="pulse-topbar pulse-glass-strong relative z-[650] border-b border-default">
-        <div className="mx-auto flex min-h-[var(--pulse-header-h)] w-full max-w-[var(--pulse-page-max)] items-center gap-3 px-3 sm:px-6">
-          <Link href="/" className="flex flex-none items-center gap-2.5" aria-label={`${BRAND.name} home`}>
-            <NowBeyMark />
-            <span className="hidden leading-none sm:block">
+        {/* ONE header row at every size. On a phone it is the app bar from the
+            mobile spec: brand + tagline on the left, one compact "+ Report"
+            pill on the right. The desktop controls (full-width CTA, Simple
+            view, theme toggle, account chip) return from md up, and the gas
+            ticker — a second, wrapping band — only exists from md up. Below
+            that it was eating the top of every phone screen for a strip of
+            prices nobody opens the app for. */}
+        <div className="pulse-header-row mx-auto flex w-full max-w-[var(--pulse-page-max)] items-center gap-2.5 px-4 sm:px-6">
+          <Link href="/" className="flex min-w-0 shrink items-center gap-2.5" aria-label={`${BRAND.name} home`}>
+            <NowBeyMark size={30} />
+            <span className="min-w-0 leading-none">
               <Wordmark />
-              <span className="nb-tagline nb-label mt-1 block">{BRAND.tagline}</span>
+              <span className="nb-tagline nb-label mt-1 block truncate">{BRAND.tagline}</span>
             </span>
           </Link>
 
           <div className="mx-auto hidden min-w-0 md:flex lg:hidden">{kicker ?? <NavLinks />}</div>
 
           <div className="ml-auto flex items-center gap-2">
-            <Link href="/report" className="nb-btn nb-btn-primary nb-btn-sm hidden md:inline-flex">
-              Report a hazard
-              <ArrowIcon />
-            </Link>
-            <SimpleViewToggle />
-            <ModeToggle defaultMode={defaultMode} />
-            <SessionChip handle={handle} />
+            {/* Visibility lives on the wrapper, never on the button itself:
+                `.nb-btn` is unlayered CSS and its `display: inline-flex` beats
+                Tailwind's `hidden`, which is how the phone ended up with two
+                Report buttons side by side. */}
+            <span className="flex md:hidden">
+              <Link href="/report" className="pulse-report-pill nb-btn nb-btn-primary" aria-label="Report a hazard">
+                <Plus size={14} strokeWidth={3} aria-hidden />
+                Report
+              </Link>
+            </span>
+            <span className="hidden md:inline-flex">
+              <Link href="/report" className="nb-btn nb-btn-primary nb-btn-sm">
+                Report a hazard
+                <ArrowIcon />
+              </Link>
+            </span>
+            <span className="hidden items-center gap-2 md:flex">
+              <SimpleViewToggle />
+              <ModeToggle defaultMode={defaultMode} />
+              <SessionChip handle={handle} />
+            </span>
           </div>
         </div>
         {/* The live wire belongs under the nav, not above it: it is the first
-            thing you read, not the thing you navigate by. */}
-        {!isAdmin ? <LiveTicker /> : null}
-        {kicker && !isAdmin ? kicker : null}
+            thing you read, not the thing you navigate by. Phones get it on the
+            Wire tab, where it belongs. */}
+        {!isAdmin ? (
+          <div className="hidden md:block">
+            <LiveTicker />
+          </div>
+        ) : null}
+        {/* On md–lg the kicker already lives in the centre slot above; below lg
+            is the only place it needs a second home. */}
+        {kicker && !isAdmin ? <div className="hidden lg:block">{kicker}</div> : null}
       </header>
 
       <div
-        className={`mx-auto w-full max-w-[var(--pulse-page-max)] px-3 pb-6 sm:px-6 lg:pb-12 pulse-clear-nav ${showRail ? "pulse-shell-row" : ""}`}
+        className={`mx-auto w-full max-w-[var(--pulse-page-max)] px-4 pb-6 sm:px-6 lg:pb-12 pulse-clear-nav ${showRail ? "pulse-shell-row" : ""}`}
       >
         {showRail ? (
           <aside className="hidden lg:block">
@@ -138,7 +167,10 @@ export function AppShell({
 
       {!isAdmin ? (
         <>
-          <div className="mx-auto w-full max-w-[var(--pulse-page-max)] border-t border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-[11px] font-bold text-ink-800 sm:px-6">
+          {/* One emergency notice per screen. Every page already opens with the
+              EmergencyNotice card, so on a phone the footer strip was a second
+              amber band between the stream and the tab bar. */}
+          <div className="mx-auto hidden w-full max-w-[var(--pulse-page-max)] border-t border-amber-500/30 bg-amber-500/10 px-3 py-2 text-center text-[11px] font-bold text-ink-800 sm:block sm:px-6">
             Emergency: call <a href="tel:919" className="underline">919</a> / <a href="tel:911" className="underline">911</a> — this app is not an emergency service.
           </div>
           <footer id="display-options" className="nb-clear-nav mx-auto w-full max-w-[var(--pulse-page-max)] px-3 sm:px-6">

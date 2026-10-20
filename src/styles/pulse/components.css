@@ -2371,3 +2371,587 @@ kbd {
   line-height: 16px;
   text-align: center;
 }
+
+/* =============================================================================
+   PHONE APP CHROME — the mobile spec (2026-10)
+   -----------------------------------------------------------------------------
+   Everything below only applies below 640px (768px where a tablet still uses
+   the phone app bar). The desktop layout is untouched: these are the rules that
+   turn the responsive web app into the five-tab mobile app the screenshots ask
+   for — one 56px header row, horizontal pill tracks instead of stacked selects,
+   a card grammar with room to breathe, and CTAs that never sit under the bar.
+
+   Colours stay on the semantic tokens (`--bg-base`, `--card-bg`, `--border-default`,
+   `--accent`) rather than the spec's hex list: same colours, but the light theme
+   and the contrast audit keep working, which a literal #090D16 would break.
+   ============================================================================= */
+
+/* ------------------------------------------------------------- app bar ---- */
+.pulse-header-row {
+  min-height: var(--pulse-header-h);
+}
+@media (max-width: 767.98px) {
+  /* 56px: the spec's single app-bar row. Page flow clears it through the same
+     token, so nothing moves twice. */
+  :root {
+    --pulse-header-h: 56px;
+  }
+  .pulse-header-row {
+    min-height: 56px;
+    gap: var(--pulse-space-2);
+    padding-inline: var(--pulse-space-4);
+  }
+  /* The tagline is part of the mark on a phone, not a second line of chrome. */
+  .pulse-header-row .nb-tagline {
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    line-height: 1;
+  }
+  /* One compact, high-contrast action. 34px tall is the smallest a pill can be
+     and still clear 44px of touch target once its 5px margin is counted —
+     the whole pill is the target, and it sits in a 56px row. */
+  .pulse-report-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 34px;
+    padding: 0 var(--pulse-space-3);
+    border-radius: var(--pulse-shape-pill);
+    font-size: var(--pulse-text-xs);
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: var(--pulse-glow-teal);
+  }
+  /* The live ticker and the account chip are desktop chrome (see AppShell). */
+  .pulse-topbar {
+    box-shadow: 0 1px 0 var(--border-default), 0 10px 30px -24px rgba(0, 0, 0, 0.9);
+  }
+}
+
+/* ------------------------------------------------------- filter tracks ---- */
+/* Three scrolls, one row each. Never a wrapping cluster: a filter that folds
+   onto four lines is 40% of a phone screen spent on controls. */
+.pulse-filter-tracks {
+  display: grid;
+  gap: var(--pulse-space-2);
+  min-width: 0;
+  margin-top: var(--pulse-space-2);
+}
+.pulse-filter-track {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--pulse-space-2);
+  min-width: 0;
+  max-width: 100%;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.pulse-filter-track::-webkit-scrollbar {
+  display: none;
+}
+.pulse-filter-track > * {
+  flex: none;
+}
+/* A fade on the right edge is the only affordance a scroll track needs. */
+.pulse-filter-track[data-fade="true"] {
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 28px), transparent 100%);
+}
+@media (min-width: 1024px) {
+  .pulse-filter-tracks {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--pulse-space-2) var(--pulse-space-3);
+  }
+  .pulse-filter-track {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    mask-image: none;
+  }
+  .pulse-filter-track > * {
+    flex: 0 1 auto;
+  }
+}
+/* Phones hide the header-level chrome inside the island and keep the tracks;
+   the island itself becomes a slim glass strip instead of a floating panel. */
+@media (max-width: 639.98px) {
+  .pulse-island {
+    top: calc(var(--pulse-header-h) + var(--pulse-safe-top) + var(--pulse-space-2));
+    padding: var(--pulse-space-2);
+    border-radius: var(--pulse-shape-md);
+    /* Opaque, not 82% glass: the island floats over the stream, and a card
+       headline ghosting through the filter row is unreadable either way. */
+    background: var(--bg-elevated);
+    box-shadow: var(--pulse-elev-2);
+  }
+  /* Dense control escape hatch (see .pulse-tight): a filter pill is 34px so
+     three tracks fit in one strip. The pill plus its 6px gap still clears a
+     thumb; the 44px floor stays for every primary action. */
+  .pulse-filter-track .nb-chip,
+  .pulse-filter-track .pulse-seg button {
+    min-height: 34px;
+    padding-block: 0;
+    font-size: 11.5px;
+  }
+  .pulse-filter-track .pulse-seg button {
+    padding-inline: 9px;
+  }
+  .pulse-filter-tracks {
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .pulse-filter-track {
+    gap: 6px;
+    padding-bottom: 0;
+  }
+  .pulse-island .pulse-search {
+    flex: 1 1 auto;
+    min-height: 40px;
+  }
+  .pulse-island .pulse-search kbd {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------ incident card (phone) ---- */
+@media (max-width: 639.98px) {
+  /* 16px inner padding, 12px gap: the spec's card geometry. */
+  .pulse-card-pad {
+    padding: var(--pulse-space-4);
+  }
+  .pulse-stream {
+    gap: var(--pulse-space-3);
+  }
+  /* A 20px display title on a 360px screen is three words a line. The card
+     title drops to the body-strong size and keeps the tight tracking. */
+  .pulse-card-title,
+  .pulse-spotlight .pulse-card-title,
+  .pulse-spotlight-title {
+    margin-top: var(--pulse-space-1);
+    font-size: 1rem;
+    line-height: 1.32;
+    letter-spacing: -0.02em;
+  }
+  .pulse-card-body {
+    margin-top: 6px;
+    font-size: var(--pulse-text-sm);
+    line-height: 1.55;
+    -webkit-line-clamp: 2;
+  }
+  /* Status/source chips are provenance, not the decision. They stay in the DOM
+     (the drawer repeats them) but stop wrapping a fifth line onto every card.
+     The cluster count is a number a resident decides with, so it stays. */
+  .pulse-card-pad > div:first-child .pulse-chip[data-tone="neutral"],
+  .pulse-card-pad > div:first-child .pulse-chip[data-tone="info"] {
+    display: none;
+  }
+  .pulse-card-incident .pulse-action-bar {
+    gap: 6px;
+  }
+  .pulse-card-incident .pulse-action-bar > * {
+    min-height: 40px;
+  }
+  .pulse-card-spine::after {
+    top: 14px;
+    bottom: 14px;
+  }
+}
+
+/* ------------------------------------------------ hazard picker (phone) --- */
+@media (max-width: 639.98px) {
+  /* Two columns, a 2px accent bar across the top, a bold name and one clipped
+     line of blurb — the grid from the spec, instead of a 13-cell table of
+     slabs with a left rail. */
+  .pulse-pick {
+    min-height: 96px;
+    padding: var(--pulse-space-3);
+    border-radius: var(--pulse-shape-sm);
+  }
+  .pulse-pick-rail {
+    width: 100%;
+    height: 2px;
+  }
+  .pulse-pick-label {
+    margin-top: 8px;
+    font-size: var(--pulse-text-sm);
+    letter-spacing: -0.02em;
+  }
+  .pulse-pick-blurb {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .pulse-pick:active {
+    opacity: 0.7;
+    transform: scale(0.985);
+  }
+}
+
+/* ------------------------------------------------------------- sticky CTA - *
+ * A CTA that floats over the stream is only usable if it floats ABOVE the tab
+ * bar and BELOW dialogs. It used to pin to bottom:0 at z 680, i.e. behind the
+ * 700 bar: visible through the blur, never tappable. The ladder is
+ *   content < sticky CTA (690) < bottom nav (700) < sheet scrim (760) < palette (1000)
+ * and the CTA sits on the bar's own height, so its last row never disappears.
+ */
+.pulse-action-bar-sticky,
+.pulse-sticky-cta {
+  position: sticky;
+  bottom: 0;
+  z-index: 690;
+  margin-top: var(--pulse-space-4);
+  padding: var(--pulse-space-2);
+  padding-bottom: calc(var(--pulse-space-2) + var(--pulse-safe-bottom));
+  border: 1px solid var(--border-default);
+  border-radius: var(--pulse-shape-lg) var(--pulse-shape-lg) 0 0;
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 -8px 24px color-mix(in srgb, var(--pulse-hue-ink, #000) 40%, transparent);
+}
+@media (max-width: 1023.98px) {
+  .pulse-action-bar-sticky,
+  .pulse-sticky-cta {
+    /* The bar's own height plus a 8px breath, exactly as the spec draws it, so
+       the CTA reads as floating OVER the bar instead of replacing its top row. */
+    bottom: calc(var(--pulse-navbar-h) + var(--pulse-safe-bottom) + var(--pulse-space-2));
+    padding-bottom: var(--pulse-space-2);
+    border-radius: var(--pulse-shape-md);
+    border-bottom: 1px solid var(--border-default);
+  }
+  .pulse-action-bar-sticky .pulse-confirm {
+    flex: 1 1 auto;
+  }
+}
+/* The report wizard's step action: severity + Next. On a phone it is a bar in
+   thumb reach, not a row that scrolls away under the category grid. */
+.pulse-step-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pulse-space-2);
+}
+@media (max-width: 639.98px) {
+  .pulse-step-cta {
+    flex-wrap: nowrap;
+    gap: var(--pulse-space-2);
+  }
+  .pulse-step-cta > .pulse-step-cta-next {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 44px;
+  }
+}
+
+/* --------------------------------------------------- page intro (phone) --- */
+/* The intro band is the page's headline, not a second header. On a phone it
+   shrinks to an eyebrow, a 22px title and one clamped line of lede, because
+   every pixel above the fold is a pixel of the thing you opened the app for. */
+@media (max-width: 639.98px) {
+  .pulse-intro {
+    padding: var(--pulse-space-3) var(--pulse-space-4);
+    border-radius: var(--pulse-shape-md);
+  }
+  .pulse-intro h1,
+  .pulse-intro h2 {
+    font-size: 1.375rem;
+    letter-spacing: -0.03em;
+    line-height: 1.12;
+  }
+  .pulse-intro .pulse-lede {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+    margin-top: var(--pulse-space-2);
+    font-size: var(--pulse-text-xs);
+    line-height: 1.55;
+  }
+  .pulse-intro-actions {
+    margin-top: var(--pulse-space-3);
+    gap: var(--pulse-space-2);
+  }
+}
+/* A pill row that lives INSIDE a track sizes to its pills and lets the TRACK
+   do the scrolling: one scroll owner per line, never two nested scrollers that
+   fight over the gesture (and never a `flex: 1` that collapses it to 0px). */
+.pulse-filter-track > .pulse-pill-row {
+  flex: none;
+  overflow: visible;
+}
+
+/* Card header on a phone: category tag left, relative time hard right — the
+   spec's first row — and the second "reported … updated …" line folded away,
+   because the freshness pill already states the same time in fewer words. */
+@media (max-width: 639.98px) {
+  .pulse-card-pad > div:first-child > .pulse-fresh {
+    margin-left: auto;
+  }
+  .pulse-card-timeline {
+    display: none;
+  }
+}
+/* Step 1's action bar stacks on a phone: the severity label gets its own line,
+   the pill group wraps under it, and Next spans the width above the tab bar. */
+@media (max-width: 639.98px) {
+  .pulse-step-cta {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  .pulse-step-cta > .nb-label {
+    width: 100%;
+  }
+  .pulse-step-cta > .pulse-step-cta-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+  .pulse-step-cta > .pulse-step-cta-actions > .pulse-step-cta-next {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-height: 44px;
+  }
+}
+/* At 320px there is no room for a tagline beside the action; the mark and the
+   wordmark are the identity, so the tagline folds rather than pushing the pill
+   off-screen. */
+@media (max-width: 359.98px) {
+  .pulse-header-row .nb-tagline {
+    display: none;
+  }
+}
+/* Card geometry on a phone: the spec's rounded-2xl (16px), not the 20px the
+   desktop deck uses. One rule, every data surface, so a card and the panel
+   beside it share an edge. */
+@media (max-width: 639.98px) {
+  .pulse-card,
+  .nb-surface,
+  .nb-card {
+    border-radius: var(--pulse-space-4);
+  }
+}
+@media (max-width: 639.98px) {
+  /* The wizard's own hero line is the same display type as an intro band. */
+  .pulse-intro-heading {
+    font-size: 1.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+  }
+  /* Four step chips scroll sideways instead of stacking two rows deep. */
+  .pulse-steps {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .pulse-steps::-webkit-scrollbar {
+    display: none;
+  }
+  .pulse-steps > li {
+    flex: none;
+  }
+  /* The severity read-out would repeat the selected chip beside it. */
+  .pulse-step-cta .pulse-sev {
+    display: none;
+  }
+  /* Keep the last hazard row clear of the sticky action bar on the wizard. */
+  .pulse-steps ~ div,
+  [data-report-body] {
+    scroll-margin-bottom: 96px;
+  }
+}
+/* A primary CTA inside a page intro would duplicate the header's Report pill on
+   a phone — one primary action per screen, and the header already owns it. */
+@media (max-width: 639.98px) {
+  .pulse-intro-actions .nb-btn-primary {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------- phone chrome trims ----- */
+@media (max-width: 639.98px) {
+  /* Official-source links are a reference, not the headline: on a phone they
+     keep the two links and drop the second explanatory paragraph (the footer
+     says the same thing), because 200px of preamble above the first card is
+     200px of the thing you opened the app for. */
+  .pulse-official-sources {
+    padding: var(--pulse-space-3);
+  }
+  .pulse-official-sources > p:last-child {
+    display: none;
+  }
+  .pulse-official-sources ul {
+    display: grid;
+    gap: 4px;
+    margin-top: 6px;
+    font-size: 12px;
+  }
+  /* The intro band's big count belongs in the sentence beside it, not in a
+     circle of its own on a 390px screen. */
+  .pulse-intro-actions > .nb-num {
+    display: none;
+  }
+  .pulse-intro-count {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+  /* Severity is four short words: one scrollable row, not a two-line block
+     standing on the sticky action bar. */
+  .pulse-step-cta > div {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    scrollbar-width: none;
+  }
+  .pulse-step-cta > div::-webkit-scrollbar {
+    display: none;
+  }
+  .pulse-step-cta > div > button {
+    flex: none;
+  }
+}
+@media (max-width: 639.98px) {
+  /* Search and the Live switch share one row instead of stacking into two. */
+  .pulse-island-head {
+    flex-wrap: nowrap;
+  }
+  .pulse-island-head .pulse-search {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .pulse-island-head .pulse-chip {
+    min-height: 38px;
+    padding-inline: var(--pulse-space-2);
+    white-space: nowrap;
+  }
+}
+
+/* ------------------------------------------------------- card actions ----- */
+@media (max-width: 639.98px) {
+  /* Trust and who-reported-it are the detail page's job. On the card, keeping
+     them would wrap the action row onto a third line and hide Watch. */
+  .pulse-card-trust {
+    display: none;
+  }
+  /* Three actions, one row, each label on one line. */
+  .pulse-action-bar .pulse-confirm {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    padding-inline: 6px;
+    font-size: 11.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+@media (max-width: 639.98px) {
+  /* Card header: category, severity and the relative time on ONE row, the way
+     the spec draws it. At 360px that only fits if the chips stop being chairs. */
+  .pulse-card-pad > div:first-child {
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow: hidden;
+  }
+  .pulse-card-pad > div:first-child .pulse-catbadge,
+  .pulse-card-pad > div:first-child .pulse-sev,
+  .pulse-card-pad > div:first-child .pulse-fresh {
+    min-height: 22px;
+    padding-inline: 6px;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .pulse-card-pad > div:first-child .pulse-fresh svg {
+    display: none;
+  }
+  /* The action row is one row: confirm, saw-it-too, watch, comments. */
+  .pulse-card-incident .pulse-action-bar {
+    flex-wrap: nowrap;
+  }
+  .pulse-card-incident .pulse-action-bar .pulse-mini-link {
+    flex: none;
+    min-height: 0;
+    font-size: 11px;
+  }
+}
+
+/* --------------------------------------------------- track pill states ---- *
+ * The travelling highlight is a single-line morph: it is measured to one row,
+ * so inside a wrapping desktop cluster (13 categories over two rows) it painted
+ * a two-row-tall teal slab over the row beneath. The tracks use the spec's
+ * active state instead — a tinted pill with a teal border and teal label —
+ * which is correct on every row, in both themes, with or without the morph.
+ */
+.pulse-filter-track .pulse-pill-indicator {
+  display: none;
+}
+.pulse-filter-track .pulse-pill-row [data-on="true"],
+.pulse-filter-track.pulse-pill-row [data-on="true"] {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: var(--text-accent);
+}
+
+/* ------------------------------------------------------ wire cards (phone) - *
+ * The meta row is where a wire card breaks first: category, source, time,
+ * island and "newest" all try to sit on one line, and each one that wraps takes
+ * a third of the width with it. On a phone the row is ONE line that scrolls
+ * (no label ever splits mid-word), and the island moves down to the "Pinned:"
+ * chip that already states it.
+ */
+@media (max-width: 639.98px) {
+  .pulse-wire-meta {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: 6px;
+  }
+  .pulse-wire-meta::-webkit-scrollbar {
+    display: none;
+  }
+  .pulse-wire-meta > * {
+    flex: none;
+    white-space: nowrap;
+  }
+  .pulse-wire-meta > a.pulse-chip {
+    display: none;
+  }
+  .pulse-wire-meta > .ml-auto {
+    margin-left: 0;
+  }
+  .pulse-wire-item .pulse-card-title {
+    font-size: 1.0625rem;
+    line-height: 1.28;
+  }
+  .pulse-wire-item .pulse-card-body {
+    -webkit-line-clamp: 2;
+  }
+}
+@media (max-width: 639.98px) {
+  /* Both horizontal rails fade at the cut edge, so "there is one more chip"
+     reads as a scroll instead of a layout accident. */
+  .pulse-step-cta > div,
+  .pulse-steps {
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 18px), transparent 100%);
+  }
+}
+@media (max-width: 1023.98px) {
+  /* The floating CTA is opaque, not 92% glass: the category grid used to ghost
+     through it, which made "Dangerous" unreadable behind "Next". */
+  .pulse-action-bar-sticky,
+  .pulse-sticky-cta {
+    background: var(--bg-elevated);
+  }
+}

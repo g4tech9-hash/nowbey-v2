@@ -349,6 +349,10 @@ export const radius = {
   sm: 8,
   md: 14,
   lg: 20,
+  // The 2026-10 mobile spec's card geometry (web: `rounded-2xl`). Cards move to
+  // 16 while sheets keep xl2 (24), so a card and the sheet above it still read
+  // as different layers.
+  card: 16,
   xl2: 24, // cards and sheets
   xl: 28,
   pill: 999,

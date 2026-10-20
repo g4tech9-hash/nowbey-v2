@@ -375,7 +375,10 @@ export default function ReportWizard() {
               .
             </p>
           ) : null}
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          {/* On a phone this is the sticky action bar from the spec: severity in
+              thumb reach and one Next button, floating above the tab bar (never
+              under it) while the category grid scrolls behind. */}
+          <div className="pulse-sticky-cta pulse-step-cta mt-4">
             <span className="nb-label" id="severity-label">Severity</span>
             <div className="flex flex-wrap gap-1.5">
               {["Minor", "Lane blocked", "Road blocked", "Dangerous"].map((label, i) => (
@@ -391,9 +394,9 @@ export default function ReportWizard() {
                 </button>
               ))}
             </div>
-            <span className="ml-auto flex items-center gap-2">
+            <span className="pulse-step-cta-actions ml-auto flex items-center gap-2">
               <SeverityTag severity={severity} category={category} />
-              <button type="button" onClick={() => setStep(1)} className="nb-btn nb-btn-primary">
+              <button type="button" onClick={() => setStep(1)} className="pulse-step-cta-next nb-btn nb-btn-primary">
                 Next: put it on the map →
               </button>
             </span>
@@ -554,7 +557,7 @@ export default function ReportWizard() {
                 {error}
               </p>
             ) : null}
-            <div className="flex gap-2">
+            <div className="pulse-sticky-cta flex gap-2">
               <button
                 type="button"
                 onClick={() => setStep(1)}
@@ -702,7 +705,7 @@ export default function ReportWizard() {
               </p>
             ) : null}
 
-            <div className="flex flex-wrap gap-2">
+            <div className="pulse-sticky-cta flex flex-wrap gap-2">
               <button type="button" onClick={() => setStep(2)} className="nb-btn nb-btn-secondary">
                 ← Edit the write-up
               </button>
