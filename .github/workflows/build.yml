@@ -48,9 +48,11 @@ jobs:
           test -s google-services.json
           echo "google-services.json ($(wc -c < google-services.json) bytes) is in place."
 
+      # This button is the fallback: it builds with Gradle and never calls EAS, so an unlinked
+      # app.json (no project UUID yet, after a relink stripped the old one) is a valid input.
       - name: APK preflight (profile, Firebase, types)
         working-directory: expo
-        run: npm run preflight:apk
+        run: node scripts/preflight-apk.js --allow-unlinked
 
       - name: Accept Android SDK licences (Gradle may fetch a platform or NDK)
         run: yes | sdkmanager --licenses >/dev/null 2>&1 || true

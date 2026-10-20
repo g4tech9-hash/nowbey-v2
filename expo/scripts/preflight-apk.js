@@ -12,6 +12,12 @@ function check(ok, label) { console.log(`${ok ? 'PASS' : 'FAIL'} ${label}`); if 
 function warn(msg) { console.log(`WARN ${msg}`); warnings.push(msg); }
 
 const full = process.argv.includes('--full');
+// The local Gradle fallback needs no Expo account: it compiles the same JS bundle on the runner.
+// A project that has not been re-linked yet must still be buildable there, so this flag accepts a
+// *wholly* unlinked config (no project UUID and no updates URL) and warns instead of failing.
+// It never accepts a partial or malformed link — a half-move still fails, and a 37-character
+// "UUID" is refused, not rounded up to a valid one.
+const allowUnlinked = process.argv.includes('--allow-unlinked');
 
 const app = read('app.json').expo;
 const eas = read('eas.json');
@@ -27,12 +33,21 @@ const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const updatesUrl = typeof app.updates?.url === 'string' ? app.updates.url.trim().replace(/\/+$/, '') : '';
 
 check(owner.length > 0, 'owner is set (Expo account links the project)');
-check(uuid.test(projectId), 'EAS project is linked (extra.eas.projectId is a project UUID)');
 check(app.scheme === 'nowbey', 'URL scheme is nowbey (deep links)');
 check(app.runtimeVersion?.policy === 'appVersion', 'runtimeVersion pinned by appVersion for OTA updates');
-// A half-move — account and project UUID changed but updates.url kept the old project — is what
-// this catches; the three fields move together.
-check(projectId.length > 0 && updatesUrl === `https://u.expo.dev/${projectId}`, 'updates.url points at extra.eas.projectId (move both together)');
+if (allowUnlinked && !projectId && !updatesUrl) {
+  // `expo prebuild` reads a missing `updates` block as "EAS Update disabled" and writes
+  // EXPO_UPDATES_ENABLED=false. A null url is not the same thing: it resolves to `{}` and bakes
+  // EXPO_UPDATE_URL="[object Object]" into the APK. That is why app.json omits the block instead
+  // of nulling it, and why this branch is the only unlinked state the fallback accepts.
+  warn('EAS project is not linked (extra.eas.projectId is absent): local Gradle build only, OTA updates disabled');
+  warn('updates.url is absent: expo-updates stays disabled in this APK');
+} else {
+  check(projectId.length > 0 && uuid.test(projectId), 'EAS project is linked (extra.eas.projectId is a project UUID)');
+  // A half-move — account and project UUID changed but updates.url kept the old project — is what
+  // this catches; the three fields move together.
+  check(projectId.length > 0 && updatesUrl === `https://u.expo.dev/${projectId}`, 'updates.url points at extra.eas.projectId (move both together)');
+}
 check(profile.env.EXPO_PUBLIC_API_BASE === 'https://nowbey-v2.vercel.app', 'preview build targets production HTTPS API');
 check(eas.cli?.appVersionSource === 'remote', 'appVersionSource=remote so EAS manages build numbers');
 check(profile.distribution === 'internal', 'preview distribution is internal (not store)');
@@ -73,5 +88,6 @@ if (full && !failures.length) {
   }
 }
 
-console.log(failures.length ? `\nPREFLIGHT FAILED (${failures.length})` : `\nPREFLIGHT PASSED (${full ? 'full' : 'static only'})${warnings.length ? ` with ${warnings.length} warning(s)` : ''}`);
+const mode = `${full ? 'full' : 'static only'}${allowUnlinked && !projectId && !updatesUrl ? ', local build without EAS link' : ''}`;
+console.log(failures.length ? `\nPREFLIGHT FAILED (${failures.length})` : `\nPREFLIGHT PASSED (${mode})${warnings.length ? ` with ${warnings.length} warning(s)` : ''}`);
 process.exitCode = failures.length ? 1 : 0;

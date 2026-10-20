@@ -53,17 +53,11 @@
     "backgroundColor": "#03121b",
     "extra": {
       "apiBase": "https://nowbey-v2.vercel.app",
-      "router": {},
-      "eas": {
-        "projectId": null
-      }
+      "router": {}
     },
     "icon": "./assets/icon.png",
     "runtimeVersion": {
       "policy": "appVersion"
-    },
-    "updates": {
-      "url": null
     },
     "owner": "nowbey-v3s-team"
   }

@@ -292,9 +292,22 @@ jobs:
           fi
           echo "google-services.json ($(wc -c < google-services.json) bytes) is present and .easignore keeps it eligible for the EAS upload."
 
+      # A forced `mobile-fallback` run exists precisely for when the app has no usable EAS link
+      # (or the token cannot reach the linked project). The local Gradle build needs neither, so
+      # it may run on a wholly unlinked config — with OTA updates disabled in the APK. The EAS
+      # path stays strict: it cannot build without a valid projectId anyway, and a half-move or a
+      # malformed UUID must be refused there, never quietly accepted.
       - name: APK preflight (profile, Firebase, types, Android bundle)
         working-directory: expo
-        run: npm run preflight:apk:full
+        env:
+          TARGET: ${{ inputs.target || github.event.client_payload.target }}
+        run: |
+          set -euo pipefail
+          if [ "$TARGET" = "mobile-fallback" ]; then
+            node scripts/preflight-apk.js --full --allow-unlinked
+          else
+            npm run preflight:apk:full
+          fi
 
       # Needs repo secret: EXPO_TOKEN (expo.dev > Account settings > Access tokens).
       # Skipped on a forced `mobile-fallback` run: that target exists precisely for when the token

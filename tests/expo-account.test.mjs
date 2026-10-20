@@ -106,8 +106,18 @@ test("the account it compares against comes from expo/app.json, not from this fi
   // unpinned for the APK preflight.
   assert.ok(typeof expo.owner === "string" && expo.owner.trim().length > 0, "the project has an owner (Expo account) — the workflow reads it at run time");
   assert.match(expo.owner, /^[a-z0-9-_]+$/i, "owner looks like an Expo account name");
-  assert.ok(expo.extra?.eas?.projectId, "and still carries the EAS projectId that gets refused");
-  assert.match(expo.extra.eas.projectId, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "projectId is a UUID");
+
+  // The link is either wholly present or wholly absent. It is deliberately absent between the
+  // strip of the old IDs and the relink that follows (the local Gradle fallback builds that
+  // state with OTA updates disabled). A partial link, or an ID of the wrong length, is never a
+  // valid in-between state — it names a project EAS cannot resolve.
+  const projectId = expo.extra?.eas?.projectId;
+  if (projectId === undefined || projectId === null) {
+    assert.equal(expo.updates?.url ?? null, null, "a wholly unlinked config has no updates.url either");
+  } else {
+    assert.match(projectId, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "projectId is a UUID");
+    assert.equal(expo.updates?.url, `https://u.expo.dev/${projectId}`, "updates.url points at that project");
+  }
 });
 
 test("the account-mismatch check cannot fire on a good token", () => {
