@@ -63,7 +63,10 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": null
+      "checkAutomatically": "ON_ERROR_RECOVERY",
+      "requestHeaders": {
+        "expo-channel-name": "preview"
+      }
     },
     "owner": "nowbey-v3s-team"
   }

@@ -5,6 +5,7 @@ import { API_BASE, api, changeApiBase, errMsg } from "../../src/api";
 import { CATEGORIES, CATEGORY_KEYS, PARISHES, TIER_NAMES, type CategoryKey } from "../../src/geo";
 import { unblockUser, useBlocked } from "../../src/Safety";
 import { disablePush, enablePush, pushState, type PushState } from "../../src/push";
+import { checkAndApplyUpdate, updateFacts, type UpdateFacts } from "../../src/updates";
 import { useSession } from "../../src/session";
 import { color } from "../../src/theme";
 import { BadgeMark, Btn, Card, Field, Pill, t, useTopInset } from "../../src/ui";
@@ -36,6 +37,7 @@ export default function You() {
       {user ? <Account /> : <SignIn onSignIn={signIn} onSignUp={signUp} />}
       {user ? <Btn label="Sign out" kind="ghost" onPress={() => void signOut()} /> : null}
       <ServerBox />
+      <UpdateBox />
     </ScrollView>
   );
 }
@@ -369,6 +371,74 @@ function ServerBox() {
       <Text style={[t.muted, { marginBottom: 8 }]}>Where the NowBey website runs, for example https://your-site.example or http://192.168.1.20:3000.</Text>
       <Field label="Address" value={value} onChangeText={setValue} autoCapitalize="none" autoCorrect={false} keyboardType="url" placeholder="https://your-site.example" />
       <Btn label="Save and test" onPress={() => void save()} busy={busy} />
+      {note ? <Text style={[t.subtle, { marginTop: 8 }]}>{note}</Text> : null}
+    </Card>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10, paddingVertical: 3 }}>
+      <Text style={t.muted}>{label}</Text>
+      <Text style={[t.subtle, { flexShrink: 1, textAlign: "right" }]}>{value}</Text>
+    </View>
+  );
+}
+
+const shortId = (id: string | null) => (id ? id.slice(0, 8) : "—");
+
+/**
+ * Which build this phone is running, and whether an OTA update reached it.
+ *
+ * The card exists because a successful update and a silently failed one look identical from the
+ * outside: the app just opens. An update changes the JS bundle and nothing else, so the app version
+ * never moves — the update id is the only proof, and it is shown here rather than in a log.
+ */
+function UpdateBox() {
+  const [facts, setFacts] = useState<UpdateFacts | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    void updateFacts().then((f) => {
+      if (live) setFacts(f);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  async function check() {
+    setBusy(true);
+    setNote(null);
+    try {
+      const res = await checkAndApplyUpdate();
+      // "applied" is followed by a restart, so this note is usually the last thing on screen.
+      if (res.outcome === "applied") setNote(`Update ${shortId(res.updateId)} downloaded. Restarting into it.`);
+      else if (res.outcome === "uptodate") setNote("Already the newest update for this runtime version.");
+      else if (res.outcome === "unavailable") setNote("OTA is off in this build. Expo Go and dev builds never receive updates — install a release APK to test one.");
+      else setNote(res.message);
+      if (res.outcome !== "applied") setFacts(await updateFacts());
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const update = !facts ? "…" : facts.updateId ? `${shortId(facts.updateId)} (OTA)` : facts.enabled ? "embedded (shipped inside the app)" : "not an OTA build";
+
+  return (
+    <Card>
+      <Text style={t.h2}>App update</Text>
+      <Text style={[t.muted, { marginBottom: 8 }]}>
+        Small fixes reach this phone without a new download from the store. The app checks when it opens and restarts into the fix on the next launch.
+      </Text>
+      <Row label="Running" value={update} />
+      <Row label="Runtime version" value={facts?.runtimeVersion ?? "—"} />
+      <Row label="Update channel" value={facts?.channel ?? (facts && !facts.enabled ? "none" : "—")} />
+      <Row label="Installed version" value={facts?.nativeAppVersion ?? "—"} />
+      <Text style={[t.subtle, { marginTop: 6 }]}>An update can change what the app does, never its installed version — that needs a new build.</Text>
+      <Btn label="Check for update" kind="ghost" onPress={() => void check()} busy={busy} style={{ marginTop: 12 }} />
       {note ? <Text style={[t.subtle, { marginTop: 8 }]}>{note}</Text> : null}
     </Card>
   );

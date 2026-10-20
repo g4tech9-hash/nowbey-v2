@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -11,6 +11,7 @@ import { SPLASH_ENABLED } from "../src/brand";
 import { SessionProvider } from "../src/session";
 import { useSession } from "../src/session";
 import { ensurePushRegistered, watchPushTaps } from "../src/push";
+import { installUpdateOnLaunch } from "../src/updates";
 
 /** Screen changes become breadcrumbs, so an app crash report shows where the person had been. */
 function BreadcrumbTracker() {
@@ -40,6 +41,16 @@ export default function RootLayout() {
     installErrorReporting();
     void Promise.all([loadApiBase(), loadBlocked()]).finally(() => setReady(true));
   }, []);
+  // Only once the splash has gone: an OTA reload mid-animation looks like a broken splash rather
+  // than a successful update, and the person never learns the fix arrived. With the splash off
+  // (EXPO_PUBLIC_NOWBEY_SPLASH=off, or the classic theme) there is nothing to wait for.
+  useEffect(() => {
+    if (ready && !SPLASH_ENABLED) void installUpdateOnLaunch();
+  }, [ready]);
+  const splashDone = useCallback(() => {
+    setSplash(false);
+    void installUpdateOnLaunch();
+  }, []);
   if (!ready) return <View style={{ flex: 1, backgroundColor: color.bg }} />;
   return (
     <SafeAreaProvider>
@@ -49,7 +60,7 @@ export default function RootLayout() {
         <StatusBar style="light" />
         <View style={{ flex: 1, backgroundColor: color.bg }}>
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg } }} />
-          {splash ? <Splash onDone={() => setSplash(false)} /> : null}
+          {splash ? <Splash onDone={splashDone} /> : null}
         </View>
       </SessionProvider>
     </SafeAreaProvider>
