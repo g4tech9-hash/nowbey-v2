@@ -25,6 +25,11 @@ const productionOnlyHeaders =
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // The dev overlay's floating "N" badge sits in the bottom-left corner, exactly
+  // where the phone bottom navigation keeps Feed — it covered the tab icon and
+  // read as a stray badge on the app. Development keeps every other dev tool
+  // (error overlay, fast refresh); only the decorative indicator is off.
+  devIndicators: false,
   // Arena's live preview is served from a per-session subdomain of e2b.app.
   allowedDevOrigins: ["*.e2b.app"],
   // The embedded dev Postgres (src/db/dev.ts) ships a WASM build of PostgreSQL. Bundling it

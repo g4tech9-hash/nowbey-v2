@@ -12,6 +12,7 @@ import { CATEGORIES, type CategoryKey, timeAgo } from "@/lib/geo";
 import { HIDDEN_STATUSES } from "@/lib/command";
 import { TIERS } from "@/lib/tiers";
 import { ButtonLink, Chip, EmptyState, Eyebrow, Panel, PanelHead, SectionTitle, StatTile, TextLink } from "@/components/ui";
+import { MorePlacesButton } from "@/components/nav-links";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Your account" };
@@ -77,6 +78,12 @@ export default async function YouPage({ searchParams }: { searchParams: Promise<
             </ButtonLink>
             <ButtonLink href="/you/settings" variant="secondary" size="sm">
               Account settings
+            </ButtonLink>
+            {/* Alerts moved into the "All places" sheet when the phone bar went
+                to five tabs, so the account page gives it a visible doorway. */}
+            <MorePlacesButton />
+            <ButtonLink href="/alerts" variant="secondary" size="sm">
+              Alerts
             </ButtonLink>
           </div>
         </div>

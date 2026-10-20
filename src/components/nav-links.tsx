@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePrefStore } from "@/lib/pulse/store";
 import { useFocusTrap } from "@/lib/pulse/motion";
 import { Anchor, Bell, BookmarkPlus, Clock, Compass, Flame, LayoutList, Plus, Newspaper, Radio, Star, UserRound, WifiOff, X } from "lucide-react";
@@ -33,14 +33,34 @@ export const PRIMARY_NAV: PulseNavEntry[] = [
   { href: "/alerts", label: "Alerts", short: "Alerts", icon: <Bell size={19} aria-hidden />, hint: "Email alerts for your island" },
 ];
 
+/**
+ * The fifth tab. `You` is where a phone expects the account: it used to live
+ * behind a "More" sheet that also held Alerts, which meant the two things a
+ * phone user looks for most were two taps deep.
+ */
+export const ACCOUNT_NAV: PulseNavEntry = {
+  href: "/you",
+  label: "Your account",
+  short: "You",
+  icon: <UserRound size={19} aria-hidden />,
+  hint: "Your reports, plan and settings",
+};
+
 export const SECONDARY_NAV: PulseNavEntry[] = [
   { href: "/saved", label: "Watch list", short: "Saved", icon: <BookmarkPlus size={19} aria-hidden />, hint: "Signals you are following" },
   ...(SHOW_LIFE ? [{ href: "/life", label: "Island Life", short: "Life", icon: <Star size={19} aria-hidden /> }] : []),
   { href: "/open-now", label: "What is open now", short: "Open", icon: <Clock size={19} aria-hidden /> },
   ...(SHOW_GAS ? [{ href: "/gas", label: "Gas prices", short: "Gas", icon: <Anchor size={19} aria-hidden /> }] : []),
   { href: "/support", label: "Plans", short: "Plans", icon: <Flame size={19} aria-hidden /> },
-  { href: "/you", label: "Your account", short: "You", icon: <UserRound size={19} aria-hidden /> },
 ];
+
+/**
+ * What the bar's sheet holds. Alerts left the bar when You took the fifth slot
+ * (the spec's five-tab bar), so it leads the sheet — still one tap from the bar,
+ * never orphaned. It is not in SECONDARY_NAV, because the desktop rail lists
+ * Alerts in its own primary group and would then show it twice.
+ */
+export const MORE_PLACES: PulseNavEntry[] = [PRIMARY_NAV[3], ...SECONDARY_NAV];
 
 const isActive = (pathname: string, href: string) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
 
@@ -145,7 +165,7 @@ export function NavLinks({ variant = "top" }: { variant?: "top" | "bar" | "rail"
 function MoreSheetLink({ pathname }: { pathname: string }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
-  const items = SECONDARY_NAV;
+  const items = MORE_PLACES;
   return (
     <>
       <button
@@ -214,12 +234,52 @@ export function ReportFab({ variant = "fab" }: { variant?: "fab" | "tab" }) {
   );
 }
 
-/** Phone/tablet bottom nav: 4 destinations + the centre Report action + More. */
+/** The sheet is opened by the bar's hidden trigger and by any page that dispatches this. */
+export const MORE_SHEET_EVENT = "nb:open-more";
+
+/** A visible "All places" button for pages that want one (the You tab, account footer). */
+export function MorePlacesButton({ className = "nb-btn nb-btn-ghost nb-btn-sm" }: { className?: string }) {
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={() => window.dispatchEvent(new Event(MORE_SHEET_EVENT))}
+      aria-haspopup="dialog"
+    >
+      All places
+    </button>
+  );
+}
+
+/**
+ * Phone/tablet bottom nav: Feed · Map · Report · Wire · You.
+ *
+ * Five slots, as the mobile spec draws them: two destinations, the raised
+ * Report action in the middle, Wire, and the account. The sixth "More" tab is
+ * gone — it turned a five-tab bar into six cramped columns and pushed the tab
+ * labels to the edge of legibility. The destinations it held (Alerts is the
+ * important one) still open in the same sheet, from the You page's "All
+ * places" button and from a screen-reader-only trigger in the bar itself.
+ */
 export function PulseTabBar() {
   const pathname = usePathname();
   const [sheet, setSheet] = useState(false);
-  const slots = [...PRIMARY_NAV.slice(0, 2), null, ...PRIMARY_NAV.slice(2, 4)] as (PulseNavEntry | null)[];
+  const slots: (PulseNavEntry | null)[] = [
+    PRIMARY_NAV[0],
+    PRIMARY_NAV[1],
+    null,
+    PRIMARY_NAV[2],
+    ACCOUNT_NAV,
+  ];
   const closeSheet = useCallback(() => setSheet(false), []);
+
+  // Every page shares one shell instance, so a page can ask the bar to open its
+  // sheet without prop-drilling through the server component tree.
+  useEffect(() => {
+    const open = () => setSheet(true);
+    window.addEventListener(MORE_SHEET_EVENT, open);
+    return () => window.removeEventListener(MORE_SHEET_EVENT, open);
+  }, []);
   // Same focus-trap / Escape / scroll-lock contract as the incident detail
   // drawer, so the bottom sheet is not a cheaper version of it: focus moves
   // in on open, Tab cannot escape to the page behind, Escape closes, and
@@ -252,7 +312,7 @@ export function PulseTabBar() {
             </header>
             <div className="pulse-drawer-body">
               <ul className="grid gap-1.5">
-                {SECONDARY_NAV.map((c) => (
+                {MORE_PLACES.map((c) => (
                   <li key={c.href}>
                     <Link href={c.href} onClick={() => setSheet(false)} className="pulse-nav-item">
                       <span className="text-tertiary" aria-hidden>
@@ -287,18 +347,18 @@ export function PulseTabBar() {
             </Link>
           ),
         )}
+        {/* Not a sixth column: `pulse-sr-only` takes it out of the grid, so the
+            bar keeps the spec's five equal slots while a keyboard or screen
+            reader can still reach every other place in one action. */}
         <button
           type="button"
-          className="pulse-navtab"
+          className="pulse-sr-only"
           aria-expanded={sheet}
           aria-controls="pulse-more-drawer"
           aria-label="More places"
           onClick={() => setSheet((v) => !v)}
         >
-          <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
-            <path d="M5 7h14M5 12h14M5 17h14" />
-          </svg>
-          More
+          More places
         </button>
       </nav>
     </>

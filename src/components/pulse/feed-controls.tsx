@@ -23,10 +23,13 @@ import { CommandPaletteTrigger, FilterPillRow, LiveModeToggle, Segmented, pulseC
  * re-run three queries for a word that is still being typed.
  */
 
+// The phone spec's three words, in the order a thumb reads them. `Resolved`
+// is the URL's `resolved`; the card grammar still says "cleared" once a report
+// is closed, because that is what a neighbour calls it.
 const STATUS: PillOption[] = [
-  { value: "active", label: "Open now" },
-  { value: "all", label: "Everything" },
-  { value: "resolved", label: "Cleared" },
+  { value: "active", label: "Open" },
+  { value: "all", label: "All" },
+  { value: "resolved", label: "Resolved" },
 ];
 
 const SORTS: { value: string; label: string; title: string }[] = [
@@ -73,7 +76,7 @@ export function FeedControls({
 
   const categoryOptions: PillOption[] = useMemo(
     () => [
-      { value: "", label: "All signals", count: counts.__all ?? total },
+      { value: "", label: "Everything", count: counts.__all ?? total },
       ...(Object.keys(CATEGORIES) as CategoryKey[]).map((key) => ({
         value: key as string,
         label: CATEGORIES[key].label,
@@ -126,7 +129,7 @@ export function FeedControls({
 
   return (
     <div className="pulse-island">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="pulse-island-head flex flex-wrap items-center gap-2">
         <form
           className="pulse-search"
           role="search"
@@ -173,40 +176,28 @@ export function FeedControls({
 
         <div className="ml-auto flex items-center gap-2">
           <LiveModeToggle />
-          <CommandPaletteTrigger />
+          <span className="hidden sm:inline-flex">
+            <CommandPaletteTrigger />
+          </span>
         </div>
       </div>
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <FilterPillRow
-          options={STATUS.map((o) => ({ ...o, count: o.value === "active" ? counts.__active : undefined }))}
-          value={status}
-          ariaLabel="Report status"
-          size="sm"
-          onSelect={(next) => patch({ status: next === "active" ? "" : next })}
-        />
-
-        <FilterPillRow
-          options={categoryOptions}
-          value={category}
-          ariaLabel="Category"
-          size="sm"
-          onSelect={(next) => patch({ category: next })}
-        />
-
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          <label className="pulse-select-label">
-            <span className="pulse-sr-only">Island</span>
-            <select className="nb-select" value={island} onChange={(e) => patch({ island: e.target.value, parish: "" })}>
-              <option value="">All islands</option>
-              {PARISHES.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </label>
-
+      {/* Three scroll tracks, one row each, in the mobile spec's order:
+          status (with the sort control beside it) → what kind of signal →
+          which island. Each one scrolls horizontally and never wraps, so the
+          filter island stays a strip instead of eating the top 40% of the
+          screen in stacked selects. On desktop (≥1024) the tracks wrap back
+          into the familiar cluster. */}
+      <div className="pulse-filter-tracks">
+        {/* Row 1 — status, then how to order them. */}
+        <div className="pulse-filter-track">
+          <FilterPillRow
+            options={STATUS.map((o) => ({ ...o, count: o.value === "active" ? counts.__active : undefined }))}
+            value={status}
+            ariaLabel="Report status"
+            size="sm"
+            onSelect={(next) => patch({ status: next === "active" ? "" : next })}
+          />
           <Segmented
             label="Sort reports"
             size="sm"
@@ -214,8 +205,37 @@ export function FeedControls({
             options={SORTS.map((o) => ({ value: o.value, label: o.label, title: o.title }))}
             onChange={(next) => patch({ sort: next === "recent" ? "" : next })}
           />
+        </div>
 
-          {withMap ? (
+        {/* Row 2 — what kind of signal. */}
+        <FilterPillRow
+          className="pulse-filter-track"
+          options={categoryOptions}
+          value={category}
+          ariaLabel="Category"
+          size="sm"
+          onSelect={(next) => patch({ category: next })}
+        />
+
+        {/* Row 3 — which island. */}
+        <FilterPillRow
+          className="pulse-filter-track"
+          options={[
+            { value: "", label: "Every island" },
+            ...PARISHES.map((p) => ({ value: p, label: p })),
+          ]}
+          value={island}
+          ariaLabel="Island"
+          size="sm"
+          onSelect={(next) => patch({ island: next, parish: "" })}
+        />
+
+        {/* The list/map switch is a desktop refinement: the phone already has a
+            Map tab in the bar. Visibility sits on the wrapper because `.pulse-*`
+            rules are unlayered and would beat a Tailwind `hidden` on the inner
+            element (the same trap that once showed two Report buttons). */}
+        {withMap ? (
+          <div className="pulse-track-desktop hidden lg:flex">
             <Segmented
               label="View"
               size="sm"
@@ -226,8 +246,8 @@ export function FeedControls({
               ]}
               onChange={(next) => router.push(`/feed${buildQuery(sp, { view: next === "list" ? "" : next })}`)}
             />
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

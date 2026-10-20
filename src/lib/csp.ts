@@ -12,10 +12,13 @@ export function newNonce(): string {
   return btoa(bin);
 }
 
-export function buildCsp(nonce: string): string {
+export function buildCsp(nonce: string, opts: { development?: boolean } = {}): string {
+  // React's development build uses eval() to rebuild call stacks, and without it every
+  // dev page logs a policy violation and shows a red overlay badge. Development only:
+  // production keeps the strict policy the audit asserts (tests/csp.test.mjs).
   return [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${opts.development ? " 'unsafe-eval'" : ""}`,
     // Next.js and the design system still use inline style attributes, so styles stay permissive for now.
     "style-src 'self' 'unsafe-inline' https:",
     "img-src 'self' data: blob: https:",

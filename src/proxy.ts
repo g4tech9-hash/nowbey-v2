@@ -49,7 +49,7 @@ function page(req: NextRequest) {
   // Service-worker scripts get no page policy: see isWorkerScriptPath in src/lib/csp.ts.
   if (isWorkerScriptPath(path)) return NextResponse.next();
   const nonce = newNonce();
-  const csp = buildCsp(nonce);
+  const csp = buildCsp(nonce, { development: process.env.NODE_ENV !== "production" });
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-nowbey-pathname", path);
   requestHeaders.set("x-nonce", nonce);
