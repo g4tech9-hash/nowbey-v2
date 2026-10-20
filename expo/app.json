@@ -53,12 +53,18 @@
     "backgroundColor": "#03121b",
     "extra": {
       "apiBase": "https://nowbey-v2.vercel.app",
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "7c347b21-e481-4485-9512-4bdd64eb19a5"
+      }
     },
     "icon": "./assets/icon.png",
     "runtimeVersion": {
       "policy": "appVersion"
     },
-    "owner": "nowbey-v3s-team"
+    "owner": "nowbey-v3s-team",
+    "updates": {
+      "url": "https://u.expo.dev/7c347b21-e481-4485-9512-4bdd64eb19a5"
+    }
   }
 }
