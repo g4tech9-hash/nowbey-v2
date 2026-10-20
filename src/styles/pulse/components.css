@@ -17,7 +17,7 @@
   padding: 0 var(--pulse-space-4);
   border-radius: var(--pulse-shape-pill);
   border: 1px solid var(--border-default);
-  background: var(--bg-hover, #16252e);
+  background: var(--bg-hover, #243546);
   color: var(--text-primary, #f3f1ea);
   font-family: var(--font-sans);
   font-size: var(--pulse-text-sm);

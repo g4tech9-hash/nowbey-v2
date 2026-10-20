@@ -50,6 +50,7 @@ export async function setServer(url: string | null): Promise<void> {
 }
 
 const PUSH_KEY = "nowbey_push_token";
+const THEME_KEY = "nowbey_theme_mode";
 
 /**
  * The Expo push token this device registered with the server, so the app can (a) show whether
@@ -99,6 +100,31 @@ export async function setBlocked(list: string[]): Promise<void> {
       return;
     }
     await SecureStore.setItemAsync(BLOCKED_KEY, raw);
+  } catch {
+    /* not saving is harmless */
+  }
+}
+
+/** The saved appearance ("dark" | "light" | "system"), kept so the app opens in the chosen theme. */
+export async function getThemeMode(): Promise<string | null> {
+  try {
+    if (Platform.OS === "web") return typeof localStorage === "undefined" ? null : localStorage.getItem(THEME_KEY);
+    return await SecureStore.getItemAsync(THEME_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export async function setThemeMode(mode: string | null): Promise<void> {
+  try {
+    if (Platform.OS === "web") {
+      if (typeof localStorage === "undefined") return;
+      if (mode) localStorage.setItem(THEME_KEY, mode);
+      else localStorage.removeItem(THEME_KEY);
+      return;
+    }
+    if (mode) await SecureStore.setItemAsync(THEME_KEY, mode);
+    else await SecureStore.deleteItemAsync(THEME_KEY);
   } catch {
     /* not saving is harmless */
   }

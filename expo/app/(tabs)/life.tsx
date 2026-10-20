@@ -5,12 +5,13 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { API_BASE, api, errMsg, type LifePost } from "../../src/api";
 import { LIFE_KINDS, REACTIONS, timeAgo, topReactions } from "../../src/geo";
 import { useSession } from "../../src/session";
-import { color, t, Card, Btn, Pill, BadgeMark, useTopInset } from "../../src/ui";
+import { color, t, Card, Btn, Pill, BadgeMark, useTopInset, useTheme } from "../../src/ui";
 import { stripMarkup } from "../../src/sanitize";
 
 const kindOf = (k: string) => LIFE_KINDS[k] ?? LIFE_KINDS.tip;
 
 export default function Life() {
+  useTheme(); // screens repaint with the scheme
   const router = useRouter();
   const top = useTopInset();
   const { user } = useSession();

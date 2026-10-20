@@ -3,7 +3,30 @@ import { Linking, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import { BAHAMAS_CENTER } from "./geo";
 import type { MapCanvasProps } from "./map-types";
-import { color } from "./theme";
+import { color, useTheme } from "./theme";
+
+/** The few chrome colours the map page needs, for both schemes (applied via CSS variables). */
+type MapPal = {
+  bg: string;
+  chip: string;
+  chipText: string;
+  border: string;
+  pin: string;
+  pinBorder: string;
+  text: string;
+};
+
+function mapPal(): MapPal {
+  return {
+    bg: color.bg,
+    chip: color.inputBg,
+    chipText: color.text,
+    border: color.line,
+    pin: color.tide,
+    pinBorder: "#ffffff",
+    text: color.text,
+  };
+}
 
 /**
  * The map for iPhone and Android. It is a Leaflet map shown inside a WebView, drawn from free
@@ -22,16 +45,17 @@ const zoomFor = (delta: number) => Math.max(3, Math.min(19, Math.round(Math.log2
 
 const safe = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
 
-function buildHtml(initial: { lat: number; lng: number; zoom: number; pins: unknown; pick: unknown; pickable: boolean }): string {
+function buildHtml(initial: { lat: number; lng: number; zoom: number; pins: unknown; pick: unknown; pickable: boolean }, pal: MapPal): string {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <style>
-html,body,#map{height:100%;margin:0;background:#0b2230}
+:root{--map-bg:${pal.bg};--map-chip:${pal.chip};--map-chip-text:${pal.chipText};--map-border:${pal.border};--map-pin:${pal.pin};--map-pin-border:${pal.pinBorder};--map-text:${pal.text}}
+html,body,#map{height:100%;margin:0;background:var(--map-bg)}
 .leaflet-container{font-family:-apple-system,Roboto,sans-serif}
-#mode{position:absolute;z-index:1000;top:10px;right:10px;background:rgba(3,18,27,.88);color:#e9f6f4;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 12px;font:700 12px sans-serif}
+#mode{position:absolute;z-index:1000;top:10px;right:10px;background:var(--map-chip);color:var(--map-chip-text);border:1px solid var(--map-border);border-radius:999px;padding:7px 12px;font:700 12px sans-serif}
 #credit{position:absolute;z-index:1000;left:6px;bottom:4px;color:#fff;font:10px sans-serif;text-shadow:0 0 3px #000}
-#msg{position:absolute;z-index:1000;left:10px;right:10px;top:50%;text-align:center;color:#e9f6f4;font:600 13px sans-serif;display:none}
-.pin{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#2ee6d0;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+#msg{position:absolute;z-index:1000;left:10px;right:10px;top:50%;text-align:center;color:var(--map-text);font:600 13px sans-serif;display:none}
+.pin{width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--map-pin);border:2px solid var(--map-pin-border);box-shadow:0 2px 6px rgba(0,0,0,.5)}
 </style></head><body>
 <div id="map"></div><button id="mode" type="button">Street map</button><div id="credit"></div>
 <div id="msg">The map needs an internet connection.</div>
@@ -39,6 +63,11 @@ html,body,#map{height:100%;margin:0;background:#0b2230}
 <script>
 (function(){
   function send(o){ try{ window.ReactNativeWebView.postMessage(JSON.stringify(o)); }catch(e){} }
+  window.setTheme=function(t){ var s=document.documentElement.style;
+    if(t.bg)s.setProperty('--map-bg',t.bg); if(t.chip)s.setProperty('--map-chip',t.chip);
+    if(t.chipText)s.setProperty('--map-chip-text',t.chipText); if(t.border)s.setProperty('--map-border',t.border);
+    if(t.pin)s.setProperty('--map-pin',t.pin); if(t.pinBorder)s.setProperty('--map-pin-border',t.pinBorder);
+    if(t.text)s.setProperty('--map-text',t.text); };
   if(!window.L){ document.getElementById('msg').style.display='block'; return; }
   var init=${safe(initial)};
   var map=L.map('map',{zoomControl:false,attributionControl:false}).setView([init.lat,init.lng],init.zoom);
@@ -63,7 +92,7 @@ html,body,#map{height:100%;margin:0;background:#0b2230}
   window.setPins=function(pins){
     pinLayer.clearLayers();
     (pins||[]).forEach(function(p){
-      var m=L.circleMarker([p.lat,p.lng],{radius:9,color:'#ffffff',weight:2,fillColor:p.color,fillOpacity:1}).addTo(pinLayer);
+      var m=L.circleMarker([p.lat,p.lng],{radius:9,color:${safe(pal.pinBorder)},weight:2,fillColor:p.color,fillOpacity:1}).addTo(pinLayer);
       var tip=document.createElement('div'); tip.textContent=p.title||''; m.bindTooltip(tip,{direction:'top'});
       m.on('click',function(e){ L.DomEvent.stopPropagation(e); send({type:'pin',id:p.id}); });
     });
@@ -88,13 +117,18 @@ html,body,#map{height:100%;margin:0;background:#0b2230}
 
 export default function MapCanvas({ pins = [], pick, onPick, onPinPress, center, delta = 0.12, focus, style }: MapCanvasProps) {
   const ref = useRef<WebView>(null);
+  const { scheme } = useTheme();
   const start = center ?? BAHAMAS_CENTER;
   const pickable = Boolean(onPick);
 
   // Built once; later changes are pushed in so the map keeps its zoom and position.
+  // Theme changes are pushed the same way (window.setTheme) — never rebuilt here.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const html = useMemo(() => buildHtml({ lat: start.lat, lng: start.lng, zoom: zoomFor(delta), pins, pick: pick ?? null, pickable }), []);
+  const html = useMemo(() => buildHtml({ lat: start.lat, lng: start.lng, zoom: zoomFor(delta), pins, pick: pick ?? null, pickable }, mapPal()), []);
   const run = (js: string) => ref.current?.injectJavaScript(`try{${js}}catch(e){};true;`);
+
+  // A scheme switch repaints the map chrome in place (CSS variables), keeping map state.
+  useEffect(() => run(`window.setTheme&&window.setTheme(${safe(mapPal())})`), [scheme]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => run(`window.setPins&&window.setPins(${safe(pins)})`), [pins]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => run(`window.setPick&&window.setPick(${safe(pick ?? null)})`), [pick?.lat, pick?.lng]); // eslint-disable-line react-hooks/exhaustive-deps

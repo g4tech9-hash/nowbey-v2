@@ -1,12 +1,13 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
 import type { MapCanvasProps } from "./map-types";
-import { color, radius } from "./theme";
+import { color, radius, useTheme } from "./theme";
 
 /**
  * Stand-in for the web build. The native map only runs on iPhone and Android,
  * so a desktop browser gets the pin list and coordinates instead.
  */
 export default function MapCanvas({ pins = [], pick, onPinPress, style }: MapCanvasProps) {
+  useTheme(); // repaint with the scheme
   return (
     <View style={[{ backgroundColor: color.panel2, padding: 14, justifyContent: "center" }, style]}>
       <Text style={{ color: color.sand, fontWeight: "800", fontSize: 15 }}>The map runs on iPhone and Android</Text>

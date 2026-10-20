@@ -6,7 +6,7 @@ import { CATEGORIES, CATEGORY_KEYS, PARISHES, TIER_NAMES, type CategoryKey } fro
 import { unblockUser, useBlocked } from "../../src/Safety";
 import { disablePush, enablePush, pushState, type PushState } from "../../src/push";
 import { useSession } from "../../src/session";
-import { color } from "../../src/theme";
+import { color, useTheme, type ThemeMode } from "../../src/theme";
 import { BadgeMark, Btn, Card, Field, Pill, t, useTopInset } from "../../src/ui";
 
 const DEFAULT_CATS: CategoryKey[] = ["flood", "storm", "power", "water", "fire"];
@@ -21,6 +21,7 @@ function planLine(status: string | null, renewsAt: string | null): string {
 }
 
 export default function You() {
+  useTheme(); // screens repaint with the scheme
   const top = useTopInset();
   const { user, loading, signIn, signUp, signOut } = useSession();
 
@@ -32,9 +33,10 @@ export default function You() {
     );
   }
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: color.bg }} contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 40, gap: 14 }} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ flex: 1, backgroundColor: color.bg }} contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 48, gap: 14 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
       {user ? <Account /> : <SignIn onSignIn={signIn} onSignUp={signUp} />}
       {user ? <Btn label="Sign out" kind="ghost" onPress={() => void signOut()} /> : null}
+      <ThemeCard />
       <ServerBox />
     </ScrollView>
   );
@@ -269,6 +271,31 @@ function Account() {
 }
 
 /**
+ * Appearance — the website's ThemePicker vocabulary (Night / Daylight, same words,
+ * same blurbs) plus the phone-native "Match system". The choice is saved on the
+ * phone and applied before the first screen paints on the next launch.
+ */
+function ThemeCard() {
+  const { mode, setMode } = useTheme();
+  const options: { value: ThemeMode; label: string; blurb: string }[] = [
+    { value: "dark", label: "Night", blurb: "True black for OLED, glowing teal signals, easy on a phone in an outage." },
+    { value: "light", label: "Daylight", blurb: "Warm sand paper, deep teal ink, its own category hues — not an inverted night." },
+    { value: "system", label: "Match system", blurb: "Follows your phone's Light or Dark setting." },
+  ];
+  return (
+    <Card>
+      <Text style={t.h3}>Appearance</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
+        {options.map((o) => (
+          <Pill key={o.value} label={o.label} active={mode === o.value} onPress={() => void setMode(o.value)} />
+        ))}
+      </View>
+      <Text style={[t.subtle, { marginTop: 8, lineHeight: 17 }]}>{options.find((o) => o.value === mode)?.blurb}</Text>
+    </Card>
+  );
+}
+
+/**
  * Push alerts, told straight. The server sends a notification when a report matches one of this
  * member's confirmed email alert profiles, so the card says that instead of promising "instant
  * alerts for everything". Android only today: iPhone needs an Apple push key in the store build,
@@ -294,6 +321,7 @@ function PushCard() {
       const next = state === "on" ? await disablePush() : await enablePush();
       setState(next);
       if (next === "denied") setNote("Android is blocking NowBey notifications. Allow them in Settings > Apps > NowBey > Notifications, then try again.");
+      else if (next === "on" && state === "on") setNote("Could not switch push off — the server did not confirm, so this phone may still receive alerts. Check the connection and try again.");
       else if (next === "off" && state !== "on") setNote("Could not switch push on just now. Check the connection to your server and try again.");
     } finally {
       setBusy(false);

@@ -4,7 +4,7 @@ import { api, errMsg, type CommentNode, type Engagement, type ReactionKind, type
 import { FLAG_REASONS, REACTIONS, REACTION_KEYS, timeAgo } from "./geo";
 import { blockUser, isBlocked, useBlocked } from "./Safety";
 import { useSession } from "./session";
-import { color, radius } from "./theme";
+import { color, radius, useTheme } from "./theme";
 import { BadgeMark, Btn, Card, Pill, t } from "./ui";
 
 const COMMENT_MAX = 500;
@@ -13,6 +13,7 @@ type Thread = { comments: CommentNode[]; total: number; truncated: boolean; enga
 
 /** Reactions and comments for a pin or a post. Everything is done here, in the app. */
 export function Conversation({ type, id }: { type: TargetType; id: string }) {
+  useTheme(); // repaint with the scheme
   const { user } = useSession();
   useBlocked();
   const [data, setData] = useState<Thread | null>(null);
@@ -136,6 +137,7 @@ export function Conversation({ type, id }: { type: TargetType; id: string }) {
 }
 
 function Composer({ type, id, parentId, initial = "", onDone, onCancel }: { type: TargetType; id: string; parentId?: number; initial?: string; onDone: () => void | Promise<void>; onCancel?: () => void }) {
+  useTheme(); // repaint with the scheme
   const { user } = useSession();
   const [body, setBody] = useState(initial);
   const [busy, setBusy] = useState(false);
@@ -196,6 +198,7 @@ function Composer({ type, id, parentId, initial = "", onDone, onCancel }: { type
 }
 
 function CommentRow({ c, type, id, open, onChange, nested = false }: { c: CommentNode; type: TargetType; id: string; open: boolean; onChange: () => void | Promise<void>; nested?: boolean }) {
+  useTheme(); // repaint with the scheme
   const { user } = useSession();
   const [panel, setPanel] = useState<"reply" | "report" | null>(null);
   const [note, setNote] = useState<string | null>(null);

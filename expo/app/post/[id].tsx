@@ -5,12 +5,13 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { API_BASE, api, errMsg, type LifePost } from "../../src/api";
 import { LIFE_KINDS, timeAgo } from "../../src/geo";
 import { Conversation } from "../../src/Engage";
-import { color } from "../../src/theme";
+import { color, useTheme } from "../../src/theme";
 import { BadgeMark, Btn, Card, t, useTopInset } from "../../src/ui";
 
 type Photo = { id: string; width: number; height: number };
 
 export default function PostScreen() {
+  useTheme(); // screens repaint with the scheme
   const router = useRouter();
   const top = useTopInset();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -64,7 +65,7 @@ export default function PostScreen() {
 
   const kind = LIFE_KINDS[post.kind] ?? LIFE_KINDS.tip;
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: color.bg }} contentContainerStyle={{ paddingTop: top + 8, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+    <ScrollView style={{ flex: 1, backgroundColor: color.bg }} contentContainerStyle={{ paddingTop: top + 8, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
       <View style={{ paddingHorizontal: 16, gap: 10 }}>
         {back}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>

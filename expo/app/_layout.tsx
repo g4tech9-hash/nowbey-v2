@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { View, useColorScheme } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -31,22 +31,33 @@ function PushSetup() {
   return null;
 }
 import { Splash } from "../src/Splash";
-import { color } from "../src/theme";
+import { color, setDeviceScheme, useTheme, loadThemeMode } from "../src/theme";
+
+/** Pushes the phone's own Light/Dark setting into the theme store ("system" mode resolves against it). */
+function DeviceThemeSync() {
+  const scheme = useColorScheme();
+  useEffect(() => {
+    setDeviceScheme(scheme === "light" ? "light" : "dark");
+  }, [scheme]);
+  return null;
+}
 
 export default function RootLayout() {
   const [splash, setSplash] = useState(SPLASH_ENABLED);
   const [ready, setReady] = useState(false);
+  const { scheme } = useTheme();
   useEffect(() => {
     installErrorReporting();
-    void Promise.all([loadApiBase(), loadBlocked()]).finally(() => setReady(true));
+    void Promise.all([loadApiBase(), loadBlocked(), loadThemeMode()]).finally(() => setReady(true));
   }, []);
   if (!ready) return <View style={{ flex: 1, backgroundColor: color.bg }} />;
   return (
     <SafeAreaProvider>
       <SessionProvider>
+        <DeviceThemeSync />
         <BreadcrumbTracker />
         <PushSetup />
-        <StatusBar style="light" />
+        <StatusBar style={scheme === "light" ? "dark" : "light"} />
         <View style={{ flex: 1, backgroundColor: color.bg }}>
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: color.bg } }} />
           {splash ? <Splash onDone={() => setSplash(false)} /> : null}

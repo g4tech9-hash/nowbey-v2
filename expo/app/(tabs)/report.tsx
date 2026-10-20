@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ScrollView, Switch, Text, View } from "react-native";
+import { Alert, ScrollView, Switch, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { api, errMsg, type Incident, type Place, type ReportAssist } from "../../src/api";
@@ -7,12 +7,13 @@ import { CATEGORIES, CATEGORY_KEYS, SEVERITY, inBahamas, type CategoryKey } from
 import MapCanvas from "../../src/MapCanvas";
 import type { LatLng } from "../../src/map-types";
 import { useSession } from "../../src/session";
-import { color } from "../../src/theme";
+import { color, useTheme } from "../../src/theme";
 import { Btn, Card, Field, Pill, t, useTopInset } from "../../src/ui";
 
 const STEPS = ["What", "Where", "Details"];
 
 export default function Report() {
+  useTheme(); // screens repaint with the scheme
   const router = useRouter();
   const top = useTopInset();
   const { user } = useSession();
@@ -30,6 +31,9 @@ export default function Report() {
   const [assist, setAssist] = useState<ReportAssist | null>(null);
   const [checking, setChecking] = useState(false);
   const [locating, setLocating] = useState(false);
+  // One in-app explanation before the OS permission dialog (Apple HIG / Play policy:
+  // prime the request with context or a cold denial sticks for good).
+  const [locPrimerShown, setLocPrimerShown] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Incident | null>(null);
 
@@ -48,15 +52,29 @@ export default function Report() {
   }, [pick?.lat, pick?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function useMyLocation() {
-    setLocating(true);
     setError(null);
+    if (!locPrimerShown) {
+      setLocPrimerShown(true);
+      Alert.alert(
+        "Use your location?",
+        "NowBey uses your location once, only to place the report pin near you. It is never tracked in the background, and the published pin is deliberately blurred.",
+        [
+          { text: "Not now", style: "cancel" },
+          { text: "Continue", onPress: () => void useMyLocation() },
+        ],
+      );
+      return;
+    }
+    setLocating(true);
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
       if (perm.status !== "granted") {
         setError("Allow location access, or tap the map to place the pin.");
         return;
       }
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      // Balanced, not High: the server deliberately fuzzes the stored pin (location-privacy)
+      // so GNSS precision is battery spent on accuracy that is then thrown away.
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       if (!inBahamas(p.lat, p.lng)) {
         setError("You do not seem to be in The Bahamas. Tap the map to place the pin instead.");
@@ -153,8 +171,10 @@ export default function Report() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: color.bg }}
-      contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 40 }}
+      contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 48 }}
       keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive"
     >
       <Text style={t.h1}>Report a spot</Text>
       <View style={{ backgroundColor: color.conch, padding: 8, borderRadius: 8, marginTop: 8 }}>

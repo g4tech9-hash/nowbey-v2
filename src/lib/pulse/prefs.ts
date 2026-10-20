@@ -30,7 +30,10 @@ export const PULSE_KEYS = {
 
 /** Layer 2's own surface colour, for <meta name="theme-color">. */
 export const PULSE_META_COLOR: Record<PulseTheme, string> = {
-  dark: "#000000",
+  // --meta-theme-color in src/styles/pulse/tokens.css — same value as the app's
+  // status-bar canvas (expo/src/theme.ts color.bg), so the phone's chrome matches
+  // whether NowBey is opened as the PWA or the installed app.
+  dark: "#0c151d",
   light: "#f7f3ec",
 };
 
