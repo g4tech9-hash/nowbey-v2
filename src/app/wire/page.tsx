@@ -14,7 +14,7 @@ import { getViewer } from "@/lib/viewer";
 import { EngagementSummary } from "@/components/engage/summary";
 import { engagementFor } from "@/lib/engage";
 import { NO_ENGAGEMENT } from "@/lib/engage-kinds";
-import { sanitizeArticleContent } from "@/lib/sanitize";
+import { stripMarkup } from "@/lib/sanitize";
 import { EmptyState, PageIntro, Panel, SectionTitle, Chip } from "@/components/ui";
 import { AvatarStack, CardLayered, CatBadge, FreshnessPill, LiveDot, MetaChip } from "@/ui/pulse";
 import { pulseCategoryMeta } from "@/ui/pulse/glyph";
@@ -144,13 +144,10 @@ export default async function WirePage() {
                           {n.aiSummary ? (
                             <p className="pulse-card-body line-clamp-3">
                               <span className="pulse-ai-brief">AI brief</span>
-                              {n.aiSummary}
+                              {stripMarkup(n.aiSummary)}
                             </p>
                           ) : n.summary ? (
-                            <p
-                              className="pulse-card-body line-clamp-3"
-                              dangerouslySetInnerHTML={{ __html: sanitizeArticleContent(n.summary) }}
-                            />
+                            <p className="pulse-card-body line-clamp-3">{stripMarkup(n.summary)}</p>
                           ) : null}
 
                           <div className="mt-3 flex flex-wrap items-center gap-2">

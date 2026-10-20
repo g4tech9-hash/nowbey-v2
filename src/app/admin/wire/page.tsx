@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { newsItems } from "@/db/schema";
 import { timeAgo } from "@/lib/geo";
+import { stripMarkup } from "@/lib/sanitize";
 import { RemoveStoryButton, ReviewButtons, SendAlertButton } from "@/components/admin-actions";
 import { FacebookPagesAdmin } from "@/components/admin-facebook-pages";
 import { Pill } from "@/components/admin-ui";
@@ -75,7 +76,7 @@ export default async function WireAdmin() {
               <li key={n.id} className="flex flex-wrap items-start justify-between gap-3 py-2.5">
                 <div className="min-w-0 flex-1">
                   <p className="text-[13px] font-semibold text-primary">{n.title}</p>
-                  {n.summary && n.summary !== n.title ? <p className="mt-0.5 text-[12px] text-secondary">{n.summary}</p> : null}
+                  {n.summary && n.summary !== n.title ? <p className="mt-0.5 text-[12px] text-secondary">{stripMarkup(n.summary)}</p> : null}
                   <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="block truncate text-[11.5px] text-text-accent underline">
                     {n.url}
                   </a>

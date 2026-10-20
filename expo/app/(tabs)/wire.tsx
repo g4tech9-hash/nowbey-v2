@@ -3,7 +3,7 @@ import { Alert, FlatList, Linking, Pressable, RefreshControl, Text, View } from 
 import { useFocusEffect } from "expo-router";
 import { API_BASE, api, errMsg, type NewsItem } from "../../src/api";
 import { categoryOf, timeAgo } from "../../src/geo";
-import { sanitizeArticleContent } from "../../src/sanitize";
+import { stripMarkup } from "../../src/sanitize";
 import { Btn, Card, CategoryBadge, Field, t, useTopInset, color } from "../../src/ui";
 
 export default function Wire() {
@@ -114,7 +114,7 @@ export default function Wire() {
             </Text>
             {item.summary ? (
               <Text style={[t.muted, { marginTop: 4 }]} numberOfLines={2}>
-                {sanitizeArticleContent(item.summary)}
+                {stripMarkup(item.summary)}
               </Text>
             ) : null}
             <Text style={[t.subtle, { marginTop: 8 }]}>
