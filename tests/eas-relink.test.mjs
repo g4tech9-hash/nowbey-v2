@@ -89,18 +89,30 @@ test('a linked config is intact (a check, not a move)', () => {
   assert.match(output, /EAS link is intact/);
 });
 
-test('the committed app.json is wholly unlinked while the move is pending', () => {
-  // This is the state the local Gradle fallback builds from: no project UUID and no updates URL,
-  // which `expo prebuild` reads as "EAS Update disabled". A null url would instead bake
-  // EXPO_UPDATE_URL="[object Object]" into the APK, so the keys are absent, not null.
-  assert.equal(realApp.expo.extra?.eas?.projectId, undefined, 'no stale project UUID is committed');
-  assert.equal(realApp.expo.updates?.url, undefined, 'no stale updates URL is committed');
+test('the committed app.json is wholly linked or wholly unlinked — never a null half-state', () => {
+  // Between a strip and the relink that follows it, the config has no link at all: no project UUID
+  // and no updates URL, which `expo prebuild` reads as "EAS Update disabled" (the local Gradle
+  // fallback builds that state). After the relink, all three fields are present and agree. What
+  // must never exist is the null state commit f13e45f left behind: a null url resolves to `{}`,
+  // bakes EXPO_UPDATE_URL="[object Object]" into the APK, and makes `eas init` send `$appId: {}`.
+  const projectId = realApp.expo.extra?.eas?.projectId;
+  const url = realApp.expo.updates?.url;
+  assert.notEqual(projectId, null, 'a null projectId is not an unlinked project — it is an invalid one');
+  assert.notEqual(url, null, 'a null updates.url is not an unlinked project — it is an invalid one');
 
   const { status, output } = withCopy(realApp, (dir) => run(dir, ['--check']));
-  assert.equal(status, 1, output);
-  assert.match(output, /extra\.eas\.projectId is missing/);
-  assert.match(output, /updates\.url is missing/);
-  assert.doesNotMatch(output, /half-move/, 'nothing is half-moved — nothing is linked at all');
+  if (projectId === undefined) {
+    assert.equal(url, undefined, 'wholly unlinked: no updates URL either');
+    assert.equal(status, 1, output);
+    assert.match(output, /extra\.eas\.projectId is missing/);
+    assert.match(output, /updates\.url is missing/);
+    assert.doesNotMatch(output, /half-move/, 'nothing is half-moved — nothing is linked at all');
+  } else {
+    assert.match(projectId, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'the committed projectId is a UUID');
+    assert.equal(url, `https://u.expo.dev/${projectId}`, 'updates.url points at the committed project');
+    assert.equal(status, 0, output);
+    assert.match(output, /EAS link is intact/);
+  }
 });
 
 test('--check --owner is the "has the move landed yet?" question', () => {

@@ -78,21 +78,38 @@ test('moving the app to another Expo account passes preflight', () => {
   assert.match(output, /PREFLIGHT PASSED/);
 });
 
-test('the committed app.json is wholly unlinked: the EAS path refuses it, the fallback accepts it', () => {
-  // Documents the deliberate post-strip state. If this ever fails, app.json grew a partial link
-  // (or a real one) without the tests being told.
-  assert.equal(baseApp.extra?.eas?.projectId, undefined, 'no project UUID is committed');
-  assert.equal(baseApp.updates?.url, undefined, 'no updates URL is committed — null would bake [object Object] into the APK');
+test('a wholly unlinked config is refused by the EAS path and accepted by the fallback', () => {
+  // The state between a strip and the relink that follows it: no project UUID and no updates URL.
+  const unlinked = clone(baseApp);
+  if (unlinked.extra) delete unlinked.extra.eas;
+  delete unlinked.updates;
 
-  const strict = preflight(clone(baseApp));
+  const strict = preflight(unlinked);
   assert.equal(strict.status, 1, strict.output);
   assert.match(strict.output, /FAIL EAS project is linked/);
 
-  const fallback = preflight(clone(baseApp), ['--allow-unlinked']);
+  const fallback = preflight(unlinked, ['--allow-unlinked']);
   assert.equal(fallback.status, 0, fallback.output);
   assert.match(fallback.output, /PREFLIGHT PASSED \(static only, local build without EAS link\)/);
   assert.match(fallback.output, /WARN EAS project is not linked .*OTA updates disabled/);
   assert.match(fallback.output, /WARN updates\.url is absent/);
+});
+
+test('the committed app.json is wholly linked or wholly unlinked, and never null', () => {
+  const projectId = baseApp.extra?.eas?.projectId;
+  const url = baseApp.updates?.url;
+  assert.notEqual(projectId, null, 'a null projectId resolves to {} and breaks eas init');
+  assert.notEqual(url, null, 'a null updates.url bakes [object Object] into the APK');
+  if (projectId === undefined) {
+    assert.equal(url, undefined, 'wholly unlinked has no URL either');
+    assert.match(preflight(clone(baseApp), ['--allow-unlinked']).output, /PREFLIGHT PASSED/);
+  } else {
+    assert.match(projectId, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+    assert.equal(url, `https://u.expo.dev/${projectId}`);
+    const { status, output } = preflight(clone(baseApp));
+    assert.equal(status, 0, output);
+    assert.match(output, /PREFLIGHT PASSED/);
+  }
 });
 
 test('a half-move (updates.url left on the old project) fails preflight, even for the fallback', () => {
