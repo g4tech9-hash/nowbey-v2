@@ -101,7 +101,7 @@ export default function Feed() {
         </View>
       </Banner>
 
-      {/* Status pills */}
+      {/* Status pills — keep scroll so Filter stays reachable */}
       <FilterPillRow>
         {STATUSES.map((s) => (
           <FilterPill key={s.key} label={s.label} active={status === s.key} onPress={() => { hapticLight(); setStatus(s.key); }} />
@@ -109,8 +109,8 @@ export default function Feed() {
         <FilterPill label="Filter" icon={<Ionicons name="options-outline" size={14} color={color.muted} />} onPress={() => setSheetOpen(true)} />
       </FilterPillRow>
 
-      {/* Category pills */}
-      <FilterPillRow>
+      {/* Category pills — Q2 choice: wrap on mobile so all hazards visible without pan */}
+      <FilterPillRow wrap>
         <FilterPill label="Everything" active={cat === null} onPress={() => setCat(null)} />
         {CATEGORY_KEYS.map((k) => (
           <FilterPill
@@ -123,8 +123,8 @@ export default function Feed() {
         ))}
       </FilterPillRow>
 
-      {/* Island pills */}
-      <FilterPillRow>
+      {/* Island pills — wrap too */}
+      <FilterPillRow wrap>
         <FilterPill label="Every island" active={island === null} onPress={() => setIsland(null)} />
         {PARISHES.slice(0, 12).map((p) => (
           <FilterPill key={p} label={p} active={island === p} onPress={() => setIsland(island === p ? null : p)} />

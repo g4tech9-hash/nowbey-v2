@@ -2,13 +2,15 @@
  * Pulse Bottom Nav — rebuild with haptics + reanimated + SafeArea
  * Center FAB is elevated, spring-scaled, and handles Dynamic Island / nav bar insets.
  */
+import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
 import { color, useTheme } from "../../src/theme";
-import { hapticLight, hapticMedium } from "../../src/design-system/haptics";
+import { hapticMedium } from "../../src/design-system/haptics";
+import { ReportQuickSheet } from "../../src/design-system/ReportQuickSheet";
 
 const EXPANDED = process.env.EXPO_PUBLIC_LAUNCH_STAGE === "expanded";
 const SHOW_LIFE = EXPANDED && process.env.EXPO_PUBLIC_FEATURE_ISLAND_LIFE === "true";
@@ -79,41 +81,62 @@ const styles = StyleSheet.create({
 
 export default function TabsLayout() {
   useTheme();
-  return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        sceneStyle: { backgroundColor: color.bg },
-        tabBarStyle: {
-          backgroundColor: color.bg,
-          borderTopColor: color.line,
-          borderTopWidth: 1,
-          overflow: "visible",
-          // Safe area is handled by Tabs itself; we still pad via insets inside BottomTabBar
-          height: 64,
-          paddingTop: 4,
-        },
-        tabBarActiveTintColor: color.tideLight,
-        tabBarInactiveTintColor: color.muted,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: "800" as any, letterSpacing: 0.3 },
-        tabBarItemStyle: { minHeight: 44 },
-        tabBarHideOnKeyboard: true,
-      }}
-    >
-      <Tabs.Screen name="index" options={{ title: "Feed", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="newspaper-outline" size={size} color={c} /> }} />
-      <Tabs.Screen name="map" options={{ title: "Map", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="map-outline" size={size} color={c} /> }} />
-      <Tabs.Screen
-        name="report"
-        options={{
-          title: "Report",
-          tabBarButton: (props) => <ReportTabButton {...props} />,
-          tabBarLabel: () => null,
+  const [quickOpen, setQuickOpen] = React.useState(false);
+
+  // Intercept the centre tab: open the half-sheet instead of navigating to /report.
+  // The /report route still exists for the "Advanced" link and deep-links.
+  const QuickReportButton = React.useCallback(
+    (props: any) => (
+      <ReportTabButton
+        {...props}
+        onPress={() => {
+          hapticMedium();
+          setQuickOpen(true);
         }}
+        accessibilityState={{ selected: false }}
       />
-      <Tabs.Screen name="life" options={{ href: SHOW_LIFE ? undefined : null, title: "Life", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="sparkles-outline" size={size} color={c} /> }} />
-      <Tabs.Screen name="wire" options={{ title: "Wire", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="globe-outline" size={size} color={c} /> }} />
-      <Tabs.Screen name="gas" options={{ href: SHOW_GAS ? undefined : null, title: "Gas", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="speedometer-outline" size={size} color={c} /> }} />
-      <Tabs.Screen name="you" options={{ title: "You", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="person-circle-outline" size={size} color={c} /> }} />
-    </Tabs>
+    ),
+    [],
+  );
+
+  return (
+    <>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          sceneStyle: { backgroundColor: color.bg },
+          tabBarStyle: {
+            backgroundColor: color.bg,
+            borderTopColor: color.line,
+            borderTopWidth: 1,
+            overflow: "visible",
+            height: 64,
+            paddingTop: 4,
+          },
+          tabBarActiveTintColor: color.tideLight,
+          tabBarInactiveTintColor: color.muted,
+          tabBarLabelStyle: { fontSize: 10, fontWeight: "800" as any, letterSpacing: 0.3 },
+          tabBarItemStyle: { minHeight: 44 },
+          tabBarHideOnKeyboard: true,
+        }}
+      >
+        <Tabs.Screen name="index" options={{ title: "Feed", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="newspaper-outline" size={size} color={c} /> }} />
+        <Tabs.Screen name="map" options={{ title: "Map", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="map-outline" size={size} color={c} /> }} />
+        <Tabs.Screen
+          name="report"
+          listeners={{ tabPress: (e: any) => e.preventDefault() }}
+          options={{
+            title: "Report",
+            tabBarButton: QuickReportButton,
+            tabBarLabel: () => null,
+          }}
+        />
+        <Tabs.Screen name="life" options={{ href: SHOW_LIFE ? undefined : null, title: "Life", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="sparkles-outline" size={size} color={c} /> }} />
+        <Tabs.Screen name="wire" options={{ title: "Wire", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="globe-outline" size={size} color={c} /> }} />
+        <Tabs.Screen name="gas" options={{ href: SHOW_GAS ? undefined : null, title: "Gas", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="speedometer-outline" size={size} color={c} /> }} />
+        <Tabs.Screen name="you" options={{ title: "You", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="person-circle-outline" size={size} color={c} /> }} />
+      </Tabs>
+      <ReportQuickSheet open={quickOpen} onClose={() => setQuickOpen(false)} />
+    </>
   );
 }

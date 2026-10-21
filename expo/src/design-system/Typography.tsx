@@ -6,7 +6,8 @@
  * Weights: bold headers (800), medium/semi-bold pills (700-750), regular body (400-500)
  */
 import { Text as RNText, type TextProps, type TextStyle } from "react-native";
-import { color, type as typeScale, useTheme } from "../theme";
+import { color, useTheme } from "../theme";
+import { fontFamily } from "../font";
 
 // Fluid scale — mirrors --pulse-text-* clamp values, flattened to max for mobile
 const sizes = {
@@ -26,6 +27,7 @@ type Variant = keyof typeof styles;
 const styles: Record<string, TextStyle> = {
   // Display — app title “NowBey” (Bricolage, bold, tight tracking)
   display: {
+    fontFamily: fontFamily.display,
     fontSize: sizes.display,
     fontWeight: "800",
     letterSpacing: -1.2,

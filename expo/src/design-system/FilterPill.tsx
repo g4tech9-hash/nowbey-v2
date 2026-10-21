@@ -114,6 +114,7 @@ export const FilterPill = memo(FilterPillInner);
 /**
  * FilterPillRow — horizontal scroller for pills (web .pulse-pill-row)
  * On mobile: horizontal ScrollView, no wrap, 44px touch targets preserved
+ * Set wrap=true to honour Q2 “wrap” choice (used in Feed header + filter sheet).
  */
 import { ScrollView } from "react-native";
 
@@ -121,11 +122,16 @@ export function FilterPillRow({
   children,
   style,
   contentStyle,
+  wrap = false,
 }: {
   children: React.ReactNode;
   style?: ViewStyle;
   contentStyle?: ViewStyle;
+  wrap?: boolean;
 }) {
+  if (wrap) {
+    return <View style={[{ flexDirection: "row", flexWrap: "wrap", gap: 0, paddingRight: 8 }, style, contentStyle]}>{children}</View>;
+  }
   return (
     <ScrollView
       horizontal
@@ -138,4 +144,11 @@ export function FilterPillRow({
       {children}
     </ScrollView>
   );
+}
+
+/**
+ * FilterPillWrap — explicit wrap container (alias for FilterPillRow wrap)
+ */
+export function FilterPillWrap({ children, style }: { children: React.ReactNode; style?: ViewStyle }) {
+  return <FilterPillRow wrap style={style}>{children}</FilterPillRow>;
 }
