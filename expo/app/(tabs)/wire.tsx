@@ -1,14 +1,26 @@
+/**
+ * News Wire — rebuilt with Pulse Design System
+ * FlashList + GridBackground + NewsWireCard + Skeleton + BottomSheet-ready
+ */
 import { useCallback, useState } from "react";
-import { Alert, FlatList, Linking, Pressable, RefreshControl, Text, View } from "react-native";
+import { Alert, Linking, Text, View } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { API_BASE, api, errMsg, type NewsItem } from "../../src/api";
-import { categoryOf, timeAgo } from "../../src/geo";
-import { stripMarkup } from "../../src/sanitize";
-import { Btn, Card, CategoryBadge, Field, t, useTopInset, color, useTheme } from "../../src/ui";
+import { categoryOf } from "../../src/geo";
+import { color, useTheme } from "../../src/theme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GridBackground } from "../../src/design-system/GridBackground";
+import { NewsWireCard } from "../../src/design-system/NewsWireCard";
+import { FlashFeed } from "../../src/design-system/FlashFeed";
+import { FeedSkeleton } from "../../src/design-system/Skeleton";
+import { Card } from "../../src/design-system/Card";
+import { Button } from "../../src/design-system/Button";
+import { Field } from "../../src/ui";
 
 export default function Wire() {
-  useTheme(); // screens repaint with the scheme
-  const top = useTopInset();
+  useTheme();
+  const insets = useSafeAreaInsets();
+  const top = insets.top;
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,7 +55,7 @@ export default function Wire() {
     setChecking(true);
     try {
       const r = await api.refreshNews();
-      const n = r.stats.inserted ?? 0;
+      const n = (r as any).stats?.inserted ?? 0;
       Alert.alert("Wire updated", n ? `${n} new ${n === 1 ? "story" : "stories"} added.` : "You are all caught up.");
       await load();
     } catch (e) {
@@ -68,76 +80,69 @@ export default function Wire() {
     }
   }
 
-  return (
-    <FlatList
-      style={{ flex: 1, backgroundColor: color.bg }}
-      data={items}
-      keyExtractor={(n) => n.id}
-      contentContainerStyle={{ padding: 16, paddingTop: top + 12, paddingBottom: 32, gap: 10 }}
-      refreshControl={
-        <RefreshControl
-          tintColor={color.tideLight}
-          refreshing={refreshing}
-          onRefresh={() => {
-            setRefreshing(true);
-            void load();
-          }}
-        />
-      }
-      ListHeaderComponent={
-        <View style={{ gap: 12 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <View>
-              <Text style={t.h1}>News wire</Text>
-              <Text style={t.subtle}>Bahamian outlets, placed on the map</Text>
-            </View>
-            <Btn label="Refresh" onPress={refreshStories} busy={checking} style={{ paddingVertical: 8, minHeight: 38 }} />
-          </View>
-          {error ? <Text style={t.error}>{error}</Text> : null}
-          <Card>
-            <Text style={t.h3}>Got a link worth mapping?</Text>
-            <Text style={[t.muted, { marginTop: 4 }]}>Send the story and we will work out where it happened.</Text>
-            <Field label="Link" value={url} onChangeText={setUrl} placeholder="https://…" keyboardType="url" />
-            <Field label="Why it matters, and where" value={note} onChangeText={setNote} placeholder="Ferry cuts affect Bimini traffic" multiline autoCapitalize="sentences" />
-            <Btn label="Send to the desk" onPress={send} busy={sending} disabled={url.trim().length < 12} style={{ marginTop: 12 }} />
-          </Card>
+  const header = (
+    <View style={{ gap: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <View>
+          <Text style={{ color: color.text, fontSize: 22, fontWeight: "800", letterSpacing: -0.5 }}>News wire</Text>
+          <Text style={{ color: color.subtle, fontSize: 12, marginTop: 2 }}>Bahamian outlets, placed on the map</Text>
         </View>
-      }
-      renderItem={({ item }) => (
-        <Pressable onPress={() => void Linking.openURL(item.url).catch(() => {})} accessibilityRole="link">
-          <Card accent={categoryOf(item.category).color}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <CategoryBadge category={item.category} />
-              <Text style={t.subtle}>{timeAgo(item.publishedAt)}</Text>
-            </View>
-            <Text style={[t.h3, { marginTop: 8 }]} numberOfLines={3}>
-              {item.title}
-            </Text>
-            {item.summary ? (
-              <Text style={[t.muted, { marginTop: 4 }]} numberOfLines={2}>
-                {stripMarkup(item.summary)}
-              </Text>
-            ) : null}
-            <Text style={[t.subtle, { marginTop: 8 }]}>
-              {item.sourceName}
-              {item.parish ? ` · ${item.parish}` : ""}
-              {item.lat !== null ? " · on the map" : ""}
-            </Text>
-            <Pressable onPress={() => void Linking.openURL(`${API_BASE}/wire/${item.id}`).catch(() => {})} hitSlop={8} accessibilityRole="link" style={{ marginTop: 8, alignSelf: "flex-start" }}>
-              <Text style={{ color: color.tideLight, fontWeight: "800", fontSize: 12.5 }}>React and comment ›</Text>
-            </Pressable>
-          </Card>
-        </Pressable>
-      )}
-      ListEmptyComponent={
-        loading ? null : (
-          <Card style={{ alignItems: "center" }}>
-            <Text style={t.h3}>No stories yet</Text>
-            <Text style={[t.muted, { marginTop: 6, textAlign: "center" }]}>Tap Refresh to bring in the latest headlines.</Text>
-          </Card>
-        )
-      }
-    />
+        <Button label="Refresh" onPress={refreshStories} busy={checking} size="sm" />
+      </View>
+      {error ? <Text style={{ color: color.conch, fontSize: 12.5 }}>{error}</Text> : null}
+      <Card>
+        <Text style={{ color: color.text, fontSize: 15, fontWeight: "700" }}>Got a link worth mapping?</Text>
+        <Text style={{ color: color.muted, fontSize: 13, marginTop: 4 }}>Send the story and we will work out where it happened.</Text>
+        <Field label="Link" value={url} onChangeText={setUrl} placeholder="https://…" keyboardType="url" />
+        <Field label="Why it matters, and where" value={note} onChangeText={setNote} placeholder="Ferry cuts affect Bimini traffic" multiline autoCapitalize="sentences" />
+        <Button label="Send to the desk" onPress={send} busy={sending} disabled={url.trim().length < 12} style={{ marginTop: 12 } as any} />
+      </Card>
+    </View>
+  );
+
+  if (loading && !items.length) {
+    return (
+      <GridBackground variant="full">
+        <View style={{ flex: 1, padding: 16, paddingTop: top + 12 }}>
+          {header}
+          <FeedSkeleton count={3} />
+        </View>
+      </GridBackground>
+    );
+  }
+
+  return (
+    <GridBackground variant="full">
+      <FlashFeed
+        data={items}
+        keyExtractor={(n: any) => n.id}
+        contentPaddingTop={top + 12}
+        header={header}
+        error={error}
+        loading={loading}
+        refreshing={refreshing}
+        onRefresh={() => {
+          setRefreshing(true);
+          void load();
+        }}
+        skeleton="wire"
+        emptyTitle="No stories yet"
+        emptyBody="Tap Refresh to bring in the latest headlines."
+        renderItem={({ item }: any) => (
+          <NewsWireCard
+            id={item.id}
+            title={item.title}
+            summary={item.summary}
+            category={item.category}
+            sourceName={item.sourceName}
+            parish={item.parish}
+            lat={item.lat}
+            lng={item.lng}
+            url={item.url}
+            publishedAt={item.publishedAt}
+          />
+        )}
+      />
+    </GridBackground>
   );
 }
-

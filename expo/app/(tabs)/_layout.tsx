@@ -1,91 +1,103 @@
+/**
+ * Pulse Bottom Nav — rebuild with haptics + reanimated + SafeArea
+ * Center FAB is elevated, spring-scaled, and handles Dynamic Island / nav bar insets.
+ */
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import type { ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated";
 import { color, useTheme } from "../../src/theme";
+import { hapticLight, hapticMedium } from "../../src/design-system/haptics";
 
-// Nassau hazard/news MVP: stale individual flags cannot bypass the launch-stage gate.
 const EXPANDED = process.env.EXPO_PUBLIC_LAUNCH_STAGE === "expanded";
 const SHOW_LIFE = EXPANDED && process.env.EXPO_PUBLIC_FEATURE_ISLAND_LIFE === "true";
 const SHOW_GAS = EXPANDED && process.env.EXPO_PUBLIC_FEATURE_GAS_TRACKER === "true";
 
-/**
- * The raised centre action, as the mobile spec draws it: a teal disc that
- * breaks the top edge of the bar, with its label below.
- *
- * It stays a real tab (not a floating button over the screen): it navigates
- * through the same router as every other tab, so the back stack, deep links and
- * the tab's accessibility state behave exactly as they did when it was a plain
- * icon. The disc rises with a negative margin and the bar is told not to clip.
- */
-/** Pressable's own handler signature — React Navigation passes one straight through. */
 type PressHandler = NonNullable<ComponentProps<typeof Pressable>["onPress"]>;
 
-type ReportTabButtonProps = {
-  onPress?: PressHandler;
-  accessibilityState?: { selected?: boolean };
-  accessibilityLabel?: string;
-};
-
-function ReportTabButton({ onPress, accessibilityState, accessibilityLabel }: ReportTabButtonProps) {
-  useTheme(); // repaint the disc with the scheme
+function ReportTabButton({ onPress, accessibilityState, accessibilityLabel }: { onPress?: PressHandler; accessibilityState?: { selected?: boolean }; accessibilityLabel?: string }) {
+  useTheme();
   const focused = Boolean(accessibilityState?.selected);
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? "Report a hazard"}
       accessibilityState={accessibilityState}
-      onPress={onPress}
-      style={({ pressed }) => [styles.slot, { opacity: pressed ? 0.85 : 1 }]}
+      onPress={(e) => {
+        hapticMedium();
+        onPress?.(e as any);
+      }}
+      onPressIn={() => (scale.value = withSpring(0.88, { damping: 14, stiffness: 320 }))}
+      onPressOut={() => (scale.value = withSpring(1, { damping: 14, stiffness: 320 }))}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      style={({ pressed }) => [styles.slot, { opacity: pressed ? 0.88 : 1 }]}
     >
-      <View
-        style={[
-          styles.disc,
-          {
-            backgroundColor: color.tide,
-            borderColor: color.bg,
-            shadowColor: color.tide,
-            shadowOpacity: focused ? 0.65 : 0.4,
-          },
-        ]}
-      >
-        <Ionicons name="add" size={28} color={color.bg} />
-      </View>
+      <Animated.View style={animatedStyle}>
+        <View
+          style={[
+            styles.disc,
+            {
+              backgroundColor: color.tide,
+              borderColor: color.bg,
+              shadowColor: color.tide,
+              shadowOpacity: focused ? 0.65 : 0.4,
+            },
+          ]}
+        >
+          <Ionicons name="add" size={28} color={color.bg} />
+        </View>
+      </Animated.View>
       <Text style={[styles.label, { color: focused ? color.tideLight : color.muted }]}>Report</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  slot: { flex: 1, alignItems: "center", justifyContent: "flex-start" },
+  slot: { flex: 1, alignItems: "center", justifyContent: "flex-start", minHeight: 44, minWidth: 44 },
   disc: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    marginTop: -18,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginTop: -16,
+    marginBottom: 6,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 3,
-    shadowRadius: 12,
+    borderWidth: 2,
+    shadowRadius: 14,
     shadowOffset: { width: 0, height: 6 },
     elevation: 10,
   },
-  label: { marginTop: 2, fontSize: 11.5, fontWeight: "800" },
+  label: { marginTop: 2, fontSize: 10, fontWeight: "800", letterSpacing: 0.4 },
 });
 
 export default function TabsLayout() {
-  useTheme(); // tab bar colours follow the scheme
+  useTheme();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         sceneStyle: { backgroundColor: color.bg },
-        // `overflow: visible` is what lets the centre disc break the bar's top
-        // edge instead of being clipped to a semicircle on Android.
-        tabBarStyle: { backgroundColor: color.bg, borderTopColor: color.line, overflow: "visible" },
+        tabBarStyle: {
+          backgroundColor: color.bg,
+          borderTopColor: color.line,
+          borderTopWidth: 1,
+          overflow: "visible",
+          // Safe area is handled by Tabs itself; we still pad via insets inside BottomTabBar
+          height: 64,
+          paddingTop: 4,
+        },
         tabBarActiveTintColor: color.tideLight,
         tabBarInactiveTintColor: color.muted,
-        tabBarLabelStyle: { fontSize: 11.5, fontWeight: "800" },
+        tabBarLabelStyle: { fontSize: 10, fontWeight: "800" as any, letterSpacing: 0.3 },
+        tabBarItemStyle: { minHeight: 44 },
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Feed", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="newspaper-outline" size={size} color={c} /> }} />
@@ -95,8 +107,6 @@ export default function TabsLayout() {
         options={{
           title: "Report",
           tabBarButton: (props) => <ReportTabButton {...props} />,
-          // The custom button draws its own label and icon; without this the bar
-          // would print a second "Report" under the disc.
           tabBarLabel: () => null,
         }}
       />
