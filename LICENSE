@@ -1,0 +1,49 @@
+Copyright (c) 2026 Oasis Technology. All rights reserved.
+
+PROPRIETARY AND CONFIDENTIAL — NO LICENSE GRANTED
+
+NowBey (this repository, including its website, mobile application, source
+code, design system, copy, graphics, database schema and documentation) is the
+proprietary property of Oasis Technology.
+
+No license, right, title or interest — express or implied, by estoppel or
+otherwise — is granted under any patent, copyright, trademark, trade secret or
+other intellectual property right to use, copy, modify, merge, publish,
+distribute, sublicense, sell, rent, lend, host, frame, scrape, train a machine
+learning model on, or create derivative works of any part of this repository or
+its contents, in whole or in part, for any purpose.
+
+Publishing this repository does not grant permission to reuse it. It is public
+for transparency, issue reporting and community review only.
+
+Specifically, and without limiting the above, you may NOT:
+
+  1. Copy, fork, mirror, or redistribute this codebase or any part of it,
+     whether modified or unmodified, publicly or privately.
+  2. Use the name "NowBey", the NowBey logo, the tagline "Stay Safe, Bahamas",
+     or any confusingly similar name, mark, icon or domain, for any product,
+     service, company or app. These are trademarks of Oasis Technology (see
+     TRADEMARKS.md).
+  3. Use any part of this code or its outputs to train, fine-tune, evaluate or
+     ground a machine learning or generative AI model.
+  4. Remove, obscure or alter any copyright, trademark or proprietary notice.
+  5. Represent that your product or service is affiliated with, endorsed by, or
+     derived from NowBey or Oasis Technology.
+
+Contributions: any contribution submitted to this repository is accepted only
+under a signed Contributor License Agreement that assigns ownership to Oasis
+Technology. Unsolicited submissions (including pull requests, issues and
+patches) grant Oasis Technology a perpetual, irrevocable, royalty-free,
+worldwide licence to use, modify and distribute the submission as part of
+NowBey, without obligation to you.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+To request permission, or to report infringement, contact:
+Oasis Technology — oasistechnology242@gmail.com

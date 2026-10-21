@@ -8,6 +8,7 @@ import { disablePush, enablePush, pushState, type PushState } from "../../src/pu
 import { useSession } from "../../src/session";
 import { color, useTheme, type ThemeMode } from "../../src/theme";
 import { BadgeMark, Btn, Card, Field, Pill, t, useTopInset } from "../../src/ui";
+import { LEGAL } from "../../src/brand";
 
 const DEFAULT_CATS: CategoryKey[] = ["flood", "storm", "power", "water", "fire"];
 
@@ -38,7 +39,35 @@ export default function You() {
       {user ? <Btn label="Sign out" kind="ghost" onPress={() => void signOut()} /> : null}
       <ThemeCard />
       <ServerBox />
+      <LegalNotice />
     </ScrollView>
+  );
+}
+
+/**
+ * The brand line, and the two documents people are asked to agree to. Kept in
+ * the You tab rather than a settings screen so it is reachable signed out too.
+ */
+function LegalNotice() {
+  const year = new Date().getFullYear();
+  return (
+    <View style={{ gap: 4, paddingTop: 8, paddingBottom: 8, alignItems: "center" }}>
+      <Text style={[t.subtle, { textAlign: "center" }]}>
+        NowBey™ · {LEGAL.copyright(year)}
+      </Text>
+      <Text style={[t.subtle, { textAlign: "center" }]}>{LEGAL.trademark}</Text>
+      <View style={{ flexDirection: "row", gap: 16, marginTop: 4 }}>
+        <Text style={[t.subtle, { textDecorationLine: "underline" }]} onPress={() => void Linking.openURL(`${API_BASE}/terms`).catch(() => {})}>
+          Terms of use
+        </Text>
+        <Text style={[t.subtle, { textDecorationLine: "underline" }]} onPress={() => void Linking.openURL(`${API_BASE}/privacy`).catch(() => {})}>
+          Privacy policy
+        </Text>
+      </View>
+      <Text style={[t.subtle, { textAlign: "center", marginTop: 4 }]} onPress={() => void Linking.openURL(`mailto:${LEGAL.email}`).catch(() => {})}>
+        {LEGAL.entity} · {LEGAL.email}
+      </Text>
+    </View>
   );
 }
 

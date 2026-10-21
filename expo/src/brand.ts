@@ -11,6 +11,20 @@ export const BRAND = {
   promise: "Know what is happening, island by island.",
 } as const;
 
+/**
+ * Who owns the app, and the notice that goes with it.
+ *
+ * ™ not ®: the marks are claimed by use, not yet registered. Switch to ® only
+ * once a registration issues — using it early is itself a misrepresentation.
+ * See TRADEMARKS.md in the repository root.
+ */
+export const LEGAL = {
+  entity: "Oasis Technology",
+  email: "oasistechnology242@gmail.com",
+  trademark: "NowBey™ is a trademark of Oasis Technology.",
+  copyright: (year = new Date().getFullYear()) => `© ${year} Oasis Technology. All rights reserved.`,
+} as const;
+
 export type ThemeKey = "island" | "classic";
 
 const requested = process.env.EXPO_PUBLIC_NOWBEY_THEME?.trim().toLowerCase();

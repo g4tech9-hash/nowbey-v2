@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PageHead } from "@/components/app-shell";
-import { LEGAL_UPDATED, SUPPORT_EMAIL } from "@/lib/legal";
+import { COPYRIGHT_NOTICE, LEGAL_ENTITY, LEGAL_UPDATED, SUPPORT_EMAIL, TRADEMARK_NOTICE } from "@/lib/legal";
 import { EmergencyStrip } from "@/components/emergency-notice";
 
 export const metadata = { title: "Terms of use" };
@@ -34,6 +34,12 @@ const SECTIONS: { h: string; p: string[] }[] = [
     p: [
       "Every report, comment and post has a Report option. Staff review reports and act on them, normally within 24 hours.",
       "You can block a user from the app to stop seeing their content.",
+    ],
+  },
+  {
+    h: "Who we are",
+    p: [
+      `NowBey is operated by ${LEGAL_ENTITY}. These terms are an agreement between you and ${LEGAL_ENTITY}.`,
     ],
   },
   {
@@ -92,6 +98,9 @@ export default function TermsPage() {
       </div>
       <p className="mt-4 text-[12.5px] text-tertiary">
         Questions about these terms? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="font-bold text-secondary underline">{SUPPORT_EMAIL}</a> or read the <Link href="/privacy" className="font-bold text-secondary underline">privacy policy</Link>.
+      </p>
+      <p className="mt-2 text-[12px] text-tertiary">
+        {TRADEMARK_NOTICE} {COPYRIGHT_NOTICE} The NowBey name, logo and the tagline &ldquo;Stay Safe, Bahamas&rdquo; may not be used to name, package or market another product or service.
       </p>
     </div>
   );
