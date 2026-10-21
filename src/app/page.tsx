@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LEGAL_ENTITY } from "@/lib/legal";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { BRAND } from "@/lib/brand";
@@ -273,7 +274,9 @@ export default async function Landing() {
             <Dot color="var(--nb-gold)" />
             Starting in New Providence
           </span>
-          <span className={styles.footerCopy}>© {new Date().getFullYear()} NowBey</span>
+          <span className={styles.footerCopy}>
+            NowBey™ · © {new Date().getFullYear()} {LEGAL_ENTITY}
+          </span>
         </div>
       </footer>
     </div>

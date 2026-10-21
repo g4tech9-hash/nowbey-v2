@@ -1,12 +1,18 @@
 import Link from "next/link";
 import { PageHead } from "@/components/app-shell";
 import { EmergencyStrip } from "@/components/emergency-notice";
-import { LEGAL_UPDATED, SUPPORT_EMAIL } from "@/lib/legal";
+import { COPYRIGHT_NOTICE, LEGAL_ENTITY, LEGAL_UPDATED, SUPPORT_EMAIL, TRADEMARK_NOTICE } from "@/lib/legal";
 
 export const metadata = { title: "Privacy policy" };
 
 // TEMPLATE: written to match how NowBey works today. Have a Bahamian lawyer review it before you publish the apps.
 const SECTIONS: { h: string; p: string[] }[] = [
+  {
+    h: "Who we are",
+    p: [
+      `NowBey is operated by ${LEGAL_ENTITY}, the data controller for the information described here.`,
+    ],
+  },
   {
     h: "What we collect",
     p: [
@@ -88,6 +94,9 @@ export default function PrivacyPage() {
       </div>
       <p className="mt-4 text-[12.5px] text-tertiary">
         Questions about this policy? Email <a href={`mailto:${SUPPORT_EMAIL}`} className="font-bold text-secondary underline">{SUPPORT_EMAIL}</a> or read the <Link href="/terms" className="font-bold text-secondary underline">terms of use</Link>.
+      </p>
+      <p className="mt-2 text-[12px] text-tertiary">
+        {TRADEMARK_NOTICE} {COPYRIGHT_NOTICE}
       </p>
     </div>
   );
