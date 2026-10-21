@@ -328,7 +328,12 @@ test("the Expo report wizard is a hazard grid with a sticky action bar", () => {
 });
 
 test("the Expo feed card header is one row", () => {
+  // The Pulse rebuild moved the incident card out of the screen and into the design
+  // system, so the feed's header geometry is asserted where it is now written: the
+  // component `app/(tabs)/index.tsx` renders for every row.
   const feed = read("expo/app/(tabs)/index.tsx");
-  assert.match(feed, /flexShrink: 1[\s\S]{0,200}CategoryBadge/, "the badge may shrink");
-  assert.match(feed, /t\.subtle, \{ flexShrink: 0 \}/, "the timestamp never does");
+  const card = read("expo/src/design-system/HazardCard.tsx");
+  assert.match(feed, /from "\.\.\/\.\.\/src\/design-system\/HazardCard"/, "the feed renders the design-system card");
+  assert.match(card, /flexShrink: 1[\s\S]{0,200}CategoryBadge/, "the badge may shrink");
+  assert.match(card, /flexShrink: 0,[\s\S]{0,80}color: color\.subtle,/, "the timestamp never does");
 });

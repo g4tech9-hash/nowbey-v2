@@ -18,8 +18,18 @@ const SHOW_GAS = EXPANDED && process.env.EXPO_PUBLIC_FEATURE_GAS_TRACKER === "tr
 
 type PressHandler = NonNullable<ComponentProps<typeof Pressable>["onPress"]>;
 
+/**
+ * The centre button lives inside the tab bar, but the half-sheet it opens has to be
+ * a sibling of <Tabs> — a sheet rendered inside a 64px tab-bar slot would be
+ * clipped to the slot. Context carries the opener down instead of props, which
+ * keeps `tabBarButton: (props) => <ReportTabButton {...props} />` the plain,
+ * one-line form the mobile spec audits for.
+ */
+const QuickReportContext = React.createContext<() => void>(() => {});
+
 function ReportTabButton({ onPress, accessibilityState, accessibilityLabel }: { onPress?: PressHandler; accessibilityState?: { selected?: boolean }; accessibilityLabel?: string }) {
   useTheme();
+  const openQuick = React.useContext(QuickReportContext);
   const focused = Boolean(accessibilityState?.selected);
   const scale = useSharedValue(1);
 
@@ -34,6 +44,9 @@ function ReportTabButton({ onPress, accessibilityState, accessibilityLabel }: { 
       accessibilityState={accessibilityState}
       onPress={(e) => {
         hapticMedium();
+        // The quick composer opens instead of navigating to the /report tab.
+        // /report still exists for the "Advanced" link and deep links.
+        openQuick();
         onPress?.(e as any);
       }}
       onPressIn={() => (scale.value = withSpring(0.88, { damping: 14, stiffness: 320 }))}
@@ -67,7 +80,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    marginTop: -16,
+    // Matches the web FAB: .pulse-fab { transform: translate3d(-14px, -18px, 0) }
+    // — the disc breaks the bar's top edge by the same 18px.
+    marginTop: -18,
     marginBottom: 6,
     alignItems: "center",
     justifyContent: "center",
@@ -82,25 +97,10 @@ const styles = StyleSheet.create({
 export default function TabsLayout() {
   useTheme();
   const [quickOpen, setQuickOpen] = React.useState(false);
-
-  // Intercept the centre tab: open the half-sheet instead of navigating to /report.
-  // The /report route still exists for the "Advanced" link and deep-links.
-  const QuickReportButton = React.useCallback(
-    (props: any) => (
-      <ReportTabButton
-        {...props}
-        onPress={() => {
-          hapticMedium();
-          setQuickOpen(true);
-        }}
-        accessibilityState={{ selected: false }}
-      />
-    ),
-    [],
-  );
+  const openQuick = React.useCallback(() => setQuickOpen(true), []);
 
   return (
-    <>
+    <QuickReportContext.Provider value={openQuick}>
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -127,7 +127,7 @@ export default function TabsLayout() {
           listeners={{ tabPress: (e: any) => e.preventDefault() }}
           options={{
             title: "Report",
-            tabBarButton: QuickReportButton,
+            tabBarButton: (props) => <ReportTabButton {...props} />,
             tabBarLabel: () => null,
           }}
         />
@@ -137,6 +137,6 @@ export default function TabsLayout() {
         <Tabs.Screen name="you" options={{ title: "You", tabBarIcon: ({ color: c, size }: any) => <Ionicons name="person-circle-outline" size={size} color={c} /> }} />
       </Tabs>
       <ReportQuickSheet open={quickOpen} onClose={() => setQuickOpen(false)} />
-    </>
+    </QuickReportContext.Provider>
   );
 }
