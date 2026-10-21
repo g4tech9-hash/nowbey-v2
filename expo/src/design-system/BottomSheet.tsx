@@ -16,6 +16,7 @@ import React, { memo, useCallback, useMemo, useRef } from "react";
 import { Platform, View, Text, Pressable, Modal, ScrollView, StyleSheet, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { color, radius, useTheme } from "../theme";
+import { z } from "./tokens";
 import { Button } from "./Button";
 
 // Resolved once at module load — branch can never flip mid-session, so the
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
+    zIndex: z.sheet,
     elevation: 20,
   } as ViewStyle,
 });
