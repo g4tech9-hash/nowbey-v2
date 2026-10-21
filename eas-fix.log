@@ -1,0 +1,451 @@
+[Tue Oct 20 20:11:48 EDT 2026] Starting EAS credential and OTA fix loop
+[Tue Oct 20 20:11:48 EDT 2026] Inventory: Scanning for EXPO_TOKEN
+[Tue Oct 20 20:12:24 EDT 2026] Inventory: Scanning for EXPO_TOKEN (Foreground)
+Source: ./nowbey-v2-fresh/expo/.env.example, Length: 98, Fingerprint: cc807f44
+Saved login exists in ~/.expo/state.json
+[Tue Oct 20 20:12:27 EDT 2026] Diagnosis: Running free EAS calls
+--- whoami ---
+nowbey-v3
+supermario022@gmail.com
+
+Accounts:
+• nowbey-v3 (Role: Owner)
+• nowbey-v3s-team (Role: Owner)
+--- project:info ---
+Project config: "extra.eas.projectId" must be a string, found object. If you're not sure how to set it up on your own, remove the property entirely and it will be automatically configured on the next EAS CLI run.
+    Error: project:info command failed.
+project:info failed
+--- build:list ---
+Project config: "extra.eas.projectId" must be a string, found object. If you're not sure how to set it up on your own, remove the property entirely and it will be automatically configured on the next EAS CLI run.
+    Error: build:list command failed.
+build:list failed
+--- update:list (preview branch) ---
+Project config: "extra.eas.projectId" must be a string, found object. If you're not sure how to set it up on your own, remove the property entirely and it will be automatically configured on the next EAS CLI run.
+    Error: update:list command failed.
+update:list failed
+--- account:usage ---
+- Fetching usage data for account nowbey-v3s-team
+✔ Usage data loaded for nowbey-v3s-team
+{
+  "account": {
+    "name": "nowbey-v3s-team",
+    "plan": "Free",
+    "concurrencies": {
+      "total": 5,
+      "android": 5,
+      "ios": 1
+    },
+    "billingPeriod": {
+      "start": "2026-10-01T00:00:00.000Z",
+      "end": "2026-11-01T00:00:00.000Z",
+      "daysElapsed": 21,
+      "daysRemaining": 11,
+      "totalDays": 31
+    }
+  },
+  "builds": {
+    "plan": {
+      "used": 3,
+      "limit": 30,
+      "percentUsed": 10
+    },
+    "overage": {
+      "count": 0,
+      "costCents": 0,
+      "byWorkerSize": []
+    },
+    "byPlatformAndSize": [
+      {
+        "platform": "android",
+        "resourceClass": "medium",
+        "count": 3
+      }
+    ],
+    "ios": {
+      "plan": {
+        "used": 0,
+        "limit": 15,
+        "percentUsed": 0
+      }
+    },
+    "android": {
+      "plan": {
+        "used": 3,
+        "limit": 15,
+        "percentUsed": 20
+      }
+    }
+  },
+  "updates": {
+    "uniqueUpdaters": {
+      "plan": {
+        "used": 0,
+        "limit": 1000,
+        "percentUsed": 0
+      },
+      "overage": {
+        "count": 0,
+        "costCents": 0
+      }
+    },
+    "bandwidth": {
+      "plan": {
+        "usedBytes": 0,
+        "usedFormatted": "0.00 MiB",
+        "limitBytes": 107374182400,
+        "limitFormatted": "100 GiB",
+        "percentUsed": 0
+      },
+      "overage": {
+        "usedBytes": 0,
+        "usedFormatted": "0.00 MiB",
+        "costCents": 0
+      }
+    },
+    "overageCostCents": 0
+  },
+  "billing": {
+    "addons": [],
+    "estimated": {
+      "overageCents": 0,
+      "totalCents": 0
+    }
+  },
+  "billingUrl": "https://expo.dev/accounts/nowbey-v3s-team/settings/billing"
+}
+--- local compile proof ---
+build-apk-local: expo/google-services.json is missing; it comes from the FIREBASE_GOOGLE_SERVICES_JSON secret (never commit it)
+build-apk-local.sh failed
+[Tue Oct 20 20:13:12 EDT 2026] Fix: Updating app.json projectId and updates.url
+[Tue Oct 20 20:13:15 EDT 2026] Fix: Closing the OTA gap in eas.json
+[Tue Oct 20 20:13:19 EDT 2026] Diagnosis: Re-verifying project access with updated config
+--- whoami ---
+nowbey-v3
+supermario022@gmail.com
+
+Accounts:
+• nowbey-v3 (Role: Owner)
+• nowbey-v3s-team (Role: Owner)
+--- project:info ---
+
+fullName  @nowbey-v3s-team/nowbey
+ID        7c347b21-e481-4485-9512-4bdd64eb19a5
+--- build:list ---
+[
+  {
+    "id": "40db3409-cdcf-4232-9995-da53cc1590ed",
+    "status": "FINISHED",
+    "platform": "ANDROID",
+    "artifacts": {
+      "buildUrl": "https://expo.dev/artifacts/eas/ftCi7kadN-ki8rqCNS2eubvZIaeXWgR_T4dCnko7OoM.apk",
+      "applicationArchiveUrl": "https://expo.dev/artifacts/eas/ftCi7kadN-ki8rqCNS2eubvZIaeXWgR_T4dCnko7OoM.apk"
+    },
+    "fingerprint": {
+      "id": "01a15803-f51f-78b7-bd61-397fa11e52e5",
+      "hash": "1478e527a681bcf4f81c9bc6ee4a27a8b259fdd9"
+    },
+    "initiatingActor": {
+      "id": "ab6ccec0-a1cb-4241-8d79-0a85539303e2",
+      "displayName": "nowbey-ci"
+    },
+    "logFiles": [
+      "https://storage.googleapis.com/eas-workflows-production/logs/7c347b21-e481-4485-9512-4bdd64eb19a5/40db3409-cdcf-4232-9995-da53cc1590ed/2026-10-20T19%3A56%3A48Z-c451373e-2c04-4161-8a4b-c1ee6448f10d.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20261021%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261021T001335Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=773bc8b7cbc1e922c9403b22384d8392ab63f8f5c0297568eeec8ee45489ce698f212c588edf89f1f60f33116bc68562c1bfc7818239ccc484e5b4ede43e0d55cfd77ec704a270b9b4736b41bf06add25c5615e0c884c9d2c54084ec262092439b8f33366200f5c5f4d9fc3e83af0dd31e8da74c29d969082a0e1cf4459784e053191d9d8dbf8e0e20b89f56270c590700aba3bb21d9dd7c2bafaf741dd10707952741d81e6eb7735bb7075b7bcdd20e06c6f71ccf716374530b10d8f630245526f8f9f704b5e43066d8f6352279c536c2fb01fdf3bae0a545950497d6249e3c4fcdeda5d01bfcc8541bb9787eb31fb23111bb035ec6b9c97ec48f5865731d99"
+    ],
+    "app": {
+      "id": "7c347b21-e481-4485-9512-4bdd64eb19a5",
+      "name": "nowbey",
+      "slug": "nowbey",
+      "ownerAccount": {
+        "id": "2c20524e-e1f5-4c84-8f88-6902c86276b2",
+        "name": "nowbey-v3s-team"
+      }
+    },
+    "distribution": "INTERNAL",
+    "buildProfile": "preview",
+    "appIdentifier": "app.nowbey.mobile",
+    "sdkVersion": "57.0.0",
+    "appVersion": "1.2.3",
+    "appBuildVersion": "4",
+    "runtime": {
+      "id": "01a15803-f50e-707c-b08f-6bf16069960a",
+      "version": "1.2.3"
+    },
+    "gitCommitHash": "e730bc0e80657f014f1308b420762a854e08c558",
+    "gitCommitMessage": "Merge pull request #63 from g4tech9-hash/arena/5fbf5c95-nowbey-v2\n\nMobile UI overhaul: five-tab app bar, filter tracks, card grammar, sticky CTAs",
+    "priority": "NORMAL",
+    "createdAt": "2026-10-20T19:34:22.128Z",
+    "updatedAt": "2026-10-20T20:11:17.518Z",
+    "completedAt": "2026-10-20T20:11:17.349Z",
+    "expirationDate": "2026-11-03T19:34:22.163Z",
+    "isForIosSimulator": false,
+    "metrics": {
+      "buildWaitTime": 3180,
+      "buildQueueTime": 1347769,
+      "buildDuration": 864272
+    }
+  },
+  {
+    "id": "da169d64-b4d3-4d9b-83e1-86634e48d65d",
+    "status": "FINISHED",
+    "platform": "ANDROID",
+    "artifacts": {
+      "buildUrl": "https://expo.dev/artifacts/eas/HOXRd1-CJXpdXRdl87QgueX0sFOtMLoSA1pl2LD6cHQ.apk",
+      "applicationArchiveUrl": "https://expo.dev/artifacts/eas/HOXRd1-CJXpdXRdl87QgueX0sFOtMLoSA1pl2LD6cHQ.apk"
+    },
+    "fingerprint": {
+      "id": "01a15803-f51f-78b7-bd61-397fa11e52e5",
+      "hash": "1478e527a681bcf4f81c9bc6ee4a27a8b259fdd9"
+    },
+    "initiatingActor": {
+      "id": "ab6ccec0-a1cb-4241-8d79-0a85539303e2",
+      "displayName": "nowbey-ci"
+    },
+    "logFiles": [
+      "https://storage.googleapis.com/eas-workflows-production/logs/7c347b21-e481-4485-9512-4bdd64eb19a5/da169d64-b4d3-4d9b-83e1-86634e48d65d/2026-10-20T18%3A38%3A56Z-d5b8c368-95a6-4afa-b1a0-4d3f5f848d56.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20261021%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261021T001335Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=02756ee746ed36560048c0b5e8a1c225f5ad676c4ba0254767b91cea3f9cd9941e5f99bf67a7e7cecdbb7297f4742f0cd1f8190dd83cb6481a1266d7dc3b6fddd533407dbec7ea4773b79f15eb51ab1ee802746c757b990f88e5229a449ab44ce9aafad88979ff89b8fb4c50b73c90269b4a8c2c9807a127906cda1e6f8e523015008380489b7e67e698b7f0db2fe735350919fcc67c4ee2b6ba0ab14d8f4d0f7397ce10d398e859e41f04491a8e8b7fc2610b4c3096b6fdfe7df2e45141c3b9104759f4237c02bdc7d51e7357788865f3776c12de2c860f6f987268748aa0ba97e4bbd0563c17aa3e823189436d5cf426c9faeeb288de4c9a5de00219530b00"
+    ],
+    "app": {
+      "id": "7c347b21-e481-4485-9512-4bdd64eb19a5",
+      "name": "nowbey",
+      "slug": "nowbey",
+      "ownerAccount": {
+        "id": "2c20524e-e1f5-4c84-8f88-6902c86276b2",
+        "name": "nowbey-v3s-team"
+      }
+    },
+    "distribution": "INTERNAL",
+    "buildProfile": "preview",
+    "appIdentifier": "app.nowbey.mobile",
+    "sdkVersion": "57.0.0",
+    "appVersion": "1.2.3",
+    "appBuildVersion": "4",
+    "runtime": {
+      "id": "01a15803-f50e-707c-b08f-6bf16069960a",
+      "version": "1.2.3"
+    },
+    "gitCommitHash": "38f0ba9b5fca0b4cf887b2867e50859396f76c96",
+    "gitCommitMessage": "Merge pull request #62 from g4tech9-hash/arena/59d4010b-nowbey-v2\n\nMobile audit fixes, web↔mobile palette parity, and the app theme system",
+    "priority": "NORMAL",
+    "createdAt": "2026-10-20T18:12:12.182Z",
+    "updatedAt": "2026-10-20T18:53:42.752Z",
+    "completedAt": "2026-10-20T18:53:42.593Z",
+    "expirationDate": "2026-11-03T18:12:12.219Z",
+    "isForIosSimulator": false,
+    "metrics": {
+      "buildWaitTime": 4987,
+      "buildQueueTime": 1603403,
+      "buildDuration": 882021
+    }
+  },
+  {
+    "id": "29f6e9f0-afab-4d76-b689-1eb0a941d68d",
+    "status": "FINISHED",
+    "platform": "ANDROID",
+    "artifacts": {
+      "buildUrl": "https://expo.dev/artifacts/eas/vSoumqZ24pss7tofwZNa4caOql7oVFb2FeAQsyEPShU.apk",
+      "applicationArchiveUrl": "https://expo.dev/artifacts/eas/vSoumqZ24pss7tofwZNa4caOql7oVFb2FeAQsyEPShU.apk"
+    },
+    "fingerprint": {
+      "id": "01a15803-f51f-78b7-bd61-397fa11e52e5",
+      "hash": "1478e527a681bcf4f81c9bc6ee4a27a8b259fdd9"
+    },
+    "initiatingActor": {
+      "id": "ab6ccec0-a1cb-4241-8d79-0a85539303e2",
+      "displayName": "nowbey-ci"
+    },
+    "logFiles": [
+      "https://storage.googleapis.com/eas-workflows-production/logs/7c347b21-e481-4485-9512-4bdd64eb19a5/29f6e9f0-afab-4d76-b689-1eb0a941d68d/2026-10-20T06%3A33%3A38Z-3933f923-8c73-41b5-8e53-999ca6c7f39b.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20261021%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20261021T001335Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=892549800f1dccf1a3b50fd708f66311b9771bc90150e4cf671441ca12f4afdf81c6ba90cd06d4c18d50748e5772017c6b460793990fab7136a6fd285b0ef09c8f1cdcb7e3a66d424c80cf9e4176372186913f559913c01ed27c9e5ed1e987327872eacb5515bb9e44387fbed678b68b2dac3db518edc4d41bd545b0a6ce78f150ede99d9d4261e159d4cc9fdc4911ab56dc7f248f1f50030110af55eb037cd6d12b50faabb2f0e15fc556da094b9f1b67c8e92a3155b6fdc77375df8deced06d5f778510c24ddcb1cb05c937dc53e0bb83c8ee742d65d2c26c5a7037044d7669428979e1dd1ee9ba66c9b207bfa4974416a3e99f566a94d46bc7d1bcf2cdba9"
+    ],
+    "app": {
+      "id": "7c347b21-e481-4485-9512-4bdd64eb19a5",
+      "name": "nowbey",
+      "slug": "nowbey",
+      "ownerAccount": {
+        "id": "2c20524e-e1f5-4c84-8f88-6902c86276b2",
+        "name": "nowbey-v3s-team"
+      }
+    },
+    "distribution": "INTERNAL",
+    "buildProfile": "preview",
+    "appIdentifier": "app.nowbey.mobile",
+    "sdkVersion": "57.0.0",
+    "appVersion": "1.2.3",
+    "appBuildVersion": "4",
+    "runtime": {
+      "id": "01a15803-f50e-707c-b08f-6bf16069960a",
+      "version": "1.2.3"
+    },
+    "gitCommitHash": "990b5bb4e4122568bfa0b71b3ed244a43bdb9929",
+    "gitCommitMessage": "Merge pull request #61 from g4tech9-hash/arena/7cf8af22-nowbey-v2\n\nchore(eas): link the project to @nowbey-v3s-team (real UUID)",
+    "priority": "NORMAL",
+    "createdAt": "2026-10-20T06:33:36.702Z",
+    "updatedAt": "2026-10-20T06:55:05.692Z",
+    "completedAt": "2026-10-20T06:55:05.451Z",
+    "expirationDate": "2026-11-03T06:33:36.781Z",
+    "isForIosSimulator": false,
+    "metrics": {
+      "buildWaitTime": 618,
+      "buildQueueTime": 5668,
+      "buildDuration": 1282463
+    }
+  }
+]
+--- channel:list ---
+{
+  "currentPage": []
+}
+--- update:list (channel preview) ---
+Nonexistent flag: --channel
+See more help with --help
+    Error: update:list command failed.
+update:list failed
+[Tue Oct 20 20:13:48 EDT 2026] Fix: Creating preview branch for OTA
+√ ️Created a new branch: preview on project @nowbey-v3s-team/nowbey.
+[Tue Oct 20 20:13:56 EDT 2026] Diagnosis: Verifying OTA capability
+--- channel:list ---
+{
+  "currentPage": []
+}
+--- update:list ---
+Branch name may not be empty.
+    Error: update:list command failed.
+update:list failed
+[Tue Oct 20 20:14:10 EDT 2026] Deploy: Performing OTA update (JS/UI change only)
+No environment variables with visibility "Plain text" and "Sensitive" found for the "preview" environment on EAS.
+
+- Exporting...
+[expo-cli] --non-interactive is not supported, use $CI=1 instead
+[expo-cli] Starting Metro Bundler
+[expo-cli] warning: Bundler cache is empty, rebuilding (this may take a minute)
+[expo-cli] Web Bundled 48091ms node_modules\expo-router\entry.js (963 modules)
+[expo-cli] iOS Bundled 56818ms node_modules\expo-router\entry.js (1279 modules)
+[expo-cli] Android Bundled 63926ms node_modules\expo-router\entry.js (1408 modules)
+[expo-cli] Could not parse Expo config: android.googleServicesFile: "./google-services.json"
+[expo-cli] Creating asset map
+[expo-cli] 
+[expo-cli] › Assets (92):
+[expo-cli] assets\splash-scene.20704aa5de475a21b1e74ec2852a1d6b.jpg (34KB)
+[expo-cli] assets\splash-scene.jpg (34KB)
+[expo-cli] node_modules\@expo-google-fonts\material-symbols\400Regular\MaterialSymbols_400Regular.ttf (971KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\AntDesign.3f78af31cca60105799838a1a7a59fbd.ttf (130KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\AntDesign.ttf (130KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Entypo.31b5ffea3daddc69dd01a1f3d6cf63c5.ttf (66KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Entypo.ttf (66KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\EvilIcons.140c53a7643ea949007aa9a282153849.ttf (13KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\EvilIcons.ttf (13KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Feather.ca4b48e04dc1ce10bfbddb262c8b835f.ttf (56KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Feather.ttf (56KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome.b06871f281fee6b241d60582ae9369b9.ttf (166KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome.ttf (166KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Brands.3b89dd103490708d19a95adcae52210e.ttf (134KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Brands.ttf (134KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Regular.1f77739ca9ff2188b539c36f30ffa2be.ttf (34KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Regular.ttf (34KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Solid.605ed7926cf39a2ad5ec2d1f9d391d3d.ttf (203KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome5_Solid.ttf (203KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Brands.56c8d80832e37783f12c05db7c8849e2.ttf (209KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Brands.ttf (209KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Regular.370dd5af19f8364907b6e2c41f45dbbf.ttf (68KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Regular.ttf (68KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Solid.adec7d6f310bc577f05e8fe06a5daccf.ttf (424KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\FontAwesome6_Solid.ttf (424KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Fontisto.b49ae8ab2dbccb02c4d11caaacf09eab.ttf (314KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Fontisto.ttf (314KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Foundation.e20945d7c929279ef7a6f1db184a4470.ttf (57KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Foundation.ttf (57KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Ionicons.b4eb097d35f44ed943676fd56f6bdc51.ttf (390KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Ionicons.ttf (390KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf (1.3MB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\MaterialCommunityIcons.ttf (1.3MB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\MaterialIcons.4e85bc9ebe07e0340c9c4fc2f6c38908.ttf (357KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\MaterialIcons.ttf (357KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Octicons.871378c6eab492a3e689a9385dc45a12.ttf (69KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Octicons.ttf (69KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\SimpleLineIcons.d2285965fe34b05465047401b8595dd0.ttf (54KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\SimpleLineIcons.ttf (54KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Zocial.1681f34aaca71b8dfb70756bca331eb2.ttf (26KB)
+[expo-cli] node_modules\@expo\vector-icons\build\vendor\react-native-vector-icons\Fonts\Zocial.ttf (26KB)
+[expo-cli] node_modules\expo-router\assets\arrow_down.017bc6ba3fc25503e5eb5e53826d48a8.png (9.5KB)
+[expo-cli] node_modules\expo-router\assets\arrow_down.png (9.5KB)
+[expo-cli] node_modules\expo-router\assets\arrow_right.xml (307B)
+[expo-cli] node_modules\expo-router\assets\checkmark.xml (312B)
+[expo-cli] node_modules\expo-router\assets\error.d1ea1496f9057eb392d5bbf3732a61b7.png (469B)
+[expo-cli] node_modules\expo-router\assets\error.png (469B)
+[expo-cli] node_modules\expo-router\assets\file.19eeb73b9593a38f8e9f418337fc7d10.png (138B)
+[expo-cli] node_modules\expo-router\assets\file.png (138B)
+[expo-cli] node_modules\expo-router\assets\forward.d8b800c443b8972542883e0b9de2bdc6.png (188B)
+[expo-cli] node_modules\expo-router\assets\forward.png (188B)
+[expo-cli] node_modules\expo-router\assets\pkg.ab19f4cbc543357183a20571f68380a3.png (364B)
+[expo-cli] node_modules\expo-router\assets\pkg.png (364B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\back-icon-mask.0a328cd9c1afd0afe8e3b1ec5165b1b4.png (653B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\back-icon-mask.png (653B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\back-icon.35ba0eaec5a4f5ed12ca16fabeae451d.png (207B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\back-icon.png (8 variations | 359B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\clear-icon.c94f6478e7ae0cdd9f15de1fcb9e5e55.png (4 variations | 425B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\clear-icon.png (4 variations | 425B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\close-icon.808e1b1b9b53114ec2838071a7e6daa7.png (4 variations | 235B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\close-icon.png (4 variations | 235B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\search-icon.286d67d3f74808a60a78d3ebf1a5fb57.png (928B)
+[expo-cli] node_modules\expo-router\assets\react-navigation\elements\search-icon.png (7 variations | 592B)
+[expo-cli] node_modules\expo-router\assets\sitemap.412dd9275b6b48ad28f5e3d81bb1f626.png (465B)
+[expo-cli] node_modules\expo-router\assets\sitemap.png (465B)
+[expo-cli] node_modules\expo-router\assets\unmatched.20e71bdf79e3a97bf55fd9e164041578.png (4.8KB)
+[expo-cli] node_modules\expo-router\assets\unmatched.png (4.8KB)
+[expo-cli] › web bundles (2):
+[expo-cli] _expo/static/js/web/entry-f8b7152f4c1914f22b2852f314824458.js (1.8MB)
+[expo-cli] _expo/static/js/web/entry-f8b7152f4c1914f22b2852f314824458.js.map (6.2MB)
+[expo-cli] 
+[expo-cli] › ios bundles (2):
+[expo-cli] _expo/static/js/ios/entry-0d6e1d4ed8fc62f52b638b46fedbc48b.hbc (2.6MB)
+[expo-cli] _expo/static/js/ios/entry-0d6e1d4ed8fc62f52b638b46fedbc48b.hbc.map (6.2MB)
+[expo-cli] 
+[expo-cli] › android bundles (2):
+[expo-cli] _expo/static/js/android/entry-5097aaeaf0f076f665207734143e8a93.hbc (2.8MB)
+[expo-cli] _expo/static/js/android/entry-5097aaeaf0f076f665207734143e8a93.hbc.map (6.7MB)
+[expo-cli] 
+[expo-cli] › Files (4):
+[expo-cli] assetmap.json (24KB)
+[expo-cli] favicon.ico (15KB)
+[expo-cli] index.html (1.2KB)
+[expo-cli] metadata.json (6KB)
+[expo-cli] 
+[expo-cli] Exported: dist
+✔ Exported bundle(s)
+- Uploading...
+- Uploading assetmap.json (0 / 23.6 KB)
+✔ Uploaded assetmap.json 
+√ Uploaded 2 app bundles
+√ Uploaded 1 asset (reused 55 assets)
+i 44 iOS assets, 48 Android assets (maximum: 2000 total per update). Learn more about asset limits: https://expo.fyi/eas-update-asset-limits
+- Computing project fingerprints
+⌛️ Computing the project fingerprints is taking longer than expected...
+⏩ To skip this step, set the environment variable: EAS_SKIP_AUTO_FINGERPRINT=1
+✔ Computed project fingerprints
+- Publishing...
+✔ Published!
+[
+  {
+    "id": "01a15bd1-14cf-78d1-b796-1e82ca594622",
+    "createdAt": "2026-10-21T00:16:31.439Z",
+    "group": "47b28d94-65b8-43fa-a0cc-2ae0399089e1",
+    "branch": "preview",
+    "message": "Fixing OTA gap and updating config",
+    "runtimeVersion": "1.2.3",
+    "platform": "android",
+    "manifestPermalink": "https://u.expo.dev/update/01a15bd1-14cf-78d1-b796-1e82ca594622",
+    "isRollBackToEmbedded": false,
+    "gitCommitHash": "f13e45f3a33b98052883333e7f8d1fa8a6af27c1"
+  },
+  {
+    "id": "01a15bd1-14cf-721a-bac9-325b28c9628c",
+    "createdAt": "2026-10-21T00:16:31.439Z",
+    "group": "47b28d94-65b8-43fa-a0cc-2ae0399089e1",
+    "branch": "preview",
+    "message": "Fixing OTA gap and updating config",
+    "runtimeVersion": "1.2.3",
+    "platform": "ios",
+    "manifestPermalink": "https://u.expo.dev/update/01a15bd1-14cf-721a-bac9-325b28c9628c",
+    "isRollBackToEmbedded": false,
+    "gitCommitHash": "f13e45f3a33b98052883333e7f8d1fa8a6af27c1"
+  }
+]
+[Tue Oct 20 20:16:53 EDT 2026] Finalizing: Creating EAS_FIX_REPORT.md
