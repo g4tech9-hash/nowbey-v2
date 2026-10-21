@@ -17,7 +17,7 @@ Branch: `arena/29a485dd-nowbey-v2` | Base: `e730bc0` (master)
 | `components.css` `.pulse-card` | `radius-lg 28→20 (cards) / 16 spec`, `elev-2`, `spine 3px` | `Card.tsx` + `HazardCard.tsx` — 16pt card, 3px tinted left border |
 | `base.css` `.pulse-ambient` | 44px grid lines + 3 radial auroras + noise 0.055 | `GridBackground.tsx` — memoized Views + radial Views, pointerEvents none |
 | `incident-card.tsx` | badge + severity left, time right; title 600; details clamp 2; pills footer | `HazardCard.tsx` — pixel parity, press scale, hitSlop |
-| Web feed | paginated FlatList, pull-to-refresh, empty card | `FlashFeed.tsx` — FlashList with fallback, estimatedItemSize 160 |
+| Web feed | paginated FlatList, pull-to-refresh, empty card | `FlashFeed.tsx` — FlashList (native) / FlatList (web) + pull-to-refresh |
 
 ---
 
@@ -83,19 +83,37 @@ Branch: `arena/29a485dd-nowbey-v2` | Base: `e730bc0` (master)
 
 ---
 
-## 5) Dependencies (what to `npm install` next)
+## 5) Dependencies — INSTALLED ✅
 
-Missing for full spec (all have graceful fallbacks today):
-- `expo-haptics` — haptics (current wrapper no-ops without it)
-- `expo-linear-gradient` — optional aurora polish (removed, using View glows)
-- `@shopify/flash-list` — 60fps feed (falls back to FlatList)
-- `@gorhom/bottom-sheet` — native sheet gestures (falls back to Modal)
-- `moti` — skeleton shimmer alt (using Animated today)
-
-Install when you approve:
-```sh
-cd expo && npx expo install expo-haptics && npm i @shopify/flash-list @gorhom/bottom-sheet moti
 ```
+expo-haptics        ~57.0.3
+@shopify/flash-list ^2.3.3
+@gorhom/bottom-sheet ^5.2.14
+moti                ^0.30.0
+```
+
+All four are live, not just present in `package.json`:
+
+| Package | Where it is now used | Platform |
+| --- | --- | --- |
+| `expo-haptics` | `haptics.ts` — static import (was a no-op `require`); light = pills, medium = FAB/tabs, heavy = report sent, success/warning = round-trips | iOS/Android (native), web → `navigator.vibrate` |
+| `@shopify/flash-list` | `FlashFeed.tsx` — `HazardFeed` / `WireFeed` render through recycled cells | **Native only**; web keeps FlatList (see note) |
+| `@gorhom/bottom-sheet` | `BottomSheet.tsx` — real pan gestures, 50 %/90 % spring snaps, backdrop press-to-close, `keyboardBehavior="interactive"` | **Native only**; web keeps the Modal sheet |
+| `moti` | `Skeleton.tsx` — `MotiView` declarative `loop`/`repeatReverse` shimmer (worklet-side, no JS timer) | All (falls back to Animated if unresolvable) |
+
+**Why native-only for FlashList and Gorhom:** both depend on the native gesture/scroll
+pipeline. On react-native-web there is no pan tracking or cell recycling, so the
+fallbacks stay — and the web render remains the pixel-parity reference we measure
+the native screens against. Both branches are chosen once at module load, so the
+hook order never changes (rules of hooks).
+
+Verified after install:
+- `npx tsc --noEmit` → clean
+- `npx expo export --platform web` → 1940 modules, exit 0
+- `npx expo export --platform android` → Hermes bundle, exit 0
+
+Still optional, not installed: `expo-linear-gradient` (aurora glows are done with
+plain `View` shadows — no dependency needed).
 
 ---
 

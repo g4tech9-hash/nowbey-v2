@@ -2,18 +2,21 @@
  * FlashFeed — high-performance list wrappers
  * Web parity: Main Feed (IncidentCard) + News Wire (NewsWireCard) on 60+ FPS
  *
- * Uses @shopify/flash-list when available; falls back to FlatList in CI/web where
- * FlashList's native module isn't present. API is identical — swap is invisible.
+ * Uses @shopify/flash-list (installed) on iOS/Android for cell recycling; the
+ * web build keeps RN FlatList, because react-native-web has no native
+ * recycling and the web render is the parity reference we compare against.
+ * API is identical either way — the swap is invisible to callers.
  *
  * Includes:
- * - FlashList-backed feed with estimatedItemSize (prevents layout jank on hundreds of rows)
- * - Pull-to-refresh via RefreshControl (tint = tideLight)
+ * - FlashList-backed feed (recycled cells, no layout jank on hundreds of rows)
+ * - Pull-to-refresh (RefreshControl on web, onRefresh/refreshing on FlashList)
  * - Skeleton header while loading
  * - Empty state card
  */
 import React, { memo } from "react";
 import {
   FlatList as RNFlatList,
+  Platform,
   RefreshControl,
   View,
   Text,
@@ -33,7 +36,9 @@ try {
   // not installed — use RN FlatList (still functional, just not 60fps on 500+ rows)
 }
 
-const ListComponent = FlashListComp ?? RNFlatList;
+// Native only: FlashList v2 recycles cells through the native scroll view.
+const USE_FLASH = !!FlashListComp && Platform.OS !== "web";
+const ListComponent = USE_FLASH ? FlashListComp : RNFlatList;
 
 type FeedProps<T> = Omit<FlatListProps<T>, "renderItem"> & {
   data: T[];
@@ -87,16 +92,16 @@ function FlashFeedInner<T>({
     </Card>
   );
 
-  const refreshControl = onRefresh ? (
-    <RefreshControl tintColor={color.tideLight} colors={[color.tide]} refreshing={!!refreshing} onRefresh={onRefresh} />
-  ) : undefined;
-
-  // FlashList needs estimatedItemSize to virtualize without measuring every row
-  const flashProps = FlashListComp ? { estimatedItemSize: skeleton === "wire" ? 180 : 160 } : {};
+  // FlashList v2 exposes pull-to-refresh as props; FlatList wants a control element.
+  const refreshProps: Record<string, any> = !onRefresh
+    ? {}
+    : USE_FLASH
+      ? { refreshing: !!refreshing, onRefresh, progressViewOffset: 8 }
+      : { refreshControl: <RefreshControl tintColor={color.tideLight} colors={[color.tide]} refreshing={!!refreshing} onRefresh={onRefresh} /> };
 
   return (
     <ListComponent
-      {...flashProps}
+      {...refreshProps}
       {...(rest as any)}
       style={[{ flex: 1, backgroundColor: color.bg }, (rest as any).style]}
       data={data as any}
@@ -108,7 +113,6 @@ function FlashFeedInner<T>({
         gap: 12,
         ...(rest as any).contentContainerStyle,
       }}
-      refreshControl={refreshControl}
       ListHeaderComponent={ListHeader}
       ListEmptyComponent={Empty}
     />

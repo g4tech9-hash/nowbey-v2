@@ -1,13 +1,18 @@
 /**
- * Haptics — thin wrapper over expo-haptics with graceful fallback
- * All interactive elements call these; if expo-haptics is unavailable (web/CI), they no-op.
+ * Haptics — thin wrapper over expo-haptics (installed as a real dependency).
+ *
+ * Every interactive element calls these:
+ *  - light   → filter pills, switches, chip toggles
+ *  - medium  → tab presses, FAB open
+ *  - heavy   → report submitted / destructive confirm
+ *  - success / warning → server round-trips
+ *  - selection → scroll-wheel style pickers
+ *
+ * On web, expo-haptics degrades to navigator.vibrate (and the iOS switch
+ * trick), so the same calls stay meaningful in a mobile browser. Every call is
+ * wrapped so a device without a Taptic engine can never break the UI.
  */
-let Haptics: any = null;
-try {
-  Haptics = require("expo-haptics");
-} catch {
-  // not installed or on web — silent no-op
-}
+import * as Haptics from "expo-haptics";
 
 function safe(fn: () => void) {
   try {
@@ -18,31 +23,25 @@ function safe(fn: () => void) {
 }
 
 export function hapticLight() {
-  if (!Haptics?.impactAsync) return;
   safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
 }
 
 export function hapticMedium() {
-  if (!Haptics?.impactAsync) return;
   safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium));
 }
 
 export function hapticHeavy() {
-  if (!Haptics?.impactAsync) return;
   safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy));
 }
 
 export function hapticSuccess() {
-  if (!Haptics?.notificationAsync) return;
   safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
 }
 
 export function hapticWarning() {
-  if (!Haptics?.notificationAsync) return;
   safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning));
 }
 
 export function hapticSelection() {
-  if (!Haptics?.selectionAsync) return;
   safe(() => Haptics.selectionAsync());
 }

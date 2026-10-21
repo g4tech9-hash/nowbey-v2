@@ -1,13 +1,42 @@
 /**
  * Skeleton loaders — shape-matched for HazardCard / NewsWireCard
- * Uses Animated shimmer (no moti dependency required, but API-compatible)
  * Web parity: .nb-skeleton shimmer, card-shaped placeholders
+ *
+ * Shimmer pulse is driven by moti (installed) where available — declarative
+ * `animate`/`transition` loop, worklet-side, no JS timer. Falls back to the
+ * RN Animated loop if moti isn't resolvable (e.g. a bare checkout).
  */
 import React, { useEffect, useRef } from "react";
 import { View, Animated, type ViewStyle } from "react-native";
 import { color, radius, useTheme } from "../theme";
 
+// Resolved at module load — the branch never flips mid-session.
+const MotiView: any = (() => {
+  try {
+    return require("moti").MotiView;
+  } catch {
+    return null;
+  }
+})();
+
 function ShimmerBlock({ style }: { style?: ViewStyle }) {
+  useTheme();
+
+  if (MotiView) {
+    return (
+      <MotiView
+        from={{ opacity: 0.45 }}
+        animate={{ opacity: 1 }}
+        transition={{ type: "timing", duration: 700, loop: true, repeatReverse: true }}
+        style={[{ backgroundColor: color.panel3, borderRadius: 8 }, style]}
+      />
+    );
+  }
+
+  return <AnimatedShimmer style={style} />;
+}
+
+function AnimatedShimmer({ style }: { style?: ViewStyle }) {
   useTheme();
   const opacity = useRef(new Animated.Value(0.45)).current;
 
