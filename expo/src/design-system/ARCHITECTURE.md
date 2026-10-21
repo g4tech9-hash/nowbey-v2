@@ -50,12 +50,14 @@ Branch: `arena/29a485dd-nowbey-v2` | Base: `e730bc0` (master)
 - [x] `HazardCard.tsx` — full incident card rebuild
 - [x] `NewsWireCard.tsx` — wire card (3-line title, summary clamp, source footer, map pin)
 - [x] `FlashFeed.tsx` — `FlashFeed / HazardFeed / WireFeed` (FlashList + RN fallback + RefreshControl + empty)
+- [x] `FilterBar.tsx` — one 44pt row: segmented quick filters (flexing scroller) + pinned `Filter` button with active-count badge
+- [x] `FilterSheet.tsx` — all 13 alert types, all 18 islands (search), and sort, in a swipe-dismissable sheet
 - [x] `BottomTabBar.tsx` — 5-tab bar with center FAB (elevated 56 disc, spring scale, safe-area bottom pad)
 - [x] `BottomSheet.tsx` — Gorhom sheet + Modal fallback + `FilterBottomSheet` preset
 - [x] `SafeScreen.tsx` — SafeArea + GridBackground wrapper
 
 ### Phase 4 — Screens (compose phases 1-3)
-- [x] `app/(tabs)/index.tsx` — Feed rebuilt (GridBackground + FlashFeed + FilterPillRow + HazardCard + BottomSheet)
+- [x] `app/(tabs)/index.tsx` — Feed rebuilt (GridBackground + FlashFeed + FilterBar + FilterSheet + HazardCard)
 - [x] `app/(tabs)/wire.tsx` — Wire rebuilt (same)
 - [x] `app/(tabs)/_layout.tsx` — Tabs with new FAB (reanimated + haptics + 44pt targets)
 - [x] `app/_layout.tsx` — adds `GestureHandlerRootView` + translucent StatusBar
@@ -116,6 +118,62 @@ Still optional, not installed: `expo-linear-gradient` (aurora glows are done wit
 plain `View` shadows — no dependency needed).
 
 ---
+
+## 5b) Layout refactor — screen real estate, safe area, elevation
+
+Measured on a 390x844 reference device (~650pt above the tab bar), the feed
+header before this refactor:
+
+| Block | Before | After |
+| --- | --- | --- |
+| Brand banner | ~76pt | ~76pt |
+| Status row (4 pills) | 52pt | — |
+| Alert types (14 pills, wrap) | ~208pt | — |
+| Islands (13 pills, wrap) | ~208pt | — |
+| `FilterBar` (segments + Filter button) | — | 44pt |
+| **Total before the first card** | **~544pt (84% of viewport)** | **~130pt (~19%)** |
+
+Decisions:
+- **Wrap is now sheet-only.** Wrapping is right for a bounded list the user
+  opened on purpose; it was wrong for 27 chips above a feed. The feed keeps one
+  non-wrapping row; `FilterSheet` keeps the wrap.
+- **The island list is complete.** The old header rendered `PARISHES.slice(0,12)`
+  of 18 islands — silently truncated *and* expensive. The sheet renders all 18
+  behind a search field.
+- **The header `+ Report` button is gone.** The bottom-centre FAB is the most
+  thumb-reachable point on a phone; a second primary CTA for the same task in
+  the top-right was competition, not convenience. The slot now shows state
+  (`24 alerts`).
+- **Sort is new.** `recent | severity | confirmations`, client-side, defaulted
+  to `recent`. The feed never had it.
+
+Safe area:
+- The tab bar was a flat `height: 64` with no inset handling, so it sat under
+  the Android navigation/gesture bar. It is now `52 + insets.bottom`, with
+  `paddingBottom: insets.bottom`.
+- The centre disc sits in a **notch** masked out of the bar's top border, and
+  no longer prints a text label under itself (the disc is lifted 18px, so that
+  label collided with the bar's own text line). `accessibilityLabel` carries the
+  name for screen readers.
+- Top insets were already handled screen-by-screen via `useTopInset()`
+  (Feed, Map, Wire, Gas, Life, You, Report) — no change needed there.
+
+Elevation — `z` scale added to `tokens.ts`, nothing hardcodes a zIndex now:
+
+| Layer | z | shadow |
+| --- | --- | --- |
+| Content | 0 | — |
+| Sticky header | 10 | `elevation.l1` |
+| FAB | 20 | — (own glow) |
+| Tab bar | 30 | `elevation.l2` |
+| Sheet backdrop | 900 | — |
+| Sheet | 1000 | `elevation.l3` |
+| Toast / blocking alert | 1100 | — |
+
+Two literals in `app/(tabs)/_layout.tsx` are asserted by
+`tests/map-layout.test.mjs` and must not be "cleaned up": the literal
+`marginTop: -18` on the disc, and the plain
+`tabBarButton: (props) => <ReportTabButton {...props} />` form.
 
 ## 6) How to approve
 

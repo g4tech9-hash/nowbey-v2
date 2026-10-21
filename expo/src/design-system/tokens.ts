@@ -23,6 +23,24 @@ export const layout = {
   railRight: 340,
 } as const;
 
+/**
+ * Stacking order — the single source for z-index. Nothing may hardcode a
+ * zIndex again: screen furniture used to carry ad-hoc values (zIndex 999 in
+ * BottomSheet, elevation 10 inline on the FAB) and they fought each other as
+ * soon as a sheet and a FAB were on screen together.
+ *
+ * Elevation (shadow) pairs with these through the `elevation` scale below.
+ */
+export const z = {
+  content: 0,
+  header: 10, // sticky screen header
+  fab: 20, // the centre Report disc
+  tabbar: 30, // bottom navigation plate
+  backdrop: 900, // sheet scrim
+  sheet: 1000, // bottom sheet / modal content
+  toast: 1100, // toasts and blocking alerts
+} as const;
+
 // ── Motion durations (ms) — mirror --pulse-duration-* ──
 export const duration = {
   tap: 120,

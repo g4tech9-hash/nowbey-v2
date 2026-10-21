@@ -1,31 +1,28 @@
 /**
  * NowBey Pulse — Feed (Now rebuilt with Pulse Design System)
- * 1:1 parity with web IncidentCard + FilterPillRow + GridBackground
+ * 1:1 parity with web IncidentCard + FilterBar/FilterSheet + GridBackground
  * Performance: FlashList (60fps @ 500 rows) + skeleton loaders + reanimated
  */
-import { useCallback, useState } from "react";
-import { View, Text, RefreshControl, ScrollView, Pressable, ActivityIndicator, useWindowDimensions } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { View, Text, ActivityIndicator } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { api, errMsg, type Incident } from "../../src/api";
-import { CATEGORIES, CATEGORY_KEYS, PARISHES, categoryOf, type CategoryKey } from "../../src/geo";
+import { CATEGORIES, type CategoryKey } from "../../src/geo";
 import { BRAND, THEME } from "../../src/brand";
 import { color, radius, useTheme } from "../../src/theme";
 import { useBlocked, isBlocked } from "../../src/Safety";
 
 // — New Pulse DS (rebuild, not theme) —
 import { GridBackground } from "../../src/design-system/GridBackground";
-import { FilterPill, FilterPillRow } from "../../src/design-system/FilterPill";
 import { HazardCard } from "../../src/design-system/HazardCard";
 import { FlashFeed } from "../../src/design-system/FlashFeed";
 import { FeedSkeleton } from "../../src/design-system/Skeleton";
-import { BottomSheet } from "../../src/design-system/BottomSheet";
-import { Button } from "../../src/design-system/Button";
-import { hapticLight } from "../../src/design-system/haptics";
-import { timeAgo } from "../../src/geo";
+import { FilterBar } from "../../src/design-system/FilterBar";
+import { FilterSheet, type FeedSort } from "../../src/design-system/FilterSheet";
+import { space } from "../../src/design-system/tokens";
 import { ImageBackground } from "react-native";
 
 const SCENE = require("../../assets/splash-scene.jpg");
@@ -55,6 +52,7 @@ export default function Feed() {
   const [status, setStatus] = useState("active");
   const [island, setIsland] = useState<string | null>(null);
   const [cat, setCat] = useState<CategoryKey | null>(null);
+  const [sort, setSort] = useState<FeedSort>("recent");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,54 +80,68 @@ export default function Feed() {
   );
 
   useBlocked();
-  const shown = (cat ? rows.filter((r) => r.category === cat) : rows).filter((r) => !isBlocked(r.authorHandle));
 
-  // Header component — built from atoms, not inline styles
+  /**
+   * Filtering is cheap and the sheet sorts client-side, so the feed keeps one
+   * sorted array instead of re-deriving it inside renderItem.
+   */
+  const shown = useMemo(() => {
+    const base = (cat ? rows.filter((r) => r.category === cat) : rows).filter((r) => !isBlocked(r.authorHandle));
+    if (sort === "severity") return [...base].sort((a, b) => (b.severity ?? 0) - (a.severity ?? 0));
+    if (sort === "confirmations") return [...base].sort((a, b) => (b.confirmations ?? 0) - (a.confirmations ?? 0));
+    return base; // "recent" — the API already returns newest first
+  }, [rows, cat, sort]);
+
+  // Drives the badge on the Filter button: how many filters are off their default.
+  const activeCount = (cat ? 1 : 0) + (island ? 1 : 0) + (sort !== "recent" ? 1 : 0);
+  const summary = [island ?? "All islands", cat ? CATEGORIES[cat].label : null, `${shown.length} alert${shown.length === 1 ? "" : "s"}`]
+    .filter(Boolean)
+    .join(" · ");
+
+  // Header component — one row of filters, not three rows of chips.
+  // The old header stacked status + 13 alert types + 12 islands (about 544pt on
+  // a 390x844 phone, ~84% of the viewport) so the first card started below the
+  // fold. Everything exhaustive now lives in <FilterSheet/>.
   const header = (
-    <View style={{ gap: 12 }}>
+    <View style={{ gap: space.md, paddingBottom: space.sm }}>
       <Banner>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <View>
+          <View style={{ flexShrink: 1 }}>
             <Text style={{ color: "#fff0d9", fontSize: 24, fontWeight: "800", letterSpacing: -0.6 }}>
               Now<Text style={{ color: color.tideLight }}>Bey</Text>
             </Text>
-            <Text style={{ color: THEME === "island" ? "#ffd98a" : color.tideLight, fontSize: 11, fontWeight: "700", letterSpacing: 1.2, textTransform: "uppercase" }}>
+            <Text
+              style={{
+                color: THEME === "island" ? "#ffd98a" : color.tideLight,
+                fontSize: 11,
+                fontWeight: "700",
+                letterSpacing: 1.2,
+                textTransform: "uppercase",
+              }}
+              numberOfLines={1}
+            >
               {BRAND.tagline}
             </Text>
           </View>
-          <Button label="+ Report" onPress={() => router.push("/report")} size="sm" />
+          {/*
+            No "+ Report" button here any more. The bottom-centre FAB is the most
+            thumb-reachable point on a phone; a second primary in the top right
+            was a competing CTA for the same task. The slot now carries state.
+          */}
+          <Text style={{ color: color.muted, fontSize: 12, fontWeight: "700" }} numberOfLines={1}>
+            {shown.length} alerts
+          </Text>
         </View>
       </Banner>
 
-      {/* Status pills — keep scroll so Filter stays reachable */}
-      <FilterPillRow>
-        {STATUSES.map((s) => (
-          <FilterPill key={s.key} label={s.label} active={status === s.key} onPress={() => { hapticLight(); setStatus(s.key); }} />
-        ))}
-        <FilterPill label="Filter" icon={<Ionicons name="options-outline" size={14} color={color.muted} />} onPress={() => setSheetOpen(true)} />
-      </FilterPillRow>
-
-      {/* Category pills — Q2 choice: wrap on mobile so all hazards visible without pan */}
-      <FilterPillRow wrap>
-        <FilterPill label="Everything" active={cat === null} onPress={() => setCat(null)} />
-        {CATEGORY_KEYS.map((k) => (
-          <FilterPill
-            key={k}
-            label={CATEGORIES[k].label}
-            tint={CATEGORIES[k].color}
-            active={cat === k}
-            onPress={() => setCat(cat === k ? null : k)}
-          />
-        ))}
-      </FilterPillRow>
-
-      {/* Island pills — wrap too */}
-      <FilterPillRow wrap>
-        <FilterPill label="Every island" active={island === null} onPress={() => setIsland(null)} />
-        {PARISHES.slice(0, 12).map((p) => (
-          <FilterPill key={p} label={p} active={island === p} onPress={() => setIsland(island === p ? null : p)} />
-        ))}
-      </FilterPillRow>
+      <FilterBar
+        segments={STATUSES}
+        value={status}
+        onChange={setStatus}
+        activeCount={activeCount}
+        onOpenFilters={() => setSheetOpen(true)}
+        summary={summary}
+      />
 
       {error ? <Text style={{ color: color.conch, fontSize: 12.5 }}>{error}</Text> : null}
       {loading ? <ActivityIndicator color={color.tideLight} style={{ marginVertical: 4 }} /> : null}
@@ -191,41 +203,18 @@ export default function Feed() {
         )}
       />
 
-      {/* Filter bottom sheet — native swipe-to-dismiss */}
-      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Filters">
-        <View style={{ gap: 16, paddingBottom: 12 }}>
-          <View>
-            <Text style={{ color: color.text, fontSize: 13, fontWeight: "700", marginBottom: 8 }}>Status</Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              {STATUSES.map((s) => (
-                <FilterPill key={s.key} label={s.label} active={status === s.key} onPress={() => setStatus(s.key)} />
-              ))}
-            </View>
-          </View>
-          <View>
-            <Text style={{ color: color.text, fontSize: 13, fontWeight: "700", marginBottom: 8 }}>Category</Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              <FilterPill label="Everything" active={cat === null} onPress={() => setCat(null)} />
-              {CATEGORY_KEYS.map((k) => (
-                <FilterPill key={k} label={CATEGORIES[k].label} tint={CATEGORIES[k].color} active={cat === k} onPress={() => setCat(cat === k ? null : k)} />
-              ))}
-            </View>
-          </View>
-          <View>
-            <Text style={{ color: color.text, fontSize: 13, fontWeight: "700", marginBottom: 8 }}>Island</Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              <FilterPill label="Every island" active={island === null} onPress={() => setIsland(null)} />
-              {PARISHES.slice(0, 12).map((p) => (
-                <FilterPill key={p} label={p} active={island === p} onPress={() => setIsland(island === p ? null : p)} />
-              ))}
-            </View>
-          </View>
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
-            <Button label="Clear" kind="ghost" onPress={() => { setCat(null); setIsland(null); setStatus("active"); setSheetOpen(false); }} style={{ flex: 1 } as any} />
-            <Button label="Apply" onPress={() => setSheetOpen(false)} style={{ flex: 1 } as any} />
-          </View>
-        </View>
-      </BottomSheet>
+      {/* Exhaustive filters + sort — swipe to dismiss */}
+      <FilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        cat={cat}
+        onCat={setCat}
+        island={island}
+        onIsland={setIsland}
+        sort={sort}
+        onSort={setSort}
+        resultCount={shown.length}
+      />
     </GridBackground>
   );
 }

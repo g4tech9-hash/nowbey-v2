@@ -337,3 +337,24 @@ test("the Expo feed card header is one row", () => {
   assert.match(card, /flexShrink: 1[\s\S]{0,200}CategoryBadge/, "the badge may shrink");
   assert.match(card, /flexShrink: 0,[\s\S]{0,80}color: color\.subtle,/, "the timestamp never does");
 });
+
+/**
+ * Regression guard for the 2026-10-21 screenshot ("the alert feed starts below
+ * the fold"): the feed header stacked three pill rows — status, 13 alert types
+ * and 12 islands — which measured ~544pt on a 390x844 phone, about 84% of the
+ * viewport. The exhaustive lists now live in a sheet and the header is one row.
+ */
+test("the Expo feed header keeps its filters to one row", () => {
+  const feed = read("expo/app/(tabs)/index.tsx");
+  assert.match(feed, /from "\.\.\/\.\.\/src\/design-system\/FilterBar"/, "quick filters live in FilterBar");
+  assert.match(feed, /from "\.\.\/\.\.\/src\/design-system\/FilterSheet"/, "the exhaustive lists live in FilterSheet");
+  assert.doesNotMatch(feed, /FilterPillRow/, "the feed itself no longer renders pill rows");
+  assert.doesNotMatch(feed, /PARISHES\.slice\(/, "and the island list is no longer truncated");
+});
+
+test("the Expo tab bar respects the bottom safe area", () => {
+  const tabs = read("expo/app/(tabs)/_layout.tsx");
+  assert.match(tabs, /useSafeAreaInsets/, "the bar reads the device insets");
+  assert.match(tabs, /insets\.bottom/, "and grows into the gesture area");
+  assert.doesNotMatch(tabs, /height: 64,/, "instead of a fixed 64pt that sat under it");
+});
