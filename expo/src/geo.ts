@@ -120,6 +120,11 @@ export function inBahamas(lat: number, lng: number): boolean {
   return main || caySal;
 }
 
+export function formatCoord(value: number, axis: "lat" | "lng"): string {
+  const dir = axis === "lat" ? (value >= 0 ? "N" : "S") : value >= 0 ? "E" : "W";
+  return `${Math.abs(value).toFixed(4)}° ${dir}`;
+}
+
 export function timeAgo(iso: string): string {
   const secs = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
   if (secs < 60) return `${secs}s ago`;
