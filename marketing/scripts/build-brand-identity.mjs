@@ -423,19 +423,19 @@ function cover({ W = 1920, H = 1080 } = {}) {
     <!-- 12 · CTAs -->
     ${(() => {
       const y = headY + 362;
-      const label = "Download the app";
+      const label = "Open the web app";
       const w = measure(label, T.font.sans, 700, 23) + 88;
-      const ghostW = measure("Open the map", T.font.sans, 700, 22) + 62;
+      const ghostW = measure("Free · no account", T.font.sans, 700, 22) + 62;
       return `<g>
         <rect x="${pad}" y="${y}" width="${w}" height="64" rx="32" fill="url(#goldPill)"/>
-        <g transform="translate(${pad + 26},${y + 19})" fill="${INK}">
-          <path d="M9 0v18M3 12l6 6 6-6" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M0 24h18" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>
+        <g transform="translate(${pad + 24},${y + 21})" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="9" stroke-width="2.2"/>
+          <path d="M6.5 10h7M10.5 6.6 14 10l-3.5 3.4"/>
         </g>
         ${text(label, pad + 52, y + 41, { family: T.font.sans, weight: 700, size: 23, fill: INK })}
         <rect x="${pad + w + 18}" y="${y}" width="${ghostW}" height="64" rx="32"
           fill="rgba(255,255,255,0.10)" stroke="#eafcfa" stroke-opacity="0.55"/>
-        ${text("Open the map", pad + w + 18 + 31, y + 41, { family: T.font.sans, weight: 700, size: 22, fill: "#ffffff" })}
+        ${text("Free · no account", pad + w + 18 + 31, y + 41, { family: T.font.sans, weight: 700, size: 22, fill: "#ffffff" })}
       </g>`;
     })()}
 

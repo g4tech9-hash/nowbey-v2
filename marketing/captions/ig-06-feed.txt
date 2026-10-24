@@ -3,6 +3,6 @@ What neighbours are reporting, right now.
 The feed is the island in order of recency: flooding on Bay Street, lines down on Prince Charles, debris on Blake Road. Each card tells you the category, the place, and how fresh the confirmation is — live, recent, needs a recheck, or stale.
 
 Scan it in the school run queue. That's the design brief.
-→ nowbey.com/feed
+→ nowbey-v2.vercel.app/feed
 
 #Nassau #Bahamas #NewProvidence #Flooding #242

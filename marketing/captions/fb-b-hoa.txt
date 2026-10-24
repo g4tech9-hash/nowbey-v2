@@ -6,4 +6,4 @@ Two things that might matter to your members:
 – Storm warnings are sent to everyone, free. No plan required.
 – Old reports are labelled, not deleted, so the history stays visible.
 
-Email alerts for your island: nowbey.com/alerts
+Email alerts for your island: nowbey-v2.vercel.app/alerts

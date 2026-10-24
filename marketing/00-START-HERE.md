@@ -223,7 +223,10 @@ npm run build:stories    # 9 verticals
 npm run build:video      # 3 reels + posters  (needs ffmpeg)
 npm run build:brand      # profile photo + covers (emblem set)
 npm run build:identity   # monogram avatar + gateway banner
+npm run build:storm      # the four storm assets
 npm run sheet            # contact sheet
+npm run utms             # tracked redirect pages
+npm run metrics          # reach / saves / shares, last 30 days
 ```
 
 **CHECK:** the matching folder in `out\` gets new files with today's timestamp.
@@ -241,6 +244,8 @@ npm run sheet            # contact sheet
 | `out\stories\` | 9 verticals, 1080×1920 — Stories and Reels covers |
 | `out\video\` | 3 reels, 8s, 1080×1920, H.264, plus a poster PNG each |
 | `out\brand\` | 8 files — **both** identity sets: emblem avatar/covers and the N-monogram/gateway banner |
+| `out\storm\` | 4 files — the storm kit, for the day a system is named |
+| `out\go\` | one tracked redirect page per caption, plus `links.json` |
 | `captions\` | 16 caption files + `plan.json`, the publishing order |
 | `scripts\` | the whole generator and the publishing CLI |
 | `src\` | the photo plates the composites are built on |
@@ -270,6 +275,61 @@ upper 60% by design, and both covers keep the bottom-left corner empty for the p
 | `IG_USER_ID` unresolved | IG account is not Professional, or not linked to the Page |
 | Preflight says token expired | extend in the Access Token Debugger, or use a System user token |
 | Text renders as boxes in a rebuilt PNG | the static fonts in `fonts\` were not found — run `npm run fonts`, then rebuild |
+
+---
+
+## After day 1 — three habits
+
+### Track the links, once
+
+The captions say `nowbey-v2.vercel.app`. That is right for a reader and useless for
+you: nineteen posts arrive as the same referral.
+
+```powershell
+node scripts/utms.mjs
+```
+
+It writes one redirect page per caption into `out\go\`, with the UTM already in it, and prints the
+table. Use those URLs in the Instagram bio, the story link sticker, and the Facebook post body — the
+caption text keeps the plain domain, because a tracked URL in a caption reads as spam and gets fewer
+taps.
+
+**CHECK:** `out\go\ig-01-map\index.html` exists, and opening it in a browser lands on the app with
+`?utm_source=instagram...` in the address bar. Re-deploy `out\` to Netlify so the pages are live.
+
+> The app needs to read those UTMs for this to pay off. Vercel Web Analytics, GA or Plausible all pick
+> them up for free. Filter by `utm_campaign=launch`, then read `utm_content` — that is the caption.
+
+### Look at the numbers weekly
+
+```powershell
+node scripts/metrics.mjs --days 7
+```
+
+Reach, saves, shares and interactions per post, plus account size, written to `metrics-<date>.md` so a
+weekly run leaves a trail. Saves are the one to watch for a safety tool: a save means someone intends
+to need it later.
+
+**CHECK:** the table has rows and `Most saved` names a post.
+
+> No numbers at all usually means the token lacks `instagram_basic` or `pages_read_engagement`.
+
+### Have the storm kit ready
+
+Six months of the year this is the most useful thing the product does. The assets and captions are
+already built — do not rebuild them at 11pm with the power flickering.
+
+```powershell
+node scripts/publish.mjs storm --dry-run     # four posts, in order
+node scripts/publish.mjs storm --yes         # only when a system is actually named
+```
+
+Order: Facebook prep the day before · the warning itself · the story with the link sticker · the
+aftermath once it has passed. It uses the same ledger as everything else, so running it twice will not
+double-post.
+
+**CHECK:** the dry run lists four items and posts nothing.
+
 
 ---
 

@@ -48,7 +48,6 @@
     "asset": "out/stories/S2-alerts-story.png",
     "label": "IG story · alerts (add the link sticker in-app)"
   },
-
   {
     "day": 2,
     "platform": "ig",
@@ -81,7 +80,6 @@
     "caption": "captions/reel-2-report.txt",
     "label": "IG reels · the report"
   },
-
   {
     "day": 3,
     "platform": "ig",
@@ -121,7 +119,6 @@
     "asset": "out/stories/S6-web-story.png",
     "label": "IG story · web app"
   },
-
   {
     "day": 4,
     "platform": "ig",
@@ -136,7 +133,6 @@
     "caption": "captions/carousel.txt",
     "label": "IG carousel · how it works"
   },
-
   {
     "day": 5,
     "platform": "ig",
@@ -153,7 +149,6 @@
     "caption": "captions/fb-b-hoa.txt",
     "label": "Facebook · HOA / community leaders"
   },
-
   {
     "day": 6,
     "platform": "fb",
@@ -162,7 +157,6 @@
     "caption": "captions/fb-d-honest.txt",
     "label": "Facebook · the honest one"
   },
-
   {
     "day": 7,
     "platform": "ig",
@@ -171,7 +165,6 @@
     "caption": "captions/ig-08-trust.txt",
     "label": "IG feed · trust"
   },
-
   {
     "day": 8,
     "platform": "ig",
@@ -180,7 +173,6 @@
     "caption": "captions/ig-06-feed.txt",
     "label": "IG feed · the feed"
   },
-
   {
     "day": 9,
     "platform": "ig",
@@ -189,7 +181,6 @@
     "caption": "captions/ig-04-wire.txt",
     "label": "IG feed · the wire"
   },
-
   {
     "day": 10,
     "platform": "ig",
@@ -198,7 +189,6 @@
     "caption": "captions/ig-07-web.txt",
     "label": "IG feed · the web app"
   },
-
   {
     "day": 11,
     "platform": "ig",
@@ -212,10 +202,9 @@
     "platform": "fb",
     "type": "fbpost",
     "asset": "out/posts/02-report.png",
-    "caption": "captions/fb-b-hoa.txt",
-    "label": "Facebook · HOA / community leaders"
+    "caption": "captions/fb-f-return.txt",
+    "label": "Facebook · area groups, one ask"
   },
-
   {
     "day": 12,
     "platform": "ig",
@@ -227,16 +216,15 @@
       "out/posts/05-confirmed.png",
       "out/posts/03-alerts.png"
     ],
-    "caption": "captions/carousel.txt",
-    "label": "IG carousel · re-share"
+    "caption": "captions/carousel-reshare.txt",
+    "label": "IG carousel · the loop, again"
   },
-
   {
     "day": 14,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/01-map.png",
-    "caption": "captions/ig-01-map.txt",
+    "caption": "captions/ig-09-reshare.txt",
     "label": "IG feed · best performer, re-share"
   },
   {
@@ -244,7 +232,7 @@
     "platform": "fb",
     "type": "fbpost",
     "asset": "out/posts/01-map.png",
-    "caption": "captions/fb-a-local.txt",
+    "caption": "captions/fb-e-reshare.txt",
     "label": "Facebook · local-group re-post"
   }
 ]

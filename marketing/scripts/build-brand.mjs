@@ -160,7 +160,9 @@ function cover(W, H, { compact = false } = {}) {
   body += `<g transform="translate(${pad},${subY})">${subArt.svg}</g>`;
 
   const ctaY = subY + subArt.height + (compact ? 14 : 34);
-  const c = cta("nowbey.com", pad, ctaY, { h: compact ? 48 : 60, size: compact ? 19 : 23 });
+  // No store listing yet: the live product is the web app, so the pill names
+  // the host rather than implying a download that does not exist.
+  const c = cta("nowbey-v2.vercel.app", pad, ctaY, { h: compact ? 48 : 60, size: compact ? 19 : 23 });
   body += c.svg;
 
   if (!compact) {

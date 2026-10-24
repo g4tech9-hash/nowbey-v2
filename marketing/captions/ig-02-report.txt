@@ -3,6 +3,6 @@ Twenty seconds, four steps, one line of text.
 That's the whole reporting flow. Pick the category, drop the pin where you're standing, say what you can see. Post your name or stay anonymous. Lose signal halfway? Your draft waits for you.
 
 The faster a report goes up, the more useful it is to the person behind you.
-→ nowbey.com/report
+→ nowbey-v2.vercel.app/report
 
 #Nassau #Bahamas #NewProvidence #Flooding #242

@@ -1,0 +1,7 @@
+For the people running area groups and HOAs — one ask, and it costs you nothing.
+
+Next time the rain starts and the group fills with "is Bay Street passable?", don't answer it forty times. Pin it once on NowBey. Everyone can see it, everyone can confirm it, and it is still there when the next person asks.
+
+Flooding, road, power, water — four categories, free to look, no account needed: nowbey-v2.vercel.app/alerts
+
+Set alerts for your island while you're there. It is the only part that sends you anything, and you choose what. 📍

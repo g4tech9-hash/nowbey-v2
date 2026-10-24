@@ -7,4 +7,4 @@ How NowBey works, in four lines:
 
 That's it. No ads inside your safety information, no paid "verified" badges, and storm warnings are free to everyone.
 
-Live for New Providence today, other islands next: nowbey.com
+Live for New Providence today, other islands next: nowbey-v2.vercel.app

@@ -7,7 +7,8 @@ the interface it is advertising.
 ```
 src/          photographic base plates (phone screens are composited into them)
 scripts/      the generator
-out/          the deliverables — posts, stories, reels, contact sheet
+out/          the deliverables — posts, stories, reels, brand, storm, contact sheet
+out/go/       tracked redirect pages, one per caption (scripts/utms.mjs)
 fonts/static/ the product's three typefaces, instanced per weight
 ```
 
@@ -83,3 +84,15 @@ that makes a composite sit correctly in a real hand; everything else is automati
 - The alert channel on screen is **email** — there is no SMS or push claim anywhere in the kit.
 - Coverage language is `Live for New Providence`; nothing implies island-wide or nationwide coverage.
 - Copy is British-spelled, like `src/lib/copy.ts`.
+
+## Beyond the calendar
+
+| Command | What it is for |
+| --- | --- |
+| `node scripts/publish.mjs plan --day <n> --yes` | posts a day, skipping anything already live |
+| `node scripts/publish.mjs dupes --delete` | finds repeats, removes the Facebook ones, lists the Instagram ones |
+| `node scripts/publish.mjs brand --set emblem --yes` | sets the Page cover from the emblem identity set |
+| `node scripts/publish.mjs storm --yes` | posts the four-event storm kit when a system is named |
+| `node scripts/utms.mjs` | rebuilds the tracked links in `out/go/` |
+| `node scripts/metrics.mjs --days 7` | weekly reach / saves / shares into `metrics-<date>.md` |
+| `node scripts/token-extend.mjs` | reports token expiry, exchanges for 60 days |

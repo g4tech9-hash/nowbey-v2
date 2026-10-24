@@ -1,0 +1,7 @@
+A fortnight in, so here's the honest version again for anyone who missed it 👇
+
+NowBey is a map of what Nassau neighbours can actually see: flooding, road hazards, power cuts, water outages. You can see who reported it, and how long ago somebody confirmed it — which is the part that makes it useful and not just another group chat.
+
+Free to look. No account. Works in the browser: nowbey-v2.vercel.app
+
+If your area has a group, this is the thing to drop into it. A map is only as good as the people on it. 🌧️🗺️

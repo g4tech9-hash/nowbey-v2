@@ -1,0 +1,33 @@
+[
+  {
+    "day": "storm",
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/storm/storm-03-prep-1080.png",
+    "caption": "captions/fb-g-storm-prep.txt",
+    "label": "Facebook · storm prep (T-24h)"
+  },
+  {
+    "day": "storm",
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/storm/storm-01-warning-1080.png",
+    "caption": "captions/ig-10-storm.txt",
+    "label": "IG feed · storm warning (T-0)"
+  },
+  {
+    "day": "storm",
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/storm/storm-02-warning-story.png",
+    "label": "IG story · storm warning (add the link sticker)"
+  },
+  {
+    "day": "storm",
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/storm/storm-04-after-1080.png",
+    "caption": "captions/ig-11-storm-after.txt",
+    "label": "IG feed · after the storm"
+  }
+]

@@ -3,6 +3,6 @@ Your island. Your alerts. No noise.
 Choose New Providence, then choose what you actually want to hear about: flooding, road hazards, power. One profile per email address. No texts, no spam — email is the channel that works today, and we'd rather say that than pretend otherwise.
 
 Storm warnings are always sent, and always free.
-→ nowbey.com/alerts
+→ nowbey-v2.vercel.app/alerts
 
 #Bahamas #Nassau #HurricaneSeason #NewProvidence #242

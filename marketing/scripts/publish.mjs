@@ -90,6 +90,12 @@ NowBey publish — Instagram + Facebook + TikTok from the terminal
 
 PLAN (recommended)
   node scripts/publish.mjs plan --day <n|all> [--base <url>] (--dry-run | --yes)
+  node scripts/publish.mjs plan --day 9 --plan captions/storm.json    any calendar
+
+STORM
+  node scripts/publish.mjs storm (--dry-run | --yes)
+  Posts the four-event storm kit from captions/storm.json — prep, warning,
+  story, aftermath. Run it when a system is actually named, not before.
   node scripts/publish.mjs plan --day 1 --yes --force     repeat entries already recorded
 
   plan remembers what it published in .publish-state.json and steps over it, so a
@@ -556,7 +562,9 @@ async function plan(o) {
     console.error("✗ --day <number|all>");
     process.exit(1);
   }
-  const file = join(ROOT, "captions", "plan.json");
+  // `--plan` points at a different calendar: captions/storm.json is the
+  // event-driven one, posted when a system is named rather than on a date.
+  const file = join(ROOT, o.plan || join("captions", "plan.json"));
   const entries = JSON.parse(readFileSync(file, "utf8")).filter(
     (e) => o.day === "all" || String(e.day) === String(o.day),
   );
@@ -571,7 +579,7 @@ async function plan(o) {
     );
     process.exit(1);
   }
-  say(`\nDay ${o.day}: ${entries.length} post(s)${dry(o) ? "  [dry run]" : ""}`);
+  say(`\n${o.plan ? "Storm kit" : `Day ${o.day}`}: ${entries.length} post(s)${dry(o) ? "  [dry run]" : ""}`);
 
   let n = 0;
   const skipped = [];
@@ -860,6 +868,16 @@ async function dupes(o) {
   say("");
 }
 
+/**
+ * The storm kit, in publishing order, on the event rather than a date.
+ *
+ *   node scripts/publish.mjs storm --dry-run
+ *   node scripts/publish.mjs storm --yes
+ */
+async function storm(o) {
+  await plan({ ...o, plan: join("captions", "storm.json"), day: "storm", yes: o.yes, strict: o.strict });
+}
+
 /* ---------------------------------------------------------------- the brand */
 
 /**
@@ -988,6 +1006,7 @@ if (!cmd || o.help) {
 
 const commands = {
   plan,
+  storm,
   brand,
   mark,
   dupes,
@@ -1007,6 +1026,6 @@ if (!commands[cmd]) {
 
 // `plan` checks its own tokens per-platform, so a missing TikTok token does not
 // block a day that only posts to Instagram.
-if (!dry(o) && cmd !== "plan" && cmd !== "mark" && cmd !== "brand" && cmd !== "dupes") need(TOKEN, "META_TOKEN");
+if (!dry(o) && cmd !== "plan" && cmd !== "mark" && cmd !== "brand" && cmd !== "dupes" && cmd !== "storm") need(TOKEN, "META_TOKEN");
 
 await commands[cmd](withBase(o));

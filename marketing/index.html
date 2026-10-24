@@ -96,8 +96,8 @@
       <code>00-START-HERE.md</code>, work down the list. The smaller zips below are only useful if you
       already have the scripts and just want new images.</p>
     <div class="btns">
-      <a class="btn" href="downloads/nowbey-full-kit.zip" download>★ Full kit — everything <small>62 MB</small></a>
-      <a class="btn ghost" href="downloads/nowbey-social-kit.zip" download>Images only <small>43 MB</small></a>
+      <a class="btn" href="downloads/nowbey-full-kit.zip" download>★ Full kit — everything <small>59 MB</small></a>
+      <a class="btn ghost" href="downloads/nowbey-social-kit.zip" download>Images only <small>41 MB</small></a>
       <a class="btn ghost" href="downloads/nowbey-01-posts.zip" download>Posts <small>12 MB</small></a>
       <a class="btn ghost" href="downloads/nowbey-02-stories.zip" download>Stories <small>19 MB</small></a>
       <a class="btn ghost" href="downloads/nowbey-03-reels.zip" download>Reels <small>6 MB</small></a>
@@ -174,6 +174,41 @@
       <img src="out/brand/identity-preview.png" alt="Monogram and banner proof sheet">
       <div class="cap"><b>Proof sheet</b><i>banner under a real avatar overlay + circle/square crops</i></div>
     </a>
+  </div>
+
+  <h2>Storm kit · for the day a system is named
+    <small>Event-driven, not scheduled. Four assets and four captions that go out in order —
+      prep the day before, the warning itself, the story, then the aftermath. Built now so nobody is
+      designing at 11pm with the power flickering. Publish the set with
+      <code>node scripts/publish.mjs storm --yes</code>.</small></h2>
+  <div class="brand">
+    <a class="card" href="out/storm/storm-03-prep-1080.png" target="_blank">
+      <img src="out/storm/storm-03-prep-1080.png" alt="Storm prep, four things worth doing now">
+      <div class="cap"><b>Prep · T-24h</b><i>1080×1080 · facebook · four things worth doing</i></div>
+    </a>
+    <a class="card" href="out/storm/storm-01-warning-1080.png" target="_blank">
+      <img src="out/storm/storm-01-warning-1080.png" alt="Storm warning, square">
+      <div class="cap"><b>Warning · T-0</b><i>1080×1080 · instagram feed</i></div>
+    </a>
+    <a class="card" href="out/storm/storm-02-warning-story.png" target="_blank">
+      <img src="out/storm/storm-02-warning-story.png" alt="Storm warning, story">
+      <div class="cap"><b>Warning · story</b><i>1080×1920 · link sticker sits mid-frame</i></div>
+    </a>
+    <a class="card" href="out/storm/storm-04-after-1080.png" target="_blank">
+      <img src="out/storm/storm-04-after-1080.png" alt="After the storm">
+      <div class="cap"><b>Aftermath</b><i>1080×1080 · the map is still the record</i></div>
+    </a>
+  </div>
+
+  <h2>Tracked links · out/go/
+    <small>One redirect page per caption, with the UTM already baked in, so the app's analytics can
+      tell you which post earned the visit. Put these in the Instagram bio, the story link sticker and
+      the Facebook post body — the caption text keeps the plain domain, because a tracked URL in a
+      caption reads as spam. Rebuild with <code>node scripts/utms.mjs</code>.</small></h2>
+  <div class="dl">
+    <h3>out/go/</h3>
+    <p><a href="out/go/links.json">links.json</a> — every slug, its destination and the UTM it carries.
+      Each <code>out/go/&lt;slug&gt;/</code> is a two-line redirect page, hosted with the kit.</p>
   </div>
 
   <h2>Every asset on one page

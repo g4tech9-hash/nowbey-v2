@@ -2,6 +2,6 @@ A small thing we decided early: we would rather look unfinished than lie to you.
 
 So — the map and email alerts are live for New Providence right now. Text-message alerts aren't built yet. iPhone app notifications aren't built yet. The Android app is coming. Email works today, on every plan, and it costs nothing to set up.
 
-When the rest is ready, we'll say so here. Until then: nowbey.com
+When the rest is ready, we'll say so here. Until then: nowbey-v2.vercel.app
 
 (Call 911 / 919 in an emergency — we're a community map, not an emergency service.)

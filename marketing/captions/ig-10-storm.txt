@@ -1,0 +1,8 @@
+A named storm is not a post we schedule. Storm reports go to every alert subscriber on the island — whatever categories you picked, whatever plan you are on. 🌧️
+
+That is deliberate. A warning that only reaches people who happened to tick "storm" is not a warning.
+
+Free to look, no account needed. Set alerts once and it is done:
+nowbey-v2.vercel.app/alerts
+
+#Bahamas #Nassau #HurricaneSeason #StormPreparedness #242
