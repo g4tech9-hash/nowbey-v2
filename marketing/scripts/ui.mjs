@@ -73,10 +73,14 @@ export function text(str, x, y, o = {}) {
     tracking = 0,
     opacity = 1,
     baseline = "alphabetic",
+    stroke = null,
+    strokeWidth = 0,
   } = o;
   return `<text x="${round(x)}" y="${round(y)}" font-family="${family}${weight}" font-size="${round(size)}" fill="${fill}"${
     anchor !== "start" ? ` text-anchor="${anchor}"` : ""
-  }${tracking ? ` letter-spacing="${round(tracking * size)}"` : ""}${opacity !== 1 ? ` opacity="${opacity}"` : ""}${
+  }${tracking ? ` letter-spacing="${round(tracking * size)}"` : ""}${
+    stroke ? ` stroke="${stroke}" stroke-width="${round(strokeWidth)}" paint-order="stroke" stroke-linejoin="round"` : ""
+  }${opacity !== 1 ? ` opacity="${opacity}"` : ""}${
     baseline !== "alphabetic" ? ` dominant-baseline="${baseline}"` : ""
   }>${esc(str)}</text>`;
 }

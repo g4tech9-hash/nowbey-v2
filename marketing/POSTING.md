@@ -1,12 +1,67 @@
 # Posting this kit — the short version
 
-## Can this kit post itself? No.
+## Can this kit post itself? Not without credentials — but the CLI is already written.
 
-Nothing in this repo has a social API token, and Arena has no Instagram / Facebook / TikTok
-connector, so publishing has to happen from an account you own. What the kit does give you is every
-file in its final size and every caption ready to copy — the human step is upload, paste, press post.
+There is no token in this repo and Arena has no Instagram / Facebook / TikTok connector, so nothing
+here can publish on its own. What it does ship is `scripts/publish.mjs`: a Graph API client that
+posts the exact files in `out/` from your terminal, once you supply a token.
 
-Three ways to do it, easiest first.
+### The CLI (Instagram + Facebook)
+
+```bash
+cd marketing
+export META_TOKEN=EAA...          # long-lived token: instagram_basic,
+                                  # instagram_content_publish, pages_show_list,
+                                  # pages_manage_posts
+export IG_USER_ID=17841400...     # IG Business account id
+export FB_PAGE_ID=100000...       # the Page it is linked to
+
+npm run publish -- --help         # every command
+```
+
+Meta fetches media from a URL, so the kit has to be reachable. Either host `out/` and pass
+`--base https://your-host/kit/`, or give full `https://` URLs:
+
+```bash
+# always try it dry first — it prints the exact calls and posts nothing
+npm run publish -- ig-post --image out/posts/01-map.png \
+  --base https://nowbey.com/kit/ --caption "See what's happening on your island." --dry-run
+
+# feed post
+npm run publish -- ig-post --image out/posts/01-map.png \
+  --base https://nowbey.com/kit/ --caption-file cap-01.txt
+
+# carousel, in swipe order
+npm run publish -- ig-carousel \
+  --images out/posts/06-feed.png,out/posts/01-map.png,out/posts/02-report.png,out/posts/05-confirmed.png,out/posts/03-alerts.png \
+  --base https://nowbey.com/kit/ --caption-file cap-carousel.txt
+
+# reel, with its poster as the cover
+npm run publish -- ig-reel --video out/video/01-map-countdown.mp4 \
+  --cover out/video/01-map-countdown-poster.png \
+  --base https://nowbey.com/kit/ --caption-file cap-reel-1.txt
+
+# 24-hour story
+npm run publish -- ig-story --image out/stories/S1-map-story.png --base https://nowbey.com/kit/
+
+# Facebook Page post, scheduled (10 min – 30 days ahead)
+npm run publish -- fb-post --image out/posts/01-map.png \
+  --message "Quick one for the Nassau folks…" \
+  --base https://nowbey.com/kit/ --scheduled 2026-10-27T07:00:00-04:00
+```
+
+Getting the ids once: `curl "https://graph.facebook.com/v21.0/me/accounts?access_token=$META_TOKEN"`
+gives the Page ids; `curl ".../PAGE_ID?fields=instagram_business_account&access_token=$META_TOKEN"`
+gives the IG id. A System User token from Meta Business Settings is the sane long-term choice — it
+does not expire in 60 days the way a user token does.
+
+**TikTok is not in the CLI.** Its Content Posting API needs an app that has been through TikTok's
+audit (weeks, and a business account); until then the only route is uploading in the app. Same for
+scheduling: Meta's own Planner covers IG + FB natively, and it is free.
+
+## No terminal? Upload by hand
+
+Three ways, easiest first.
 
 ---
 

@@ -12,7 +12,8 @@
     "sheet": "node scripts/contact-sheet.mjs",
     "fonts": "python3 scripts/make-static-fonts.py",
     "check:tokens": "node scripts/check-tokens.mjs",
-    "gallery": "node scripts/serve.mjs"
+    "gallery": "node scripts/serve.mjs",
+    "publish": "node scripts/publish.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",

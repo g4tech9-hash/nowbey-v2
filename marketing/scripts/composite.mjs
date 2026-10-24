@@ -10,7 +10,10 @@
  *     rounded screen is the single most obvious tell of a fake mockup;
  *   · a diagonal glass sheen and a slight brightness lift, so the UI reads as
  *     emissive light under glass rather than a flat image on the photo;
- *   · per-pixel inverse mapping, so nothing is resampled twice.
+ *   · per-pixel inverse mapping, so nothing is resampled twice;
+ *   · an OCCLUSION pass: fingers that wrap over the phone's glass are detected
+ *     in the photograph and painted back on top of the screen. Without it the
+ *     screen covers the thumb and the phone reads as floating in the hand.
  *
  * Callers render their screen at the quad's own aspect ratio (see
  * `quadBox`), which removes any cropping or stretching of the UI.
@@ -115,6 +118,14 @@ export async function compositeScreen({
   glow = 0,
   glowPoint,
   res = 1,
+  // Anything in front of the glass (a thumb wrapping the edge, a strap) is
+  // brighter than the black phone face. Luminance above `lo` starts to
+  // survive, above `hi` it is fully preserved. Pass false to disable.
+  occlude = { lo: 46, hi: 86 },
+  // Pull the screen in from the measured phone face by `inset` photo pixels,
+  // so the phone's own black bezel/frame stays visible around the app. A screen
+  // that reaches the outer edge of a phone reads as a pasted rectangle.
+  inset = 0,
 }) {
   const photoImg = await loadImage(photo);
   const screenImg = await loadImage(screen);
@@ -125,6 +136,13 @@ export async function compositeScreen({
   const H = Math.round(photoImg.height * res);
   quad = quad.map(([x, y]) => [x * res, y * res]);
   radius = radius * res;
+  if (inset > 0) {
+    const cx = quad.reduce((a, p) => a + p[0], 0) / 4;
+    const cy = quad.reduce((a, p) => a + p[1], 0) / 4;
+    const k = 1 - (inset * res * 2) / Math.min(quadBox(quad).w, quadBox(quad).h);
+    quad = quad.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]);
+    radius = Math.max(2, radius - inset * res * 0.5);
+  }
 
   const canvas = createCanvas(W, H);
   const ctx = canvas.getContext("2d");
@@ -158,6 +176,8 @@ export async function compositeScreen({
 
   const img = ctx.getImageData(0, 0, W, H);
   const out = img.data;
+  // pristine copy of the photograph, for the occlusion pass
+  const photoPx = occlude ? new Uint8ClampedArray(out) : null;
 
   for (let y = by0; y <= by1; y++) {
     for (let x = bx0; x <= bx1; x++) {
@@ -177,6 +197,24 @@ export async function compositeScreen({
       const dist = Math.hypot(dx, dy) - rq;
       const cover = Math.min(1, Math.max(0, 0.5 - dist));
       if (cover <= 0) continue;
+
+      // Occlusion: is there something in FRONT of the glass here? A finger
+      // wrapping the frame is bright against the black phone face. Only the
+      // outer band of the glass is eligible — reflections and fingerprints sit
+      // in the middle of the screen and must be replaced by the UI, not kept.
+      let keep = 0;
+      if (photoPx) {
+        const d = Math.min(u, 1 - u, 1 - v); // distance to left/right/bottom edge
+        if (d < 0.2) {
+          const band = Math.min(1, Math.max(0, (0.2 - d) / 0.07));
+          const po = (y * W + x) * 4;
+          const lum = 0.299 * photoPx[po] + 0.587 * photoPx[po + 1] + 0.114 * photoPx[po + 2];
+          if (lum > occlude.lo) {
+            const t = Math.min(1, (lum - occlude.lo) / (occlude.hi - occlude.lo));
+            keep = band * t * t * (3 - 2 * t); // smoothstep
+          }
+        }
+      }
 
       // bilinear sample of the screen
       const sx = Math.min(sw - 1, Math.max(0, u * sw - 0.5));
@@ -200,13 +238,14 @@ export async function compositeScreen({
       const vig = edge < 0.02 ? 0.86 + edge * 7 : 1;
       const k = lift * vig;
 
+      const a = cover * (1 - keep); // how much of the screen survives
       for (let c = 0; c < 3; c++) {
         const val =
           ((src[i00 + c] * (1 - fx) + src[i10 + c] * fx) * (1 - fy) +
             (src[i01 + c] * (1 - fx) + src[i11 + c] * fx) * fy) *
           k;
         const o = (y * W + x) * 4 + c;
-        out[o] = out[o] * (1 - cover) + Math.min(255, val) * cover;
+        out[o] = out[o] * (1 - a) + Math.min(255, val) * a;
       }
     }
   }

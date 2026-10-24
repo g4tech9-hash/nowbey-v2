@@ -81,7 +81,12 @@ async function photoStory({ photo, screen, sceneOpts = {}, place = [0.5, 1, 0.34
   // the honesty line sits in the type block, never over the app screen
   if (footStr) {
     body += circle(PAD + 5, y + 8, 5, T.accent);
-    body += text(footStr, PAD + 22, y + 16, { family: T.font.sans, weight: 400, size: 21, fill: T.textTertiary });
+    // knocked out of whatever the photograph is doing behind it: the type band
+    // is a scrim, not a solid panel, so bright clothing can still come through
+    body += text(footStr, PAD + 22, y + 16, {
+      family: T.font.sans, weight: 400, size: 21, fill: T.textSecondary,
+      stroke: "rgba(9,15,21,0.5)", strokeWidth: 5,
+    });
   }
   return svgDoc(W, H, body);
 }
@@ -171,13 +176,18 @@ export const STORIES = {
       callouts: [{ at: "right", dy: 240, w: 400, title: "Flooding on", line: "Bay Street · Nassau", color: T.cat.flooding }],
     }),
 
-  /* S3 — reporting, story format. */
+  /* S3 — reporting, story format.
+   * Base plate is the two-neighbours-at-dusk photograph: the phone is gripped
+   * with fingers curling around the frame and a thumb over the glass, so the
+   * composited screen is genuinely inside a hand. (The earlier flooded-street
+   * plate had both hands sitting outside the measured quad, which read as a
+   * phone floating in front of the person.) */
   "S3-report-story": () =>
     photoStory({
-      photo: "photo-story-b.png",
+      photo: "photo-story-vertical.png",
       screen: sceneReport,
       sceneOpts: { step: 2, typed: 0.7 },
-      place: [0.5, 0.7, 0.24],
+      place: [0.5, 0.76, 0.3],
       eyebrowStr: "Report a hazard",
       headlineStr: "Twenty|seconds.",
       subStr: "Four guided steps. Post your name, or stay anonymous.",

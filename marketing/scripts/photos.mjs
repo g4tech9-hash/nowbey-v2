@@ -52,6 +52,7 @@ export async function photoLayer({ photo, screen, W, H, focalY = 0.5, focalX = 0
     brightness: geo.brightness,
     glow: geo.glow,
     res: geo.res ?? 3,
+    inset: geo.inset ?? 0,
   });
 
   const out = createCanvas(CW, CH);

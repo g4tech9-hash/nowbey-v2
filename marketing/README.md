@@ -20,6 +20,7 @@ npm run build          # out/posts + out/stories   (~30s)
 npm run build:video    # out/video/*.mp4           (~2 min, needs ffmpeg — see below)
 npm run sheet          # out/CONTACT_SHEET.png
 npm run gallery        # browse everything at http://localhost:4173
+npm run publish -- --help   # post to IG/FB via Graph API (needs META_TOKEN)
 ```
 
 `npm run gallery` serves this folder with Range support, so the reels scrub properly in the browser.
@@ -35,6 +36,13 @@ instead of writing an empty file. On this repo's sandbox (no system ffmpeg):
 python3 -m venv /tmp/venv && /tmp/venv/bin/pip install imageio-ffmpeg
 FFMPEG=/tmp/venv/lib/python3.11/site-packages/imageio_ffmpeg/binaries/ffmpeg-linux-x86_64-* npm run build:video
 ```
+
+## Why `out/` is not in git
+
+The repo already ignores `out/`, and the whole kit is reproducible from tokens
+in about a minute, so the rendered PNGs and MP4s are build output, not source:
+`npm run build && npm run build:video && npm run sheet` regenerates every asset
+byte-for-byte. Share the folder (or the gallery URL) rather than committing it.
 
 ## How it works
 
