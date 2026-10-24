@@ -17,7 +17,8 @@
     "index": "node scripts/kit-index.mjs",
     "pages": "node scripts/find-pages.mjs",
     "build:brand": "node scripts/build-brand.mjs",
-    "build:identity": "node scripts/build-brand-identity.mjs"
+    "build:identity": "node scripts/build-brand-identity.mjs",
+    "token": "node scripts/token-extend.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",

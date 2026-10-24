@@ -22,6 +22,11 @@ IG_USER_ID=17841415783982130
 # Graph API version
 GRAPH_VERSION=v21.0
 
+# Optional — lets the CLI extend your token instead of you clicking through Meta.
+# Business settings → Apps → NowBey → Settings → Basic → App secret → Show.
+APP_ID=
+APP_SECRET=
+
 # ── TikTok ───────────────────────────────────────────────────────────────────
 # Optional. Direct Post needs an audited app; until then upload in the app.
 TT_TOKEN=

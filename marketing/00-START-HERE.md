@@ -81,6 +81,15 @@ node scripts/preflight.mjs
 Every line says `PASS`. If `IG_USER_ID` is the only one that fails, the script can resolve it for
 you with `node scripts/preflight.mjs --write`.
 
+Then, before you rely on it, check how long the token has left:
+
+```powershell
+node scripts/token-extend.mjs
+```
+
+It prints the token's type, expiry date and any missing publishing scope. If it says **Expired**, the
+token is already dead — scroll to the last section of this file, "When the token expires".
+
 ---
 
 ## Step 5 — Put the images behind a public URL
@@ -186,6 +195,39 @@ upper 60% by design, and both covers keep the bottom-left corner empty for the p
 | --- | --- |
 | Netlify URL 404s | deploy is still **private**, or you dragged the folder *above* `out` |
 | `403 (#200) publish_actions` | token missing `pages_manage_posts` — regenerate |
+| Token expired / `Session has expired` | it cannot be extended once dead — see the last section |
 | `IG_USER_ID` unresolved | IG account is not Professional, or not linked to the Page |
 | Preflight says token expired | extend in the Access Token Debugger, or use a System user token |
 | Text renders as boxes in a rebuilt PNG | the static fonts in `fonts\` were not found — run `npm run fonts`, then rebuild |
+
+---
+
+## When the token expires
+
+Expired tokens are deleted by Meta. There is nothing to extend — you make a new one and extend that
+while it is still fresh (~1 hour).
+
+```powershell
+node scripts/token-extend.mjs
+```
+
+1. **https://developers.facebook.com/tools/explorer/** → pick the **NowBey** app.
+2. Tick `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `instagram_basic`,
+   `instagram_content_publish`, `business_management`.
+3. **Generate Access Token** → paste it into `META_TOKEN` in `.env`.
+4. Immediately:
+
+   ```powershell
+   node scripts/token-extend.mjs --extend
+   ```
+
+   It writes a 60-day token back into `.env` and keeps the old one as `.env.bak`. Needs `APP_ID` and
+   `APP_SECRET` in `.env` — no secret? Use the Debugger instead: paste the token at
+   https://developers.facebook.com/tools/debugger/ → **Debug** → bottom → **Extend Access Token**.
+
+**CHECK:** `node scripts/preflight.mjs` is all PASS, and `node scripts/token-extend.mjs` reports
+roughly 60 days remaining.
+
+**Stop this recurring:** make a **System User** token instead — Business settings → Users → System
+users → `nowbey-publisher` → add the Page and IG account → Generate New Token. It never expires.
+Full click path: `CREDENTIALS.md` § "Keep it forever".

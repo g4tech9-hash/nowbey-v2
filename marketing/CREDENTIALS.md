@@ -57,6 +57,39 @@ You need a **Meta app** first (free, 2 minutes, no review needed for your own Pa
 2. Paste the token → **Debug**. Scroll to the bottom → **Extend Access Token**.
 3. Copy the new token into `META_TOKEN`. It's now good for ~60 days.
 
+Or from the CLI, which also tells you how long you have left:
+
+```bash
+node scripts/token-extend.mjs            # report: type, expiry, missing scopes
+node scripts/token-extend.mjs --extend   # swap for 60 days, write it into .env
+```
+
+`--extend` needs `APP_ID` and `APP_SECRET` in `.env` (Business settings → Apps → NowBey →
+Settings → Basic). It keeps the old value as `.env.bak`.
+
+### "My token expired" — what actually happens
+
+An expired token is **already dead**. Meta deletes it; there is nothing to extend, and no amount of
+re-running `Extend Access Token` on an old string will revive it. The only path is a new token:
+
+1. **https://developers.facebook.com/tools/explorer/** → pick the **NowBey** app.
+2. Tick: `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `instagram_basic`,
+   `instagram_content_publish`, `business_management`.
+3. **Generate Access Token**, accept on the Facebook *and* Instagram prompts.
+4. Put it in `META_TOKEN`, then immediately `node scripts/token-extend.mjs --extend` — you have about
+   an hour before the short-lived one dies, and the exchange must happen while it is still alive.
+5. `node scripts/preflight.mjs` → all PASS.
+
+Two things worth knowing:
+
+- **Page tokens inherit the user token's life.** `publish.mjs` calls `/me/accounts` and posts with the
+  Page token, so if the user token lapses, publishing stops even though the Page token "looked" long.
+- **The 60 days reset, it does not stack.** Extending a healthy 60-day token gives you a fresh 60, not
+  120. Extending one with 2 days left gives you 60 again — so there is no penalty for doing it early.
+
+**The fix that ends this:** a System User token (below) never expires. Do that once and the expiry
+question disappears.
+
 ### Keep it forever — a System User token (do this before launch day)
 
 1. **https://business.facebook.com/settings** → left rail **Users → System users** → **Add**.
@@ -265,7 +298,7 @@ accounts cannot be posted to by any API.
 
 | Message | What it means | Fix |
 | --- | --- | --- |
-| `Meta rejected the token` | expired (1 h tokens do) or wrong app | regenerate, then **Extend** in the Debugger |
+| `Meta rejected the token` | expired (1 h tokens do) or wrong app | an expired token cannot be extended — make a new one, then `node scripts/token-extend.mjs --extend` |
 | `Pages visible: none` | no `pages_show_list`, wrong profile, or limited role | see "Pages visible: none — the fix" above |
 | `Instagram linked: FAIL` | IG isn't Professional or isn't connected to the Page | IG app → Settings → Account type → Connect a Facebook Page |
 | `IG_USER_ID … use the Page one` | you copied the handle's id, not the Business account | use the `instagram_business_account.id` from step 2 |
