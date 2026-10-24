@@ -125,30 +125,62 @@ async function meta() {
   }
 }
 
+async function probe(url) {
+  try {
+    const r = await fetch(url, { headers: { range: "bytes=0-1023" } });
+    const type = (r.headers.get("content-type") || "").split(";")[0].toLowerCase();
+    const len = Number(r.headers.get("content-range")?.split("/")?.[1] || r.headers.get("content-length") || 0);
+    return { ok: r.ok, status: r.status, type, len };
+  } catch (e) {
+    return { ok: false, status: 0, type: "", len: 0, error: e.message };
+  }
+}
+
 async function media() {
   if (!KIT_BASE) {
-    fail("KIT_BASE", "missing — see CREDENTIALS.md step 4");
+    fail("KIT_BASE", "missing — host the out/ folder, then put the URL in .env (WALKTHROUGH step 4)");
     return;
   }
   const base = KIT_BASE.replace(/\/?$/, "/");
-  const targets = [
-    ["posts/01-map.png", "image/png"],
-    ["video/01-map-countdown.mp4", "video/mp4"],
-  ];
-  for (const [rel, want] of targets) {
-    const url = base + rel;
-    try {
-      // HEAD first: Meta does not care about Range, and it is cheap
-      const r = await fetch(url, { method: "GET", headers: { range: "bytes=0-1023" } });
-      const type = (r.headers.get("content-type") || "").split(";")[0];
-      const len = r.headers.get("content-range")?.split("/")?.[1] || r.headers.get("content-length");
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      if (!type.startsWith(want.split("/")[0])) throw new Error(`content-type is ${type || "unset"}, expected ${want}`);
-      if (Number(len) < 1000) throw new Error(`only ${len} bytes — is this a login page?`);
-      ok(`Media ${rel}`, `${type} · ${(Number(len) / 1e6).toFixed(2)} MB · public`);
-    } catch (e) {
-      fail(`Media ${rel}`, `${e.message} — ${url}`);
+
+  // Two layouts are common: the folder itself (…/posts/x.png) or the folder
+  // dropped inside another (…/out/posts/x.png). Try both, keep the one that
+  // actually serves the file.
+  let root = await probe(base + "posts/01-map.png");
+  let working = base;
+  if (!root.ok || !root.type.startsWith("image/")) {
+    const nested = await probe(base + "out/posts/01-map.png");
+    if (nested.ok && nested.type.startsWith("image/")) {
+      working = base + "out/";
+      root = nested;
+      suggestions.push(`KIT_BASE=${working.replace(/\/$/, "")}`);
+      warn("KIT_BASE path", `the files are one level down — use ${working.replace(/\/$/, "")}`);
     }
+  }
+
+  if (!root.ok || !root.type.startsWith("image/")) {
+    const isHtml = root.type === "text/html";
+    const detail = root.status === 401 || root.status === 403
+      ? `HTTP ${root.status} — the site is private. On Netlify: "Make public" at the bottom right.`
+      : isHtml
+        ? `returned an HTML page (HTTP ${root.status}), not an image — a login wall, a 404 page, or the wrong base.`
+        : root.error
+          ? `could not reach it (${root.error})`
+          : `HTTP ${root.status}, content-type ${root.type || "unset"}`;
+    fail("Media reachable", detail);
+    return;
+  }
+  if (root.len < 1000) {
+    fail("Media reachable", `only ${root.len} bytes at ${base}posts/01-map.png — is the file there?`);
+    return;
+  }
+  ok("Media posts/01-map.png", `${root.type} · ${(root.len / 1e6).toFixed(2)} MB · public`);
+
+  const vid = await probe(working + "video/01-map-countdown.mp4");
+  if (vid.ok && vid.type.startsWith("video/")) {
+    ok("Media video/01-map-countdown.mp4", `${vid.type} · ${(vid.len / 1e6).toFixed(2)} MB · public`);
+  } else {
+    fail("Media video/01-map-countdown.mp4", `HTTP ${vid.status || "?"} · ${vid.type || "no content-type"}`);
   }
 }
 

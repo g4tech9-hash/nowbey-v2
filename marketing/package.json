@@ -13,7 +13,8 @@
     "fonts": "python3 scripts/make-static-fonts.py",
     "check:tokens": "node scripts/check-tokens.mjs",
     "gallery": "node scripts/serve.mjs",
-    "publish": "node scripts/publish.mjs"
+    "publish": "node scripts/publish.mjs",
+    "index": "node scripts/kit-index.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",

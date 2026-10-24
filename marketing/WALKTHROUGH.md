@@ -76,16 +76,20 @@ Meta does not upload from your computer; it downloads from a link. So give it a 
 1. Open **https://app.netlify.com/drop** in your browser.
 2. Drag the **`out`** folder (from inside `nowbey-social-kit`) onto that page.
 3. Wait ~20 seconds. You get a URL like `https://calm-palm-1234.netlify.app`.
-4. Test it: open `https://calm-palm-1234.netlify.app/posts/01-map.png` in a **private/incognito**
-   window. The square map post should appear with no login.
-5. In Notepad, add that URL (no trailing slash):
+4. **Click "Make public"** — bottom-right of the Netlify page (it may say *Private* next to a lock
+   icon). If the site stays private, Meta gets a 401 and refuses every image. This is the single most
+   common reason a deploy "doesn't work".
+5. Test it: open `https://calm-palm-1234.netlify.app/posts/01-map.png` in a **private/incognito**
+   window. The square map post should appear with no login. (The bare URL should now show a file
+   list page — if it 404s but the image works, that's only cosmetic.)
+6. In Notepad, add that URL (no trailing slash):
 
 ```
 KIT_BASE=https://calm-palm-1234.netlify.app
 ```
 
-**CHECK:** the image loads in the private window. If it opens a Netlify login page instead, the site
-is private — use the "Claim"/sign-in step Netlify shows, or try option B in CREDENTIALS.md §4.
+**CHECK:** the image loads in the private window. If you get a Netlify login page or "Page not found",
+it is the privacy toggle in point 4, or `KIT_BASE` is one folder too high — add `/out` to the end.
 
 Now **save Notepad** (Ctrl+S) and close it.
 
