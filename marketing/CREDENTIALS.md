@@ -229,7 +229,8 @@ Check https://business.facebook.com/settings → **Accounts → Pages** → the 
 ### Let the script find it
 
 ```powershell
-node scripts\find-pages.mjs
+node scripts\find-pages.mjs          # lists every Page, with its ids
+node scripts\preflight.mjs --write   # writes the ids it found into .env
 ```
 
 It searches `/me/accounts`, then every Business portfolio's owned and client Pages, prints each Page

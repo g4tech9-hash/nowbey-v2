@@ -126,7 +126,14 @@ place Meta keeps Pages and prints the two lines for you:
 node scripts\find-pages.mjs
 ```
 
-Then:
+Easiest — let it write them for you:
+
+```powershell
+node scripts\preflight.mjs --write
+node scripts\preflight.mjs
+```
+
+Or by hand:
 
 1. `notepad .env` again.
 2. Paste those two lines in. Save, close.

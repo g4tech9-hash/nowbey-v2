@@ -18,6 +18,7 @@
  */
 
 import { readFileSync, existsSync } from "node:fs";
+import { writeEnvFile } from "./env-write.mjs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -46,6 +47,7 @@ const { META_TOKEN, IG_USER_ID, FB_PAGE_ID, TT_TOKEN, KIT_BASE } = process.env;
 
 const rows = [];
 const suggestions = []; // ready-to-paste .env lines
+const discovered = {}; // key → value, for --write
 const add = (check, state, detail) => rows.push({ check, state, detail });
 const ok = (c, d) => add(c, "PASS", d);
 const warn = (c, d) => add(c, "WARN", d);
@@ -139,9 +141,11 @@ async function meta() {
     }
     else {
       ok("Pages visible", pages.map((p) => p.name).join(", "));
-      if (!FB_PAGE_ID && pages.length === 1) suggestions.push(`FB_PAGE_ID=${pages[0].id}`);
-      else if (!FB_PAGE_ID) {
-        suggestions.push(`# pick one of: ${pages.map((p) => `${p.name}=${p.id}`).join("  ")}`);
+      if (!FB_PAGE_ID) {
+        discovered.FB_PAGE_ID = pages[0].id;
+        if (pages.length > 1) {
+          suggestions.push(`# pick one of: ${pages.map((p) => `${p.name}=${p.id}`).join("  ")}`);
+        }
         suggestions.push(`FB_PAGE_ID=${pages[0].id}`);
       }
     }
@@ -167,6 +171,7 @@ async function meta() {
           warn("IG_USER_ID", `set to ${IG_USER_ID} but the Page's account is ${ig.id} — use the Page one`);
         } else if (!IG_USER_ID) {
           warn("IG_USER_ID", `missing — it is ${ig.id}`);
+          discovered.IG_USER_ID = ig.id;
           suggestions.push(`IG_USER_ID=${ig.id}`);
         } else {
           ok("IG_USER_ID", IG_USER_ID);
@@ -278,10 +283,26 @@ for (const r of rows) {
 const fails = rows.filter((r) => r.state === "FAIL");
 console.log("─".repeat(62));
 
-if (suggestions.length) {
-  console.log("Found these for you — paste them into .env and run preflight again:\n");
-  for (const line of suggestions) console.log(`  ${line}`);
+const wantWrite = process.argv.includes("--write");
+const envPath = join(ROOT, ".env");
+
+if (wantWrite && Object.keys(discovered).length) {
+  const { written, replaced } = writeEnvFile(envPath, discovered);
+  for (const k of written) console.log(`✓ wrote ${k} to .env`);
+  for (const k of replaced) console.log(`✓ updated ${k} in .env`);
   console.log("");
+}
+
+if (suggestions.length) {
+  if (wantWrite && Object.keys(discovered).length) {
+    console.log("Now run it again — those are saved in .env:\n  node scripts/preflight.mjs\n");
+  } else {
+    console.log("Found these for you. Either paste them into .env by hand, or let this write them:");
+    console.log("\n  node scripts/preflight.mjs --write\n");
+    console.log("(or add these lines to .env:)");
+    for (const line of suggestions) console.log(`  ${line}`);
+    console.log("");
+  }
 }
 
 if (fails.length) {
