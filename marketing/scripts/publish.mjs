@@ -87,7 +87,7 @@ NowBey publish — Instagram + Facebook from the terminal
   node scripts/publish.mjs ig-carousel  --images <a,b,c>   --caption|--caption-file <s> [--dry-run]
   node scripts/publish.mjs ig-reel      --video <path|url> [--cover <path|url>] --caption <s> [--dry-run]
   node scripts/publish.mjs ig-story     --image <path|url> [--dry-run]
-  node scripts/publish.mjs fb-post      --image <path|url> --message <s> [--link <url>] [--scheduled <iso>] [--dry-run]
+  node scripts/publish.mjs fb-post      --image <path|url> --message|--message-file <s> [--link <url>] [--scheduled <iso>] [--dry-run]
 
 Global flags
   --base <url>   public base url for the kit (maps out/posts/x.png → url/posts/x.png)
@@ -262,7 +262,7 @@ async function fbPost(o) {
   const page = need(PAGE, "FB_PAGE_ID");
   const isDry = dry(o);
   const base = o.base;
-  const message = need(o.message, "--message");
+  const message = need(o["message-file"] ? caption({ "caption-file": o["message-file"] }) : o.message, "--message");
   say(`\nFacebook Page post${isDry ? "  [dry run]" : ""}`);
 
   // scheduled_publish_time is unix seconds; Meta requires 10 min – 30 days out
