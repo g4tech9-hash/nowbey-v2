@@ -1,0 +1,7 @@
+node_modules/
+tmp/
+downloads/
+.env
+.env.local
+.publish-state.json
+.env.bak

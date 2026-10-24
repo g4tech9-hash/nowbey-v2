@@ -1,0 +1,36 @@
+NOWBEY LAUNCH KIT
+build      2026-10-24 18:54 UTC
+from       commit 06e662a
+contents   116 files, 62.5 MB uncompressed
+starts at  00-START-HERE.md
+
+Scripts in this build:
+  scripts/build-brand-identity.mjs
+  scripts/build-brand.mjs
+  scripts/build-posts.mjs
+  scripts/build-stories.mjs
+  scripts/build-video.mjs
+  scripts/build.mjs
+  scripts/canvas.mjs
+  scripts/composite.mjs
+  scripts/contact-sheet.mjs
+  scripts/env-write.mjs
+  scripts/find-pages.mjs
+  scripts/geometry.mjs
+  scripts/kit-index.mjs
+  scripts/layouts.mjs
+  scripts/lib.mjs
+  scripts/make-static-fonts.py
+  scripts/photos.mjs
+  scripts/postkit.mjs
+  scripts/preflight.mjs
+  scripts/publish.mjs
+  scripts/scenes.mjs
+  scripts/serve.mjs
+  scripts/token-extend.mjs
+  scripts/tokens.mjs
+  scripts/ui.mjs
+  scripts/video.mjs
+
+If a script named in 00-START-HERE.md is missing, this zip is older than that
+file - download the full kit again.

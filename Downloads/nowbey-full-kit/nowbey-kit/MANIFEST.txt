@@ -1,0 +1,123 @@
+NOWBEY LAUNCH KIT
+built 2026-10-24 18:54 UTC
+commit 06e662a
+
+116 files, 62.5 MB uncompressed
+Start with 00-START-HERE.md
+
+    1,901  .env.example
+       75  .gitignore
+   11,888  00-START-HERE.md
+    5,862  AGENT_PROMPT.md
+   18,139  CAMPAIGN.md
+   14,127  CREDENTIALS.md
+    5,728  POSTING.md
+    7,454  PROMPT-brand-v1.md
+    5,342  PROMPT-dedupe.md
+    5,858  PROMPT-resume-launch.md
+    4,376  README.md
+    8,480  START_HERE.md
+    6,501  VIDEO_PROMPTS.md
+    8,493  WALKTHROUGH.md
+    1,992  env-prefilled.txt
+   14,987  index.html
+   20,322  package-lock.json
+    1,081  package.json
+      343  serve.cmd
+      282  captions/carousel.txt
+      573  captions/fb-a-local.txt
+      579  captions/fb-b-hoa.txt
+      464  captions/fb-c-how.txt
+      481  captions/fb-d-honest.txt
+      385  captions/ig-01-map.txt
+      386  captions/ig-02-report.txt
+      409  captions/ig-03-alerts.txt
+      384  captions/ig-04-wire.txt
+      406  captions/ig-05-confirmed.txt
+      414  captions/ig-06-feed.txt
+      332  captions/ig-07-web.txt
+      429  captions/ig-08-trust.txt
+    5,684  captions/plan.json
+      350  captions/reel-1-map.txt
+      340  captions/reel-2-report.txt
+      357  captions/reel-3-alerts.txt
+   82,548  fonts/BricolageGrotesque.ttf
+  122,592  fonts/Inter.ttf
+   96,940  fonts/JetBrainsMono.ttf
+   48,164  fonts/static/Brico400.ttf
+   48,188  fonts/static/Brico600.ttf
+   48,172  fonts/static/Brico700.ttf
+   48,184  fonts/static/Brico800.ttf
+   66,372  fonts/static/Inter400.ttf
+   66,452  fonts/static/Inter500.ttf
+   66,552  fonts/static/Inter600.ttf
+   66,596  fonts/static/Inter700.ttf
+   66,744  fonts/static/Inter800.ttf
+   57,308  fonts/static/JBMono400.ttf
+   57,256  fonts/static/JBMono700.ttf
+1,608,220  out/CONTACT_SHEET.png
+    5,299  out/index.html
+  695,369  out/brand/cover-1500x500.png
+1,981,806  out/brand/cover-1920x1080.png
+3,024,754  out/brand/cover-gateway-1920x1080.png
+  849,926  out/brand/identity-preview.png
+  216,498  out/brand/pfp-1080.png
+  164,410  out/brand/pfp-dark-1080.png
+  731,825  out/brand/pfp-n-1080.png
+  457,974  out/brand/preview.png
+1,165,739  out/posts/01-map.png
+1,531,769  out/posts/02-report.png
+1,319,720  out/posts/03-alerts.png
+1,528,121  out/posts/04-wire.png
+1,221,051  out/posts/05-confirmed.png
+1,364,306  out/posts/06-feed.png
+1,259,608  out/posts/07-web.png
+1,368,349  out/posts/08-trust.png
+2,147,440  out/stories/R1-reel-cover-map.png
+2,128,110  out/stories/R2-reel-cover-report.png
+2,136,574  out/stories/R3-reel-cover-feed.png
+2,615,708  out/stories/S1-map-story.png
+2,139,867  out/stories/S2-alerts-story.png
+2,493,010  out/stories/S3-report-story.png
+2,120,896  out/stories/S4-confirmed-story.png
+2,614,922  out/stories/S5-wire-story.png
+  531,968  out/stories/S6-web-story.png
+2,398,881  out/video/01-map-countdown-poster.png
+1,550,355  out/video/01-map-countdown.mp4
+  589,638  out/video/02-report-flow-poster.png
+  696,628  out/video/02-report-flow.mp4
+  586,957  out/video/03-alerts-setup-poster.png
+  597,720  out/video/03-alerts-setup.mp4
+   24,141  scripts/build-brand-identity.mjs
+   15,434  scripts/build-brand.mjs
+    8,267  scripts/build-posts.mjs
+   13,015  scripts/build-stories.mjs
+      625  scripts/build-video.mjs
+    1,414  scripts/build.mjs
+      642  scripts/canvas.mjs
+   11,156  scripts/composite.mjs
+    4,009  scripts/contact-sheet.mjs
+    1,438  scripts/env-write.mjs
+    6,549  scripts/find-pages.mjs
+    1,929  scripts/geometry.mjs
+    3,807  scripts/kit-index.mjs
+   13,442  scripts/layouts.mjs
+    1,808  scripts/lib.mjs
+    1,652  scripts/make-static-fonts.py
+    6,165  scripts/photos.mjs
+   10,345  scripts/postkit.mjs
+   13,462  scripts/preflight.mjs
+   36,565  scripts/publish.mjs
+   24,578  scripts/scenes.mjs
+    2,801  scripts/serve.mjs
+    8,873  scripts/token-extend.mjs
+    3,662  scripts/tokens.mjs
+   20,104  scripts/ui.mjs
+   21,687  scripts/video.mjs
+2,581,408  src/photo-closeup-square.png
+2,641,226  src/photo-laptop.png
+2,760,907  src/photo-map-square.png
+2,820,283  src/photo-nassau-coast.png
+2,438,590  src/photo-story-a.png
+2,593,023  src/photo-story-b.png
+2,524,404  src/photo-story-vertical.png
