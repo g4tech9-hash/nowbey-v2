@@ -1,0 +1,31 @@
+# ── NOWBEY · credentials ──────────────────────────────────────────────────────
+# Rename this file to  .env  (same folder), keep the name exactly ".env".
+#   PowerShell:  Copy-Item env-prefilled.txt .env
+# Then paste the token after META_TOKEN= and save. Nothing else needs filling.
+# Check everything with:  node scripts/preflight.mjs
+#
+# Where each value comes from, click by click: CREDENTIALS.md
+
+# ── Instagram + Facebook ─────────────────────────────────────────────────────
+# Long-lived token (60 days) or a System User token (does not expire).
+# Scopes: pages_show_list, pages_read_engagement, pages_manage_posts,
+#         instagram_basic, instagram_content_publish
+# Paste everything after "=" (EAA…, ~200 chars, one line, no quotes).
+META_TOKEN=
+
+# Facebook Page id — already filled in for the NowBey page.
+FB_PAGE_ID=1489197420935838
+
+# Instagram Business account id (@nowbey242) — already filled in.
+IG_USER_ID=17841415783982130
+
+# Graph API version
+GRAPH_VERSION=v21.0
+
+# ── TikTok ───────────────────────────────────────────────────────────────────
+# Optional. Direct Post needs an audited app; until then upload in the app.
+TT_TOKEN=
+
+# ── Where the kit is hosted (public, no login) ───────────────────────────────
+# The base URL only — no /posts, no trailing slash. Leave blank to be prompted.
+KIT_BASE=https://dainty-raindrop-3aea4a.netlify.app
