@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NowBey — social launch kit</title>
+<style>
+  :root{
+    --bg:#0c151d; --raised:#152230; --elev:#1c2b39;
+    --ink:#f3f1ea; --ink2:#b9c8c9; --ink3:#9aafb3;
+    --teal:#3fd6c0; --line:rgba(148,206,202,.16);
+    --mono:ui-monospace,"JetBrains Mono",SFMono-Regular,Menlo,monospace;
+    --sans:Inter,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(120% 60% at 15% 0%, #16333a 0%, transparent 60%),
+      radial-gradient(90% 50% at 95% 8%, #1a2b3d 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1280px;margin:0 auto;padding:56px 28px 96px}
+  header{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+  .mark{width:44px;height:44px;border-radius:14px;border:1.5px solid var(--teal);
+    display:grid;place-items:center;color:var(--teal);font:700 20px var(--sans)}
+  h1{font-size:clamp(28px,4vw,44px);line-height:1.06;letter-spacing:-.03em;margin:0}
+  .lede{color:var(--ink2);font-size:17px;line-height:1.6;max-width:66ch;margin:14px 0 8px}
+  .lede a{color:var(--teal);text-decoration:none;border-bottom:1px solid rgba(63,214,192,.35)}
+  .meta{font:700 12px/1.4 var(--mono);letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink3);display:flex;gap:18px;flex-wrap:wrap;margin:22px 0 0}
+  .meta span::before{content:"●";color:var(--teal);margin-right:8px;font-size:9px;vertical-align:2px}
+  h2{font:700 13px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--teal);
+    margin:64px 0 6px}
+  h2 small{display:block;font:400 15px/1.5 var(--sans);letter-spacing:0;text-transform:none;
+    color:var(--ink3);margin-top:10px}
+  .grid{display:grid;gap:22px;margin-top:24px}
+  .g4{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+  .g5{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+  .card{background:rgba(21,34,48,.55);border:1px solid var(--line);border-radius:18px;
+    overflow:hidden;transition:.18s ease;text-decoration:none;color:inherit;display:block}
+  .card:hover{transform:translateY(-3px);border-color:rgba(63,214,192,.45);
+    box-shadow:0 18px 40px -18px rgba(0,0,0,.85)}
+  .card img,.card video{display:block;width:100%;height:auto;background:#0a1219}
+  .cap{padding:12px 14px 14px}
+  .cap b{display:block;font-size:14px;font-weight:600;letter-spacing:-.01em}
+  .cap i{display:block;font:400 12px/1.5 var(--mono);color:var(--ink3);font-style:normal;margin-top:4px}
+  .docs{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:22px}
+  .doc{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:18px 20px;
+    border:1px solid var(--line);border-radius:16px;background:rgba(21,34,48,.5);
+    text-decoration:none;color:inherit}
+  .doc:hover{border-color:rgba(63,214,192,.45)}
+  .doc b{font-size:15px;font-weight:600}
+  .doc span{color:var(--ink3);font:700 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;
+    white-space:nowrap}
+  footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--ink3);font:400 13px/1.6 var(--sans)}
+  .sheet img{border-radius:16px;border:1px solid var(--line);width:100%;height:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="mark">◈</div>
+    <h1>NowBey — social launch kit</h1>
+  </header>
+  <p class="lede">
+    Everything below is generated from the product's own design tokens and typefaces
+    (<code>marketing/scripts</code> → <code>out/</code>). Click any asset to open the full-resolution file.
+    Captions, hashtags, audio notes and the 14-day calendar are in
+    <a href="CAMPAIGN.md">CAMPAIGN.md</a>; the Hook / Action / CTA prompts are in
+    <a href="VIDEO_PROMPTS.md">VIDEO_PROMPTS.md</a>.
+  </p>
+  <div class="meta">
+    <span>8 feed posts · 1080×1080</span>
+    <span>9 verticals · 1080×1920</span>
+    <span>3 reels · 8s · 30fps</span>
+    <span>Live for New Providence</span>
+  </div>
+
+  <h2>Every asset on one page
+    <small>Drop this in a deck, or send it to whoever is pressing publish.</small></h2>
+  <div class="sheet"><a href="out/CONTACT_SHEET.png" target="_blank">
+    <img src="out/CONTACT_SHEET.png" alt="Contact sheet of all NowBey social assets"></a></div>
+
+  <h2>Feed posts · Instagram + Facebook
+    <small>Square 1080×1080. Cross-post the same file to both; captions differ, crops do not.</small></h2>
+  <div class="grid g4" id="posts"></div>
+
+  <h2>Stories + Reels covers · vertical
+    <small>1080×1920. S1–S6 are the story sequence; R1–R3 are covers framed so a 1:1 grid crop still works.</small></h2>
+  <div class="grid g5" id="stories"></div>
+
+  <h2>Reels · 8 seconds each
+    <small>1080×1920, 30fps, H.264, silent by design — add the trending audio in the app so the track stays current.</small></h2>
+  <div class="grid g5" id="video"></div>
+
+  <h2>The written kit</h2>
+  <div class="docs">
+    <a class="doc" href="CAMPAIGN.md"><b>CAMPAIGN.md — strategy, captions, calendar</b><span>Markdown</span></a>
+    <a class="doc" href="VIDEO_PROMPTS.md"><b>VIDEO_PROMPTS.md — Runway / Luma / Sora</b><span>Markdown</span></a>
+    <a class="doc" href="POSTING.md"><b>POSTING.md — how to publish, step by step</b><span>Markdown</span></a>
+    <a class="doc" href="README.md"><b>README.md — how the generator works</b><span>Markdown</span></a>
+    <a class="doc" href="out/posts/01-map.png" target="_blank"><b>01-map.png — the lead asset</b><span>PNG</span></a>
+  </div>
+
+  <footer>
+    NowBey · Stay Safe, Bahamas — map and email alerts are live for New Providence.
+    Storm warnings are always sent, free, for everyone. In an emergency call 911 / 919.
+  </footer>
+</div>
+
+<script>
+  const posts = [
+    ["01-map","See what's happening on your island.","Community map"],
+    ["02-report","Twenty seconds from seeing it to warning neighbours.","Report flow"],
+    ["03-alerts","Your island. Your alerts. No noise.","Email alerts"],
+    ["04-wire","Bahamian headlines with the map underneath.","News wire"],
+    ["05-confirmed","Somebody saw it too. That's the whole idea.","Confirmation"],
+    ["06-feed","What neighbours are reporting, right now.","Community feed"],
+    ["07-web","The whole map, in a browser tab.","Web app"],
+    ["08-trust","A rumour travels fast. So should the correction.","Provenance"],
+  ];
+  const stories = [
+    ["S1-map-story","See it before you drive it."],
+    ["S2-alerts-story","Your island. Your alerts. No noise."],
+    ["S3-report-story","Twenty seconds."],
+    ["S4-confirmed-story","Somebody saw it too."],
+    ["S5-wire-story","Bahamian headlines, with context."],
+    ["S6-web-story","The whole map, in a browser tab."],
+    ["R1-reel-cover-map","Reel cover — the map"],
+    ["R2-reel-cover-report","Reel cover — the report"],
+    ["R3-reel-cover-feed","Reel cover — the feed"],
+  ];
+  const video = [
+    ["01-map-countdown","The map","Pins land one by one, then the end card."],
+    ["02-report-flow","The report","Stepper, category tap, typewriter, tick."],
+    ["03-alerts-setup","The alerts","Toggles flip; storm card gets its glow."],
+  ];
+  const card = (href, img, title, note) => `
+    <a class="card" href="${href}" target="_blank">
+      <img src="${img}" alt="${title.replace(/"/g,"")}" loading="lazy">
+      <div class="cap"><b>${title}</b><i>${note}</i></div>
+    </a>`;
+  document.getElementById("posts").innerHTML = posts.map(([f,t,n]) =>
+    card(`out/posts/${f}.png`, `out/posts/${f}.png`, t, `posts/${f}.png · ${n}`)).join("");
+  document.getElementById("stories").innerHTML = stories.map(([f,t]) =>
+    card(`out/stories/${f}.png`, `out/stories/${f}.png`, t, `stories/${f}.png`)).join("");
+  document.getElementById("video").innerHTML = video.map(([f,t,n]) => `
+    <div class="card">
+      <video src="out/video/${f}.mp4" poster="out/video/${f}-poster.png" controls muted loop playsinline preload="metadata"></video>
+      <div class="cap"><b>${t}</b><i>${n}</i></div>
+    </div>`).join("");
+</script>
+</body>
+</html>

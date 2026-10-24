@@ -11,7 +11,8 @@
     "build:video": "node scripts/build-video.mjs",
     "sheet": "node scripts/contact-sheet.mjs",
     "fonts": "python3 scripts/make-static-fonts.py",
-    "check:tokens": "node scripts/check-tokens.mjs"
+    "check:tokens": "node scripts/check-tokens.mjs",
+    "gallery": "node scripts/serve.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",
