@@ -96,9 +96,10 @@ PLAN (recommended)
   resumed launch never double-posts. --force posts everything again.
 
 BRAND
-  node scripts/publish.mjs brand [--set gateway|emblem] (--dry-run | --yes)
+  node scripts/publish.mjs brand [--set emblem|gateway] (--dry-run | --yes)
   Sets the Facebook Page cover from the brand set, then prints the clicks for the
   two profile pictures (Meta's API cannot set those).
+  Default is --set emblem (pin + wave). --set gateway is the N monogram banner.
 
 LEDGER
   node scripts/publish.mjs mark --day 1 --platform ig --type post
@@ -680,7 +681,9 @@ async function plan(o) {
  * removed those writes — so this prints the exact clicks instead of pretending.
  */
 async function brand(o) {
-  const set = o.set === "emblem" ? "emblem" : "gateway";
+  // The emblem pair is the launch identity: filled pin over a wave on a teal
+  // disc. `--set gateway` swaps in the monogram/N banner instead.
+  const set = o.set === "gateway" ? "gateway" : "emblem";
   const files =
     set === "emblem"
       ? { cover: "out/brand/cover-1920x1080.png", avatar: "out/brand/pfp-1080.png", also: "out/brand/cover-1500x500.png" }

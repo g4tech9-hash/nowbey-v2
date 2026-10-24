@@ -119,8 +119,8 @@ The cover can be set from here. The two profile pictures cannot — Meta removed
 API — so the command does the cover and prints the clicks for the rest.
 
 ```powershell
-node scripts/publish.mjs brand --dry-run     # shows the two calls and the file paths
-node scripts/publish.mjs brand --yes         # sets the Facebook Page cover
+node scripts/publish.mjs brand --set emblem --dry-run   # shows the calls and the file paths
+node scripts/publish.mjs brand --set emblem --yes       # sets the Facebook Page cover
 ```
 
 **CHECK:** the dry run ends with "Would set the Page cover…", and the real run ends with
@@ -129,11 +129,13 @@ node scripts/publish.mjs brand --yes         # sets the Facebook Page cover
 Then, by hand, with the file it names:
 
 - **Facebook Page avatar** — the Page → Edit profile → Profile picture → Upload →
-  `out\brand\pfp-n-1080.png`
+  `out\brand\pfp-1080.png`
 - **Instagram avatar** — Instagram app → profile → Edit profile → Change profile photo → the same file
 
-`--set emblem` uses the other identity set (`pfp-1080.png` + `cover-1920x1080.png`) if you prefer the
-pin-and-wave emblem over the N monogram. Pick one pair and keep it for the whole launch.
+That is the **first** identity set — the filled pin over a wave on a teal disc — with
+`cover-1920x1080.png` as the Page cover and `cover-1500x500.png` for the X/LinkedIn banner. Keep one
+set for the whole launch. `--set gateway` swaps in the other one (the N monogram and the photographic
+banner); it is not used here.
 
 ---
 

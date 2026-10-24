@@ -4,7 +4,8 @@ Context you need before touching anything:
 
 - The kit publishes through `scripts/publish.mjs`. Instagram and Facebook have no idempotency key, so the script keeps a ledger in `.publish-state.json`; anything in it is skipped by `plan`.
 - One post is already live: an **Instagram feed post** from day 1, asset `out/posts/01-map.png`. A Facebook post from the same run failed with `403 (#200) publish_actions` (a token-scope problem) and never went out.
-- The brand identity assets exist in `out/brand/` and are **not** published yet: `pfp-n-1080.png` (monogram avatar), `cover-gateway-1920x1080.png` (page cover), `cover-1500x500.png` (X/LinkedIn banner), plus the emblem set `pfp-1080.png` / `cover-1920x1080.png`.
+- The brand identity assets exist in `out/brand/` and are **not** published yet. Use the **first** set — the emblem: `pfp-1080.png` (profile photo), `cover-1920x1080.png` (page cover), `cover-1500x500.png` (X/LinkedIn banner). There is also a `pfp-dark-1080.png` for light backgrounds.
+- **Do not use the second set.** `pfp-n-1080.png` (N monogram) and `cover-gateway-1920x1080.png` (photographic banner) exist in the folder but are not part of this launch. Ignore them, and do not mix a file from one set into the other.
 
 ## Step 0 — Verify the kit is current
 
@@ -68,13 +69,13 @@ A `failed` line does not stop the run — the script continues and reports at th
 The cover can be set by the API; the two profile pictures cannot (Meta removed those writes), so do exactly this:
 
 ```bash
-node scripts/publish.mjs brand --set gateway --dry-run
+node scripts/publish.mjs brand --set emblem --dry-run
 ```
 
-Check the dry run shows `POST /{page-id}/photos` with the public URL of `cover-gateway-1920x1080.png`, then `POST /{page-id}` with `cover=<that photo id>`. If the URL is not reachable without auth, fix `KIT_BASE` first — that is the usual cause of a cover failure. Then:
+Check the dry run names `cover out/brand/cover-1920x1080.png` and `avatar out/brand/pfp-1080.png`, shows `POST /{page-id}/photos` with that file's public URL, then `POST /{page-id}` with `cover=<that photo id>`. If the URL is not reachable without auth, fix `KIT_BASE` first — that is the usual cause of a cover failure. Then:
 
 ```bash
-node scripts/publish.mjs brand --set gateway --yes
+node scripts/publish.mjs brand --set emblem --yes
 ```
 
 Verify by reading the Page back:
@@ -87,7 +88,7 @@ curl "https://graph.facebook.com/v21.0/$FB_PAGE_ID?fields=cover,picture&access_t
 
 For the two avatars, do not attempt an API call — it will fail. Output these exact instructions and wait for me:
 
-1. **Facebook Page avatar** — switch to the Page → Edit profile → Profile picture → Upload → `out/brand/pfp-n-1080.png`
+1. **Facebook Page avatar** — switch to the Page → Edit profile → Profile picture → Upload → `out/brand/pfp-1080.png`
 2. **Instagram avatar** — Instagram app → profile → Edit profile → Change profile photo → the same file (Instagram crops to a circle; this artwork is drawn to survive it)
 
 Both must be the same file so the two profiles match.
@@ -104,6 +105,6 @@ Both must be the same file so the two profiles match.
 
 1. Every already-live item is in the ledger with its real id.
 2. The interrupted day is fully published, with a result table.
-3. The Page cover shows the gateway banner, confirmed by reading it back.
-4. Two copy-paste avatar instructions are on screen, pointing at `pfp-n-1080.png`.
+3. The Page cover shows the emblem banner (`cover-1920x1080.png`), confirmed by reading it back.
+4. Two copy-paste avatar instructions are on screen, pointing at `pfp-1080.png`.
 5. Days 2+ are listed but untouched.
