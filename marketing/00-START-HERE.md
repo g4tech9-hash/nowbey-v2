@@ -16,7 +16,11 @@ Unzip so you get a single folder, and put it directly on `C:\`:
 C:\nowbey-kit\
 ```
 
-**CHECK:** opening `C:\nowbey-kit` shows `00-START-HERE.md` (this file), `scripts`, `out`, `src`.
+**CHECK:** opening `C:\nowbey-kit` shows `00-START-HERE.md` (this file), `KIT-VERSION.txt`, `scripts`, `out`, `src`.
+
+> `KIT-VERSION.txt` tells you which build you have. If it is missing, or its date is older than the
+> download page you used, you are holding a stale zip — download the full kit again and unzip over
+> this folder. Every script named in this file exists in a current build.
 
 > If your unzip tool made `C:\nowbey-kit\nowbey-kit\...`, move the inner folder up one level.
 > Paths with spaces or OneDrive folders cause avoidable trouble with `npm` — plain `C:\nowbey-kit` is
