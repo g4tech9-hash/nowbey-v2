@@ -197,12 +197,75 @@ node scripts/publish.mjs plan --day 1 --base "$KIT_BASE" --yes       # send it
 
 ---
 
+## "Pages visible: none" — the fix
+
+Your token works (Meta says who you are) but `/me/accounts` comes back empty, so there is no Page to
+post to. Three causes, in order of likelihood:
+
+**A. `pages_show_list` was never granted** *(by far the most common)*
+
+In Graph API Explorer, ticking a permission **after** a token exists changes nothing — the token was
+already minted. The order matters:
+
+1. https://developers.facebook.com/tools/explorer/
+2. Right-hand **Permissions** panel → tick `pages_show_list`, `pages_read_engagement`,
+   `pages_manage_posts`, `instagram_basic`, `instagram_content_publish`, `business_management`.
+3. **Now** click **Generate Access Token** and accept every screen.
+4. Copy the new token into `.env`.
+
+`node scripts/preflight.mjs` now prints a `Permissions` line listing anything missing, so you can see
+this without guessing.
+
+**B. You're logged in as a different Facebook profile**
+
+The Explorer authorises *whoever is logged into facebook.com in that browser*. If your Page is admin'd
+by another account (or you have two profiles), log out, log in as the Page's admin, and generate again.
+
+**C. The Page is inside a Business portfolio with a limited role**
+
+Check https://business.facebook.com/settings → **Accounts → Pages** → the Page should list you with
+*Manage Page* or *Full control*.
+
+### Let the script find it
+
+```powershell
+node scripts\find-pages.mjs
+```
+
+It searches `/me/accounts`, then every Business portfolio's owned and client Pages, prints each Page
+with its role and Instagram account, and ends with the two `.env` lines ready to paste.
+
+### Or read the ids by hand — 20 seconds, no API
+
+1. https://business.facebook.com/settings → **Accounts → Pages** → the **ID** column → `FB_PAGE_ID`.
+2. Same screen → **Accounts → Instagram accounts** → the **ID** column → `IG_USER_ID`.
+   (If your Instagram isn't listed there, it isn't linked to the Page — fix that first.)
+
+Both numbers are long strings of digits, e.g. `100063…` and `178414…`.
+
+---
+
+## "Instagram linked: FAIL"
+
+The Page exists but has no Instagram Business account attached, so there is nothing to post *to*:
+
+1. Instagram app → **Settings → Account type and tools → Switch to professional account** →
+   Business (or Creator) → follow the prompts.
+2. Same menu → **Connect a Facebook Page** → choose your NowBey Page.
+3. `node scripts\preflight.mjs` — the `Instagram linked` line goes green and prints the id.
+   Copy that id into `IG_USER_ID`.
+
+Note: this must be done **in the Instagram app**, not in Meta Business Suite. Personal Instagram
+accounts cannot be posted to by any API.
+
+---
+
 ## If preflight fails
 
 | Message | What it means | Fix |
 | --- | --- | --- |
 | `Meta rejected the token` | expired (1 h tokens do) or wrong app | regenerate, then **Extend** in the Debugger |
-| `Pages visible: none` | token isn't from a Page admin | log into Graph API Explorer as the Page's admin |
+| `Pages visible: none` | no `pages_show_list`, wrong profile, or limited role | see "Pages visible: none — the fix" above |
 | `Instagram linked: FAIL` | IG isn't Professional or isn't connected to the Page | IG app → Settings → Account type → Connect a Facebook Page |
 | `IG_USER_ID … use the Page one` | you copied the handle's id, not the Business account | use the `instagram_business_account.id` from step 2 |
 | `Media … HTTP 404` | `KIT_BASE` points at the wrong level | add or remove `/out` so `/posts/01-map.png` resolves |

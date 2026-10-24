@@ -14,7 +14,8 @@
     "check:tokens": "node scripts/check-tokens.mjs",
     "gallery": "node scripts/serve.mjs",
     "publish": "node scripts/publish.mjs",
-    "index": "node scripts/kit-index.mjs"
+    "index": "node scripts/kit-index.mjs",
+    "pages": "node scripts/find-pages.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",

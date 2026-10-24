@@ -72,8 +72,31 @@ async function meta() {
     me = j;
     ok("Token valid", `authenticated as ${j.name || j.id}`);
   } catch (e) {
-    fail("Token valid", `Meta rejected the token: ${e.message}`);
+    const offline = /fetch failed|ENOTFOUND|ECONN|network/i.test(e.message || "");
+    fail(
+      "Token valid",
+      offline
+        ? `could not reach graph.facebook.com (${e.message}) — check the connection, then re-run`
+        : `Meta rejected the token: ${e.message}`,
+    );
     return;
+  }
+
+  // which permissions did the authorisation actually grant?
+  const NEEDED = ["pages_show_list", "pages_read_engagement", "pages_manage_posts", "instagram_basic", "instagram_content_publish", "business_management"];
+  const granted = [];
+  try {
+    const r = await fetch(`${GRAPH}/me/permissions?access_token=${META_TOKEN}`);
+    const j = await r.json();
+    for (const p of j.data || []) if (p.status === "granted") granted.push(p.permission);
+    const missing = NEEDED.filter((p) => !granted.includes(p));
+    if (missing.length) {
+      warn("Permissions", `missing: ${missing.join(", ")} — tick them BEFORE clicking Generate`);
+    } else {
+      ok("Permissions", `${NEEDED.length}/${NEEDED.length} granted`);
+    }
+  } catch {
+    warn("Permissions", "could not read /me/permissions");
   }
 
   // pages the token can post to
@@ -83,7 +106,26 @@ async function meta() {
     const j = await r.json();
     if (!r.ok || j.error) throw new Error(j.error?.message || r.status);
     pages = j.data || [];
-    if (!pages.length) warn("Pages visible", "token sees no Pages — is it a Page admin's token?");
+    if (!pages.length) {
+      warn("Pages visible", "token sees no Pages");
+      if (!granted.includes("pages_show_list")) {
+        console.log(
+          "\n  Cause: pages_show_list was not granted, so Meta returns an empty list.\n" +
+            "  Fix: Graph API Explorer → Permissions (right panel) → tick pages_show_list,\n" +
+            "  pages_read_engagement, pages_manage_posts, instagram_basic,\n" +
+            "  instagram_content_publish, business_management → then Generate Access Token again.\n" +
+            "  Ticking a permission after a token exists does nothing; it must be set first.\n",
+        );
+      } else {
+        console.log(
+          "\n  pages_show_list is granted but the list is empty, which means one of:\n" +
+            "   - you authorised as a different Facebook profile than the one that administers the Page;\n" +
+            "   - the Page sits inside a Business portfolio and your role there is limited;\n" +
+            "   - the Page is new and has not appeared yet.\n" +
+            "  Run: node scripts/find-pages.mjs - it searches Pages, businesses and portfolios.\n",
+        );
+      }
+    }
     else {
       ok("Pages visible", pages.map((p) => p.name).join(", "));
       if (!FB_PAGE_ID && pages.length === 1) suggestions.push(`FB_PAGE_ID=${pages[0].id}`);

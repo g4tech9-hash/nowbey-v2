@@ -51,9 +51,12 @@ You need this once. It takes about 5 minutes.
 5. In the right-hand **Permissions** panel, type each of these into the search box and tick it:
    `pages_show_list` · `pages_read_engagement` · `pages_manage_posts` · `instagram_basic` ·
    `instagram_content_publish` · `business_management`
-6. Click the blue **Generate Access Token** button. A Facebook login window opens — log in with the
-   account that **owns the Page you created**, and click **Continue/Allow** on every screen
-   (there will be one for Facebook and one for Instagram).
+6. **Only now** click the blue **Generate Access Token** button. A Facebook login window opens — log in
+   with the account that **owns the Page you created**, and click **Continue/Allow** on every screen
+   (there is one for Facebook and one for Instagram).
+
+   ⚠️ Order matters: tick the permissions **first**, then generate. Ticking them afterwards does not
+   change a token that already exists — that is why the next step sometimes reports "Pages visible:none".
 7. Copy the long string it gives you (`EAA…`).
 8. In Notepad, put it after `META_TOKEN=` with no spaces and no quotes:
 
@@ -115,6 +118,15 @@ Found these for you — paste them into .env and run preflight again:
   FB_PAGE_ID=100063…
   IG_USER_ID=178414…
 ```
+
+If the table says `Pages visible … WARN  token sees no Pages`, run this instead — it searches every
+place Meta keeps Pages and prints the two lines for you:
+
+```powershell
+node scripts\find-pages.mjs
+```
+
+Then:
 
 1. `notepad .env` again.
 2. Paste those two lines in. Save, close.
