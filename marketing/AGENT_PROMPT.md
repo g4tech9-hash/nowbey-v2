@@ -41,9 +41,12 @@ GROUND RULES (these override anything else you think is a good idea)
 - One day of the calendar per run. Do not run day N+1 in the same breath.
 
 STEP 1 — PREFLIGHT (report, do not publish)
-- Confirm node >= 18 and that `node scripts/publish.mjs --help` runs.
-- Check every env var: META_TOKEN, IG_USER_ID, FB_PAGE_ID, TT_TOKEN, KIT_BASE.
-  List which are present, which are missing. Do not print their values.
+- Run `node scripts/preflight.mjs` and paste its table back to me verbatim. It checks the
+  token, the Pages the token can see, whether the Page has an Instagram Business account,
+  and whether the media is publicly fetchable.
+- If it lists blockers, do NOT try to obtain credentials for me. Tell me which line failed
+  and point me at the matching fix in CREDENTIALS.md — I will fill them in myself.
+- Do not print the value of any token. Crucially: never ask me to paste a token into the chat.
 - Verify the media is really public: fetch "<KIT_BASE>/posts/01-map.png" and
   "<KIT_BASE>/video/01-map-countdown.mp4" with a plain HTTP GET (no auth) and
   report HTTP status + content-type for both. 200 + image/png and video/mp4 = ok.

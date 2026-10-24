@@ -62,6 +62,10 @@ Whichever you pick, check one file in a browser first:
 
 ## Step 4 — Get a token and two ids
 
+> **The full click-by-click for all five values is in `CREDENTIALS.md`** — including the two things
+> that block most launches: the Instagram account must be Professional *and* linked to the Page, and
+> the token has to be extended or made as a System user. Short version below.
+
 Fast path (start today):
 1. Open https://developers.facebook.com/tools/explorer/
 2. Select your app → **Get User Access Token** → tick `instagram_basic`,
@@ -81,12 +85,20 @@ curl "https://graph.facebook.com/v21.0/$FB_PAGE_ID?fields=instagram_business_acc
 # → instagram_business_account.id = IG_USER_ID
 ```
 
-Set them once per shell:
+Write them into `marketing/.env` (copied from `.env.example`) — the CLI reads it, so you don't have
+to export anything:
+
 ```bash
-export META_TOKEN=EAA...
-export IG_USER_ID=17841...
-export FB_PAGE_ID=100000...
-export KIT=https://nowbey.com/kit        # whatever you chose in step 3
+META_TOKEN=EAA...
+FB_PAGE_ID=100000...
+IG_USER_ID=17841...
+KIT_BASE=https://nowbey.com/kit          # whatever you chose in step 3
+```
+
+Then confirm everything at once:
+
+```bash
+node scripts/preflight.mjs
 ```
 
 ---

@@ -18,7 +18,8 @@
  * WHY --base: Meta and TikTok FETCH the media from a public URL; neither
  * accepts a raw upload. Host `out/` anywhere static and pass its base url.
  *
- * CREDENTIALS (env only, never committed — see .env.example):
+ * CREDENTIALS (env or marketing/.env, never committed — see .env.example and
+ * CREDENTIALS.md, which walks through where each value comes from):
  *   META_TOKEN   IG/FB Graph API token   (instagram_basic,
  *                instagram_content_publish, pages_show_list, pages_manage_posts)
  *   IG_USER_ID   Instagram Business account id
@@ -31,6 +32,31 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+/**
+ * Read marketing/.env if it exists, so a filled-in .env is enough — no need to
+ * export five variables in every shell. Real environment variables always win.
+ */
+function loadEnvFile() {
+  for (const name of [".env", ".env.local"]) {
+    const p = join(ROOT, name);
+    if (!existsSync(p)) continue;
+    for (const raw of readFileSync(p, "utf8").split("\n")) {
+      const line = raw.trim();
+      if (!line || line.startsWith("#")) continue;
+      const eq = line.indexOf("=");
+      if (eq < 1) continue;
+      const key = line.slice(0, eq).trim();
+      let val = line.slice(eq + 1).trim();
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+        val = val.slice(1, -1);
+      }
+      if (!(key in process.env) || !process.env[key]) process.env[key] = val;
+    }
+  }
+}
+loadEnvFile();
+
 const V = process.env.GRAPH_VERSION || "v21.0";
 const GRAPH = `https://graph.facebook.com/${V}`;
 const TIKTOK = "https://open.tiktokapis.com/v2";
