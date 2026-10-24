@@ -45,6 +45,7 @@ const GRAPH = `https://graph.facebook.com/${V}`;
 const { META_TOKEN, IG_USER_ID, FB_PAGE_ID, TT_TOKEN, KIT_BASE } = process.env;
 
 const rows = [];
+const suggestions = []; // ready-to-paste .env lines
 const add = (check, state, detail) => rows.push({ check, state, detail });
 const ok = (c, d) => add(c, "PASS", d);
 const warn = (c, d) => add(c, "WARN", d);
@@ -83,7 +84,14 @@ async function meta() {
     if (!r.ok || j.error) throw new Error(j.error?.message || r.status);
     pages = j.data || [];
     if (!pages.length) warn("Pages visible", "token sees no Pages — is it a Page admin's token?");
-    else ok("Pages visible", pages.map((p) => p.name).join(", "));
+    else {
+      ok("Pages visible", pages.map((p) => p.name).join(", "));
+      if (!FB_PAGE_ID && pages.length === 1) suggestions.push(`FB_PAGE_ID=${pages[0].id}`);
+      else if (!FB_PAGE_ID) {
+        suggestions.push(`# pick one of: ${pages.map((p) => `${p.name}=${p.id}`).join("  ")}`);
+        suggestions.push(`FB_PAGE_ID=${pages[0].id}`);
+      }
+    }
   } catch (e) {
     warn("Pages visible", `could not list Pages: ${e.message}`);
   }
@@ -106,6 +114,7 @@ async function meta() {
           warn("IG_USER_ID", `set to ${IG_USER_ID} but the Page's account is ${ig.id} — use the Page one`);
         } else if (!IG_USER_ID) {
           warn("IG_USER_ID", `missing — it is ${ig.id}`);
+          suggestions.push(`IG_USER_ID=${ig.id}`);
         } else {
           ok("IG_USER_ID", IG_USER_ID);
         }
@@ -183,10 +192,18 @@ for (const r of rows) {
 
 const fails = rows.filter((r) => r.state === "FAIL");
 console.log("─".repeat(62));
+
+if (suggestions.length) {
+  console.log("Found these for you — paste them into .env and run preflight again:\n");
+  for (const line of suggestions) console.log(`  ${line}`);
+  console.log("");
+}
+
 if (fails.length) {
   console.log(`${fails.length} blocker(s). Fix those, then run this again.`);
-  console.log("Where each value comes from: CREDENTIALS.md\n");
+  console.log("What each line means, and the fix: CREDENTIALS.md §\"If preflight fails\"\n");
   process.exit(1);
 }
-console.log("Ready to publish. Start with a dry run:\n");
-console.log(`  node scripts/publish.mjs plan --day 1 --base ${KIT_BASE} --dry-run\n`);
+console.log("Ready to publish. Look first, then send:\n");
+console.log("  node scripts/publish.mjs plan --day 1 --dry-run");
+console.log("  node scripts/publish.mjs plan --day 1 --yes\n");

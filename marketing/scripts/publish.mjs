@@ -88,7 +88,7 @@ const USAGE = `
 NowBey publish — Instagram + Facebook + TikTok from the terminal
 
 PLAN (recommended)
-  node scripts/publish.mjs plan --day <n|all> --base <url> (--dry-run | --yes)
+  node scripts/publish.mjs plan --day <n|all> [--base <url>] (--dry-run | --yes)
 
 SINGLE ASSETS
   node scripts/publish.mjs ig-post      --image <path|url> --caption|--caption-file <s> [--dry-run]
@@ -103,6 +103,7 @@ SINGLE ASSETS
 
 FLAGS
   --base <url>   public base url for the kit: out/posts/x.png → <url>/posts/x.png
+                 (optional: falls back to KIT_BASE from .env)
   --dry-run      print the calls, change nothing
   --yes          actually send (plan refuses to publish without it)
 
@@ -114,6 +115,9 @@ ENV
 
 const dry = (o) => Boolean(o["dry-run"]);
 const say = (...a) => console.log(...a);
+
+/** --base wins, then KIT_BASE from the environment or .env. */
+const withBase = (o) => ({ ...o, base: o.base || process.env.KIT_BASE, });
 
 function need(v, name) {
   if (!v) {
@@ -128,8 +132,10 @@ function publicUrl(ref, base) {
   if (/^https?:\/\//i.test(ref)) return ref;
   if (!base) {
     console.error(
-      `\n✗ "${ref}" is a local path. Meta/TikTok fetch the media themselves, so it needs a public URL.\n` +
-        `  Host the kit and pass --base https://your-host/kit/  (see START_HERE.md step 3).\n`,
+      `\n✗ "${ref}" is a local path, and no base URL is set.\n` +
+        `  Meta/TikTok fetch the media themselves, so it needs a public URL.\n` +
+        `  Put KIT_BASE=https://your-host in .env (see WALKTHROUGH.md step 4),\n` +
+        `  or pass --base https://your-host .\n`,
     );
     process.exit(1);
   }
@@ -489,4 +495,4 @@ if (!commands[cmd]) {
 // block a day that only posts to Instagram.
 if (!dry(o) && cmd !== "plan") need(TOKEN, "META_TOKEN");
 
-await commands[cmd](o);
+await commands[cmd](withBase(o));
