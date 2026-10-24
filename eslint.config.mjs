@@ -18,5 +18,8 @@ export default defineConfig([
     "public/**",
     ".data/**",
     "android/**",
+    // The social-asset generator (marketing/) is a standalone Node toolchain
+    // with its own deps; it is not part of the Next.js app or its gate.
+    "marketing/**",
   ]),
 ]);

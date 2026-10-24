@@ -1,0 +1,22 @@
+{
+  "name": "nowbey-marketing",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Generates the NowBey social launch kit (feed posts, stories, reels, thumbnails) from the product's own design tokens.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:posts": "node scripts/build.mjs posts",
+    "build:stories": "node scripts/build.mjs stories",
+    "build:video": "node scripts/build-video.mjs",
+    "sheet": "node scripts/contact-sheet.mjs",
+    "fonts": "python3 scripts/make-static-fonts.py",
+    "check:tokens": "node scripts/check-tokens.mjs"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
+    "@resvg/resvg-js": "^2.6.2",
+    "fontkit": "^2.0.4",
+    "qrcode-generator": "^1.4.4"
+  }
+}
