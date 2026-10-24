@@ -22,7 +22,8 @@
  * CREDENTIALS.md, which walks through where each value comes from):
  *   META_TOKEN   IG/FB Graph API token   (instagram_basic,
  *                instagram_content_publish, pages_show_list, pages_manage_posts)
- *   IG_USER_ID   Instagram Business account id
+ *   IG_USER_ID   Instagram Business account id (OPTIONAL — if it is missing,
+ *                the id is read from the Page's linked Instagram account)
  *   FB_PAGE_ID   Facebook Page id
  *   TT_TOKEN     TikTok user access token (video.publish / video.upload)
  */
@@ -108,7 +109,8 @@ FLAGS
   --yes          actually send (plan refuses to publish without it)
 
 ENV
-  META_TOKEN, IG_USER_ID, FB_PAGE_ID, TT_TOKEN   (GRAPH_VERSION=${V})
+  META_TOKEN, FB_PAGE_ID, TT_TOKEN   (GRAPH_VERSION=${V})
+  IG_USER_ID is optional — resolved from the Page when absent.
 `.trim();
 
 /* ----------------------------------------------------------------- utils */
@@ -195,6 +197,41 @@ async function graph(method, path, params, isDry) {
   return json;
 }
 
+/**
+ * The Instagram account id, resolved from the Page when it is not in .env.
+ * Saves a copy-paste step: if FB_PAGE_ID is right, the IG id is derivable —
+ * it is the `instagram_business_account` attached to that Page.
+ */
+let _igCache = null;
+async function resolveIg(isDry = false) {
+  if (IG) return IG;
+  if (_igCache) return _igCache;
+  if (isDry) {
+    say("  · IG_USER_ID not set — a real run would read it from the Page");
+    return "<ig-from-page>";
+  }
+  const page = need(PAGE, "FB_PAGE_ID");
+  const r = await graph(
+    "GET",
+    `/${page}`,
+    { fields: "instagram_business_account{id,username}" },
+    false,
+  );
+  const ig = r.instagram_business_account;
+  if (!ig?.id) {
+    console.error(
+      `\n✗ This Facebook Page has no Instagram Business account attached.\n` +
+        `  Instagram app → Settings → Account type and tools → Switch to professional\n` +
+        `  → Business → Connect a Facebook Page → pick the NowBey Page.\n` +
+        `  Then run: node scripts/preflight.mjs\n`,
+    );
+    process.exit(1);
+  }
+  _igCache = ig.id;
+  say(`  · Instagram account ${ig.username ? "@" + ig.username : ""} ${ig.id} (from the Page)`);
+  return ig.id;
+}
+
 /** Poll a video container until Meta has finished ingesting it. */
 async function awaitContainer(id, isDry, label = "video") {
   if (isDry) return;
@@ -261,7 +298,7 @@ async function awaitTikTok(publishId, isDry) {
 /* ------------------------------------------------------------- commands */
 
 async function igPost(o) {
-  const ig = need(IG, "IG_USER_ID");
+  const ig = await resolveIg(dry(o));
   const isDry = dry(o);
   say(`\nInstagram feed post${isDry ? "  [dry run]" : ""}`);
   const created = await graph(
@@ -275,7 +312,7 @@ async function igPost(o) {
 }
 
 async function igCarousel(o) {
-  const ig = need(IG, "IG_USER_ID");
+  const ig = await resolveIg(dry(o));
   const isDry = dry(o);
   const list = need(o.images, "--images").split(",").map((s) => s.trim()).filter(Boolean);
   if (list.length < 2 || list.length > 10) {
@@ -305,7 +342,7 @@ async function igCarousel(o) {
 }
 
 async function igReel(o) {
-  const ig = need(IG, "IG_USER_ID");
+  const ig = await resolveIg(dry(o));
   const isDry = dry(o);
   say(`\nInstagram reel${isDry ? "  [dry run]" : ""}`);
   const params = {
@@ -322,7 +359,7 @@ async function igReel(o) {
 }
 
 async function igStory(o) {
-  const ig = need(IG, "IG_USER_ID");
+  const ig = await resolveIg(dry(o));
   const isDry = dry(o);
   say(`\nInstagram story${isDry ? "  [dry run]" : ""}`);
   const params = { media_type: "STORIES" };

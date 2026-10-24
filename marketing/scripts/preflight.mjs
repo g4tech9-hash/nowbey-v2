@@ -170,7 +170,7 @@ async function meta() {
         if (IG_USER_ID && IG_USER_ID !== ig.id) {
           warn("IG_USER_ID", `set to ${IG_USER_ID} but the Page's account is ${ig.id} — use the Page one`);
         } else if (!IG_USER_ID) {
-          warn("IG_USER_ID", `missing — it is ${ig.id}`);
+          warn("IG_USER_ID", `not set — fine, the publisher reads ${ig.id} from the Page (or run with --write)`);
           discovered.IG_USER_ID = ig.id;
           suggestions.push(`IG_USER_ID=${ig.id}`);
         } else {
