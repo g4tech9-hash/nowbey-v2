@@ -107,6 +107,8 @@ FLAGS
                  (optional: falls back to KIT_BASE from .env)
   --dry-run      print the calls, change nothing
   --yes          actually send (plan refuses to publish without it)
+  --strict       fail on a platform whose credentials are missing, instead of
+                 skipping it and carrying on with the rest of the day
 
 ENV
   META_TOKEN, FB_PAGE_ID, TT_TOKEN   (GRAPH_VERSION=${V})
@@ -123,7 +125,13 @@ const withBase = (o) => ({ ...o, base: o.base || process.env.KIT_BASE, });
 
 function need(v, name) {
   if (!v) {
-    console.error(`\n✗ ${name} is not set. Export it first (see .env.example).\n`);
+    console.error(`\n✗ ${name} is not set in .env.\n`);
+    if (name === "IG_USER_ID") {
+      console.error("  It is optional in this version — update scripts/ or add:");
+      console.error("  IG_USER_ID=<the 178414… id from the Page>\n");
+    } else {
+      console.error("  Fill it in .env (see CREDENTIALS.md), then run again.\n");
+    }
     process.exit(1);
   }
   return v;
@@ -478,9 +486,33 @@ async function plan(o) {
   say(`\nDay ${o.day}: ${entries.length} post(s)${dry(o) ? "  [dry run]" : ""}`);
 
   let n = 0;
+  const skipped = [];
+
   for (const e of entries) {
     n++;
     say(`\n── ${n}/${entries.length}  ${e.platform.toUpperCase()} ${e.type}  ·  ${e.label || e.asset || ""}`);
+
+    // A day mixes platforms, and a missing credential for one of them must not
+    // abort the rest of the day's posts. Skip it loudly, keep going, and report
+    // it at the end so nothing is quietly forgotten.
+    const missing =
+      e.platform === "tt" && !TT
+        ? "TT_TOKEN"
+        : e.platform === "fb" && !PAGE
+          ? "FB_PAGE_ID"
+          : !TOKEN
+            ? "META_TOKEN"
+            : null;
+    if (missing && !o.strict) {
+      say(`   ↳ skipped: ${missing} is not set — post this one by hand (POSTING.md §TikTok)`);
+      skipped.push(`${e.platform.toUpperCase()} · ${e.label || e.asset}`);
+      continue;
+    }
+    if (missing) {
+      console.error(`\n✗ ${missing} is not set (--strict).`);
+      process.exit(1);
+    }
+
     const common = { base: o.base, "dry-run": o["dry-run"], "caption-file": e.caption };
     if (e.platform === "ig") {
       if (e.type === "post") await igPost({ ...common, image: e.asset });
@@ -498,6 +530,10 @@ async function plan(o) {
     if (e.after) say(`\n   ↳ ${e.after}`);
     // TikTok rate-limits at 6 posts / 24h; keep the API calm between items
     if (!dry(o) && n < entries.length) await new Promise((r) => setTimeout(r, 2500));
+  }
+  if (skipped.length) {
+    say(`\nSkipped ${skipped.length} item(s) — no credentials, so these are manual:`);
+    for (const k of skipped) say(`  · ${k}`);
   }
   say(dry(o) ? "\nDry run complete — nothing was posted.\n" : "\n✓ Plan complete.\n");
 }
