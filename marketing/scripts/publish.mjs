@@ -28,7 +28,7 @@
  *   TT_TOKEN     TikTok user access token (video.publish / video.upload)
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -90,6 +90,21 @@ NowBey publish — Instagram + Facebook + TikTok from the terminal
 
 PLAN (recommended)
   node scripts/publish.mjs plan --day <n|all> [--base <url>] (--dry-run | --yes)
+  node scripts/publish.mjs plan --day 1 --yes --force     repeat entries already recorded
+
+  plan remembers what it published in .publish-state.json and steps over it, so a
+  resumed launch never double-posts. --force posts everything again.
+
+BRAND
+  node scripts/publish.mjs brand [--set gateway|emblem] (--dry-run | --yes)
+  Sets the Facebook Page cover from the brand set, then prints the clicks for the
+  two profile pictures (Meta's API cannot set those).
+
+LEDGER
+  node scripts/publish.mjs mark --day 1 --platform ig --type post
+       --asset out/posts/01-map.png --id <creation id>
+       [--label "IG feed · the map"]
+  Records a post that is already live so plan skips it.
 
 SINGLE ASSETS
   node scripts/publish.mjs ig-post      --image <path|url> --caption|--caption-file <s> [--dry-run]
@@ -116,6 +131,9 @@ ENV
 `.trim();
 
 /* ----------------------------------------------------------------- utils */
+
+/** The id of the most recent successful write, recorded in the ledger. */
+let LAST_ID = null;
 
 const dry = (o) => Boolean(o["dry-run"]);
 const say = (...a) => console.log(...a);
@@ -237,6 +255,7 @@ async function graph(method, path, params, isDry, token = TOKEN) {
     console.error(`\n✗ ${e.message}\n`);
     process.exit(1);
   }
+  if (method !== "GET" && json.id) LAST_ID = json.id;
   return json;
 }
 
@@ -549,12 +568,25 @@ async function plan(o) {
 
   let n = 0;
   const skipped = [];
+  const already = [];
   const done = [];
   const failed = [];
+  const state = readState();
 
   for (const e of entries) {
     n++;
     say(`\n── ${n}/${entries.length}  ${e.platform.toUpperCase()} ${e.type}  ·  ${e.label || e.asset || ""}`);
+
+    // Already published on an earlier run? Instagram and Facebook have no
+    // idempotency key, so this ledger is the only thing standing between a
+    // resumed launch and a duplicate post.
+    const key = entryKey(e);
+    if (state[key] && !o.force) {
+      const when = String(state[key].at || "").slice(0, 10);
+      say(`   ↳ already published ${when}${state[key].id ? ` · id ${state[key].id}` : ""} — skipped (--force to repeat)`);
+      already.push(`${e.platform.toUpperCase()} · ${e.label || e.asset}`);
+      continue;
+    }
 
     // A day mixes platforms, and a missing credential for one of them must not
     // abort the rest of the day's posts. Skip it loudly, keep going, and report
@@ -600,6 +632,15 @@ async function plan(o) {
     }
 
     done.push(`${e.platform.toUpperCase()} · ${e.label || e.asset}`);
+    if (!dry(o)) {
+      state[key] = {
+        at: new Date().toISOString(),
+        label: `${e.platform.toUpperCase()} · ${e.label || e.asset}`,
+        id: LAST_ID,
+      };
+      LAST_ID = null;
+      writeState(state);
+    }
     if (e.after) say(`\n   ↳ ${e.after}`);
     // TikTok rate-limits at 6 posts / 24h; keep the API calm between items
     if (!dry(o) && n < entries.length) await new Promise((r) => setTimeout(r, 2500));
@@ -607,6 +648,10 @@ async function plan(o) {
   if (done.length) {
     say(dry(o) ? `\nWould post ${done.length}:` : `\n✓ Posted ${done.length}:`);
     for (const k of done) say(`  · ${k}`);
+  }
+  if (already.length) {
+    say(`\nAlready live from an earlier run — ${already.length} not repeated:`);
+    for (const k of already) say(`  · ${k}`);
   }
   if (skipped.length) {
     say(`\nSkipped ${skipped.length} — no credentials, so these are manual:`);
@@ -624,6 +669,120 @@ async function plan(o) {
   say(dry(o) ? "\nDry run complete — nothing was posted.\n" : "\n✓ Plan complete.\n");
 }
 
+/* ---------------------------------------------------------------- the brand */
+
+/**
+ * The Page cover, plus the two things the API cannot do.
+ *
+ * A Page cover is settable: upload the file as an unpublished Page photo, then
+ * hand its id to the Page's `cover` field. A Page profile picture and an
+ * Instagram profile picture are NOT settable through the Graph API — Meta
+ * removed those writes — so this prints the exact clicks instead of pretending.
+ */
+async function brand(o) {
+  const set = o.set === "emblem" ? "emblem" : "gateway";
+  const files =
+    set === "emblem"
+      ? { cover: "out/brand/cover-1920x1080.png", avatar: "out/brand/pfp-1080.png", also: "out/brand/cover-1500x500.png" }
+      : { cover: "out/brand/cover-gateway-1920x1080.png", avatar: "out/brand/pfp-n-1080.png", also: "out/brand/cover-1500x500.png" };
+
+  say(`\nBrand identity — ${set} set${dry(o) ? "  [dry run]" : ""}`);
+  say(`  cover   ${files.cover}`);
+  say(`  avatar  ${files.avatar}`);
+
+  if (!dry(o) && !o.yes) {
+    console.error("\nThis replaces the live Page cover. Re-run with --dry-run to preview, or --yes to send.\n");
+    process.exit(1);
+  }
+
+  const page = need(PAGE, "FB_PAGE_ID");
+  const url = publicUrl(files.cover, o.base || process.env.KIT_BASE);
+  const token = await pageToken(dry(o));
+
+  // 1 · park the image on the Page, unpublished, so it is not a feed post
+  const photo = await graph("POST", `/${page}/photos`, { url, published: "false" }, dry(o), token);
+  // 2 · make it the cover
+  await graph("POST", `/${page}`, { cover: photo.id }, dry(o), token);
+
+  if (dry(o)) {
+    say("\nWould set the Page cover to the file above. Nothing was changed.\n");
+  } else {
+    say("\n✓ Page cover updated.");
+    LAST_ID = null;
+  }
+
+  // 3 · the two avatars, which no API can set
+  say("");
+  say("─".repeat(66));
+  say("Two of the three need a human — Meta does not allow these via API:");
+  say("");
+  say(`  Facebook Page profile picture`);
+  say(`    1. facebook.com/${process.env.FB_PAGE_NAME || "your page"} → switch to the Page`);
+  say(`    2. Edit profile → Profile picture → Upload → ${files.avatar}`);
+  say("");
+  say(`  Instagram profile picture`);
+  say(`    1. Instagram app → your profile → Edit profile → Change profile photo`);
+  say(`    2. choose the same file: ${files.avatar}`);
+  say(`    (Instagram crops it to a circle — this one is drawn to survive that.)`);
+  say("");
+  say(`  Optional: X / LinkedIn banner → ${files.also}`);
+  say("─".repeat(66));
+  say("");
+}
+
+/* --------------------------------------------------------------- the ledger */
+
+/**
+ * Which entries of plan.json have already been published.
+ *
+ * Meta has no "did I already post this?" endpoint, and re-running a day used to
+ * repost everything it had already done. This file is the memory: written after
+ * each success, read before each attempt. Delete it (or pass --force) to repeat.
+ */
+const STATE_FILE = join(ROOT, ".publish-state.json");
+const entryKey = (e) =>
+  [e.day, e.platform, e.type, e.asset || (e.assets || []).join("+")].join("|");
+
+function readState() {
+  try {
+    return JSON.parse(readFileSync(STATE_FILE, "utf8"));
+  } catch {
+    return {};
+  }
+}
+function writeState(state) {
+  try {
+    writeFileSync(STATE_FILE, JSON.stringify(state, null, 2) + "\n");
+  } catch (e) {
+    say(`  ! could not write .publish-state.json (${e.message}) — the next run may repost`);
+  }
+}
+
+/**
+ * Record a post that is already live, without posting it again.
+ *
+ * Used when a launch is resumed: the item published by hand or by an earlier
+ * run goes into the ledger, so `plan` steps over it.
+ */
+async function mark(o) {
+  const platform = need(o.platform || o.p, "--platform <ig|fb|tt>");
+  const type = need(o.type || o.t, "--type <post|reel|story|carousel|ttphoto>");
+  const day = need(o.day, "--day <n>");
+  const assets = o.assets ? String(o.assets).split(",") : undefined;
+  const key = entryKey({ day, platform, type, asset: o.asset, assets });
+  const state = readState();
+  state[key] = {
+    at: o.at || new Date().toISOString(),
+    label: o.label || `${platform.toUpperCase()} · ${o.asset || ""}`,
+    id: o.id || null,
+    note: "recorded by hand",
+  };
+  writeState(state);
+  say(`\n✓ recorded  ${key}`);
+  if (o.id) say(`  id ${o.id}`);
+  say("  plan will skip this entry from now on (--force overrides).\n");
+}
+
 /* ------------------------------------------------------------------- main */
 
 const o = argv(process.argv.slice(2));
@@ -636,6 +795,8 @@ if (!cmd || o.help) {
 
 const commands = {
   plan,
+  brand,
+  mark,
   "ig-post": igPost,
   "ig-carousel": igCarousel,
   "ig-reel": igReel,
@@ -652,6 +813,6 @@ if (!commands[cmd]) {
 
 // `plan` checks its own tokens per-platform, so a missing TikTok token does not
 // block a day that only posts to Instagram.
-if (!dry(o) && cmd !== "plan") need(TOKEN, "META_TOKEN");
+if (!dry(o) && cmd !== "plan" && cmd !== "mark" && cmd !== "brand") need(TOKEN, "META_TOKEN");
 
 await commands[cmd](withBase(o));

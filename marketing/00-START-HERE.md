@@ -113,7 +113,31 @@ with no login. Then put that base URL (no trailing slash, no `/posts`) into `KIT
 
 ---
 
-## Step 6 — Rehearse the post, then publish
+## Step 6 — Make the profiles look like NowBey
+
+The cover can be set from here. The two profile pictures cannot — Meta removed those writes from the
+API — so the command does the cover and prints the clicks for the rest.
+
+```powershell
+node scripts/publish.mjs brand --dry-run     # shows the two calls and the file paths
+node scripts/publish.mjs brand --yes         # sets the Facebook Page cover
+```
+
+**CHECK:** the dry run ends with "Would set the Page cover…", and the real run ends with
+"✓ Page cover updated".
+
+Then, by hand, with the file it names:
+
+- **Facebook Page avatar** — the Page → Edit profile → Profile picture → Upload →
+  `out\brand\pfp-n-1080.png`
+- **Instagram avatar** — Instagram app → profile → Edit profile → Change profile photo → the same file
+
+`--set emblem` uses the other identity set (`pfp-1080.png` + `cover-1920x1080.png`) if you prefer the
+pin-and-wave emblem over the N monogram. Pick one pair and keep it for the whole launch.
+
+---
+
+## Step 7 — Rehearse the post, then publish
 
 ```powershell
 node scripts/publish.mjs plan --day 1 --dry-run
@@ -137,7 +161,32 @@ ignore). A `failed` line prints a plain-English reason.
 
 ---
 
-## Step 7 — Look at what you are posting
+### Resuming a launch that stopped half way
+
+Instagram and Facebook have no "have I posted this already?" check, so the script keeps its own
+record in `.publish-state.json`. Anything in there is skipped on the next run, with its id printed:
+
+```powershell
+node scripts/publish.mjs plan --day 1 --yes
+#   ↳ already published 2026-10-24 · id 18149289610526133 — skipped (--force to repeat)
+```
+
+A post that went out **before** the ledger existed (or straight from the Instagram app) has to be
+recorded once, so the script stops trying to post it again:
+
+```powershell
+node scripts/publish.mjs mark --day 1 --platform ig --type post `
+  --asset out/posts/01-map.png --id 18149289610526133 --label "IG feed · the map"
+```
+
+**CHECK:** `node scripts/publish.mjs plan --day 1 --dry-run` lists that item as
+"already published" and everything else as pending. Then drop the `--dry-run`.
+
+`--force` ignores the ledger entirely and reposts everything — only use it deliberately.
+
+---
+
+## Step 8 — Look at what you are posting
 
 ```powershell
 node scripts/serve.mjs
@@ -148,7 +197,7 @@ reels, and both brand sets. `Ctrl+C` in PowerShell stops it.
 
 ---
 
-## Step 8 — Rebuild anything, at any time
+## Step 9 — Rebuild anything, at any time
 
 Everything here was generated from code in `scripts/`, so nothing is a dead end:
 
@@ -200,6 +249,8 @@ upper 60% by design, and both covers keep the bottom-left corner empty for the p
 | Netlify URL 404s | deploy is still **private**, or you dragged the folder *above* `out` |
 | `403 (#200) publish_actions` | token missing `pages_manage_posts` — regenerate |
 | Token expired / `Session has expired` | it cannot be extended once dead — see the last section |
+| A post went out twice | the ledger was missing or deleted — `mark` it and it will not repeat |
+| `brand` says the cover failed | the token lacks `pages_manage_posts`, or `KIT_BASE` is not public |
 | `IG_USER_ID` unresolved | IG account is not Professional, or not linked to the Page |
 | Preflight says token expired | extend in the Access Token Debugger, or use a System user token |
 | Text renders as boxes in a rebuilt PNG | the static fonts in `fonts\` were not found — run `npm run fonts`, then rebuild |
