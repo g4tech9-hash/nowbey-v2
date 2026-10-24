@@ -105,6 +105,12 @@ async function meta() {
     const missing = NEEDED.filter((p) => !granted.includes(p));
     if (missing.length) {
       warn("Permissions", `missing: ${missing.join(", ")} — tick them BEFORE clicking Generate`);
+      if (missing.includes("pages_manage_posts")) {
+        console.log(
+          "\n  pages_manage_posts is what lets you post to a Page. Without it Meta falls back to\n" +
+            "  the deprecated publish_actions permission and returns (#200) on /{page}/photos.\n",
+        );
+      }
     } else {
       ok("Permissions", `${NEEDED.length}/${NEEDED.length} granted`);
     }

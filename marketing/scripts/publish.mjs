@@ -185,24 +185,84 @@ function show(params) {
 
 /* ------------------------------------------------------------- Graph API */
 
-async function graph(method, path, params, isDry) {
+/** Set by `plan` so one bad post does not abandon the rest of the day. */
+let SOFT = false;
+
+function explainGraphError(e) {
+  const msg = String(e.message || "");
+  if (e.code === 200 && /publish_actions/i.test(msg)) {
+    return (
+      "This is the classic deprecated-permission error. Graph is falling back to the old\n" +
+      "  publish_actions permission, which means the token in .env is a USER token that was\n" +
+      "  minted without pages_manage_posts. Two fixes:\n" +
+      "   1. Regenerate the token with pages_manage_posts ticked BEFORE clicking Generate;\n" +
+      "   2. Or let this script use the Page's own token — it fetches one automatically,\n" +
+      "      which requires pages_manage_posts to be granted at all.\n" +
+      "  Check what you actually have: node scripts/preflight.mjs (Permissions line)."
+    );
+  }
+  if (e.code === 190) return "The token expired or was revoked — extend or regenerate it (CREDENTIALS.md step 1).";
+  if (e.code === 10 || e.code === 200) return "The token is missing a permission for this call — see CREDENTIALS.md step 1.";
+  if (e.code === 4 || e.code === 613) return "Meta rate limit — wait a few minutes and re-run; posts already made will not repeat.";
+  return "";
+}
+
+async function graph(method, path, params, isDry, token = TOKEN) {
   say(`  → ${method} ${path}`);
   show(params);
   if (isDry) return { id: "<dry-run>", dryRun: true };
 
   const url = new URL(GRAPH + path);
-  const body = new URLSearchParams({ ...params, access_token: TOKEN });
-  const res = await fetch(method === "GET" ? `${url}?${body}` : url, {
-    method,
-    ...(method === "GET" ? {} : { body }),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || json.error) {
-    const e = json.error || {};
-    console.error(`\n✗ ${res.status} ${e.type || ""} ${e.message || JSON.stringify(json)}\n`);
+  const body = new URLSearchParams({ ...params, access_token: token });
+
+  let json = {};
+  try {
+    const res = await fetch(method === "GET" ? `${url}?${body}` : url, {
+      method,
+      ...(method === "GET" ? {} : { body }),
+    });
+    json = await res.json().catch(() => ({}));
+    if (!res.ok || json.error) {
+      const e = json.error || {};
+      const hint = explainGraphError(e);
+      const text = `${res.status} ${e.type || ""} ${e.message || JSON.stringify(json)}`.trim();
+      if (SOFT) throw new Error(text);
+      console.error(`\n✗ ${text}`);
+      if (hint) console.error(`  ${hint}`);
+      console.error("");
+      process.exit(1);
+    }
+  } catch (e) {
+    if (SOFT) throw e instanceof Error ? e : new Error(String(e));
+    console.error(`\n✗ ${e.message}\n`);
     process.exit(1);
   }
   return json;
+}
+
+/**
+ * A Page access token, fetched from the Page itself.
+ * Page endpoints are far more reliable with the Page's own token than with a
+ * user token — Meta's user-token path to /{page}/photos still routes through
+ * the long-deprecated publish_actions permission and fails with #200.
+ */
+let _pageToken = null;
+async function pageToken(isDry) {
+  if (_pageToken) return _pageToken;
+  const page = need(PAGE, "FB_PAGE_ID");
+  if (isDry) return "<page-token>";
+  try {
+    const r = await graph("GET", `/${page}`, { fields: "access_token,name" }, false);
+    if (r.access_token) {
+      _pageToken = r.access_token;
+      say(`  · using a Page access token for ${r.name || page}`);
+      return _pageToken;
+    }
+  } catch {
+    /* fall through to the user token */
+  }
+  say("  · no Page token returned — falling back to the user token");
+  return TOKEN;
 }
 
 /**
@@ -382,6 +442,7 @@ async function igStory(o) {
 async function fbPost(o) {
   const page = need(PAGE, "FB_PAGE_ID");
   const isDry = dry(o);
+  const tok = await pageToken(isDry);
   const text = need(message(o), "--message");
   say(`\nFacebook Page post${isDry ? "  [dry run]" : ""}`);
 
@@ -394,7 +455,7 @@ async function fbPost(o) {
       params.published = "false";
       params.scheduled_publish_time = String(sched);
     }
-    const created = await graph("POST", `/${page}/photos`, params, isDry);
+    const created = await graph("POST", `/${page}/photos`, params, isDry, tok);
     say(isDry ? "\n  (nothing was posted)" : `\n✓ posted${created.post_id ? ` (${created.post_id})` : ""}`);
     return;
   }
@@ -404,7 +465,7 @@ async function fbPost(o) {
     params.published = "false";
     params.scheduled_publish_time = String(sched);
   }
-  await graph("POST", `/${page}/feed`, params, isDry);
+  await graph("POST", `/${page}/feed`, params, isDry, tok);
   say(isDry ? "\n  (nothing was posted)" : "\n✓ posted");
 }
 
@@ -464,6 +525,7 @@ async function ttPhoto(o) {
  *   asset | assets, caption, cover? }
  */
 async function plan(o) {
+  if (!dry(o)) SOFT = true; // keep going; report failures at the end
   if (!o.day) {
     console.error("✗ --day <number|all>");
     process.exit(1);
@@ -487,6 +549,8 @@ async function plan(o) {
 
   let n = 0;
   const skipped = [];
+  const done = [];
+  const failed = [];
 
   for (const e of entries) {
     n++;
@@ -514,6 +578,7 @@ async function plan(o) {
     }
 
     const common = { base: o.base, "dry-run": o["dry-run"], "caption-file": e.caption };
+    try {
     if (e.platform === "ig") {
       if (e.type === "post") await igPost({ ...common, image: e.asset });
       else if (e.type === "carousel") await igCarousel({ ...common, images: e.assets.join(",") });
@@ -526,14 +591,35 @@ async function plan(o) {
       if (e.type === "ttphoto") await ttPhoto({ ...common, images: e.assets.join(",") });
       else await ttPost({ ...common, video: e.asset, "cover-ms": e.coverMs });
     } else throw new Error(`unknown platform ${e.platform}`);
+    } catch (err) {
+      // One failed post must not cancel the rest of the day. Record it, say why,
+      // and carry on — the summary at the end lists what needs redoing.
+      failed.push({ label: `${e.platform.toUpperCase()} · ${e.label || e.asset}`, error: err.message });
+      console.error(`\n  ✗ failed: ${err.message}`);
+      continue;
+    }
 
+    done.push(`${e.platform.toUpperCase()} · ${e.label || e.asset}`);
     if (e.after) say(`\n   ↳ ${e.after}`);
     // TikTok rate-limits at 6 posts / 24h; keep the API calm between items
     if (!dry(o) && n < entries.length) await new Promise((r) => setTimeout(r, 2500));
   }
+  if (done.length) {
+    say(dry(o) ? `\nWould post ${done.length}:` : `\n✓ Posted ${done.length}:`);
+    for (const k of done) say(`  · ${k}`);
+  }
   if (skipped.length) {
-    say(`\nSkipped ${skipped.length} item(s) — no credentials, so these are manual:`);
+    say(`\nSkipped ${skipped.length} — no credentials, so these are manual:`);
     for (const k of skipped) say(`  · ${k}`);
+  }
+  if (failed.length) {
+    say(`\n✗ Failed ${failed.length} — re-run just these once fixed:`);
+    for (const f of failed) say(`  · ${f.label}\n      ${f.error}`);
+  }
+  if (failed.length) {
+    say(dry(o) ? "\nDry run complete.\n" : "\nPlan finished with failures (above).\n");
+    process.exitCode = 1;
+    return;
   }
   say(dry(o) ? "\nDry run complete — nothing was posted.\n" : "\n✓ Plan complete.\n");
 }
