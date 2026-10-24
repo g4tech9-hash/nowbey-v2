@@ -27,6 +27,7 @@ const TYPES = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json",
+  ".zip": "application/zip",
 };
 
 createServer((req, res) => {
@@ -68,12 +69,17 @@ createServer((req, res) => {
     return;
   }
 
-  res.writeHead(200, {
+  const headers = {
     "content-type": type,
     "content-length": stat.size,
     "accept-ranges": "bytes",
     "cache-control": "no-cache",
-  });
+  };
+  // zips should land as a download, not open in a tab
+  if (type === "application/zip") {
+    headers["content-disposition"] = `attachment; filename="${path.split("/").pop()}"`;
+  }
+  res.writeHead(200, headers);
   createReadStream(path).pipe(res);
 }).listen(PORT, HOST, () => {
   console.log(`NowBey launch kit → http://${HOST}:${PORT}`);
