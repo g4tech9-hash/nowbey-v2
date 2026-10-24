@@ -61,7 +61,18 @@ async function meta() {
     fail("FB_PAGE_ID", "missing — see CREDENTIALS.md step 2");
     return;
   }
-  ok("META_TOKEN", `present ${mask(META_TOKEN)}`);
+  // a token pasted by hand is easy to get subtly wrong — say so plainly
+  const t = META_TOKEN.trim();
+  if (t !== META_TOKEN) warn("META_TOKEN format", "has leading or trailing spaces in .env — remove them");
+  if (/^META_TOKEN=/.test(t)) {
+    fail("META_TOKEN format", 'the line includes "META_TOKEN=" inside the value — the value should start at EAA…');
+  } else if (!t.startsWith("EAA")) {
+    warn("META_TOKEN format", `does not start with "EAA" (starts "${t.slice(0, 6)}…") — is this the access token, not the App ID/secret?`);
+  } else if (t.length < 100) {
+    warn("META_TOKEN format", `only ${t.length} characters — Meta tokens are usually 150–250; it may have been cut short when copying`);
+  } else {
+    ok("META_TOKEN", `present ${mask(t)}`);
+  }
 
   // who owns the token
   let me;
