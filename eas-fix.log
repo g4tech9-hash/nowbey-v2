@@ -449,3 +449,61 @@ i 44 iOS assets, 48 Android assets (maximum: 2000 total per update). Learn more 
   }
 ]
 [Tue Oct 20 20:16:53 EDT 2026] Finalizing: Creating EAS_FIX_REPORT.md
+Source: ./.claude/file-history/7e21b0af-f8df-485a-8988-92384a16eb13/437f5fe9a4823612@v3, Length: 47, Fingerprint: 94e9de31
+Source: ./.claude/file-history/ea832884-1d95-42eb-9b67-a06f6e002704/437f5fe9a4823612@v3, Length: 47, Fingerprint: 94e9de31
+Source: ./.claude/paste-cache/13a97df8b40731b2.txt, Length: 82, Fingerprint: 0b7f0d7f
+Source: ./.claude/paste-cache/484f90ea22d38b1a.txt, Length: 78, Fingerprint: 547ddff4
+Source: ./.claude/paste-cache/694e5899723595c7.txt, Length: 84, Fingerprint: c2e337b2
+Source: ./.claude/paste-cache/74df315f0a8d151f.txt, Length: 68, Fingerprint: 911c8181
+Source: ./.claude/paste-cache/ab63fdba0a997f9e.txt, Length: 79, Fingerprint: eff18335
+Source: ./.claude/paste-cache/bd5869ed1b91e6a0.txt, Length: 52, Fingerprint: e85db94d
+Source: ./.claude/paste-cache/c4603b03f77c14da.txt, Length: 84, Fingerprint: c2e337b2
+Source: ./.claude/projects/C--Users-Admin/0d8cd6b0-fda2-4bc8-8a4b-5f6c9f0361a9/tool-results/b08zyo404.txt, Length: 110, Fingerprint: 487d56f4
+Source: ./.claude/projects/C--Users-Admin/0d8cd6b0-fda2-4bc8-8a4b-5f6c9f0361a9/tool-results/b4eorlnie.txt, Length: 283, Fingerprint: 60b1f1c4
+Source: ./.claude/projects/C--Users-Admin/0d8cd6b0-fda2-4bc8-8a4b-5f6c9f0361a9/tool-results/b71pd1y6s.txt, Length: 283, Fingerprint: 23e2bab2
+Source: ./.claude/projects/C--Users-Admin/0d8cd6b0-fda2-4bc8-8a4b-5f6c9f0361a9/tool-results/b8k6kwdh6.txt, Length: 283, Fingerprint: 994b2482
+Source: ./.claude/projects/C--Users-Admin/0d8cd6b0-fda2-4bc8-8a4b-5f6c9f0361a9/tool-results/bwm47fgg3.txt, Length: 283, Fingerprint: 61af9b7f
+Source: ./.claude/projects/C--Users-Admin/0d8cd6b0-fda2-4bc8-8a4b-5f6c9f0361a9.jsonl, Length: 6474, Fingerprint: 0535db51
+Source: ./.claude/projects/C--Users-Admin/176b50d0-54a2-4aaa-8354-5d5c321fb076.jsonl, Length: 8577, Fingerprint: 353c3b7a
+Source: ./.claude/projects/C--Users-Admin/74883c84-fd2a-4fcb-b9ae-4616b73333f0/tool-results/b56c2ugtp.txt, Length: 157, Fingerprint: 7ed3b461
+Source: ./.claude/projects/C--Users-Admin/74883c84-fd2a-4fcb-b9ae-4616b73333f0/tool-results/b7f6zab35.txt, Length: 157, Fingerprint: 7ed3b461
+Source: ./.claude/projects/C--Users-Admin/74883c84-fd2a-4fcb-b9ae-4616b73333f0/tool-results/bp6ymkk1u.txt, Length: 8269, Fingerprint: ef3ef86c
+Source: ./.claude/projects/C--Users-Admin/be438e6c-71c5-4613-b2e0-e25bb8323846.jsonl, Length: 5307, Fingerprint: d3361c5a
+Source: ./.claude/projects/C--WINDOWS-system32/7e21b0af-f8df-485a-8988-92384a16eb13.jsonl, Length: 3637, Fingerprint: 2e5d42d8
+Source: ./.claude/projects/C--WINDOWS-system32/ea832884-1d95-42eb-9b67-a06f6e002704.jsonl, Length: 3622, Fingerprint: 278df3d7
+Source: ./.config/freebuff-desktop/projects/b0224bee-4bf2-4c8f-80dc-efd1c470c22f-33c4ef9a-7020-4b18-a58c-9d8d39e913c0/desktop-v2.db, Length: 143, Fingerprint: 43d9c054
+Source: ./.local/share/opencode/log/opencode.log, Length: 905, Fingerprint: 6bb4ab0f
+Source: ./.local/share/opencode/opencode.db, Length: 55, Fingerprint: bac047cb
+Source: ./.local/share/opencode/shell/global/sh_13d5cb0140019Za93Jq5RgcueS.out, Length: 116, Fingerprint: 291830e3
+Source: ./.local/share/opencode/shell/global/sh_13d6079c2001bOEl1OwNnSyH5x.out, Length: 31, Fingerprint: 1808d73c
+Source: ./.local/state/opencode/prompt-history.jsonl, Length: 259, Fingerprint: 389cfea0
+Source: ./AppData/Local/GitHub CLI/run-log-39336520413-1792449589.zip, Length: 81, Fingerprint: 502c28f8
+Source: ./AppData/Local/Google/Chrome/User Data/Profile 1/History, Length: 77, Fingerprint: ec93d7bb
+Source: ./AppData/Local/Google/Chrome/User Data/Profile 1/Sync Data/LevelDB/000243.ldb, Length: 98, Fingerprint: 0b18deb9
+Source: ./AppData/Local/Mozilla/Firefox/Profiles/3tuh89dr.default-release/cache2/entries/D2683571E90F1472F6C1757BBE719C822E2C62CD, Length: 141, Fingerprint: 112b7d77
+Source: ./AppData/Local/Mozilla/Firefox/Profiles/3tuh89dr.default-release/cache2/entries/3C0BCD470ABAA67F238CAED0CBB3DA516C2C826C, Length: 141, Fingerprint: fb13cafc
+Source: ./AppData/Local/Mozilla/Firefox/Profiles/3tuh89dr.default-release/cache2/entries/BC33E50E7312A2180970E375F0E8F72986E8B4DB, Length: 141, Fingerprint: acfaff0e
+Source: ./AppData/Local/npm-cache/_npx/249ca9fcd30c476a/node_modules/@expo/cli/build/src/api/user/actions.js, Length: 174, Fingerprint: 90073e8a
+Source: ./AppData/Local/npm-cache/_npx/249ca9fcd30c476a/node_modules/@expo/cli/build/src/api/user/actions.js.map, Length: 5572, Fingerprint: c12cabf5
+Source: ./AppData/Local/npm-cache/_npx/249ca9fcd30c476a/node_modules/@expo/cli/build/src/api/user/otp.js, Length: 144, Fingerprint: a9f40526
+Source: ./AppData/Local/npm-cache/_npx/249ca9fcd30c476a/node_modules/@expo/cli/build/src/api/user/otp.js.map, Length: 8269, Fingerprint: ef3ef86c
+Source: ./AppData/Local/npm-cache/_npx/249ca9fcd30c476a/node_modules/@expo/cli/build/src/api/user/UserSettings.js, Length: 42, Fingerprint: 4c59e0b8
+Source: ./AppData/Local/npm-cache/_npx/249ca9fcd30c476a/node_modules/@expo/cli/build/src/api/user/UserSettings.js.map, Length: 5459, Fingerprint: 8869e5d0
+Source: ./AppData/Local/npm-cache/_npx/249ca9fcd30c476a/node_modules/@expo/cli/build/src/register/registerAsync.js, Length: 234, Fingerprint: 42906102
+Source: ./AppData/Local/npm-cache/_npx/249ca9fcd30c476a/node_modules/@expo/cli/build/src/register/registerAsync.js.map, Length: 1299, Fingerprint: d9f2d703
+Source: ./AppData/Local/npm-cache/_npx/6bc7bae5c2059953/node_modules/eas-cli/build/commands/account/login.js, Length: 163, Fingerprint: a618020f
+Source: ./AppData/Local/npm-cache/_npx/6bc7bae5c2059953/node_modules/eas-cli/build/commands/account/view.js, Length: 67, Fingerprint: caacfef2
+Source: ./AppData/Local/npm-cache/_npx/6bc7bae5c2059953/node_modules/eas-cli/build/user/SessionManager.js, Length: 46, Fingerprint: 3c9e57fb
+Source: ./AppData/Local/npm-cache/_npx/6bc7bae5c2059953/node_modules/eas-cli/build/user/sudo.js, Length: 106, Fingerprint: 4f57523b
+Source: ./AppData/Local/Temp/claude/C--Users-Admin/176b50d0-54a2-4aaa-8354-5d5c321fb076/tasks/b2pn5u3om.output, Length: 148, Fingerprint: b1d6c4ff
+Source: ./AppData/Local/Temp/claude/C--Users-Admin/74883c84-fd2a-4fcb-b9ae-4616b73333f0/tasks/b0r1la06v.output, Length: 157, Fingerprint: 7ed3b461
+Source: ./AppData/Local/Temp/claude/C--Users-Admin/74883c84-fd2a-4fcb-b9ae-4616b73333f0/tasks/bngtym63b.output, Length: 8269, Fingerprint: ef3ef86c
+Source: ./AppData/Local/Temp/claude/C--Users-Admin-Downloads-nowbeyV2/6509e71f-7249-430b-a4c0-eadfaa10f021/tasks/bl01c0dyg.output, Length: 123, Fingerprint: 60cadf12
+Source: ./AppData/Local/Temp/eas-move-test-2.sh, Length: 68, Fingerprint: ac40a9d8
+Source: ./AppData/Local/Temp/eas-move-test.sh, Length: 68, Fingerprint: ac40a9d8
+Source: ./AppData/Local/Temp/node-compile-cache/v24.21.0-x64-964aae3f/e4d35cb1, Length: 90, Fingerprint: 6ea799c5
+Source: ./AppData/Local/Temp/nowbey-pfl/.github/workflows/deploy.yml, Length: 84, Fingerprint: d7a7f21d
+Source: ./AppData/Local/Temp/tmp.ETlqVzsmmA/proj/scripts/eas-move-account-auto.sh, Length: 74, Fingerprint: 83bfd1f2
+Source: ./AppData/Local/wsl/{ffbcc516-bc6f-43cc-b768-e958524f52e2}/ext4.vhdx, Length: 88, Fingerprint: aba3026a
+Source: ./AppData/Roaming/Mozilla/Firefox/Profiles/3tuh89dr.default-release/favicons.sqlite, Length: 103, Fingerprint: 54ebf821
+Source: ./AppData/Roaming/Mozilla/Firefox/Profiles/3tuh89dr.default-release/formhistory.sqlite, Length: 106, Fingerprint: d35ec27f
