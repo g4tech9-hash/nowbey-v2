@@ -77,6 +77,7 @@ const html = `<!doctype html>
   ${section("Feed posts", "posts", "1080×1080 · Instagram feed, Facebook")}
   ${section("Stories + reel covers", "stories", "1080×1920 · Stories, Reels covers")}
   ${section("Reels", "video", "8s · 1080×1920 · 30fps · H.264")}
+  ${section("Brand", "brand", "Profile photo · covers · preview sheet")}
   <h2>Contact sheet<small>Every asset on one page.</small></h2>
   <ul><li><a href="CONTACT_SHEET.png">CONTACT_SHEET.png</a><span>${kb("", "CONTACT_SHEET.png")} KB</span></li></ul>
   <footer>NowBey · Stay Safe, Bahamas — map and email alerts live for New Providence.

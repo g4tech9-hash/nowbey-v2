@@ -69,6 +69,9 @@
   .fallback b{color:var(--ink2);font-weight:600}
   footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
     color:var(--ink3);font:400 13px/1.6 var(--sans)}
+
+  .brand{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:24px}
+  .brand .card img{aspect-ratio:auto}
   .sheet img{border-radius:16px;border:1px solid var(--line);width:100%;height:auto}
 </style>
 </head>
@@ -91,10 +94,11 @@
     <p>Everything you need to post, as zip files. Per-folder zips are smaller and usually download
       faster; the full kit also includes the captions, the runbook and the publisher.</p>
     <div class="btns">
-      <a class="btn" href="downloads/nowbey-social-kit.zip" download>Download everything <small>37 MB</small></a>
+      <a class="btn" href="downloads/nowbey-social-kit.zip" download>Download everything <small>41 MB</small></a>
       <a class="btn ghost" href="downloads/nowbey-01-posts.zip" download>Posts <small>12 MB</small></a>
       <a class="btn ghost" href="downloads/nowbey-02-stories.zip" download>Stories <small>19 MB</small></a>
       <a class="btn ghost" href="downloads/nowbey-03-reels.zip" download>Reels <small>6 MB</small></a>
+      <a class="btn ghost" href="downloads/nowbey-05-brand.zip" download>Brand <small>3 MB</small></a>
       <a class="btn ghost" href="downloads/nowbey-04-docs-captions.zip" download>Captions + docs <small>40 KB</small></a>
     </div>
     <p class="fallback">Button does nothing? <b>Right-click it → Save link as…</b>, or open the file and
@@ -121,6 +125,33 @@
     <span>9 verticals · 1080×1920</span>
     <span>3 reels · 8s · 30fps</span>
     <span>Live for New Providence</span>
+  </div>
+
+
+  <h2>Brand presence · profile photo + cover
+    <small>The two assets every profile needs before a single post. Built from the same tokens and map
+      geometry as the campaign, so the avatar and the banner cannot drift from the feed.</small></h2>
+  <div class="brand">
+    <a class="card" href="out/brand/pfp-1080.png" target="_blank">
+      <img src="out/brand/pfp-1080.png" alt="NowBey profile photo">
+      <div class="cap"><b>Profile photo</b><i>1080×1080 · 1:1 · safe in a circle · ig / fb / x</i></div>
+    </a>
+    <a class="card" href="out/brand/cover-1920x1080.png" target="_blank">
+      <img src="out/brand/cover-1920x1080.png" alt="NowBey cover photo, 16:9">
+      <div class="cap"><b>Cover — 16:9</b><i>1920×1080 · facebook page header</i></div>
+    </a>
+    <a class="card" href="out/brand/cover-1500x500.png" target="_blank">
+      <img src="out/brand/cover-1500x500.png" alt="NowBey cover photo, 3:1">
+      <div class="cap"><b>Cover — 3:1</b><i>1500×500 · x / linkedin header</i></div>
+    </a>
+    <a class="card" href="out/brand/pfp-dark-1080.png" target="_blank">
+      <img src="out/brand/pfp-dark-1080.png" alt="NowBey profile photo, slate variant">
+      <div class="cap"><b>Profile photo — slate</b><i>1080×1080 · for light feeds and print</i></div>
+    </a>
+    <a class="card" href="out/brand/preview.png" target="_blank">
+      <img src="out/brand/preview.png" alt="Brand bundle preview">
+      <div class="cap"><b>Preview sheet</b><i>avatar-safe zone + real-size legibility check</i></div>
+    </a>
   </div>
 
   <h2>Every asset on one page
