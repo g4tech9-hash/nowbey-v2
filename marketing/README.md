@@ -20,7 +20,8 @@ npm run build          # out/posts + out/stories   (~30s)
 npm run build:video    # out/video/*.mp4           (~2 min, needs ffmpeg — see below)
 npm run sheet          # out/CONTACT_SHEET.png
 npm run gallery        # browse everything at http://localhost:4173
-npm run publish -- --help   # post to IG/FB via Graph API (needs META_TOKEN)
+npm run publish -- --help   # post to IG/FB/TikTok via API (see .env.example)
+npm run publish -- plan --day 1 --base https://nowbey.com/kit --dry-run
 ```
 
 `npm run gallery` serves this folder with Range support, so the reels scrub properly in the browser.

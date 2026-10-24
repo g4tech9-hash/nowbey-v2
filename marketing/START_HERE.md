@@ -93,6 +93,23 @@ export KIT=https://nowbey.com/kit        # whatever you chose in step 3
 
 ## Step 5 — Post (CLI), dry run first
 
+The launch calendar is already encoded as data in `captions/plan.json`, with a caption file for every
+post. So the shortest path is one command per day:
+
+```bash
+export KIT=https://nowbey.com/kit          # step 3
+cd marketing
+
+# preview day 1 (6 posts: IG feed, FB post, TikTok, IG reel, 2 stories)
+npm run publish -- plan --day 1 --base $KIT --dry-run
+
+# send it
+npm run publish -- plan --day 1 --base $KIT --yes
+```
+
+If you would rather drive it with a coding agent, paste `AGENT_PROMPT.md` into your CLI and have it do
+the preflight, the dry run and the publish. Single-asset commands still work:
+
 ```bash
 cd marketing
 
@@ -131,10 +148,20 @@ tools. Same files, same captions.
 
 ---
 
-## Step 6 — TikTok (manual, 2 minutes per reel)
+## Step 6 — TikTok
 
-There is no supported API for a new account — TikTok's Content Posting API needs an audited app.
-So:
+**Via the API**, if your TikTok developer app has passed the Content Posting audit:
+
+```bash
+export TT_TOKEN=...                        # scopes video.publish (+ video.upload)
+npm run publish -- tt-post --video out/video/01-map-countdown.mp4 \
+  --base $KIT --caption-file captions/reel-1-map.txt --dry-run
+npm run publish -- tt-post --video out/video/01-map-countdown.mp4 \
+  --base $KIT --caption-file captions/reel-1-map.txt
+```
+
+Until the audit clears, TikTok only accepts posts to private accounts — `plan` prints that warning
+rather than failing silently. In that case, post in the app (2 minutes per reel):
 
 1. Send `out/video/01-map-countdown.mp4` to your phone (AirDrop / Google Drive / the gallery URL).
 2. New post → upload → **cover**: choose *Upload cover* and pick

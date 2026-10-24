@@ -16,6 +16,10 @@ one island, because the product is honest about coverage and so should the marke
 | `out/video/` | 3 reels, **8s, 1080 × 1920, 30fps, H.264** + a poster frame each |
 | `out/CONTACT_SHEET.png` | Everything on one page, for a quick look before you post |
 | `CAMPAIGN.md` | This file — strategy, calendar, every caption, every hashtag |
+| `captions/` | One `.txt` per post, plus `plan.json` — the calendar as data the CLI reads |
+| `START_HERE.md` | Files → accounts → hosting → token → posted, in order |
+| `AGENT_PROMPT.md` | Paste-into-your-CLI prompt that runs the whole publish |
+| `.env.example` | The five variables the publisher needs |
 | `VIDEO_PROMPTS.md` | Ready-to-paste prompts for Runway / Luma / Sora, in the Hook → Action → CTA format |
 | `scripts/` | The generator: tokens → SVG scenes → PNG/MP4 |
 | `src/` | The photographic base plates (phone screens are composited into them) |

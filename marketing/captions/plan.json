@@ -1,0 +1,250 @@
+[
+  {
+    "day": 1,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/01-map.png",
+    "caption": "captions/ig-01-map.txt",
+    "label": "IG feed · the map"
+  },
+  {
+    "day": 1,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/01-map.png",
+    "caption": "captions/fb-a-local.txt",
+    "label": "Facebook · local-group post"
+  },
+  {
+    "day": 1,
+    "platform": "tt",
+    "type": "ttvideo",
+    "asset": "out/video/01-map-countdown.mp4",
+    "caption": "captions/reel-1-map.txt",
+    "coverMs": 2600,
+    "label": "TikTok · the map reel",
+    "after": "In the TikTok app, swap in a trending sound and set the cover to out/video/01-map-countdown-poster.png."
+  },
+  {
+    "day": 1,
+    "platform": "ig",
+    "type": "reel",
+    "asset": "out/video/01-map-countdown.mp4",
+    "cover": "out/video/01-map-countdown-poster.png",
+    "caption": "captions/reel-1-map.txt",
+    "label": "IG reels · the map"
+  },
+  {
+    "day": 1,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S1-map-story.png",
+    "label": "IG story · map"
+  },
+  {
+    "day": 1,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S2-alerts-story.png",
+    "label": "IG story · alerts (add the link sticker in-app)"
+  },
+
+  {
+    "day": 2,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S3-report-story.png",
+    "label": "IG story · report"
+  },
+  {
+    "day": 2,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S4-confirmed-story.png",
+    "label": "IG story · confirmation"
+  },
+  {
+    "day": 2,
+    "platform": "tt",
+    "type": "ttvideo",
+    "asset": "out/video/02-report-flow.mp4",
+    "caption": "captions/reel-2-report.txt",
+    "coverMs": 3800,
+    "label": "TikTok · the report reel"
+  },
+  {
+    "day": 2,
+    "platform": "ig",
+    "type": "reel",
+    "asset": "out/video/02-report-flow.mp4",
+    "cover": "out/video/02-report-flow-poster.png",
+    "caption": "captions/reel-2-report.txt",
+    "label": "IG reels · the report"
+  },
+
+  {
+    "day": 3,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/05-confirmed.png",
+    "caption": "captions/ig-05-confirmed.txt",
+    "label": "IG feed · confirmation"
+  },
+  {
+    "day": 3,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/05-confirmed.png",
+    "caption": "captions/fb-c-how.txt",
+    "label": "Facebook · how it works"
+  },
+  {
+    "day": 3,
+    "platform": "tt",
+    "type": "ttvideo",
+    "asset": "out/video/03-alerts-setup.mp4",
+    "caption": "captions/reel-3-alerts.txt",
+    "coverMs": 4200,
+    "label": "TikTok · the alerts reel"
+  },
+  {
+    "day": 3,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S5-wire-story.png",
+    "label": "IG story · wire"
+  },
+  {
+    "day": 3,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S6-web-story.png",
+    "label": "IG story · web app"
+  },
+
+  {
+    "day": 4,
+    "platform": "ig",
+    "type": "carousel",
+    "assets": [
+      "out/posts/06-feed.png",
+      "out/posts/01-map.png",
+      "out/posts/02-report.png",
+      "out/posts/05-confirmed.png",
+      "out/posts/03-alerts.png"
+    ],
+    "caption": "captions/carousel.txt",
+    "label": "IG carousel · how it works"
+  },
+
+  {
+    "day": 5,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/03-alerts.png",
+    "caption": "captions/ig-03-alerts.txt",
+    "label": "IG feed · alerts"
+  },
+  {
+    "day": 5,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/03-alerts.png",
+    "caption": "captions/fb-b-hoa.txt",
+    "label": "Facebook · HOA / community leaders"
+  },
+
+  {
+    "day": 6,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/02-report.png",
+    "caption": "captions/fb-d-honest.txt",
+    "label": "Facebook · the honest one"
+  },
+
+  {
+    "day": 7,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/08-trust.png",
+    "caption": "captions/ig-08-trust.txt",
+    "label": "IG feed · trust"
+  },
+
+  {
+    "day": 8,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/06-feed.png",
+    "caption": "captions/ig-06-feed.txt",
+    "label": "IG feed · the feed"
+  },
+
+  {
+    "day": 9,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/04-wire.png",
+    "caption": "captions/ig-04-wire.txt",
+    "label": "IG feed · the wire"
+  },
+
+  {
+    "day": 10,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/07-web.png",
+    "caption": "captions/ig-07-web.txt",
+    "label": "IG feed · the web app"
+  },
+
+  {
+    "day": 11,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/02-report.png",
+    "caption": "captions/ig-02-report.txt",
+    "label": "IG feed · reporting"
+  },
+  {
+    "day": 11,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/02-report.png",
+    "caption": "captions/fb-b-hoa.txt",
+    "label": "Facebook · HOA / community leaders"
+  },
+
+  {
+    "day": 12,
+    "platform": "ig",
+    "type": "carousel",
+    "assets": [
+      "out/posts/06-feed.png",
+      "out/posts/01-map.png",
+      "out/posts/02-report.png",
+      "out/posts/05-confirmed.png",
+      "out/posts/03-alerts.png"
+    ],
+    "caption": "captions/carousel.txt",
+    "label": "IG carousel · re-share"
+  },
+
+  {
+    "day": 14,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/01-map.png",
+    "caption": "captions/ig-01-map.txt",
+    "label": "IG feed · best performer, re-share"
+  },
+  {
+    "day": 14,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/01-map.png",
+    "caption": "captions/fb-a-local.txt",
+    "label": "Facebook · local-group re-post"
+  }
+]
