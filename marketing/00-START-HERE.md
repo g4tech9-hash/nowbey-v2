@@ -186,6 +186,20 @@ node scripts/publish.mjs mark --day 1 --platform ig --type post `
 
 `--force` ignores the ledger entirely and reposts everything — only use it deliberately.
 
+### If something already went out twice
+
+```powershell
+node scripts/publish.mjs dupes --dry-run    # what repeats, oldest kept
+node scripts/publish.mjs dupes --delete     # removes the Facebook duplicates
+```
+
+Facebook Page posts can be deleted through the API. Instagram has **no delete endpoint** — the command
+hands you a permalink list to remove in the app. Before every post this build also compares the caption
+against what is already live on that platform and skips a match, so a stale ledger cannot cause a
+repeat.
+
+**CHECK:** `node scripts/publish.mjs dupes` ends with `0 duplicate(s)`.
+
 ---
 
 ## Step 8 — Look at what you are posting
@@ -251,7 +265,7 @@ upper 60% by design, and both covers keep the bottom-left corner empty for the p
 | Netlify URL 404s | deploy is still **private**, or you dragged the folder *above* `out` |
 | `403 (#200) publish_actions` | token missing `pages_manage_posts` — regenerate |
 | Token expired / `Session has expired` | it cannot be extended once dead — see the last section |
-| A post went out twice | the ledger was missing or deleted — `mark` it and it will not repeat |
+| A post went out twice | the ledger was missing or deleted — `mark` it, then run `dupes --delete` |
 | `brand` says the cover failed | the token lacks `pages_manage_posts`, or `KIT_BASE` is not public |
 | `IG_USER_ID` unresolved | IG account is not Professional, or not linked to the Page |
 | Preflight says token expired | extend in the Access Token Debugger, or use a System user token |

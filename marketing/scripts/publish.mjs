@@ -101,6 +101,12 @@ BRAND
   two profile pictures (Meta's API cannot set those).
   Default is --set emblem (pin + wave). --set gateway is the N monogram banner.
 
+DUPLICATES
+  node scripts/publish.mjs dupes [--delete] [--dry-run]
+  Lists repeated posts on both accounts, keeping the oldest of each group.
+  --delete removes the Facebook ones through the API. Instagram has no delete
+  endpoint — it prints a permalink list to remove in the app.
+
 LEDGER
   node scripts/publish.mjs mark --day 1 --platform ig --type post
        --asset out/posts/01-map.png --id <creation id>
@@ -610,6 +616,28 @@ async function plan(o) {
       process.exit(1);
     }
 
+    // Last line of defence before the API call: has this exact caption already
+    // gone out on this platform? The ledger only knows about this machine's
+    // runs — posts made by hand, or by an older copy of this script, would
+    // otherwise repeat.
+    if (!dry(o) && !o.force && e.platform !== "tt") {
+      try {
+        const want = fingerprint(caption({ "caption-file": e.caption }));
+        if (want) {
+          const hit = (await recentPosts(await pageToken(false))).find(
+            (p) => p.platform === e.platform.toUpperCase() && p.fp === want,
+          );
+          if (hit) {
+            say(`   ↳ already live on ${hit.platform} as ${hit.id} (${String(hit.at).slice(0, 16)}) — skipped, not posted again`);
+            already.push(`${e.platform.toUpperCase()} · ${e.label || e.asset} (matched a live post)`);
+            continue;
+          }
+        }
+      } catch {
+        /* a lookup failure must never block a legitimate post */
+      }
+    }
+
     const common = { base: o.base, "dry-run": o["dry-run"], "caption-file": e.caption };
     try {
     if (e.platform === "ig") {
@@ -668,6 +696,168 @@ async function plan(o) {
     return;
   }
   say(dry(o) ? "\nDry run complete — nothing was posted.\n" : "\n✓ Plan complete.\n");
+}
+
+/* ------------------------------------------------------------- duplicates */
+
+/**
+ * What is actually on the account, and what repeats.
+ *
+ * Instagram and Facebook cannot dedupe for you, and Instagram's Graph API has
+ * no delete endpoint at all — media can only be removed in the app. Facebook
+ * Page posts CAN be deleted through the API. So `dupes` finds both, deletes the
+ * Facebook ones with --delete, and hands you a permalink list for Instagram.
+ */
+
+const fingerprint = (text) =>
+  String(text || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .slice(0, 90);
+
+async function igRecent(token) {
+  const ig = await resolveIg(false);
+  const r = await graph(
+    "GET",
+    `/${ig}/media`,
+    { fields: "id,caption,media_type,timestamp,permalink", limit: "100" },
+    false,
+    token,
+  );
+  return (r.data || []).map((m) => ({
+    platform: "IG",
+    id: m.id,
+    text: m.caption,
+    at: m.timestamp,
+    url: m.permalink,
+    kind: m.media_type,
+  }));
+}
+
+async function fbRecent(token) {
+  const page = need(PAGE, "FB_PAGE_ID");
+  const r = await graph(
+    "GET",
+    `/${page}/posts`,
+    { fields: "id,message,created_time,permalink_url", limit: "100" },
+    false,
+    token,
+  );
+  return (r.data || []).map((m) => ({
+    platform: "FB",
+    id: m.id,
+    text: m.message,
+    at: m.created_time,
+    url: m.permalink_url,
+    kind: "POST",
+  }));
+}
+
+/** One cached read per run: the plan loop should not refetch this per entry. */
+let _recent = null;
+async function recentPosts(token) {
+  if (_recent) return _recent;
+  const out = [];
+  for (const fn of [igRecent, fbRecent]) {
+    try {
+      out.push(...(await fn(token)));
+    } catch (e) {
+      say(`  ! could not read ${fn === igRecent ? "Instagram" : "Facebook"} (${e.message}) — continuing`);
+    }
+  }
+  _recent = out.map((p) => ({ ...p, fp: fingerprint(p.text) }));
+  return _recent;
+}
+
+/** `dupes` — list the repeats, and remove the ones the API allows. */
+async function dupes(o) {
+  const token = await pageToken(dry(o));
+  say("\nReading both accounts…");
+  const all = await recentPosts(token);
+  if (!all.length) {
+    say("No posts came back. Check META_TOKEN and FB_PAGE_ID.\n");
+    return;
+  }
+
+  const groups = new Map();
+  const unlabelled = [];
+  for (const p of all) {
+    if (!p.fp) {
+      unlabelled.push(p);
+      continue;
+    }
+    const k = `${p.platform}|${p.fp}`;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(p);
+  }
+
+  const dupesFound = [];
+  for (const [, list] of groups) {
+    if (list.length < 2) continue;
+    list.sort((a, b) => String(a.at).localeCompare(String(b.at)));
+    const [keep, ...rest] = list; // oldest wins — the original stays
+    for (const d of rest) dupesFound.push({ keep, dup: d });
+  }
+
+  say(`\n${all.length} items on the accounts · ${dupesFound.length} duplicate(s) found\n`);
+
+  if (dupesFound.length) {
+    for (const { keep, dup } of dupesFound) {
+      say(`${dup.platform} duplicate`);
+      say(`  keep   ${keep.at}  ${keep.id}`);
+      say(`  dupe   ${dup.at}  ${dup.id}`);
+      say(`  ${(dup.text || "").split("\n")[0].slice(0, 70)}`);
+      say("");
+    }
+  }
+
+  if (unlabelled.length) {
+    say("No caption — cannot fingerprint these, check them by time:");
+    for (const p of unlabelled.sort((a, b) => String(a.at).localeCompare(String(b.at)))) {
+      say(`  ${p.platform} ${p.kind}  ${p.at}  ${p.id}  ${p.url || ""}`);
+    }
+    say("");
+  }
+
+  if (!dupesFound.length) {
+    say("Nothing to remove.\n");
+    return;
+  }
+
+  if (!o.delete) {
+    say("Nothing has been deleted. Re-run with --delete to remove the Facebook duplicates");
+    say("(the oldest of each group is kept).\n");
+    return;
+  }
+  if (dry(o)) {
+    say("Dry run — would delete the Facebook duplicates above.\n");
+    return;
+  }
+
+  let removed = 0;
+  const igManual = [];
+  for (const { dup } of dupesFound) {
+    if (dup.platform === "IG") {
+      igManual.push(dup);
+      continue;
+    }
+    try {
+      await graph("DELETE", `/${dup.id}`, {}, false, token);
+      removed++;
+      say(`  ✓ deleted ${dup.id}`);
+    } catch (e) {
+      say(`  ✗ could not delete ${dup.id}: ${e.message}`);
+    }
+  }
+
+  say(`\nRemoved ${removed} Facebook duplicate(s).`);
+  if (igManual.length) {
+    say(`\n${igManual.length} Instagram duplicate(s) must be deleted in the app —`);
+    say("the Instagram API has no delete endpoint. Open each, ⋯ → Delete:");
+    for (const d of igManual) say(`  · ${d.at}  ${d.url || d.id}`);
+  }
+  say("");
 }
 
 /* ---------------------------------------------------------------- the brand */
@@ -800,6 +990,7 @@ const commands = {
   plan,
   brand,
   mark,
+  dupes,
   "ig-post": igPost,
   "ig-carousel": igCarousel,
   "ig-reel": igReel,
@@ -816,6 +1007,6 @@ if (!commands[cmd]) {
 
 // `plan` checks its own tokens per-platform, so a missing TikTok token does not
 // block a day that only posts to Instagram.
-if (!dry(o) && cmd !== "plan" && cmd !== "mark" && cmd !== "brand") need(TOKEN, "META_TOKEN");
+if (!dry(o) && cmd !== "plan" && cmd !== "mark" && cmd !== "brand" && cmd !== "dupes") need(TOKEN, "META_TOKEN");
 
 await commands[cmd](withBase(o));
