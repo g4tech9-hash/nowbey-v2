@@ -42,7 +42,10 @@ then save.
 You need this once. It takes about 5 minutes.
 
 1. Go to **https://developers.facebook.com/apps** → log in → **Create app**.
-2. Choose **Business** → Next → give it a name like `NowBey Publisher` → Create app.
+2. Choose **Business** → Next → name it **`NowBey`** → Create app.
+   (This name is what people see on the permission screen — "NowBey wants to…" — so it must be the
+   app's name, not a personal one. Already made it with the wrong name? **Settings → Basic →
+   Display name** renames it.)
 3. In the new app, open **https://developers.facebook.com/tools/explorer/**
 4. At the top right, set **Meta App** to the app you just made.
 5. In the right-hand **Permissions** panel, type each of these into the search box and tick it:

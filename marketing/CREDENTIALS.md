@@ -30,8 +30,10 @@ node scripts/preflight.mjs
 You need a **Meta app** first (free, 2 minutes, no review needed for your own Page):
 
 1. Go to **https://developers.facebook.com/apps** → **Create app**.
-2. App type: **Business**. Give it any name (e.g. "NowBey Publishing"). You don't need to connect a
-   Business portfolio to start.
+2. App type: **Business**. Name it **`NowBey`** — that string is what appears on the permission
+   screens when you authorise ("NowBey wants to access…"), so it should be the product name. You
+   don't need to connect a Business portfolio to start.
+   Rename an existing app under **Settings → Basic → Display name**.
 3. In the app dashboard, add the products **Instagram** and (if offered) **Facebook Login**.
 
 ### Fast route — a token that works in 5 minutes
@@ -58,7 +60,8 @@ You need a **Meta app** first (free, 2 minutes, no review needed for your own Pa
 ### Keep it forever — a System User token (do this before launch day)
 
 1. **https://business.facebook.com/settings** → left rail **Users → System users** → **Add**.
-   Name it `nowbey-publisher`, role **Admin** (or Employee).
+   Name the **system user** `nowbey-publisher` (this is a service account inside Business Manager,
+   separate from the app, which stays `NowBey`). Role **Admin** (or Employee).
 2. Select the system user → **Add Assets** → **Pages** → your Page → **Full control**.
    Repeat → **Instagram accounts** → your IG account → **Full control**.
 3. **Generate New Token** → choose your Meta app → tick the same six permissions → **Generate**.
