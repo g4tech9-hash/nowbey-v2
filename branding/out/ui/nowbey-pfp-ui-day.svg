@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 1000 1000"><defs>
+      <radialGradient id="warm" cx="0.5" cy="0.32" r="0.78">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+        <stop offset="0.6" stop-color="#fdfaf4" stop-opacity="0.85"/>
+        <stop offset="1" stop-color="#efe7d9" stop-opacity="0.5"/>
+      </radialGradient>
+      <pattern id="gridL" width="54" height="54" patternUnits="userSpaceOnUse">
+        <path d="M54 0H0V54" fill="none" stroke="rgba(52,38,20,0.10)" stroke-width="1"/>
+      </pattern>
+      <radialGradient id="vigL" cx="0.5" cy="0.46" r="0.8">
+        <stop offset="0.6" stop-color="#efe7d9" stop-opacity="0"/>
+        <stop offset="1" stop-color="#e4d9c6" stop-opacity="0.5"/>
+      </radialGradient>
+    </defs>
+    <rect width="1000" height="1000" fill="#f7f3ec"/>
+    <rect width="1000" height="1000" fill="url(#warm)"/>
+    <rect width="1000" height="1000" fill="url(#gridL)" opacity="0.9"/>
+    <rect width="1000" height="1000" fill="url(#vigL)"/><g>
+    <defs>
+      <radialGradient id="discGrad" cx="0.34" cy="0.24" r="0.9">
+        <stop offset="0" stop-color="#128a7c"/>
+        <stop offset="0.62" stop-color="#0b6f64"/>
+        <stop offset="1" stop-color="#07564d"/>
+      </radialGradient>
+      <radialGradient id="discSheen" cx="0.3" cy="0.22" r="0.6">
+        <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+        <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="500" cy="375" r="225" fill="url(#discGrad)"/>
+    <circle cx="500" cy="375" r="225" fill="url(#discSheen)"/>
+    <circle cx="500" cy="375" r="219" fill="none"
+      stroke="rgba(255,255,255,0.16)" stroke-width="3.2"/>
+    <g transform="translate(500,375) scale(8.21) translate(-20,-19)">
+      <path d="M20 7.2c-4.3 0-7.8 3.4-7.8 7.6 0 5.5 7.8 12.6 7.8 12.6s7.8-7.1 7.8-12.6c0-4.2-3.5-7.6-7.8-7.6Z" fill="#ffffff"/>
+      <circle cx="20" cy="14.8" r="3" fill="#0b6f64"/>
+      <path d="M7 33.4c3.7-3.5 6.4 2.3 10.2 0 3.8-2.3 5.7 2.7 9.8 0"
+        stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.88"/>
+    </g>
+  </g><text x="222.21" y="722" font-family="Brico800" font-size="127.78" fill="#16232b" letter-spacing="-2.56">Now</text><text x="541.78" y="722" font-family="Brico800" font-size="127.78" fill="#0b6f64" letter-spacing="-2.56">Bey</text><text x="258.51" y="792" font-family="JBMono700" font-size="20.5" fill="#56696f" letter-spacing="4.51">COMMUNITY MAP  ·  THE BAHAMAS</text></svg>

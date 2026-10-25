@@ -1,32 +1,65 @@
 # NowBey — icon & wordmark
 
-The 3D app icon, the "now bey" wordmark, and every crop of them you need.
+The app icon, the "Now Bey" wordmark, and every crop of them you need.
 
 Everything here is generated. Edit a script, run `./build.sh`, and `out/`
-repaints — no manual export step, no file that can silently drift.
+repaints — no hand-exported file that can silently drift.
 
 ```
 ./build.sh            # rebuild every asset
 ```
 
-`build.sh` needs Node (`@resvg/resvg-js`, linked from the marketing kit's
-`node_modules`) and Python 3 with Pillow.
+Needs Node, and Python 3 with Pillow (`pip install -r requirements.txt`).
+`build.sh` links `node_modules` from the marketing kit on first run.
+
+> **`out/ui/` is the one to use.** It is drawn by the app's own code, so it
+> cannot drift from the interface. Everything else in `out/` is an alternate.
 
 ---
 
 ## What to use
 
-### Profile pictures, 3D
+### Profile pictures, drawn from the UI  ← primary
+
+`scripts/build_pfp_ui.mjs` **imports the product's own drawing code** rather
+than approximating it:
+
+| import | what it gives the avatar |
+|---|---|
+| `bg()` from `postkit.mjs` | the real backdrop — teal bloom, technical grid, vignette, grain |
+| `emblemDisc()` | the kit's profile emblem — teal disc, filled pin, knockout core, wave |
+| `mark()` from `ui.mjs` | the app header mark — rounded tile, stroked pin, amber core |
+| `T`, `text`, `measure` | the product's tokens and its three typefaces |
 
 | File | Use |
 |---|---|
-| `out/png/nowbey-pfp-3d-night-1600.png` | **primary** — deep oceanic matte, cream "Now" + aquamarine "Bey", tagline beneath |
-| `out/png/nowbey-pfp-3d-night-tight-1600.png` | same, wordmark set tight as one word |
-| `out/png/nowbey-pfp-3d-light-1600.png` | daylight variant, navy + deep aqua on ivory |
-| `out/png/nowbey-icon-3d-night-1600.png` | **text-free** — use this anywhere under ~96px |
+| `out/ui/nowbey-pfp-ui-night-1080.png` | **primary** — emblem, "Now Bey", coverage line |
+| `out/ui/nowbey-pfp-ui-day-1080.png` | daylight pair, deep-aqua disc on ivory |
+| `out/ui/nowbey-pfp-ui-tile-night-1080.png` | the app header mark itself, tile and all |
+| `out/ui/nowbey-pfp-ui-tile-day-1080.png` | the same on ivory |
 
-Each has a `-circle.png` (transparent corners, ready for avatar upload) and
-512 / 256 / 128 / 64 exports.
+The layout adapts to the slot instead of being scaled down:
+
+| size | what is drawn |
+|---|---|
+| ≥ 400px | mark + wordmark + coverage line |
+| 160–399px | mark + wordmark, both larger, no coverage line |
+| < 160px | mark only, filling the safe circle |
+
+Every variant ships at 1080 / 512 / 256 / 128 / 64, plus a `-circle.png` with
+transparent corners. The ladder is genuinely re-laid-out per rung — not one
+master shrunk five ways.
+
+### Profile pictures, 3D  (alternate)
+
+| File | Use |
+|---|---|
+| `out/png/nowbey-pfp-3d-night-1600.png` | deep oceanic matte, cream "Now" + aquamarine "Bey" |
+| `out/png/nowbey-pfp-3d-light-1600.png` | daylight variant on ivory |
+| `out/png/nowbey-icon-3d-night-1600.png` | text-free mark |
+| `out/png/nowbey-pfp-3d-night-tight-1600.png` | wordmark set tight as one word |
+
+Each has a `-circle.png` and 512 / 256 / 128 / 64 exports.
 
 ### Lockups
 
@@ -40,7 +73,7 @@ Each has a `-circle.png` (transparent corners, ready for avatar upload) and
 ### Flat vector
 
 Rebuilt as solid geometry on the app's own 40-unit grid, so it stays legible
-at 32px where the 3D render becomes mush.
+where a render turns to mush.
 
 | File | Use |
 |---|---|
@@ -51,7 +84,8 @@ at 32px where the 3D render becomes mush.
 
 ### Reference
 
-- `out/nowbey-brand-sheet.png` — the whole set on one page
+- `out/nowbey-ui-avatar-sheet.png` — the UI-drawn set, with real-size rungs
+- `out/nowbey-brand-sheet.png` — the 3D and flat set on one page
 - `out/nowbey-vector-sheet.png` — the flat system, with a size ladder
 
 ---
@@ -59,34 +93,37 @@ at 32px where the 3D render becomes mush.
 ## The wordmark
 
 "Now" and "Bey" are set in **Bricolage Grotesque 800** — the product's own
-display face (`fonts/Brico800.ttf`), so the social marks and the app agree.
+display face — so the social marks and the app agree.
 
-- Tracking `-0.03em`, always. It is what makes the pair sit as one word.
-- **Now** in cream `#F3F1EA` (night) or navy `#0A2A43` (light).
-- **Bey** in aquamarine `#6FEAD B`-family — `#7FECDE` on night, `#0B6F64` on
-  light, where the bright aqua would vibrate against paper.
-- Spaced or tight are both sanctioned. Spaced reads as two words and is the
+- Tracking `-0.03em` in the 3D set, `-0.02em` in the UI set (the app's own).
+- **Now** in cream `#F3F1EA` (night) or navy `#16232B` (light).
+- **Bey** in aquamarine `#3FD6C0` (night) or `#0B6F64` (light, where the
+  bright aqua would vibrate against paper).
+- Spaced and tight are both sanctioned. Spaced reads as two words and is the
   primary; tight is for places where the name must behave as one token.
 
 ## The mark
 
-A glossy map pin whose glass head contains a network constellation, ringed by
-three soundwave arcs.
+Two systems, deliberately:
 
-- Aquamarine `#3FD6C0` — the signal, the accent, "Bey".
-- Deep oceanic navy `#0A2A43` (light) / `#091F33` (night) — the body.
-- Sunshine gold `#F4B942` — node dots and pin tip only. Never a field colour.
+- **The UI emblem** — teal disc, filled pin, knockout core, wave. This is what
+  ships in the app, and it is what the primary avatar uses.
+- **The 3D render** — a glossy pin with a network constellation inside the
+  glass head, ringed by soundwave arcs. Presence, not interface.
+
+Palette across both: aquamarine `#3FD6C0`, oceanic navy `#0A2A43` /
+`#0C151D`, sunshine gold `#F4B942` (node dots and pin tip only — never a
+field colour).
 
 ## Rules
 
-- Keep the type block inside the safe circle. On a 1600px canvas the baseline
-  sits at 0.862 and the tagline below it — anything lower clips on a circular
-  crop.
-- Below 96px, drop the wordmark. The pin alone is the mark.
-- Don't place the night master on a light background; the bloom is baked for
-  dark. Use the light master or the flat vector.
-- Don't recolour the gold. It is the only warm note in the system, and it is
-  what stops the palette reading as generic tech-blue.
+- Keep the type block inside the safe circle. On the 1080 the coverage line
+  sits at `y = 0.792` — anything lower clips on a circular crop.
+- Use the `-128` and `-64` exports rather than downscaling the 1080; they are
+  laid out for those sizes.
+- Don't place the 3D night master on a light background; its bloom is baked
+  for dark. Use the 3D light master, or the UI set.
+- Don't recolour the gold. It is the only warm note in the system.
 
 ---
 
