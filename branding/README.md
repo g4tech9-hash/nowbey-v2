@@ -36,7 +36,7 @@ than approximating it:
 
 | File | Use |
 |---|---|
-| `out/ui/nowbey-pfp-ui-night-1080.png` | **primary** — emblem, "Now Bey", coverage line |
+| `out/ui/nowbey-pfp-ui-night-1080.png` | **primary** — emblem, "Now Bey", "Stay Safe, Bahamas" |
 | `out/ui/nowbey-pfp-ui-day-1080.png` | daylight pair, deep-aqua disc on ivory |
 | `out/ui/nowbey-pfp-ui-tile-night-1080.png` | the app header mark itself, tile and all |
 | `out/ui/nowbey-pfp-ui-tile-day-1080.png` | the same on ivory |
@@ -101,6 +101,8 @@ where a render turns to mush.
 display face — so the social marks and the app agree.
 
 - Tracking `-0.03em` in the 3D set, `-0.02em` in the UI set (the app's own).
+- Tagline beneath, in JetBrains Mono at `0.22em` tracking, uppercase:
+  **STAY SAFE, BAHAMAS**.
 - **Now** in cream `#F3F1EA` (night) or navy `#16232B` (light).
 - **Bey** in aquamarine `#3FD6C0` (night) or `#0B6F64` (light, where the
   bright aqua would vibrate against paper).
@@ -122,8 +124,11 @@ field colour).
 
 ## Rules
 
-- Keep the type block inside the safe circle. On the 1080 the coverage line
-  sits at `y = 0.792` — anything lower clips on a circular crop.
+- Keep the type block inside the safe circle. On the 1080 the tagline sits at
+  `y = 0.792` — anything lower clips on a circular crop.
+- The tagline is **"Stay Safe, Bahamas"**, read from `BRAND.tagline` in
+  `tokens.mjs` (which mirrors `src/lib/brand.ts`). Never retype it — the
+  product owns that string.
 - Use the `-128` and `-64` exports rather than downscaling the 1080; they are
   laid out for those sizes.
 - Don't place the 3D night master on a light background; its bloom is baked

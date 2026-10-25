@@ -200,7 +200,7 @@ def compose(mode, *, words=("Now", "Bey"), gap_em=0.24, suffix="", tagline=True,
 
     if tagline:
         sub = ImageFont.truetype(DISPLAY, int(SIZE * 0.0190))
-        run(d, "COMMUNITY MAP  ·  THE BAHAMAS", sub, SIZE / 2,
+        run(d, "STAY SAFE, BAHAMAS", sub, SIZE / 2,
             baseline + int(SIZE * 0.042), muted, 0.20, centre=SIZE / 2)
 
     name = f"nowbey-pfp-3d-{mode}{suffix}-{SIZE}.png"

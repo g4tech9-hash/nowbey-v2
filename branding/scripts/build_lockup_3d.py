@@ -75,7 +75,7 @@ def lockup(mode, *, height=800, words=("Now", "Bey"), gap_em=0.24, tagline=True)
 
     if tagline:
         sub = ImageFont.truetype(DISPLAY, int(height * 0.062))
-        run(d, "COMMUNITY MAP  ·  THE BAHAMAS", sub, tx,
+        run(d, "STAY SAFE, BAHAMAS", sub, tx,
             baseline + int(height * 0.115), sub_col, 0.20)
 
     name = f"nowbey-lockup-3d-{mode}-{width}x{height}.png"

@@ -27,12 +27,17 @@ const KIT = "../../Downloads/nowbey-full-kit/nowbey-kit/scripts";
 const { svgDoc, render } = await import(`${KIT}/lib.mjs`);
 const { T, text, measure, mark } = await import(`${KIT}/ui.mjs`);
 const { bg } = await import(`${KIT}/postkit.mjs`);
+const { BRAND } = await import(`${KIT}/tokens.mjs`);
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "out", "ui");
 mkdirSync(OUT, { recursive: true });
 
 const r2 = (v) => Math.round(v * 100) / 100;
+
+/* The product's own tagline, from src/lib/brand.ts via tokens.mjs — never a
+ * second copy of the string. Set uppercase because it is a mono eyebrow. */
+const TAGLINE = BRAND.tagline.toUpperCase();
 
 /* --------------------------------------------------------------- tokens */
 
@@ -201,7 +206,7 @@ function emblemAvatar(px, p) {
 
   body += emblemDisc({ W, cx: W / 2, cy: W * 0.375, r: W * 0.225, p });
   body += wordmarkSpaced(W / 2, W * 0.722, W * 0.092, p).svg;
-  body += eyebrow("COMMUNITY MAP  ·  THE BAHAMAS", W / 2, W * 0.792, W * 0.0205, p.muted);
+  body += eyebrow(TAGLINE, W / 2, W * 0.792, W * 0.0205, p.muted);
   return svgDoc(W, W, body);
 }
 
@@ -222,7 +227,7 @@ function tileAvatar(px, p) {
   if (tier === "medium") body += wordmarkSpaced(W / 2, W * 0.752, W * 0.118, p).svg;
   if (tier === "full") {
     body += wordmarkSpaced(W / 2, W * 0.722, W * 0.092, p).svg;
-    body += eyebrow("COMMUNITY MAP  ·  THE BAHAMAS", W / 2, W * 0.792, W * 0.0205, p.muted);
+    body += eyebrow(TAGLINE, W / 2, W * 0.792, W * 0.0205, p.muted);
   }
   return svgDoc(W, W, body);
 }

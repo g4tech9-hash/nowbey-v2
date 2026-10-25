@@ -188,7 +188,7 @@ for (const mode of ["light", "night"]) {
 
 /* ---------------------------- profile pictures with the wordmark ------ */
 
-function avatar({ mode = "light", size = 1080, tagline = "COMMUNITY MAP · THE BAHAMAS", caption = true } = {}) {
+function avatar({ mode = "light", size = 1080, tagline = "STAY SAFE, BAHAMAS", caption = true } = {}) {
   const night = mode === "night";
   const ink = night ? C.cream : C.navy;
   const accent = night ? C.aqua : C.aquaDeep;

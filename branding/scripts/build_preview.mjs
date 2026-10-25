@@ -58,11 +58,11 @@ const groups = [
     cards: [
       card(ui, "nowbey-pfp-ui-night-1080.png", {
         title: "Night",
-        meta: "1080 · emblem + wordmark + coverage line",
+        meta: "1080 · emblem + wordmark + “Stay Safe, Bahamas”",
       }),
       card(ui, "nowbey-pfp-ui-day-1080.png", {
         title: "Daylight",
-        meta: "1080 · deep-aqua disc on ivory",
+        meta: "1080 · deep-aqua disc on ivory, same tagline",
         shape: "square",
       }),
       card(ui, "nowbey-pfp-ui-tile-night-1080.png", {
@@ -414,7 +414,7 @@ const html = `<!doctype html>
 <div class="hero">
   <div class="kick">Brand assets · generated from the UI</div>
   <h1>Every crop of the mark, <em>drawn by the app itself.</em></h1>
-  <p>The profile pictures here are not redrawn. They import the product's own backdrop, emblem geometry and typefaces, so a token change in the app repaints them. The 3D and flat sets are kept as alternates.</p>
+  <p>The profile pictures here are not redrawn. They import the product's own backdrop, emblem geometry and typefaces, so a token change in the app repaints them. The tagline — “Stay Safe, Bahamas” — is read from <code>BRAND.tagline</code>, not retyped. The 3D and flat sets are kept as alternates.</p>
   <div class="facts">
     <div class="fact"><b>26</b><span>UI avatars</span></div>
     <div class="fact"><b>3</b><span>layout tiers</span></div>
