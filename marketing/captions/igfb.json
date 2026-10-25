@@ -1,0 +1,46 @@
+[
+  {
+    "day": "igfb",
+    "platform": "ig",
+    "type": "carousel",
+    "assets": [
+      "out/igfb/carousel-01-cover-1080x1350.png",
+      "out/igfb/carousel-02-loop-1080x1350.png",
+      "out/igfb/carousel-03-trust-1080x1350.png"
+    ],
+    "caption": "captions/igfb/01-carousel.txt",
+    "label": "IG carousel · the loop (4:5)"
+  },
+  {
+    "day": "igfb",
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/igfb/feed-01-detail-1080x1080.png",
+    "caption": "captions/igfb/02-feed-detail.txt",
+    "label": "IG feed · the confirmation detail"
+  },
+  {
+    "day": "igfb",
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/igfb/feed-02-dashboard-1080x1080.png",
+    "caption": "captions/igfb/03-feed-dashboard.txt",
+    "label": "IG feed · the map, everything at once"
+  },
+  {
+    "day": "igfb",
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/igfb/fb-01-link-1200x630.png",
+    "caption": "captions/igfb/04-fb-baystreet.txt",
+    "label": "Facebook · Bay Street question (link preview)"
+  },
+  {
+    "day": "igfb",
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/igfb/fb-02-link-1200x630.png",
+    "caption": "captions/igfb/05-fb-community.txt",
+    "label": "Facebook · area groups (link preview)"
+  }
+]

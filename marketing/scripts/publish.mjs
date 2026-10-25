@@ -29,6 +29,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { basename } from "node:path";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -579,7 +580,7 @@ async function plan(o) {
     );
     process.exit(1);
   }
-  say(`\n${o.plan ? "Storm kit" : `Day ${o.day}`}: ${entries.length} post(s)${dry(o) ? "  [dry run]" : ""}`);
+  say(`\n${o.plan ? basename(o.plan) : `Day ${o.day}`}: ${entries.length} post(s)${dry(o) ? "  [dry run]" : ""}`);
 
   let n = 0;
   const skipped = [];

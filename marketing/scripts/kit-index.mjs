@@ -24,7 +24,13 @@ const list = (dir) => {
     return [];
   }
 };
-const kb = (dir, f) => Math.round(statSync(join(OUT, dir, f)).size / 1024);
+const kb = (dir, f) => {
+  try {
+    return Math.round(statSync(join(OUT, dir, f)).size / 1024);
+  } catch {
+    return 0; // the file list is generated, so a missing file must not kill the run
+  }
+};
 
 const section = (title, dir, note) => {
   const files = list(dir);
@@ -74,6 +80,7 @@ const html = `<!doctype html>
   <p class="lede">You are looking at the published media folder. Every file below is the exact asset to
     upload or point the publisher at. Root-level links work because this page sits at the site root.</p>
   <span class="ok">Hosting works · make sure this site is public</span>
+  ${section("Instagram + Facebook set", "igfb", "1080×1350 carousel · 1080×1080 feed · 1200×630 link previews")}
   ${section("Feed posts", "posts", "1080×1080 · Instagram feed, Facebook")}
   ${section("Stories + reel covers", "stories", "1080×1920 · Stories, Reels covers")}
   ${section("Reels", "video", "8s · 1080×1920 · 30fps · H.264")}

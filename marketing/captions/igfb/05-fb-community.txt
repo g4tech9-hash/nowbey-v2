@@ -1,0 +1,9 @@
+If you run an area group, a WhatsApp chat or an HOA — this one's for you. 🇧🇸
+
+Every time the weather turns, someone in your group asks whether a road is passable, and forty people guess. The answer is usually buried by the next day.
+
+NowBey gives that question a home. Pin the flooded lane once. Your neighbours confirm it. The timestamp tells everyone how fresh it is. Next person who asks, you send them the link instead of retyping it.
+
+Flooding, road hazards, power and water. Free to look, no account needed: nowbey-v2.vercel.app
+
+What's the one hazard your area gets every single year? Say it below — we're mapping them. 📍

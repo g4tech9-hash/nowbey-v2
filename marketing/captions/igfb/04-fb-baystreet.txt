@@ -1,0 +1,9 @@
+Genuine question for the Nassau drivers 👇
+
+When it rains hard, which road do you already *know* is going to be a problem? Bay Street? Carmichael? The lane by your house that floods every single time?
+
+That local knowledge is exactly what NowBey is built on. Neighbours pin what they can see — flooding, a downed line, water off — and everyone else can confirm it. So instead of asking the group chat and getting forty guesses, you get one map with a timestamp on it.
+
+It's free to look at, no account needed, and it works in the browser: nowbey-v2.vercel.app
+
+Tell us your road in the comments — we'll be reading. If enough people name the same one, that's the first thing we should be pinning. 🌧️🗺️

@@ -21,7 +21,8 @@
     "token": "node scripts/token-extend.mjs",
     "build:storm": "node scripts/build-storm.mjs",
     "utms": "node scripts/utms.mjs",
-    "metrics": "node scripts/metrics.mjs"
+    "metrics": "node scripts/metrics.mjs",
+    "build:igfb": "node scripts/build-igfb.mjs"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",
