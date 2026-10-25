@@ -13,18 +13,41 @@
  *   node scripts/build_preview.mjs
  */
 
-import { readdirSync, writeFileSync, existsSync } from "node:fs";
+import { readdirSync, writeFileSync, existsSync, readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "out");
 
+const BUILT = new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC";
+
 const listing = (dir) => {
   const abs = join(OUT, dir);
   return existsSync(abs) ? readdirSync(abs).filter((f) => f.endsWith(".png")) : [];
 };
 const has = (dir, file) => listing(dir).includes(file);
+
+/**
+ * Content hash for cache-busting. Browsers cache by URL, so a regenerated
+ * asset with the same name would otherwise serve stale — which is exactly how
+ * a tagline change goes unnoticed. Appending the hash makes every rebuild a
+ * new URL.
+ */
+const hashCache = new Map();
+function v(dir, file) {
+  const key = `${dir}/${file}`;
+  if (!hashCache.has(key)) {
+    try {
+      const buf = readFileSync(join(OUT, dir, file));
+      hashCache.set(key, createHash("md5").update(buf).digest("hex").slice(0, 8));
+    } catch {
+      hashCache.set(key, "0");
+    }
+  }
+  return `out/${dir ? dir + "/" : ""}${file}?v=${hashCache.get(key)}`;
+}
 
 const ui = "ui";
 const png = "png";
@@ -188,7 +211,11 @@ a{color:inherit}
   color:var(--mut);text-decoration:none;padding:6px 0;border-bottom:1px solid transparent;
 }
 .nav a:hover{color:var(--aqua);border-color:var(--aqua)}
-.toggles{margin-left:auto;display:flex;gap:8px}
+.build{
+  margin-left:auto;font-family:JB;font-size:10.5px;letter-spacing:.1em;color:#5f797f;
+  padding:6px 10px;border:1px solid var(--line);border-radius:999px;white-space:nowrap;
+}
+.toggles{margin-left:10px;display:flex;gap:8px}
 .tg{
   display:inline-flex;align-items:center;gap:9px;cursor:pointer;user-select:none;
   padding:8px 14px;border:1px solid var(--line2);border-radius:999px;
@@ -289,6 +316,7 @@ body.circle .stage img{border-radius:50%}
 footer{max-width:1560px;margin:0 auto;padding:70px 34px 90px;color:var(--mut);font-size:13px}
 footer code{font-family:JB;font-size:12px;background:rgba(255,255,255,.05);padding:2px 7px;border-radius:6px;color:var(--dim)}
 footer a{color:var(--aqua);text-decoration:none}
+footer .stamp{font-family:JB;font-size:11.5px;letter-spacing:.06em;color:#6d878c}
 
 @media(max-width:820px){
   .bar{padding:12px 16px;gap:14px;flex-wrap:wrap}
@@ -306,12 +334,12 @@ function cardHtml(c) {
   return `<article class="card">
     <div class="stage dark">
       ${stageBadge(shapeNote)}
-      <img src="out/${c.dir}/${c.file}" alt="${esc(c.title)}" loading="lazy">
+      <img src="${v(c.dir, c.file)}" alt="${esc(c.title)}" loading="lazy">
     </div>
     <div class="meta">
       <h3>${esc(c.title)}</h3>
       <div class="sub">${esc(c.meta)}</div>
-      <div class="file"><span>${esc(c.file)}</span><a class="dl" href="out/${c.dir}/${c.file}" download>GET ↓</a></div>
+      <div class="file"><span>${esc(c.file)}</span><a class="dl" href="${v(c.dir, c.file)}" download>GET ↓</a></div>
     </div>
   </article>`;
 }
@@ -321,7 +349,7 @@ const ladderHtml = (rows) => {
     .filter(([f]) => has(ui, f))
     .map(
       ([f, px, note]) => `<div class="rung">
-        <img src="out/ui/${f}" width="${px}" height="${px}" alt="${px}px avatar">
+        <img src="${v("ui", f)}" width="${px}" height="${px}" alt="${px}px avatar">
         <div class="px">${px}px</div>
         <div class="lbl">${esc(note)}</div>
       </div>`,
@@ -337,9 +365,9 @@ const stripsHtml = (rows) =>
     .filter(([f]) => has(png, f))
     .map(
       ([f, cap]) => `<figure class="strip" style="margin:0">
-        <img src="out/png/${f}" alt="${esc(cap)}" loading="lazy">
+        <img src="${v("png", f)}" alt="${esc(cap)}" loading="lazy">
         <figcaption class="cap"><span>${esc(cap)}</span><span>${esc(f)}</span>
-        <a href="out/png/${f}" download>GET ↓</a></figcaption>
+        <a href="${v("png", f)}" download>GET ↓</a></figcaption>
       </figure>`,
     )
     .join("")}</div>`;
@@ -400,11 +428,12 @@ const html = `<!doctype html>
 <body>
 
 <div class="bar">
-  <div class="mark"><img src="out/ui/nowbey-pfp-ui-night-64.png" alt="">NowBey</div>
+  <div class="mark"><img src="${v("ui", "nowbey-pfp-ui-night-64.png")}" alt="">NowBey</div>
   <nav class="nav">${nav}
     <a href="#palette">Palette</a>
     <a href="#rules">Rules</a>
   </nav>
+  <div class="build" title="If this time is older than your last build, hard-reload.">${BUILT.slice(11, 16)}</div>
   <div class="toggles">
     <label class="tg"><input type="checkbox" id="circle"> Circle crop</label>
     <label class="tg"><input type="checkbox" id="light"> Light stage</label>
@@ -445,9 +474,10 @@ ${sections}
 
 <footer>
   Rebuild everything with <code>./build.sh</code> · assets in <code>out/ui</code>, <code>out/png</code>, <code>out/svg</code><br>
-  Reference sheets: <a href="out/nowbey-ui-avatar-sheet.png">UI avatars</a> ·
-  <a href="out/nowbey-brand-sheet.png">brand sheet</a> ·
-  <a href="out/nowbey-vector-sheet.png">vector sheet</a> ·
+  <span class="stamp">built ${BUILT} · tagline “Stay Safe, Bahamas” · 22 assets</span><br>
+  Reference sheets: <a href="${v("", "nowbey-ui-avatar-sheet.png")}">UI avatars</a> ·
+  <a href="${v("", "nowbey-brand-sheet.png")}">brand sheet</a> ·
+  <a href="${v("", "nowbey-vector-sheet.png")}">vector sheet</a> ·
   <a href="README.md">README</a>
 </footer>
 

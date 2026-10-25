@@ -35,4 +35,5 @@ echo "7/7  preview page"
 "$NODE" scripts/build_preview.mjs
 
 echo "done — out/ and index.html are up to date"
-echo "preview:  python3 -m http.server 8000 --bind 0.0.0.0 --directory ."
+echo "preview:  node scripts/serve.mjs 8000"
+echo "          (no-store headers, so reloads never serve a cached build)"
