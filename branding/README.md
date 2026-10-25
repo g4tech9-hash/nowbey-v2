@@ -7,6 +7,9 @@ repaints — no hand-exported file that can silently drift.
 
 ```
 ./build.sh            # rebuild every asset
+
+python3 -m http.server 8000 --bind 0.0.0.0 --directory .
+# then open localhost:8000 for the preview page
 ```
 
 Needs Node, and Python 3 with Pillow (`pip install -r requirements.txt`).
@@ -84,6 +87,8 @@ where a render turns to mush.
 
 ### Reference
 
+- `index.html` — **the preview page**: every asset at display size, with a
+  circle-crop switch and a light-stage switch for checking legibility
 - `out/nowbey-ui-avatar-sheet.png` — the UI-drawn set, with real-size rungs
 - `out/nowbey-brand-sheet.png` — the 3D and flat set on one page
 - `out/nowbey-vector-sheet.png` — the flat system, with a size ladder

@@ -13,22 +13,26 @@ if [ ! -e node_modules ]; then
   ln -sfn ../Downloads/nowbey-full-kit/nowbey-kit/node_modules node_modules
 fi
 
-echo "1/6  avatar drawn from the product UI   (primary)"
+echo "1/7  avatar drawn from the product UI   (primary)"
 "$NODE" scripts/build_pfp_ui.mjs
 
-echo "2/6  3D profile pictures                (alternate)"
+echo "2/7  3D profile pictures                (alternate)"
 "$PY" scripts/build_pfp_3d.py
 
-echo "3/6  3D lockups"
+echo "3/7  3D lockups"
 "$PY" scripts/build_lockup_3d.py
 
-echo "4/6  flat vector mark + lockups"
+echo "4/7  flat vector mark + lockups"
 "$NODE" scripts/build_flat.mjs
 
-echo "5/6  contact sheet"
+echo "5/7  contact sheet"
 "$PY" scripts/build_sheet.py
 
-echo "6/6  UI avatar sheet"
+echo "6/7  UI avatar sheet"
 "$PY" scripts/build_ui_sheet.py
 
-echo "done — out/ is up to date"
+echo "7/7  preview page"
+"$NODE" scripts/build_preview.mjs
+
+echo "done — out/ and index.html are up to date"
+echo "preview:  python3 -m http.server 8000 --bind 0.0.0.0 --directory ."
