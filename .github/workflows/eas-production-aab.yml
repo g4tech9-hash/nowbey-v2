@@ -1,0 +1,84 @@
+# Manual production Android build: makes the Google Play .aab on EAS and prints its download URL.
+#
+# Run it from Actions > "EAS production AAB (Google Play)" > Run workflow.
+# It is workflow_dispatch only — pushing code never starts a store build by accident.
+#
+# Uses the same two repository secrets as the existing APK pipeline:
+#   EXPO_TOKEN                    token for the Expo account that owns @nowbey-v3s-team/nowbey
+#   FIREBASE_GOOGLE_SERVICES_JSON raw contents of google-services.json (written to expo/ below,
+#                                 kept out of Git, still uploaded to EAS thanks to expo/.easignore)
+name: EAS production AAB (Google Play)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eas-production-aab
+  cancel-in-progress: false
+
+jobs:
+  build-aab:
+    name: Build production .aab on EAS
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: expo
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: expo/package-lock.json
+
+      - name: Set up EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Show which Expo account this builds under
+        run: eas whoami
+
+      # google-services.json is a credential and never lives in Git. Gradle fails without it, so
+      # write it from the secret and prove it belongs to this app before spending a build.
+      - name: Install Firebase Android configuration
+        env:
+          FIREBASE_GOOGLE_SERVICES_JSON: ${{ secrets.FIREBASE_GOOGLE_SERVICES_JSON }}
+        run: |
+          : "${FIREBASE_GOOGLE_SERVICES_JSON:?Add the FIREBASE_GOOGLE_SERVICES_JSON repository secret}"
+          printf '%s' "$FIREBASE_GOOGLE_SERVICES_JSON" > google-services.json
+          node -e 'const f=require("./google-services.json"); if (!f.project_info?.project_id || !f.client?.some(c => c.client_info?.android_client_info?.package_name === "app.nowbey.mobile")) throw new Error("google-services.json does not contain app.nowbey.mobile")'
+          test -s google-services.json
+          if grep -qE '^[[:space:]]*google-services\.json' .easignore; then
+            echo "::error title=Firebase config would not reach EAS::expo/.easignore ignores google-services.json, so it will not be in the uploaded archive. Remove that rule."
+            exit 1
+          fi
+          echo "google-services.json ($(wc -c < google-services.json) bytes) is in place and .easignore keeps it eligible for the EAS upload."
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Type-check before spending a build credit
+        run: npx tsc --noEmit
+
+      # production profile in eas.json = app-bundle (.aab) on the production update channel,
+      # with the remote version code auto-incremented. First run also creates the Android
+      # upload keystore on EAS — back it up afterwards with `eas credentials --platform android`.
+      - name: Build the production app bundle
+        run: |
+          eas build --platform android --profile production --non-interactive --wait --json > build-result.json
+          node -e '
+            const b = require("./build-result.json")[0];
+            const url = b.artifacts?.applicationArchiveUrl ?? b.artifacts?.buildUrl ?? "(see EAS dashboard)";
+            console.log("AAB download:", url);
+            require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+              `## Production .aab built\n\n- Version: ${b.appVersion} (version code ${b.appBuildVersion})\n- Download: ${url}\n\nNext: upload it in Play Console (Test and release > Internal testing), or run \`eas submit\` once the Play service account key is uploaded to EAS. See play-store/PLAY-STORE-LAUNCH.md.\n`);
+          '
