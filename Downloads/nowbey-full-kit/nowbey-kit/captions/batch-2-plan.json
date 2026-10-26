@@ -1,0 +1,92 @@
+[
+  {
+    "day": 15,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/09-report-strip.png",
+    "caption": "captions/batch-2/ig-09-pin.txt",
+    "label": "IG feed \u00b7 batch 2 \u00b7 drop a pin (feature highlight)",
+    "window": "06:45-08:15 AST"
+  },
+  {
+    "day": 15,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/09-report-strip.png",
+    "caption": "captions/batch-2/fb-e-pin.txt",
+    "label": "Facebook \u00b7 batch 2 \u00b7 drop a pin",
+    "window": "06:45-08:15 AST"
+  },
+  {
+    "day": 16,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S1-map-story.png",
+    "label": "IG story \u00b7 batch 2 \u00b7 poll 'Has your road flooded this month?' (add the poll sticker in-app)",
+    "window": "17:30-19:30 AST"
+  },
+  {
+    "day": 17,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/11-question.png",
+    "caption": "captions/batch-2/ig-12-question.txt",
+    "label": "IG feed \u00b7 batch 2 \u00b7 the community question (swap in the new question poster once built)",
+    "window": "17:30-19:30 AST",
+    "after": "Reply to every comment within the first two hours. Pin the most useful one. No link sticker on the Story frames - the question is the point."
+  },
+  {
+    "day": 17,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/11-question.png",
+    "caption": "captions/batch-2/fb-h-question.txt",
+    "label": "Facebook \u00b7 batch 2 \u00b7 the community question",
+    "window": "17:30-19:30 AST"
+  },
+  {
+    "day": 18,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/10-who-tells-you.png",
+    "caption": "captions/batch-2/ig-10-alerts.txt",
+    "label": "IG feed \u00b7 batch 2 \u00b7 safety and alerts (NO MARCO integration claim - see SOCIAL-BATCH-2.md)",
+    "window": "17:30-19:30 AST",
+    "after": "During an active weather event, jump the queue and post this within the hour."
+  },
+  {
+    "day": 18,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/10-who-tells-you.png",
+    "caption": "captions/batch-2/fb-f-family-alerts.txt",
+    "label": "Facebook \u00b7 batch 2 \u00b7 safety and alerts for families",
+    "window": "17:30-19:30 AST"
+  },
+  {
+    "day": 20,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/posts/04-wire.png",
+    "caption": "captions/batch-2/ig-11-wire.txt",
+    "label": "IG feed \u00b7 batch 2 \u00b7 the news wire",
+    "window": "17:30-19:30 AST"
+  },
+  {
+    "day": 20,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/posts/04-wire.png",
+    "caption": "captions/batch-2/fb-g-wire.txt",
+    "label": "Facebook \u00b7 batch 2 \u00b7 the news wire",
+    "window": "17:30-19:30 AST"
+  },
+  {
+    "day": 20,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S5-wire-story.png",
+    "label": "IG story \u00b7 batch 2 \u00b7 the wire (add the link sticker in-app, lower third)",
+    "window": "17:30-19:30 AST"
+  }
+]
