@@ -19,7 +19,8 @@
     "pages": "node scripts/find-pages.mjs",
     "build:brand": "node scripts/build-brand.mjs",
     "build:identity": "node scripts/build-brand-identity.mjs",
-    "token": "node scripts/token-extend.mjs"
+    "token": "node scripts/token-extend.mjs",
+    "zips": "python3 scripts/build-downloads.py"
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.80",

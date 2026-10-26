@@ -19,6 +19,7 @@ npm install
 npm run build          # out/posts + out/stories   (~30s)
 npm run build:video    # out/video/*.mp4           (~2 min, needs ffmpeg — see below)
 npm run sheet          # out/CONTACT_SHEET.png
+npm run zips           # downloads/*.zip — the gallery's download buttons
 npm run gallery        # browse everything at http://localhost:4173
 npm run publish -- --help   # post to IG/FB/TikTok via API (see .env.example)
 npm run publish -- plan --day 1 --base https://nowbey.com/kit --dry-run
@@ -44,6 +45,11 @@ The repo already ignores `out/`, and the whole kit is reproducible from tokens
 in about a minute, so the rendered PNGs and MP4s are build output, not source:
 `npm run build && npm run build:video && npm run sheet` regenerates every asset
 byte-for-byte. Share the folder (or the gallery URL) rather than committing it.
+
+The same rule covers `downloads/`: the zips behind the gallery's download buttons are
+just `out/` and the docs re-packed, so they are gitignored too. A fresh clone has none
+of them and every button 404s — `npm run zips` (scripts/build-downloads.py) rebuilds all
+seven in a few seconds. Run it after any change to `out/` or the captions.
 
 ## How it works
 
