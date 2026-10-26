@@ -70,6 +70,34 @@ Type: display **Bricolage Grotesque** 800, body **Inter**, labels **JetBrains Mo
 
 ---
 
+## The photographic set — the chosen direction (2026-10-25)
+
+The dark UI-mockup direction was reviewed and rejected. The batch now flies with a **warm,
+human, photographic set**: real streets, real rain, real neighbours, no interface in frame —
+the caption carries the copy and the image carries the feeling. Four images, one per pillar,
+each chosen by eye from two generated candidates, normalised to exactly 1080×1080:
+
+| Pillar | File | The frame |
+| --- | --- | --- |
+| 1 · drop a pin | `alt-visuals/post01-pin-drop.png` | A hand over a flooded lane at golden hour; the phone shows one teal pin on a dark map, nothing legible |
+| 2 · safety & alerts | `alt-visuals/post02-family-alerts.png` | A parent and child at rain-streaked glass; the phone glows teal on the table, screen not legible |
+| 3 · the news wire | `alt-visuals/post03-news-wire.png` | Three neighbours over three phones on a harbour dock at sunrise; news travelling person to person |
+| 4 · the question | `alt-visuals/post04-community-question.png` | Neighbours laughing across a picket gate, one pointing at the building clouds |
+
+Rules these frames keep, same as the vector set:
+
+- **No legible text, badges or logos in frame** — nothing the product cannot stand behind, and
+  nothing for a rumour to quote. The boat name and screen glows are ambient, not copy.
+- **The honesty lives in the caption.** Coverage (`Live for New Providence`), email-only alerts,
+  the free-storm-warning promise and the 911 / 919 fallback all sit in the caption text, which is
+  why the captions must fly verbatim with these images.
+- The vector assets (`out/posts/09–11`) stay in the kit as the **A/B variant** for pillars 1, 2 and
+  4 — same captions, different frame. Run both in week one and keep whichever earns saves.
+- These four are **generated photography, not pipeline output**: `npm run build:batch2` does not
+  reproduce them. They live in `alt-visuals/`, beside the pipeline's `out/`, on purpose.
+
+---
+
 # Post 01 · Feature Highlight — drop a pin
 
 **Platform:** Instagram feed (1080×1080) · **Best window:** 06:45–08:15, school run and commute
@@ -376,13 +404,17 @@ Providence. Storm warnings always go out, and they are always free.
 
 | Day | Platform | Post | Asset | Window (AST) |
 | --- | --- | --- | --- | --- |
-| 1 | IG feed + FB | 01 · drop a pin | `out/posts/09-report-strip.png` | 06:45–08:15 |
+| 1 | IG feed + FB | 01 · drop a pin | `alt-visuals/post01-pin-drop.png` | 06:45–08:15 |
 | 2 | IG Stories | 04 · poll frame | `out/stories/S1-map-story.png` | 17:30–19:30 |
-| 3 | IG feed + FB | 04 · the question | `out/posts/11-question.png` | 17:30–19:30 |
-| 4 | IG feed + FB | 02 · safety & alerts | `out/posts/10-who-tells-you.png` | 17:30–19:30 |
+| 3 | IG feed + FB | 04 · the question | `alt-visuals/post04-community-question.png` | 17:30–19:30 |
+| 4 | IG feed + FB | 02 · safety & alerts | `alt-visuals/post02-family-alerts.png` | 17:30–19:30 |
 | 5 | IG Stories | 04 · best comments | screenshots | 17:30–19:30 |
-| 6 | IG feed + FB | 03 · the news wire | `out/posts/04-wire.png` | 17:30–19:30 |
+| 6 | IG feed + FB | 03 · the news wire | `alt-visuals/post03-news-wire.png` | 17:30–19:30 |
 | 7 | IG feed + FB | 04 · the roundup | new "you said / we heard" | 17:30–19:30 |
+
+A/B note: on days 1, 3 and 4 the vector build (`out/posts/09-report-strip.png`,
+`out/posts/11-question.png`, `out/posts/10-who-tells-you.png`) is the alternate frame — same
+caption, publish to one platform each and compare saves and shares after 48 hours.
 
 The question post (04) runs *before* the alerts post (02) on purpose: the answers become the
 social proof that makes "set up alerts" land, and the roundup gives the batch a second wave of

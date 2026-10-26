@@ -185,6 +185,10 @@
     <small>Square 1080×1080. Cross-post the same file to both; captions differ, crops do not.</small></h2>
   <div class="grid g4" id="posts"></div>
 
+  <h2>Batch 2 · photographic set
+    <small>The chosen direction for the four-pillar batch: warm, human, no UI in frame — the caption carries the copy. 1080×1080, AI-generated, one of two candidates picked by eye each.</small></h2>
+  <div class="grid g4" id="alt"></div>
+
   <h2>Stories + Reels covers · vertical
     <small>1080×1920. S1–S6 are the story sequence; R1–R3 are covers framed so a 1:1 grid crop still works.</small></h2>
   <div class="grid g5" id="stories"></div>
@@ -225,6 +229,12 @@
     ["10-who-tells-you","Official alerts reach your phone. Neighbours reach your street.","Batch 2 · alerts, honest"],
     ["11-question","What do you do before the rain mash up?","Batch 2 · community question"],
   ];
+  const alt = [
+    ["post01-pin-drop","Pillar 1 · drop a pin","Flooded lane, golden hour, one teal pin."],
+    ["post02-family-alerts","Pillar 2 · safety & alerts","Rain on the glass, the alert on the table."],
+    ["post03-news-wire","Pillar 3 · the news wire","News travels person to person on the dock."],
+    ["post04-community-question","Pillar 4 · the question","Neighbours at the gate, clouds building."],
+  ];
   const stories = [
     ["S1-map-story","See it before you drive it."],
     ["S2-alerts-story","Your island. Your alerts. No noise."],
@@ -248,6 +258,8 @@
     </a>`;
   document.getElementById("posts").innerHTML = posts.map(([f,t,n]) =>
     card(`out/posts/${f}.png`, `out/posts/${f}.png`, t, `posts/${f}.png · ${n}`)).join("");
+  document.getElementById("alt").innerHTML = alt.map(([f,t,n]) =>
+    card(`alt-visuals/${f}.png`, `alt-visuals/${f}.png`, t, `alt-visuals/${f}.png · ${n}`)).join("");
   document.getElementById("stories").innerHTML = stories.map(([f,t]) =>
     card(`out/stories/${f}.png`, `out/stories/${f}.png`, t, `stories/${f}.png`)).join("");
   document.getElementById("video").innerHTML = video.map(([f,t,n]) => `
