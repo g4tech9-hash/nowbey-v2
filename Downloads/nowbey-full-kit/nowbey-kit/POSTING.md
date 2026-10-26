@@ -8,6 +8,30 @@ below. The brief, the MARCO Alert ruling and the step-by-step CLI route live in
 `SOCIAL-BATCH-2.md` → "Publishing — the CLI route, step by step". Rehearse with
 `npm run publish -- plan --day 15 --dry-run` before anything real.
 
+## When Meta rate-limits you — `403 OAuthException Application request limit reached`
+
+This is the **app-level call budget**, not a problem with your post or token. It typically hits
+when a run makes many calls in a short window (fingerprint checks + media create + publish, per
+entry), and it clears on a rolling window — usually within the hour.
+
+What the kit does about it now:
+
+- `graph()` **backs off and retries by itself**: 60s, then 2 min, then 5 min per limited call,
+  logging `⏳ Meta rate limit (code 4) · x-app-usage …` before each sleep. If it still fails after
+  three retries, the window is genuinely full — wait ~an hour and re-run.
+- **Nothing repeats on the retry.** `.publish-state.json` records only posts that actually went
+  out, so a day that half-failed (Facebook ✅, Instagram ❌) re-runs as *Instagram only*: the
+  Facebook entry is skipped from the ledger, and the fingerprint check would catch it anyway even
+  without the ledger.
+
+Pacing advice so you meet the limit less:
+
+- Run one day at a time, not `--day all`, and leave breathing room between days.
+- During an active weather event the map post outranks the calendar — accept the odd limit there
+  and let the backoff handle it.
+- `--force` repeats a recorded post; never use it to "fix" a rate-limit failure, or you will post
+  the same caption twice.
+
 ## Can this kit post itself? Not without credentials — but the CLI is already written.
 
 There is no token in this repo and Arena has no Instagram / Facebook / TikTok connector, so nothing

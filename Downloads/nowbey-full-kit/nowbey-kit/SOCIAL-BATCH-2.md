@@ -479,6 +479,11 @@ Behaviours worth knowing before the first run:
   on the platform — hand-posts and older copies of the script cannot cause a double post.
 - **One bad post does not kill the day.** Failures are reported in a summary at the end; the rest
   still fly.
+- **Rate limits heal themselves.** `graph()` recognises Meta's call-budget errors (codes 4, 17,
+  32, 613) and backs off 60s → 2min → 5min per limited call, logging the `x-app-usage` header it
+  sees. If it gives up after three retries, wait ~an hour and re-run the same command — the ledger
+  and the fingerprint check guarantee nothing already live can repeat. Full write-up:
+  `POSTING.md` → "When Meta rate-limits you".
 - **The `after` field is your checklist.** Each plan entry carries its in-app step (poll sticker,
   link sticker at ≈78% height, reply discipline, A/B alternate frame). The CLI prints the label;
   the human does the sticker.

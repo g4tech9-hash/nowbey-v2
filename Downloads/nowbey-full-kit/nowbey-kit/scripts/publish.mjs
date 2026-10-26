@@ -228,9 +228,26 @@ function explainGraphError(e) {
   }
   if (e.code === 190) return "The token expired or was revoked — extend or regenerate it (CREDENTIALS.md step 1).";
   if (e.code === 10 || e.code === 200) return "The token is missing a permission for this call — see CREDENTIALS.md step 1.";
-  if (e.code === 4 || e.code === 613) return "Meta rate limit — wait a few minutes and re-run; posts already made will not repeat.";
+  if (e.code === 4 || e.code === 613) {
+    return (
+      "Meta rate limit. graph() already backed off and retried this call three times before\n" +
+      "  giving up, so the window is genuinely full. Wait ~an hour (the app budget is a rolling\n" +
+      "  window) and re-run the same plan command: the ledger skips whatever already went out,\n" +
+      "  and the fingerprint check stops anything already live from repeating."
+    );
+  }
   return "";
 }
+
+/** Meta's rate-limit error codes: app, user, page and custom call budgets. */
+const RATE_CODES = new Set([4, 17, 32, 613, 80004]);
+const RATE_RE = /request limit|rate limit|too many calls|temporarily blocked/i;
+const isRateLimit = (e) => RATE_CODES.has(Number(e.code)) || RATE_RE.test(String(e.message || ""));
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Backoff schedule between rate-limit retries: 1 min, 2 min, 5 min. */
+const RATE_SLEEPS = [60, 120, 300];
 
 async function graph(method, path, params, isDry, token = TOKEN) {
   say(`  → ${method} ${path}`);
@@ -240,27 +257,47 @@ async function graph(method, path, params, isDry, token = TOKEN) {
   const url = new URL(GRAPH + path);
   const body = new URLSearchParams({ ...params, access_token: token });
 
+  // Rate limits are a scheduling problem, not a failure: back off and retry the
+  // same call instead of making a human watch a clock. Anything else (bad token,
+  // missing permission) fails exactly as before — retrying those is pointless.
   let json = {};
-  try {
-    const res = await fetch(method === "GET" ? `${url}?${body}` : url, {
-      method,
-      ...(method === "GET" ? {} : { body }),
-    });
-    json = await res.json().catch(() => ({}));
-    if (!res.ok || json.error) {
-      const e = json.error || {};
-      const hint = explainGraphError(e);
-      const text = `${res.status} ${e.type || ""} ${e.message || JSON.stringify(json)}`.trim();
-      if (SOFT) throw new Error(text);
-      console.error(`\n✗ ${text}`);
-      if (hint) console.error(`  ${hint}`);
-      console.error("");
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(method === "GET" ? `${url}?${body}` : url, {
+        method,
+        ...(method === "GET" ? {} : { body }),
+      });
+      json = await res.json().catch(() => ({}));
+      if (!res.ok || json.error) {
+        const e = json.error || {};
+        if (isRateLimit(e) && attempt < RATE_SLEEPS.length) {
+          const usage = ["x-app-usage", "x-page-usage", "x-business-use-case-usage"]
+            .map((h) => [h, res.headers.get(h)])
+            .filter(([, v]) => v)
+            .map(([h, v]) => `${h} ${v}`)
+            .join(" · ");
+          say(
+            `  ⏳ Meta rate limit (code ${e.code})${usage ? ` · ${usage}` : ""} — ` +
+              `sleeping ${RATE_SLEEPS[attempt]}s, retry ${attempt + 1}/${RATE_SLEEPS.length}`,
+          );
+          await sleep(RATE_SLEEPS[attempt] * 1000);
+          say(`  → ${method} ${path}  (retry ${attempt + 1})`);
+          continue;
+        }
+        const hint = explainGraphError(e);
+        const text = `${res.status} ${e.type || ""} ${e.message || JSON.stringify(json)}`.trim();
+        if (SOFT) throw new Error(text);
+        console.error(`\n✗ ${text}`);
+        if (hint) console.error(`  ${hint}`);
+        console.error("");
+        process.exit(1);
+      }
+      break;
+    } catch (e) {
+      if (SOFT) throw e instanceof Error ? e : new Error(String(e));
+      console.error(`\n✗ ${e.message}\n`);
       process.exit(1);
     }
-  } catch (e) {
-    if (SOFT) throw e instanceof Error ? e : new Error(String(e));
-    console.error(`\n✗ ${e.message}\n`);
-    process.exit(1);
   }
   if (method !== "GET" && json.id) LAST_ID = json.id;
   return json;
