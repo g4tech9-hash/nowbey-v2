@@ -79,10 +79,10 @@ each chosen by eye from two generated candidates, normalised to exactly 1080×10
 
 | Pillar | File | The frame |
 | --- | --- | --- |
-| 1 · drop a pin | `alt-visuals/post01-pin-drop.png` | A hand over a flooded lane at golden hour; the phone shows one teal pin on a dark map, nothing legible |
-| 2 · safety & alerts | `alt-visuals/post02-family-alerts.png` | A parent and child at rain-streaked glass; the phone glows teal on the table, screen not legible |
-| 3 · the news wire | `alt-visuals/post03-news-wire.png` | Three neighbours over three phones on a harbour dock at sunrise; news travelling person to person |
-| 4 · the question | `alt-visuals/post04-community-question.png` | Neighbours laughing across a picket gate, one pointing at the building clouds |
+| 1 · drop a pin | `out/alt/post01-pin-drop.png` | A hand over a flooded lane at golden hour; the phone shows one teal pin on a dark map, nothing legible |
+| 2 · safety & alerts | `out/alt/post02-family-alerts.png` | A parent and child at rain-streaked glass; the phone glows teal on the table, screen not legible |
+| 3 · the news wire | `out/alt/post03-news-wire.png` | Three neighbours over three phones on a harbour dock at sunrise; news travelling person to person |
+| 4 · the question | `out/alt/post04-community-question.png` | Neighbours laughing across a picket gate, one pointing at the building clouds |
 
 Rules these frames keep, same as the vector set:
 
@@ -94,7 +94,9 @@ Rules these frames keep, same as the vector set:
 - The vector assets (`out/posts/09–11`) stay in the kit as the **A/B variant** for pillars 1, 2 and
   4 — same captions, different frame. Run both in week one and keep whichever earns saves.
 - These four are **generated photography, not pipeline output**: `npm run build:batch2` does not
-  reproduce them. They live in `alt-visuals/`, beside the pipeline's `out/`, on purpose.
+  reproduce them. They live in `out/alt/` — inside the deployed folder on purpose, because Meta
+  fetches media from `<KIT_BASE>/alt/…` and a Netlify drop of `out/` is the kit's only hosting step.
+  Do not move them back outside `out/` or the publisher will 404.
 
 ---
 
@@ -404,12 +406,12 @@ Providence. Storm warnings always go out, and they are always free.
 
 | Day | Platform | Post | Asset | Window (AST) |
 | --- | --- | --- | --- | --- |
-| 1 | IG feed + FB | 01 · drop a pin | `alt-visuals/post01-pin-drop.png` | 06:45–08:15 |
+| 1 | IG feed + FB | 01 · drop a pin | `out/alt/post01-pin-drop.png` | 06:45–08:15 |
 | 2 | IG Stories | 04 · poll frame | `out/stories/S1-map-story.png` | 17:30–19:30 |
-| 3 | IG feed + FB | 04 · the question | `alt-visuals/post04-community-question.png` | 17:30–19:30 |
-| 4 | IG feed + FB | 02 · safety & alerts | `alt-visuals/post02-family-alerts.png` | 17:30–19:30 |
+| 3 | IG feed + FB | 04 · the question | `out/alt/post04-community-question.png` | 17:30–19:30 |
+| 4 | IG feed + FB | 02 · safety & alerts | `out/alt/post02-family-alerts.png` | 17:30–19:30 |
 | 5 | IG Stories | 04 · best comments | screenshots | 17:30–19:30 |
-| 6 | IG feed + FB | 03 · the news wire | `alt-visuals/post03-news-wire.png` | 17:30–19:30 |
+| 6 | IG feed + FB | 03 · the news wire | `out/alt/post03-news-wire.png` | 17:30–19:30 |
 | 7 | IG feed + FB | 04 · the roundup | new "you said / we heard" | 17:30–19:30 |
 
 A/B note: on days 1, 3 and 4 the vector build (`out/posts/09-report-strip.png`,
@@ -423,21 +425,74 @@ reach for no extra production.
 **If a weather event breaks, suspend this calendar and post the map within the hour.** That is when
 the product is most useful and the algorithm is friendliest — `CAMPAIGN.md` says exactly this.
 
-## Publishing
+## Publishing — the CLI route, step by step
 
-The three new feed assets are generated, not hand-made — `npm run build:batch2`
-(`scripts/build-batch2.mjs`) redraws `out/posts/09-report-strip.png`,
-`out/posts/10-who-tells-you.png` and `out/posts/11-question.png` from the same tokens as the rest
-of the kit, so a brand change repaints them with everything else. Browse them all at the gallery
-(`npm run gallery` → the "Batch 2" cards in *Feed posts*).
+Batch 2 is wired into the kit's own publisher (`scripts/publish.mjs`). The calendar entries live
+in **`captions/plan.json`, days 15–20** — one plan file, one ledger, one command shape for the
+whole launch. Captions are in `captions/batch-2/`; the photographic frames are in `out/alt/`;
+the vector A/B frames are in `out/posts/09–11`.
 
-Caption files for the CLI are in `captions/batch-2/`, and `captions/batch-2-plan.json` is shaped like
-`captions/plan.json` so `scripts/publish.mjs` can read it. Rehearse before posting:
+The three vector assets are generated, not hand-made — `npm run build:batch2`
+(`scripts/build-batch2.mjs`) redraws them from the same tokens as the rest of the kit, so a brand
+change repaints them with everything else. Browse the whole set at `npm run gallery`.
+
+### 1 · Credentials (once)
 
 ```bash
-node scripts/publish.mjs plan --dry-run     # prints the calls, posts nothing
+cd <kit>
+cp env-prefilled.txt .env        # then paste your Meta token after META_TOKEN=
+node scripts/preflight.mjs       # every line must say PASS
+node scripts/token-extend.mjs    # prints type, expiry, missing scopes
 ```
 
-Or paste by hand from **Meta Business Suite → Planner** (`POSTING.md` §1). Instagram truncates the
-caption after roughly the first two lines, so every hook here is written to work in that space —
-check the preview on a phone before scheduling.
+The token needs `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`,
+`instagram_basic`, `instagram_content_publish`. Click-by-click: `CREDENTIALS.md`.
+
+### 2 · Put the media behind a public URL (once per change to `out/`)
+
+Meta fetches the image itself — it never accepts an upload. `out/` now contains `alt/`, so one
+drop covers everything, batch 2 included:
+
+1. https://app.netlify.com/drop → drag the **`out`** folder → **Make public**.
+2. Check `https://<your-site>/alt/post01-pin-drop.png` loads in a private window.
+3. `KIT_BASE=https://<your-site>` in `.env` (no trailing slash, no `/posts`).
+
+`publicUrl()` strips the `out/` prefix, so `out/alt/x.png` → `<KIT_BASE>/alt/x.png`. Anything
+outside `out/` is invisible to the publisher — that is why the photos live there.
+
+### 3 · Rehearse, then fly
+
+```bash
+npm run publish -- plan --day 15 --dry-run     # prints every call, posts nothing
+npm run publish -- plan --day 15 --yes         # IG + FB for the day
+npm run publish -- plan --day 16 --yes         # story frame (poll sticker added in-app)
+npm run publish -- plan --day 17 --yes         # the question post
+npm run publish -- plan --day 18 --yes         # safety & alerts
+npm run publish -- plan --day 20 --yes         # the wire + story (link sticker in-app)
+```
+
+Behaviours worth knowing before the first run:
+
+- **The ledger.** `.publish-state.json` records every sent post; re-running a day steps over what
+  already went out. `--force` repeats deliberately.
+- **Fingerprint dedupe.** Before sending, `plan` checks whether that exact caption is already live
+  on the platform — hand-posts and older copies of the script cannot cause a double post.
+- **One bad post does not kill the day.** Failures are reported in a summary at the end; the rest
+  still fly.
+- **The `after` field is your checklist.** Each plan entry carries its in-app step (poll sticker,
+  link sticker at ≈78% height, reply discipline, A/B alternate frame). The CLI prints the label;
+  the human does the sticker.
+- **Windows.** 06:45–08:15 and 17:30–19:30 AST per entry labels; **during an active weather event,
+  suspend the calendar and post the map within the hour.**
+
+### 4 · The A/B, and the manual fallback
+
+Days 15, 17 and 18 carry an `after` note naming the vector alternate (`out/posts/09`, `11`, `10`).
+Publish the photograph to one platform and the vector to the other, compare saves and shares after
+48 hours, keep the winner for the re-share week.
+
+No terminal? Everything above can be pasted by hand from **Meta Business Suite → Planner**
+(`POSTING.md` §1) — captions verbatim from `captions/batch-2/`, images from `out/alt/`.
+
+Instagram truncates the caption after roughly the first two lines, so every hook here is written
+to work in that space — check the preview on a phone before scheduling.

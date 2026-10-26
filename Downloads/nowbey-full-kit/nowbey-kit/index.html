@@ -259,7 +259,7 @@
   document.getElementById("posts").innerHTML = posts.map(([f,t,n]) =>
     card(`out/posts/${f}.png`, `out/posts/${f}.png`, t, `posts/${f}.png · ${n}`)).join("");
   document.getElementById("alt").innerHTML = alt.map(([f,t,n]) =>
-    card(`alt-visuals/${f}.png`, `alt-visuals/${f}.png`, t, `alt-visuals/${f}.png · ${n}`)).join("");
+    card(`out/alt/${f}.png`, `out/alt/${f}.png`, t, `alt/${f}.png · ${n}`)).join("");
   document.getElementById("stories").innerHTML = stories.map(([f,t]) =>
     card(`out/stories/${f}.png`, `out/stories/${f}.png`, t, `stories/${f}.png`)).join("");
   document.getElementById("video").innerHTML = video.map(([f,t,n]) => `

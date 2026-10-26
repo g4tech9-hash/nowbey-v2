@@ -1,5 +1,13 @@
 # Posting this kit — the short version
 
+## Batch 2 (days 15–20) is already in the plan
+
+The four-pillar batch — photographic frames in `out/alt/`, captions in `captions/batch-2/`,
+calendar entries in `captions/plan.json` days 15–20 — posts through the same CLI as everything
+below. The brief, the MARCO Alert ruling and the step-by-step CLI route live in
+`SOCIAL-BATCH-2.md` → "Publishing — the CLI route, step by step". Rehearse with
+`npm run publish -- plan --day 15 --dry-run` before anything real.
+
 ## Can this kit post itself? Not without credentials — but the CLI is already written.
 
 There is no token in this repo and Arena has no Instagram / Facebook / TikTok connector, so nothing

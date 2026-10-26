@@ -5,7 +5,7 @@
     "type": "post",
     "asset": "out/posts/01-map.png",
     "caption": "captions/ig-01-map.txt",
-    "label": "IG feed · the map"
+    "label": "IG feed \u00b7 the map"
   },
   {
     "day": 1,
@@ -13,7 +13,7 @@
     "type": "fbpost",
     "asset": "out/posts/01-map.png",
     "caption": "captions/fb-a-local.txt",
-    "label": "Facebook · local-group post"
+    "label": "Facebook \u00b7 local-group post"
   },
   {
     "day": 1,
@@ -22,7 +22,7 @@
     "asset": "out/video/01-map-countdown.mp4",
     "caption": "captions/reel-1-map.txt",
     "coverMs": 2600,
-    "label": "TikTok · the map reel",
+    "label": "TikTok \u00b7 the map reel",
     "after": "In the TikTok app, swap in a trending sound and set the cover to out/video/01-map-countdown-poster.png."
   },
   {
@@ -32,36 +32,35 @@
     "asset": "out/video/01-map-countdown.mp4",
     "cover": "out/video/01-map-countdown-poster.png",
     "caption": "captions/reel-1-map.txt",
-    "label": "IG reels · the map"
+    "label": "IG reels \u00b7 the map"
   },
   {
     "day": 1,
     "platform": "ig",
     "type": "story",
     "asset": "out/stories/S1-map-story.png",
-    "label": "IG story · map"
+    "label": "IG story \u00b7 map"
   },
   {
     "day": 1,
     "platform": "ig",
     "type": "story",
     "asset": "out/stories/S2-alerts-story.png",
-    "label": "IG story · alerts (add the link sticker in-app)"
+    "label": "IG story \u00b7 alerts (add the link sticker in-app)"
   },
-
   {
     "day": 2,
     "platform": "ig",
     "type": "story",
     "asset": "out/stories/S3-report-story.png",
-    "label": "IG story · report"
+    "label": "IG story \u00b7 report"
   },
   {
     "day": 2,
     "platform": "ig",
     "type": "story",
     "asset": "out/stories/S4-confirmed-story.png",
-    "label": "IG story · confirmation"
+    "label": "IG story \u00b7 confirmation"
   },
   {
     "day": 2,
@@ -70,7 +69,7 @@
     "asset": "out/video/02-report-flow.mp4",
     "caption": "captions/reel-2-report.txt",
     "coverMs": 3800,
-    "label": "TikTok · the report reel"
+    "label": "TikTok \u00b7 the report reel"
   },
   {
     "day": 2,
@@ -79,16 +78,15 @@
     "asset": "out/video/02-report-flow.mp4",
     "cover": "out/video/02-report-flow-poster.png",
     "caption": "captions/reel-2-report.txt",
-    "label": "IG reels · the report"
+    "label": "IG reels \u00b7 the report"
   },
-
   {
     "day": 3,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/05-confirmed.png",
     "caption": "captions/ig-05-confirmed.txt",
-    "label": "IG feed · confirmation"
+    "label": "IG feed \u00b7 confirmation"
   },
   {
     "day": 3,
@@ -96,7 +94,7 @@
     "type": "fbpost",
     "asset": "out/posts/05-confirmed.png",
     "caption": "captions/fb-c-how.txt",
-    "label": "Facebook · how it works"
+    "label": "Facebook \u00b7 how it works"
   },
   {
     "day": 3,
@@ -105,23 +103,22 @@
     "asset": "out/video/03-alerts-setup.mp4",
     "caption": "captions/reel-3-alerts.txt",
     "coverMs": 4200,
-    "label": "TikTok · the alerts reel"
+    "label": "TikTok \u00b7 the alerts reel"
   },
   {
     "day": 3,
     "platform": "ig",
     "type": "story",
     "asset": "out/stories/S5-wire-story.png",
-    "label": "IG story · wire"
+    "label": "IG story \u00b7 wire"
   },
   {
     "day": 3,
     "platform": "ig",
     "type": "story",
     "asset": "out/stories/S6-web-story.png",
-    "label": "IG story · web app"
+    "label": "IG story \u00b7 web app"
   },
-
   {
     "day": 4,
     "platform": "ig",
@@ -134,16 +131,15 @@
       "out/posts/03-alerts.png"
     ],
     "caption": "captions/carousel.txt",
-    "label": "IG carousel · how it works"
+    "label": "IG carousel \u00b7 how it works"
   },
-
   {
     "day": 5,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/03-alerts.png",
     "caption": "captions/ig-03-alerts.txt",
-    "label": "IG feed · alerts"
+    "label": "IG feed \u00b7 alerts"
   },
   {
     "day": 5,
@@ -151,61 +147,55 @@
     "type": "fbpost",
     "asset": "out/posts/03-alerts.png",
     "caption": "captions/fb-b-hoa.txt",
-    "label": "Facebook · HOA / community leaders"
+    "label": "Facebook \u00b7 HOA / community leaders"
   },
-
   {
     "day": 6,
     "platform": "fb",
     "type": "fbpost",
     "asset": "out/posts/02-report.png",
     "caption": "captions/fb-d-honest.txt",
-    "label": "Facebook · the honest one"
+    "label": "Facebook \u00b7 the honest one"
   },
-
   {
     "day": 7,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/08-trust.png",
     "caption": "captions/ig-08-trust.txt",
-    "label": "IG feed · trust"
+    "label": "IG feed \u00b7 trust"
   },
-
   {
     "day": 8,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/06-feed.png",
     "caption": "captions/ig-06-feed.txt",
-    "label": "IG feed · the feed"
+    "label": "IG feed \u00b7 the feed"
   },
-
   {
     "day": 9,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/04-wire.png",
     "caption": "captions/ig-04-wire.txt",
-    "label": "IG feed · the wire"
+    "label": "IG feed \u00b7 the wire"
   },
-
   {
     "day": 10,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/07-web.png",
     "caption": "captions/ig-07-web.txt",
-    "label": "IG feed · the web app"
+    "label": "IG feed \u00b7 the web app"
   },
-
   {
     "day": 11,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/02-report.png",
     "caption": "captions/ig-02-report.txt",
-    "label": "IG feed · reporting"
+    "label": "IG feed \u00b7 reporting"
   },
   {
     "day": 11,
@@ -213,9 +203,8 @@
     "type": "fbpost",
     "asset": "out/posts/02-report.png",
     "caption": "captions/fb-b-hoa.txt",
-    "label": "Facebook · HOA / community leaders"
+    "label": "Facebook \u00b7 HOA / community leaders"
   },
-
   {
     "day": 12,
     "platform": "ig",
@@ -228,16 +217,15 @@
       "out/posts/03-alerts.png"
     ],
     "caption": "captions/carousel.txt",
-    "label": "IG carousel · re-share"
+    "label": "IG carousel \u00b7 re-share"
   },
-
   {
     "day": 14,
     "platform": "ig",
     "type": "post",
     "asset": "out/posts/01-map.png",
     "caption": "captions/ig-01-map.txt",
-    "label": "IG feed · best performer, re-share"
+    "label": "IG feed \u00b7 best performer, re-share"
   },
   {
     "day": 14,
@@ -245,6 +233,94 @@
     "type": "fbpost",
     "asset": "out/posts/01-map.png",
     "caption": "captions/fb-a-local.txt",
-    "label": "Facebook · local-group re-post"
+    "label": "Facebook \u00b7 local-group re-post"
+  },
+  {
+    "day": 15,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/alt/post01-pin-drop.png",
+    "caption": "captions/batch-2/ig-09-pin.txt",
+    "label": "IG feed \u00b7 batch 2 \u00b7 drop a pin (feature highlight)",
+    "after": "A/B alternate frame: out/posts/09-report-strip.png \u2014 one frame per platform, compare saves after 48h. Post 06:45-08:15 AST."
+  },
+  {
+    "day": 15,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/alt/post01-pin-drop.png",
+    "caption": "captions/batch-2/fb-e-pin.txt",
+    "label": "Facebook \u00b7 batch 2 \u00b7 drop a pin",
+    "after": "Post 06:45-08:15 AST."
+  },
+  {
+    "day": 16,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S1-map-story.png",
+    "label": "IG story \u00b7 batch 2 \u00b7 poll frame",
+    "after": "Add the poll sticker in-app: 'Has your road flooded this month?' \u2192 Yes, already / Not yet. 17:30-19:30 AST."
+  },
+  {
+    "day": 17,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/alt/post04-community-question.png",
+    "caption": "captions/batch-2/ig-12-question.txt",
+    "label": "IG feed \u00b7 batch 2 \u00b7 the community question",
+    "after": "A/B alternate frame: out/posts/11-question.png. Reply to every comment in the first two hours; pin the most useful. 17:30-19:30 AST."
+  },
+  {
+    "day": 17,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/alt/post04-community-question.png",
+    "caption": "captions/batch-2/fb-h-question.txt",
+    "label": "Facebook \u00b7 batch 2 \u00b7 the community question",
+    "after": "Same reply discipline as IG. 17:30-19:30 AST."
+  },
+  {
+    "day": 18,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/alt/post02-family-alerts.png",
+    "caption": "captions/batch-2/ig-10-alerts.txt",
+    "label": "IG feed \u00b7 batch 2 \u00b7 safety and alerts (NO MARCO integration claim \u2014 see SOCIAL-BATCH-2.md)",
+    "after": "A/B alternate frame: out/posts/10-who-tells-you.png. During an active weather event, jump the queue and post within the hour. 17:30-19:30 AST."
+  },
+  {
+    "day": 18,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/alt/post02-family-alerts.png",
+    "caption": "captions/batch-2/fb-f-family-alerts.txt",
+    "label": "Facebook \u00b7 batch 2 \u00b7 safety and alerts for families",
+    "after": "During an active weather event, jump the queue and post within the hour. 17:30-19:30 AST."
+  },
+  {
+    "day": 20,
+    "platform": "ig",
+    "type": "post",
+    "asset": "out/alt/post03-news-wire.png",
+    "caption": "captions/batch-2/ig-11-wire.txt",
+    "label": "IG feed \u00b7 batch 2 \u00b7 the news wire",
+    "after": "17:30-19:30 AST."
+  },
+  {
+    "day": 20,
+    "platform": "fb",
+    "type": "fbpost",
+    "asset": "out/alt/post03-news-wire.png",
+    "caption": "captions/batch-2/fb-g-wire.txt",
+    "label": "Facebook \u00b7 batch 2 \u00b7 the news wire",
+    "after": "17:30-19:30 AST."
+  },
+  {
+    "day": 20,
+    "platform": "ig",
+    "type": "story",
+    "asset": "out/stories/S5-wire-story.png",
+    "label": "IG story \u00b7 batch 2 \u00b7 the wire",
+    "after": "Add the link sticker in-app, lower third (\u224878% height) so it clears the type. 17:30-19:30 AST."
   }
 ]
