@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NowBey civic wire — preview</title>
+    <style>
+      :root {
+        --bg-base: #0c151d;
+        --bg-raised: #152230;
+        --bg-elevated: #1c2b39;
+        --bg-hover: #243546;
+        --text-primary: #f3f1ea;
+        --text-secondary: #b9c8c9;
+        --text-tertiary: #9aafb3;
+        --border-subtle: rgba(148, 206, 202, 0.1);
+        --border-default: rgba(148, 206, 202, 0.18);
+        --accent: #3fd6c0;
+        --accent-hover: #6eeadb;
+        --accent-muted: rgba(63, 214, 192, 0.16);
+        --danger: #ff7f6b;
+        --warning: #f8cf6b;
+        --flooding: #6fd0ff;
+        --power: #f8cf6b;
+        --road: #ff9d8a;
+        --water: #35d6e6;
+        --safety: #ff8ba6;
+        --marine: #6eeadb;
+        --health: #b39cff;
+        --sanitation: #afe85f;
+        --storm: #ffe39a;
+        --fire: #ff7f6b;
+        --community: #ff8fb8;
+        --notice: #9fb4bb;
+        --accident: #ff9d8a;
+        --r-sm: 14px;
+        --r-md: 20px;
+        --r-lg: 28px;
+        --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        background: var(--bg-base);
+        color: var(--text-primary);
+        font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .grid-bg {
+        position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        background-image:
+          linear-gradient(rgba(122, 186, 190, 0.085) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(122, 186, 190, 0.085) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(circle at 50% 0%, #000 0%, transparent 78%);
+      }
+      .glow {
+        position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        background:
+          radial-gradient(680px 340px at 12% -8%, rgba(34, 184, 164, 0.18), transparent 70%),
+          radial-gradient(560px 300px at 92% 4%, rgba(20, 114, 171, 0.12), transparent 70%);
+      }
+      .wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 28px 20px 80px; }
+
+      header.top { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+      .brand { display: flex; align-items: center; gap: 12px; }
+      .mark {
+        width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+        background: var(--accent-muted); border: 1px solid rgba(63, 214, 192, 0.35); color: var(--accent);
+        font-weight: 800; letter-spacing: -0.02em;
+      }
+      .brand h1 { font-size: 19px; margin: 0; letter-spacing: -0.02em; }
+      .brand p { margin: 0; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-tertiary); }
+      .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      .seg { display: flex; background: var(--bg-raised); border: 1px solid var(--border-default); border-radius: 999px; padding: 3px; }
+      .seg button {
+        border: 0; background: transparent; color: var(--text-tertiary); font: inherit; font-size: 13px;
+        padding: 7px 14px; border-radius: 999px; cursor: pointer;
+      }
+      .seg button[aria-selected="true"] { background: var(--accent-muted); color: var(--accent); font-weight: 600; }
+      .ghost {
+        border: 1px solid var(--border-default); background: var(--bg-raised); color: var(--text-secondary);
+        font: inherit; font-size: 13px; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+      }
+      .ghost:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 18px; }
+      .stat { background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: var(--r-sm); padding: 12px 14px; }
+      .stat b { display: block; font-size: 22px; letter-spacing: -0.02em; }
+      .stat span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-tertiary); }
+      .stat.civic b { color: var(--accent); }
+      .stat.down b { color: var(--warning); }
+
+      .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+      .chip {
+        border: 1px solid var(--border-default); background: var(--bg-raised); color: var(--text-secondary);
+        font: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 999px; cursor: pointer;
+        display: inline-flex; gap: 7px; align-items: center;
+      }
+      .chip small { color: var(--text-tertiary); font-size: 11px; }
+      .chip[aria-pressed="true"] { border-color: rgba(63, 214, 192, 0.55); background: var(--accent-muted); color: var(--accent); }
+      .chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+      .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 22px; align-items: start; }
+      @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+      .card {
+        position: relative; background: var(--bg-raised); border: 1px solid var(--border-subtle);
+        border-radius: var(--r-md); padding: 18px 18px 16px 22px; margin-bottom: 12px; overflow: hidden;
+      }
+      .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--spine, var(--notice)); }
+      .card h3 { margin: 0 0 8px; font-size: 18px; line-height: 1.3; letter-spacing: -0.02em; }
+      .card h3 a { color: inherit; text-decoration: none; }
+      .card h3 a:hover { color: var(--accent-hover); }
+      .meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--text-tertiary); margin-bottom: 10px; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 9px;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+        background: color-mix(in srgb, var(--spine, var(--notice)) 16%, transparent);
+        color: var(--spine, var(--notice)); border: 1px solid color-mix(in srgb, var(--spine, var(--notice)) 34%, transparent);
+      }
+      .badge.plain { background: var(--bg-elevated); color: var(--text-tertiary); border-color: var(--border-default); }
+      .summary { margin: 0 0 12px; color: var(--text-secondary); font-size: 14px; }
+      .foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 12.5px; }
+      .read { color: var(--accent); text-decoration: none; font-weight: 600; }
+      .read:hover { color: var(--accent-hover); }
+      .sig { font-family: var(--mono); font-size: 10.5px; color: var(--text-tertiary); margin-top: 10px; }
+      .feed-note { font-size: 11.5px; color: var(--text-tertiary); border-top: 1px dashed var(--border-subtle); padding-top: 10px; margin-top: 12px; }
+
+      aside .panel { background: var(--bg-raised); border: 1px solid var(--border-subtle); border-radius: var(--r-md); padding: 16px; margin-bottom: 14px; }
+      aside h2 { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-tertiary); margin: 0 0 12px; }
+      .src { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
+      .src:last-child { border-bottom: 0; }
+      .src .n { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .src .v { font-family: var(--mono); font-size: 11.5px; color: var(--text-tertiary); white-space: nowrap; }
+      .src.down .v { color: var(--danger); }
+      .empty { color: var(--text-tertiary); font-size: 14px; padding: 28px; text-align: center; border: 1px dashed var(--border-default); border-radius: var(--r-md); }
+      .hint { font-size: 12px; color: var(--text-tertiary); line-height: 1.55; }
+      .hint code { font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--bg-elevated); padding: 1px 5px; border-radius: 5px; }
+      .loading { opacity: 0.55; }
+      footer.page { margin-top: 34px; font-size: 12px; color: var(--text-tertiary); text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="glow"></div>
+    <div class="grid-bg"></div>
+    <div class="wrap">
+      <header class="top">
+        <div class="brand">
+          <div class="mark">N</div>
+          <div>
+            <h1>NowBey civic wire</h1>
+            <p>Classification preview</p>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="seg" role="tablist" aria-label="View">
+            <button role="tab" id="tab-wire" aria-selected="true">Wire</button>
+            <button role="tab" id="tab-feed" aria-selected="false">Feed cards</button>
+          </div>
+          <button class="ghost" id="mode">Fixtures</button>
+          <button class="ghost" id="refresh">Refresh</button>
+        </div>
+      </header>
+
+      <section class="stats" id="stats"></section>
+      <div class="chips" id="chips"></div>
+
+      <div class="layout">
+        <main id="list" aria-live="polite"><div class="empty">Loading…</div></main>
+        <aside>
+          <div class="panel">
+            <h2>Sources</h2>
+            <div id="sources"><div class="hint">—</div></div>
+          </div>
+          <div class="panel">
+            <h2>What this shows</h2>
+            <p class="hint">
+              Every story is scored for <b>civic value</b>: is it service information a neighbour
+              can act on? Road closures, water interruptions, power cuts, marine warnings and
+              official notices clear the bar and are mirrored into the Feed tab. Court, politics
+              and community stories stay on the wire.
+            </p>
+            <p class="hint">
+              Toggle <code>Fixtures</code> → <code>Live</code> to pull the real Bahamian feeds.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="page">Category hues and surfaces come from the app's Ocean Night tokens.</footer>
+    </div>
+
+    <script type="module">
+      const state = { mode: 'fixtures', view: 'wire', category: 'all', payload: null };
+
+      const $ = (id) => document.getElementById(id);
+      const esc = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+      function spine(category) {
+        return `var(--${category || 'notice'})`;
+      }
+
+      function renderStats(p) {
+        const c = p.counts;
+        $('stats').innerHTML = `
+          <div class="stat"><b>${c.returned ?? 0}</b><span>Stories on wire</span></div>
+          <div class="stat civic"><b>${c.civic ?? 0}</b><span>Civic (feed-ready)</span></div>
+          <div class="stat"><b>${c.feedCards ?? 0}</b><span>Feed cards</span></div>
+          <div class="stat"><b>${c.ok}/${c.sources}</b><span>Sources up</span></div>
+          <div class="stat"><b>${c.duplicatesRemoved ?? 0}</b><span>Dupes merged</span></div>
+        `;
+      }
+
+      function categories(items) {
+        const counts = new Map();
+        for (const item of items) counts.set(item.category, (counts.get(item.category) || 0) + 1);
+        return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+      }
+
+      function renderChips(p) {
+        const items = p.items;
+        const all = `<button class="chip" data-cat="all" aria-pressed="${state.category === 'all'}">
+            All <small>${items.length}</small></button>`;
+        const civic = `<button class="chip" data-cat="civic" aria-pressed="${state.category === 'civic'}">
+            <span class="dot" style="background:var(--accent)"></span> Civic only <small>${p.counts.civic ?? 0}</small></button>`;
+        const rest = categories(items)
+          .map(
+            ([cat, n]) => `<button class="chip" data-cat="${cat}" aria-pressed="${state.category === cat}">
+              <span class="dot" style="background:${spine(cat)}"></span>
+              ${esc(cat === 'accident' ? 'Car Accident' : cat[0].toUpperCase() + cat.slice(1))} <small>${n}</small>
+            </button>`,
+          )
+          .join('');
+        $('chips').innerHTML = all + civic + rest;
+        $('chips').querySelectorAll('.chip').forEach((el) => {
+          el.onclick = () => {
+            state.category = el.dataset.cat;
+            render();
+          };
+        });
+      }
+
+      function visibleItems() {
+        const p = state.payload;
+        if (!p) return [];
+        return p.items.filter((item) => {
+          if (state.category === 'all') return true;
+          if (state.category === 'civic') return item.civic;
+          return item.category === state.category;
+        });
+      }
+
+      function wireCard(item) {
+        const sig = item.signals?.length
+          ? `<div class="sig">${esc(item.signals.slice(0, 4).join(' · '))}</div>`
+          : '';
+        const corrobor = item.corroboration
+          ? `<span class="badge plain">+${item.corroboration} also reported</span>`
+          : '';
+        return `
+          <article class="card" style="--spine:${spine(item.category)}">
+            <div class="meta">
+              <span class="badge">${esc(item.categoryLabel)}</span>
+              ${item.civic ? '<span class="badge plain" style="color:var(--accent)">Civic</span>' : ''}
+              <span>${esc(item.publisher)}</span>
+              <span>·</span>
+              <span>${esc(item.ageLabel)}</span>
+              ${item.island ? `<span class="badge plain">${esc(item.island)}</span>` : ''}
+              ${corrobor}
+            </div>
+            <h3><a href="${esc(item.url)}" target="_blank" rel="noopener">${esc(item.title)} ↗</a></h3>
+            ${item.summary ? `<p class="summary">${esc(item.summary)}</p>` : ''}
+            <div class="foot">
+              <span class="read">Civic score ${item.civicScore.toFixed(2)} · trust ${item.confidence.toFixed(2)}</span>
+              <a class="read" href="${esc(item.url)}" target="_blank" rel="noopener">Read at ${esc(item.publisher)} ↗</a>
+            </div>
+            ${sig}
+          </article>`;
+      }
+
+      function feedCard(card) {
+        return `
+          <article class="card" style="--spine:${spine(card.category)}">
+            <div class="meta">
+              <span class="badge">${esc(card.categoryLabel)}</span>
+              <span class="badge plain">Newsroom</span>
+              ${card.island ? `<span class="badge plain">${esc(card.island)}</span>` : ''}
+              <span>${esc(card.source.name)}</span>
+              <span>·</span>
+              <span>${esc(card.ageLabel)}</span>
+            </div>
+            <h3><a href="${esc(card.source.url)}" target="_blank" rel="noopener">${esc(card.title)} ↗</a></h3>
+            ${card.summary ? `<p class="summary">${esc(card.summary)}</p>` : ''}
+            <div class="foot">
+              <span class="read">${esc(card.cta.label)} ↗</span>
+              <span>Feed weight ${card.sortWeight}</span>
+            </div>
+            <div class="feed-note">${esc(card.disclosure)} · confirmations off for wire items</div>
+          </article>`;
+      }
+
+      function renderSources(p) {
+        const rows = p.report.sources
+          .map(
+            (s) => `<div class="src ${s.ok ? '' : 'down'}">
+              <span class="n" title="${esc(s.name)}">${esc(s.name)}</span>
+              <span class="v">${s.ok ? `${s.items} items` : 'down'}</span>
+            </div>`,
+          )
+          .join('');
+        $('sources').innerHTML = rows || '<div class="hint">No sources.</div>';
+      }
+
+      function render() {
+        const p = state.payload;
+        if (!p) return;
+        renderStats(p);
+        renderChips(p);
+        renderSources(p);
+
+        $('tab-wire').setAttribute('aria-selected', String(state.view === 'wire'));
+        $('tab-feed').setAttribute('aria-selected', String(state.view === 'feed'));
+
+        const items = visibleItems();
+        if (!items.length) {
+          $('list').innerHTML = '<div class="empty">Nothing matches this filter.</div>';
+          return;
+        }
+
+        if (state.view === 'feed') {
+          const byId = new Map(p.feedCards.map((c) => [c.id, c]));
+          const cards = items.map((i) => byId.get(i.id)).filter(Boolean);
+          $('list').innerHTML = cards.length
+            ? cards.map(feedCard).join('')
+            : '<div class="empty">No civic items in this filter reach the feed.</div>';
+          return;
+        }
+
+        $('list').innerHTML = items.map(wireCard).join('');
+      }
+
+      async function load() {
+        $('list').classList.add('loading');
+        $('mode').textContent = state.mode === 'live' ? 'Live' : 'Fixtures';
+        try {
+          const res = await fetch(`/api/wire?mode=${state.mode}`);
+          const payload = await res.json();
+          if (payload.error) throw new Error(payload.error);
+          state.payload = payload;
+        } catch (error) {
+          $('list').innerHTML = `<div class="empty">Could not load the wire: ${esc(error.message)}</div>`;
+          $('list').classList.remove('loading');
+          return;
+        }
+        $('list').classList.remove('loading');
+        render();
+      }
+
+      $('tab-wire').onclick = () => { state.view = 'wire'; render(); };
+      $('tab-feed').onclick = () => { state.view = 'feed'; render(); };
+      $('mode').onclick = () => { state.mode = state.mode === 'live' ? 'fixtures' : 'live'; load(); };
+      $('refresh').onclick = load;
+
+      load();
+    </script>
+  </body>
+</html>

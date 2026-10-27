@@ -1,0 +1,173 @@
+{
+  "$comment": [
+    "Every Bahamian source the wire should keep watching.",
+    "",
+    "Two kinds:",
+    "  kind=rss          -> the outlet's own feed. Best text, real URLs, but feeds go down:",
+    "                       unverified feeds are marked \"verify\": true and fail soft.",
+    "  kind=google-news  -> Google News RSS search. This is the path the live wire already",
+    "                       uses, so it is the reliable one. Each query is scoped to a civic",
+    "                       topic and to The Bahamas, because the general 'Bahamas' query is",
+    "                       what buries road closures under court reporting.",
+    "",
+    "weight  = editorial trust/priority, 0..1, feeds the ranking score.",
+    "civic   = true when the source or query exists to surface service information",
+    "          (closures, outages, interruptions, official notices). Civic items are",
+    "          boosted in rank and never dropped by the noise filter."
+  ],
+  "outlets": [
+    {
+      "id": "tribune242",
+      "name": "Tribune242",
+      "initials": "T",
+      "weight": 1,
+      "rss": "https://www.tribune242.com/feed/",
+      "verify": true,
+      "home": "https://www.tribune242.com"
+    },
+    {
+      "id": "nassau-guardian",
+      "name": "The Nassau Guardian",
+      "initials": "N",
+      "weight": 1,
+      "rss": "https://thenassauguardian.com/feed/",
+      "verify": true,
+      "home": "https://thenassauguardian.com"
+    },
+    {
+      "id": "our-news",
+      "name": "Our News",
+      "initials": "ON",
+      "weight": 0.95,
+      "rss": "https://ournews.bs/feed/",
+      "verify": true,
+      "home": "https://ournews.bs"
+    },
+    {
+      "id": "eyewitness-news",
+      "name": "Eyewitness News",
+      "initials": "EW",
+      "weight": 0.95,
+      "rss": "https://ewnews.com/feed",
+      "verify": true,
+      "home": "https://ewnews.com"
+    },
+    {
+      "id": "bahamas-press",
+      "name": "Bahamas Press",
+      "initials": "BP",
+      "weight": 0.85,
+      "rss": "https://bahamaspress.com/feed/",
+      "verify": true,
+      "home": "https://bahamaspress.com"
+    },
+    {
+      "id": "zns-bahamas",
+      "name": "ZNS Bahamas",
+      "initials": "Z",
+      "weight": 0.9,
+      "rss": "https://znsbahamas.com/feed/",
+      "verify": true,
+      "home": "https://znsbahamas.com"
+    },
+    {
+      "id": "bahamas-local",
+      "name": "Bahamas Local",
+      "initials": "BL",
+      "weight": 0.7,
+      "rss": "https://www.bahamaslocal.com/news/rss",
+      "verify": true,
+      "home": "https://www.bahamaslocal.com"
+    },
+    {
+      "id": "bis",
+      "name": "Bahamas Information Services",
+      "initials": "BIS",
+      "weight": 1,
+      "rss": "https://www.bahamas.gov.bs/wps/portal/public/news/",
+      "verify": true,
+      "home": "https://www.bahamas.gov.bs"
+    }
+  ],
+  "civicQueries": [
+    {
+      "id": "road-closures",
+      "label": "Road closures & diversions",
+      "query": "\"road closure\" OR \"road closures\" OR \"traffic diversion\" OR \"street closure\" Bahamas",
+      "category": "road",
+      "weight": 1
+    },
+    {
+      "id": "road-works",
+      "label": "Road works",
+      "query": "road works OR \"road repairs\" OR resurfacing Nassau OR Bahamas",
+      "category": "road",
+      "weight": 0.95
+    },
+    {
+      "id": "water",
+      "label": "Water interruptions",
+      "query": "\"water interruption\" OR \"water supply\" OR \"boil water\" OR WSC Nassau Bahamas",
+      "category": "water",
+      "weight": 1
+    },
+    {
+      "id": "power",
+      "label": "Power outages",
+      "query": "\"power outage\" OR \"load shedding\" OR BPL Bahamas",
+      "category": "power",
+      "weight": 1
+    },
+    {
+      "id": "sanitation",
+      "label": "Sanitation & collection",
+      "query": "\"garbage collection\" OR \"sanitation\" OR \"waste collection\" Bahamas",
+      "category": "sanitation",
+      "weight": 0.95
+    },
+    {
+      "id": "weather",
+      "label": "Weather warnings",
+      "query": "\"small craft warning\" OR \"weather warning\" OR \"flood warning\" Bahamas",
+      "category": "storm",
+      "weight": 1
+    },
+    {
+      "id": "marine",
+      "label": "Ferry & marine",
+      "query": "ferry OR \"mailboat\" OR \"sea conditions\" Bahamas",
+      "category": "marine",
+      "weight": 0.85
+    },
+    {
+      "id": "notices",
+      "label": "Official notices",
+      "query": "\"Ministry of Works\" OR \"public notice\" OR \"notice to the public\" Bahamas",
+      "category": "notice",
+      "weight": 0.95
+    },
+    {
+      "id": "police-traffic",
+      "label": "Police advisories",
+      "query": "\"police advisory\" OR \"traffic advisory\" OR \"Royal Bahamas Police Force\" traffic",
+      "category": "safety",
+      "weight": 0.95
+    },
+    {
+      "id": "islands",
+      "label": "Family islands",
+      "query": "\"Grand Bahama\" OR Exuma OR Eleuthera OR Abaco OR Andros OR Bimini closure OR disruption",
+      "category": "notice",
+      "weight": 0.9
+    }
+  ],
+  "googleNews": {
+    "base": "https://news.google.com/rss/search",
+    "params": {
+      "hl": "en-US",
+      "gl": "BS",
+      "ceid": "BS:en"
+    },
+    "recency": "when:7d"
+  }
+}

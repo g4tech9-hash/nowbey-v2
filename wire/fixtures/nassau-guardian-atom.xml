@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>The Nassau Guardian</title>
+  <link href="https://thenassauguardian.com"/>
+  <updated>2026-10-26T10:00:00Z</updated>
+  <entry>
+    <title>Ferry services to the Family Islands suspended as swell builds</title>
+    <link href="https://thenassauguardian.com/ferry-services-suspended-as-swell-builds/"/>
+    <updated>2026-10-26T09:12:00Z</updated>
+    <id>https://thenassauguardian.com/?p=90210</id>
+    <summary type="html">&lt;p&gt;Mailboat and ferry operators suspended services to Exuma and Long Island on Monday as sea conditions deteriorated, the Port Department said.&lt;/p&gt;</summary>
+  </entry>
+  <entry>
+    <title>Suspect caught hiding in business as police probe vehicle thefts</title>
+    <link href="https://thenassauguardian.com/suspect-caught-hiding-in-business/"/>
+    <updated>2026-10-26T08:30:00Z</updated>
+    <id>https://thenassauguardian.com/?p=90211</id>
+    <summary type="html">&lt;p&gt;Police arrested a man in Nassau after a string of vehicle thefts.&lt;/p&gt;</summary>
+  </entry>
+  <entry>
+    <title>Portion of East Street closed to traffic for three weeks</title>
+    <link href="https://thenassauguardian.com/portion-of-east-street-closed/"/>
+    <updated>2026-10-26T08:20:00Z</updated>
+    <id>https://thenassauguardian.com/?p=90212</id>
+    <summary type="html">&lt;p&gt;The Ministry of Works said a section of East Street will be closed to traffic from Monday while crews replace a culvert. Traffic will be diverted through Soldier Road.&lt;/p&gt;</summary>
+  </entry>
+</feed>
