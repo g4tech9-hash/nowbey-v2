@@ -1,0 +1,58 @@
+/**
+ * Layer 2 dark theme — "Ocean Night v2".
+ * These are the product's real token values; wire/preview/ui.html and the
+ * marketing generator (Downloads/.../scripts/tokens.mjs) mirror this file.
+ */
+:root {
+  --bg-base: #0c151d;
+  --bg-sunken: #0c151d;
+  --bg-raised: #152230;
+  --bg-elevated: #1c2b39;
+  --bg-hover: #243546;
+  --bg-selected: rgba(63, 214, 192, 0.14);
+  --bg-glass: rgba(21, 34, 48, 0.62);
+
+  --text-primary: #f3f1ea;
+  --text-secondary: #b9c8c9;
+  --text-tertiary: #9aafb3;
+  --text-on-accent: #04211d;
+
+  --border-subtle: rgba(148, 206, 202, 0.1);
+  --border-default: rgba(148, 206, 202, 0.18);
+  --border-strong: rgba(160, 214, 210, 0.62);
+  --border-accent: rgba(63, 214, 192, 0.55);
+
+  --accent: #3fd6c0;
+  --accent-hover: #6eeadb;
+  --accent-muted: rgba(63, 214, 192, 0.16);
+  --danger: #ff7f6b;
+  --warning: #f8cf6b;
+  --info: #6fd0ff;
+  --success: #afe85f;
+
+  --cat-flooding: #6fd0ff;
+  --cat-power: #f8cf6b;
+  --cat-road: #ff9d8a;
+  --cat-water: #35d6e6;
+  --cat-safety: #ff8ba6;
+  --cat-marine: #6eeadb;
+  --cat-health: #b39cff;
+  --cat-sanitation: #afe85f;
+  --cat-storm: #ffe39a;
+  --cat-fire: #ff7f6b;
+  --cat-community: #ff8fb8;
+  --cat-notice: #9fb4bb;
+  --cat-accident: #ff9d8a;
+
+  --r-xs: 8px;
+  --r-sm: 14px;
+  --r-md: 20px;
+  --r-lg: 28px;
+  --r-pill: 999px;
+
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --grid-line: rgba(122, 186, 190, 0.085);
+}
