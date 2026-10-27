@@ -1,0 +1,16 @@
+{
+  "name": "@nowbey/civic-wire",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Civic-first Bahamian news wire: source list, RSS ingestion, category + island classification, ranking and de-duplication. Dependency-free so it drops into the app's existing pipeline.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "ingest": "node ingest.mjs",
+    "ingest:fixtures": "node ingest.mjs --fixtures --out data/wire.sample.json",
+    "test": "node --test test/*.test.mjs",
+    "preview": "node preview/server.mjs"
+  }
+}

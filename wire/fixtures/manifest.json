@@ -1,0 +1,31 @@
+{
+  "$comment": "Offline corpus that mirrors what the live wire was actually serving on 2026-10-26, plus the civic stories it should have been catching. Used by `npm run ingest:fixtures`, the preview server and the tests.",
+  "capturedAt": "2026-10-26T10:00:00Z",
+  "fixtures": [
+    {
+      "source": "tribune242",
+      "publisher": "Tribune242",
+      "file": "tribune242.xml"
+    },
+    {
+      "source": "our-news",
+      "publisher": "Our News",
+      "file": "our-news.xml"
+    },
+    {
+      "source": "nassau-guardian",
+      "publisher": "The Nassau Guardian",
+      "file": "nassau-guardian-atom.xml"
+    },
+    {
+      "source": "gn-road-closures",
+      "publisher": "Google News",
+      "file": "google-news-road-closures.xml"
+    },
+    {
+      "source": "gn-utilities",
+      "publisher": "Google News",
+      "file": "google-news-utilities.xml"
+    }
+  ]
+}
