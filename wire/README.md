@@ -69,7 +69,15 @@ ferry suspension, small craft warning, Grand Bahama garbage collection.
 
 ## Where it plugs in
 
-The app source is not in this repository, so these are the exact seams:
+These are live now — `src/` in this repository is wired to the engine:
+
+- `src/lib/wire.ts` — one cached run, shared by the pages and the API.
+- `src/app/wire/page.tsx` — the news wire, with a civic-only filter.
+- `src/app/feed/page.tsx` — neighbour reports merged with the civic wire.
+- `src/app/api/wire/route.ts` and `.../refresh/route.ts` — JSON + cron.
+
+The shapes below are what the pages use, if you are lifting this into another
+project:
 
 ```js
 // src/app/api/wire/route.ts
