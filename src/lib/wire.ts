@@ -7,6 +7,7 @@ import { ageLabel, ingest } from '@wire/lib/ingest.mjs';
 import { bridgeToFeed } from '@wire/lib/feed.mjs';
 import { mergeFeedItems } from '@wire/lib/merge.mjs';
 
+import { getAlerts } from './alerts';
 import { sampleReports } from './sample-reports';
 
 export type WireMode = 'fixtures' | 'live';
@@ -182,7 +183,7 @@ export async function getWire(options: { force?: boolean } = {}): Promise<WirePa
   return payload;
 }
 
-/** The Feed tab: neighbour reports merged with the civic wire. */
+/** The Feed tab: neighbour reports merged with the civic wire + live alerts. */
 export async function getFeed() {
   const wire = await getWire();
   const now = new Date();
@@ -190,7 +191,21 @@ export async function getFeed() {
   // merge ratio is testable in the browser.
   const reports = sampleReports(now);
   const wireCards = wire.cards as any[];
-  const merged = mergeFeedItems(reports as any[], wireCards, { window: 6, maxWireShare: 0.4, maxPerCategory: 1 });
+
+  // Fold live alerts into the newsroom wire so a missing-person alert can
+  // appear in the community feed alongside closures and outages.
+  const alertPayload = await getAlerts();
+  const alertCards = alertPayload.items.map((item) => ({
+    ...item,
+    kind: 'alert' as const,
+    sortWeight: item.feedWeight,
+  }));
+
+  const merged = mergeFeedItems(
+    reports as any[],
+    [...wireCards, ...alertCards] as any[],
+    { window: 6, maxWireShare: 0.4, maxPerCategory: 1 },
+  );
 
   return {
     mode: wire.mode,
@@ -199,6 +214,7 @@ export async function getFeed() {
     items: merged.items as any[],
     placedWire: merged.placed,
     heldWire: merged.held.length,
+    alerts: alertPayload.items.length,
     totals: wire.report.totals,
     sources: wire.report.sources,
   };

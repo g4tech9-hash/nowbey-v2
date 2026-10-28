@@ -54,6 +54,10 @@ export default async function FeedPage({
             <span>Civic on wire</span>
           </div>
           <div className="stat">
+            <b>{feed.alerts}</b>
+            <span>Live alerts</span>
+          </div>
+          <div className="stat">
             <b>{feed.totals.duplicatesRemoved}</b>
             <span>Dupes merged</span>
           </div>

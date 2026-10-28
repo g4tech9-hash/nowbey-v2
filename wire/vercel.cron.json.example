@@ -1,4 +1,7 @@
 {
-  "$comment": "Add this 'crons' block to the app's vercel.json. Set CRON_SECRET in the project env so /api/wire/refresh cannot be hit by anyone else.",
-  "crons": [{ "path": "/api/wire/refresh", "schedule": "*/15 * * * *" }]
+  "$comment": "Add this 'crons' block to the app's vercel.json. Set CRON_SECRET in the project env so /api/*/refresh cannot be hit by anyone else.",
+  "crons": [
+    { "path": "/api/wire/refresh", "schedule": "*/15 * * * *" },
+    { "path": "/api/alerts/refresh", "schedule": "*/15 * * * *" }
+  ]
 }
