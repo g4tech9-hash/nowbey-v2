@@ -372,6 +372,71 @@ a {
   margin-top: 8px;
 }
 
+/* ---- alert card --------------------------------------------------------- */
+.person-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.person-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.person-field b {
+  color: var(--text-primary);
+}
+
+.last-seen {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.last-seen b {
+  color: var(--danger);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.alert-photo {
+  margin: 10px 0 8px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.alert-photo img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.photo-caption {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
 /* ---- side rail ---------------------------------------------------------- */
 .panel {
   background: var(--bg-raised);

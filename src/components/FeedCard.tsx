@@ -1,14 +1,16 @@
+import { AlertCard } from './AlertCard';
 import { CategoryBadge, categoryVars } from './WireCard';
 
 /**
  * One card in the community feed.
  *
- * Two shapes share the frame: a neighbour report (confirm / saw it / cleared)
- * and a wire story (source chip, "Read at …", no confirmation bar — a newsroom
- * story is not something a neighbour can confirm is still there).
+ * Three shapes share the frame: a neighbour report (confirm / saw it / cleared),
+ * a wire story (source chip, "Read at …"), and a public-safety alert (missing
+ * person, contact number, urgency badge).
  */
 export function FeedCard({ item }: { item: any }) {
   if (item.kind === 'wire') return <WireInFeed item={item} />;
+  if (item.kind === 'alert') return <AlertInFeed item={item} />;
   return <ReportCard item={item} />;
 }
 
@@ -38,6 +40,11 @@ function WireInFeed({ item }: { item: any }) {
       <p className="disclosure">{item.disclosure}</p>
     </article>
   );
+}
+
+/** A missing-person alert dropped into the community feed. */
+function AlertInFeed({ item }: { item: any }) {
+  return <AlertCard item={item} />;
 }
 
 function ReportCard({ item }: { item: any }) {

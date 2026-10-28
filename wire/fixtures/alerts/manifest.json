@@ -1,0 +1,11 @@
+{
+  "$comment": "Offline corpus mirroring a real Marco's Alert capture. Used offline and by tests.",
+  "capturedAt": "2026-10-28T09:00:00Z",
+  "fixtures": [
+    {
+      "source": "police-advisory",
+      "publisher": "Royal Bahamas Police Force",
+      "file": "marcos-alert.xml"
+    }
+  ]
+}

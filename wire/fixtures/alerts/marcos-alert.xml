@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>RBPF Public Advisories</title>
+    <link>https://www.royalbahamaspoliceforce.com</link>
+    <description>Public safety and missing-person advisories from the Royal Bahamas Police Force.</description>
+    <pubDate>Wed, 28 Oct 2026 08:00:00 GMT</pubDate>
+    <item>
+      <title>Marco's Alert — Clore Simon, 17, missing, New Providence</title>
+      <link>https://www.royalbahamaspoliceforce.com/advisories/marco-alert-clore-simon</link>
+      <guid isPermaLink="true">https://www.royalbahamaspoliceforce.com/advisories/marco-alert-clore-simon</guid>
+      <pubDate>Wed, 28 Oct 2026 07:45:00 GMT</pubDate>
+      <description>
+        Marco's Alert
+
+        Clore Simon (Female) 17yrs of Roland Street, Ridgeland Park, New Providence. Last seen Monday, 26th October, 2026: @ Roland Street. Complexion: Dark Brown, Slim Build, Height 4' 11": If seen contact police @ 919 or CID 502-9991 502-9992: See Photo: https://www.facebook.com/share/p/1BtjVU4m7P/
+      </description>
+    </item>
+    <item>
+      <title>Public advisory — missing person, Grand Bahama</title>
+      <link>https://www.royalbahamaspoliceforce.com/advisories/missing-grand-bahama</link>
+      <guid isPermaLink="true">https://www.royalbahamaspoliceforce.com/advisories/missing-grand-bahama</guid>
+      <pubDate>Tue, 27 Oct 2026 14:20:00 GMT</pubDate>
+      <description>
+        Marco's Alert
+
+        Dwayne Carter (Male) 14yrs of East End, Grand Bahama. Last seen Tuesday, 27th October, 2026: @ East End. Complexion: Dark Brown, Medium Build, Height 5' 3": If seen contact police @ 919 or CID 502-8881: See Photo: https://www.facebook.com/share/p/exampleCarter/
+      </description>
+    </item>
+  </channel>
+</rss>

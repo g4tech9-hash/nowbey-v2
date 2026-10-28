@@ -61,7 +61,7 @@ export function parseDate(input) {
 /**
  * @returns {{ feedTitle: string, items: RawItem[] }}
  */
-export function parseFeed(xml, { source = null } = {}) {
+export function parseFeed(xml, { source = null, maxSummary = 280 } = {}) {
   const doc = String(xml || '');
   const feedTitle =
     tagText(doc.match(/<channel\b[^>]*>[\s\S]*?<\/channel>/i)?.[0] || doc, 'title') || '';
@@ -78,6 +78,7 @@ export function parseFeed(xml, { source = null } = {}) {
     const { title, stripped } = splitPublisherSuffix(rawTitle, declared);
     const link = firstLink(block);
     const summarySource = tagText(block, 'content:encoded', 'description', 'summary', 'content');
+    const summary = truncate(dropEchoedTitle(summarySource, title, declared || publisher), maxSummary);
     const published =
       parseDate(tagText(block, 'pubDate', 'published', 'updated', 'dc:date')) || null;
 
@@ -87,7 +88,7 @@ export function parseFeed(xml, { source = null } = {}) {
       title,
       url: link,
       publisher,
-      summary: truncate(dropEchoedTitle(summarySource, title, declared || publisher), 280),
+      summary,
       publishedAt: published,
       guid: tagText(block, 'guid', 'id') || link,
       titleSuffixStripped: stripped,

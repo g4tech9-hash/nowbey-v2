@@ -1,0 +1,45 @@
+{
+  "$comment": [
+    "Sources the NowBey alerts engine polls for missing-person / public-safety alerts.",
+    "Every entry is actionable service information: a name, a place last seen,",
+    "and a number to call if the person is sighted.",
+    "",
+    "kind=rss      -> an outlet's or agency's own feed (fails soft if down).",
+    "kind=google-news -> Google News RSS search, scoped to The Bahamas.",
+    "",
+    "weight  = editorial trust/priority, 0..1.",
+    "category = app category the alert files under (safety by default)."
+  ],
+  "googleNews": {
+    "base": "https://news.google.com/rss/search",
+    "params": {
+      "hl": "en-US",
+      "gl": "BS",
+      "ceid": "BS:en"
+    }
+  },
+  "sources": [],
+  "alertQueries": [
+    {
+      "id": "missing-person",
+      "label": "Missing person alerts",
+      "query": "\"missing\" OR \"last seen\" OR \"has been reported missing\" OR \"Marco's Alert\" Bahamas",
+      "category": "safety",
+      "weight": 1
+    },
+    {
+      "id": "amber-alert",
+      "label": "Amber / child alerts",
+      "query": "\"amber alert\" OR \"child missing\" OR \"teenager missing\" OR \"girl missing\" OR \"boy missing\" Bahamas",
+      "category": "safety",
+      "weight": 1
+    },
+    {
+      "id": "police-advisory",
+      "label": "Police public advisories",
+      "query": "\"police advisory\" OR \"public advisory\" OR \"wanted\" OR \"if seen contact police\" Bahamas",
+      "category": "safety",
+      "weight": 0.95
+    }
+  ]
+}
