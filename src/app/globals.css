@@ -1,7 +1,25 @@
+/* Tailwind is imported for its utilities only — the landing kit (src/ui/kit.tsx)
+   is written against them. Preflight is deliberately left out so the app shell's
+   own base styles below stay in charge. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
 @import "../styles/pulse/tokens.css";
+@import "../styles/pulse/compat.css";
+@import "../styles/pulse/components.css";
 
 * {
   box-sizing: border-box;
+}
+
+/* Display face for the wordmark and headings (from pulse/base.css). */
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+  text-wrap: balance;
 }
 
 html,
