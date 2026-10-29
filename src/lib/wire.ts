@@ -8,6 +8,7 @@ import { bridgeToFeed } from '@wire/lib/feed.mjs';
 import { mergeFeedItems } from '@wire/lib/merge.mjs';
 
 import { getAlerts } from './alerts';
+import { buildFacebookRssIntegration } from './fb-settings';
 import { sampleReports } from './sample-reports';
 
 export type WireMode = 'fixtures' | 'live';
@@ -169,14 +170,26 @@ export async function getWire(options: { force?: boolean } = {}): Promise<WirePa
   let fixtures;
   let deltaMs = 0;
   let fixtureCapturedAt: string | undefined;
+  let fetchImpl: typeof fetch | undefined;
+  let mergedConfig = config;
+
   if (mode === 'fixtures') {
     const loaded = await readFixtures();
     fixtures = loaded.fixtures;
     fixtureCapturedAt = loaded.capturedAt;
     deltaMs = now.getTime() - Date.parse(loaded.capturedAt);
+  } else {
+    const fb = await buildFacebookRssIntegration();
+    fetchImpl = fb.fetchImpl;
+    if (fb.outlets.length > 0) {
+      mergedConfig = {
+        ...config,
+        outlets: [...fb.outlets, ...(config.outlets || [])],
+      };
+    }
   }
 
-  const { items, report } = await ingest({ config, fixtures, now });
+  const { items, report } = await ingest({ config: mergedConfig, fixtures, fetchImpl, now });
   const rebased = rebase(items as any[], deltaMs);
   const { cards } = bridgeToFeed(rebased, { now });
 

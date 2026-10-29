@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { ingest, validateAlertSubmission } from '@wire/lib/alerts.mjs';
 
 import { listSubmittedAlerts, saveSubmittedAlert, type StoredBulletin } from './alerts-store';
+import { buildFacebookRssIntegration } from './fb-settings';
 
 export type AlertMode = 'fixtures' | 'live';
 
@@ -172,13 +173,41 @@ export async function getAlerts(options: { force?: boolean } = {}): Promise<Aler
 
   let fixtures;
   let fixtureCapturedAt: string | undefined;
+  let fetchImpl: typeof fetch | undefined;
+  let mergedConfig = config;
+
   if (mode === 'fixtures') {
     const loaded = await readFixtures();
     fixtures = loaded.fixtures;
     fixtureCapturedAt = loaded.capturedAt;
+  } else {
+    const fb = await buildFacebookRssIntegration();
+    fetchImpl = fb.fetchImpl;
+    if (fb.outlets.length > 0) {
+      mergedConfig = {
+        ...config,
+        sources: [
+          ...fb.outlets.map((o) => ({
+            id: o.id,
+            name: o.name,
+            initials: o.initials,
+            weight: o.weight,
+            bahamian: true,
+            url: o.rss,
+          })),
+          ...(config.sources || []),
+        ],
+      };
+    }
   }
 
-  const { items, report } = await ingest({ config, bulletins, fixtures, now });
+  const { items, report } = await ingest({
+    config: mergedConfig,
+    bulletins,
+    fixtures,
+    fetchImpl,
+    now,
+  });
 
   const payload: AlertPayload = {
     mode,

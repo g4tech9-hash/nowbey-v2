@@ -95,9 +95,12 @@ export function isDirectImageUrl(url = '') {
 function sourceList(config = {}, { recencyDays = DEFAULTS.recencyDays, env = process.env } = {}) {
   const list = [];
 
-  // Optional RBPF Facebook RSS bridge (e.g. rss.app / fetchrss / RSS-Bridge).
+  // Optional RBPF Facebook RSS bridge (when not already wired via the Facebook→RSS converter).
+  const hasConverterRbpf = (config.sources || []).some((s) =>
+    /^fb-(?:rbpfpublicaffairs|royalbahamaspoliceforce|rbpf242)$/i.test(String(s.id || '')),
+  );
   const rbpfBridge = String(env?.RBPF_FB_RSS_URL || '').trim();
-  if (/^https?:\/\//i.test(rbpfBridge)) {
+  if (!hasConverterRbpf && /^https?:\/\//i.test(rbpfBridge)) {
     list.push({
       id: 'rbpf-fb-bridge',
       kind: 'rss',

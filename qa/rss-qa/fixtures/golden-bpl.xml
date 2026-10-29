@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Bahamas Power and Light</title>
+    <link>https://www.facebook.com/mybpl242/</link>
+    <description>Posts by Bahamas Power and Light (BPL), the national energy provider of The Bahamas.</description>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 16 Oct 2026 18:05:00 +0000</lastBuildDate>
+    <generator>NowBey FB-to-RSS bridge — QA golden fixture</generator>
+    <atom:link href="https://bridge.example.org/feed/mybpl242.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Scheduled maintenance outage for parts of eastern New Providence on Tuesday</title>
+      <link>https://www.facebook.com/mybpl242/posts/1205834411022</link>
+      <guid isPermaLink="false">mybpl242-post-1205834411022</guid>
+      <pubDate>Thu, 15 Oct 2026 14:30:00 +0000</pubDate>
+      <description><![CDATA[BPL advises customers in Fox Hill & Sans Souci: a planned outage runs Tuesday 9am-11am for line maintenance along Prince Charles Drive. Report outages 24/7 to 225-5275. Outage map: https://www.bplco.com/services/outages]]></description>
+      <enclosure url="https://scontent.xx.fbcdn.net/v/t39.30808-6/outage-map-schedule.jpg" length="184320" type="image/jpeg" />
+    </item>
+    <item>
+      <title>Restoration update for Eleuthera after generator fault at Rock Sound plant</title>
+      <link>https://www.facebook.com/mybpl242/posts/1204678301001</link>
+      <guid isPermaLink="false">mybpl242-post-1204678301001</guid>
+      <pubDate>Wed, 14 Oct 2026 09:15:00 +0000</pubDate>
+      <description>BPL crews restored supply to Tarpum Bay &amp; Greencastle this morning. We thank customers for their patience while repairs continue on the rental generation units.</description>
+    </item>
+    <item>
+      <title>BPL partners with BEC on solar expansion for the Family Islands</title>
+      <link>https://www.facebook.com/mybpl242/posts/1203344955110</link>
+      <guid isPermaLink="false">mybpl242-post-1203344955110</guid>
+      <pubDate>Mon, 12 Oct 2026 16:45:00 +0000</pubDate>
+      <description><![CDATA[Remarks from the signing ceremony: 6 MW of new solar for Exuma & Inagua, cutting diesel dependency across the Family Islands. #Bahamas #Energy]]></description>
+    </item>
+  </channel>
+</rss>

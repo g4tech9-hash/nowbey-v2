@@ -66,6 +66,15 @@
       "home": "https://znsbahamas.com"
     },
     {
+      "id": "bpl",
+      "name": "Bahamas Power and Light",
+      "initials": "BPL",
+      "weight": 1,
+      "civic": true,
+      "rss": "https://www.bplco.com/feed/",
+      "home": "https://www.bplco.com"
+    },
+    {
       "id": "bahamas-local",
       "name": "Bahamas Local",
       "initials": "BL",

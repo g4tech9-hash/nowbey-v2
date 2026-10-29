@@ -6,8 +6,9 @@ NowBey — community safety map, Marco's Alert tracker and Bahamian news wire. *
 
 | Path | What it is |
 | --- | --- |
-| `src/` | **The app.** Next.js App Router: `/`, `/feed`, `/alerts`, `/wire`, `/api/alerts`, `/api/alerts/refresh`, `/api/wire`, `/api/wire/refresh`. |
-| `wire/` | **Civic wire & Marco's Alert engines** — sources, Cell Broadcast bulletins, ingest, classification, de-duplication, ranking. Dependency-free. See [`wire/README.md`](wire/README.md). |
+| `src/` | **The app.** Next.js App Router: `/`, `/feed`, `/alerts`, `/wire`, `/api/alerts`, `/api/alerts/refresh`, `/api/wire`, `/api/wire/refresh`, `/api/rss/facebook`. |
+| `wire/` | **Civic wire, Marco's Alert & Facebook→RSS 2.0 engines** — sources, Cell Broadcast bulletins, Facebook converter, ingest, classification, de-duplication, ranking. Dependency-free. See [`wire/README.md`](wire/README.md). |
+| `qa/rss-qa/` | **Strict XML / RSS 2.0 QA harness** (`node qa/rss-qa/validate.mjs --selftest`) validating `/api/rss/facebook` output and simulating NowBey's ingest gates. |
 | `Downloads/nowbey-full-kit/nowbey-kit/` | The social launch kit (posts, stories, reels, captions, publishing CLI). Start at `00-START-HERE.md`. |
 | `eas.json`, `EAS_FIX_REPORT.md`, `eas-fix.log` | Expo/EAS build configuration and the record of the OTA fix. |
 
@@ -15,9 +16,10 @@ NowBey — community safety map, Marco's Alert tracker and Bahamian news wire. *
 
 ```bash
 npm install
-npm run dev            # http://0.0.0.0:3000 — /, /feed, /alerts and /wire
+npm run dev                        # http://0.0.0.0:3000 — /, /feed, /alerts, /wire, /api/rss/facebook
 npm run typecheck
-npm run wire:test      # 34 tests for the wire & alerts engines, no network
+npm run wire:test                  # 43 tests for the wire, alerts & Facebook→RSS engines, no network
+node qa/rss-qa/validate.mjs --selftest
 ```
 
 Copy `.env.example` to `.env.local`. Locally, RSS outlets default to the **fixture corpus** in
@@ -26,20 +28,16 @@ Copy `.env.example` to `.env.local`. Locally, RSS outlets default to the **fixtu
 `ALERTS_MODE=live` locally to fetch live Bahamian RSS feeds (on Vercel deployments, both
 automatically default to `live`).
 
-## How Marco's Alerts & missing-person notices are caught
+## How Marco's Alerts & Facebook sources are caught
 
-Bahamas **Marco's Alerts** broadcast over BTC / ALIV mobile Cell Broadcast + Royal Bahamas Police Force Facebook posts (`facebook.com/share/p/...`) and often precede newspaper RSS articles by hours or days. NowBey combines three layers so none are missed:
+Bahamas **Marco's Alerts** broadcast over BTC / ALIV mobile Cell Broadcast + Royal Bahamas Police Force Facebook posts and often precede newspaper RSS articles by hours or days. NowBey combines four layers so none are missed:
 
-1. **Verified Cell Broadcast bulletins (`wire/bulletins.json`)** — active RBPF / Marco's Alert dispatches tracked in the repo and parsed for structured fields (name, gender, age, settlement/island, last-seen time & location, complexion/build, dialable `919` / CID `502-9991` `502-9992` links, and official flyer link).
-2. **Real-time Cell Broadcast relay (`POST /api/alerts` + `/alerts` form)** — neighbours, operators, or automated mobile shortcuts can paste raw Cell Broadcast text (even with OCR line-wrapped URLs). Validated alerts persist to Neon Postgres (`DATABASE_URL`) or `wire/data/submitted-alerts.json` locally and broadcast within 60 seconds via `AlertsMonitor`.
-3. **Live Bahamian newsrooms & RSS (`wire/alerts.json` + `wire/sources.json`)** — Tribune242, The Nassau Guardian, Our News, ZNS Bahamas, Bahamas Press, scoped Google News queries, and optional `RBPF_FB_RSS_URL` / `ALERTS_EXTRA_FEEDS` are polled, filtered through `isAlertCandidate()` to drop non-Bahamian or non-missing-person noise, and deduplicated by missing person + island.
+1. **Facebook → RSS 2.0 generator (`/api/rss/facebook`, `wire/lib/facebook.mjs`)** — converts configured Facebook pages (`rbpfpublicaffairs` for RBPF, `mybpl242` for BPL, plus any saved in Neon `site_settings.fb_pages` / `site_settings.fb_bridges` or `FB_PAGES` / `FB_RSS_BRIDGES` / `RBPF_FB_RSS_URL`) into strict normalized RSS 2.0 (including `<enclosure>` flyer images) and feeds them straight into both `getAlerts()` and `getWire()`.
+2. **Verified Cell Broadcast bulletins (`wire/bulletins.json`)** — active RBPF / Marco's Alert dispatches tracked in the repo and parsed for structured fields (name, gender, age, settlement/island, last-seen time & location, complexion/build, dialable `919` / CID `502-9991` `502-9992` links, and official flyer link).
+3. **Real-time Cell Broadcast relay (`POST /api/alerts` + `/alerts` form)** — neighbours, operators, or automated mobile shortcuts can paste raw Cell Broadcast text (even with OCR line-wrapped URLs). Validated alerts persist to Neon Postgres (`DATABASE_URL`) or `wire/data/submitted-alerts.json` locally and broadcast within 60 seconds via `AlertsMonitor`.
+4. **Live Bahamian newsrooms & official RSS (`wire/alerts.json` + `wire/sources.json`)** — Tribune242, The Nassau Guardian, Our News, ZNS Bahamas, Bahamas Power and Light (`bplco.com/feed/`), Bahamas Press, and scoped Google News queries are polled, filtered through `isAlertCandidate()`, and deduplicated by missing person + island.
 
 High-urgency Marco's Alerts pin directly at the top of `/`, `/alerts`, and `/feed`.
-
-## What is real and what is a stand-in
-
-- **Real:** the wire engine, the Marco's Alert engine, `/alerts`, `/api/alerts`, `/api/alerts/refresh`, `/wire`, `/api/wire`, `/api/wire/refresh`, and the merge logic that pins alerts and places civic stories in `/feed`.
-- **Stand-in:** the neighbour reports in the feed come from `src/lib/sample-reports.ts` (each card says so), and `/map` and `/report` are not part of this shell.
 
 ## Deploy notes
 
