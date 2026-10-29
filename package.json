@@ -2,7 +2,7 @@
   "name": "nowbey-v2",
   "private": true,
   "version": "0.1.0",
-  "description": "NowBey \u2014 community safety map and Bahamian news wire. Stand-in app shell wired to the civic wire engine in wire/.",
+  "description": "NowBey — community safety map and Bahamian news wire. Stand-in app shell wired to the civic wire engine in wire/.",
   "scripts": {
     "dev": "next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
@@ -11,9 +11,11 @@
     "wire:test": "cd wire && node --test test/*.test.mjs"
   },
   "dependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
     "next": "15.5.28",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@types/node": "22.10.5",

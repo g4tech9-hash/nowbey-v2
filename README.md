@@ -6,7 +6,9 @@ NowBey — community safety map and Bahamian news wire. *Stay Safe, Bahamas.*
 
 | Path | What it is |
 | --- | --- |
-| `src/` | **The app.** Next.js App Router: `/feed`, `/wire`, `/api/wire`, `/api/wire/refresh`. |
+| `src/` | **The app.** Next.js App Router: `/` (landing), `/feed`, `/wire`, `/api/wire`, `/api/wire/refresh`. |
+| `src/ui/` | **Landing kit** — `kit.tsx`, `phone-demo.tsx`, `mock-screens.tsx`. The primitives the landing page is built from. |
+| `src/styles/pulse/` | Design system: `tokens.css`, `components.css` (`nb-*` / `pulse-*`), `compat.css` (aliases). |
 | `wire/` | **Civic wire engine** — sources, ingest, classification, de-duplication, ranking. Dependency-free. See [`wire/README.md`](wire/README.md). |
 | `Downloads/nowbey-full-kit/nowbey-kit/` | The social launch kit (posts, stories, reels, captions, publishing CLI). Start at `00-START-HERE.md`. |
 | `eas.json`, `EAS_FIX_REPORT.md`, `eas-fix.log` | Expo/EAS build configuration and the record of the OTA fix. |
@@ -34,6 +36,29 @@ Bahamian sources.
   `src/lib/sample-reports.ts` (each card says so), and the `/map`, `/report` and
   `/alerts` routes are not part of this shell. Swap `sampleReports()` for the
   reports query when the social layer lands.
+
+## The landing page
+
+`/` is the marketing landing page as it stood on **21 October 2026**
+(`16dedfb`, `src/app/page.tsx` + `landing.module.css` + `src/ui/*`), restored
+after the 26 October rebuild replaced it with a stand-in shell placeholder.
+
+It was restored *adapted*, not verbatim, because this shell has no map, report
+flow or email alerts. Where the original linked to a route that does not exist
+here:
+
+| Original | Here |
+| --- | --- |
+| `/map` | `/feed` — the community feed is the live destination |
+| `/report`, `/alerts` | the section shows a **Coming soon** pill instead of a dead link |
+| `/support`, `/privacy`, `/terms` | dropped from the footer until those pages return |
+| session chip (`/api/session`) | a plain **Open the feed** button |
+
+The hero's proof strip reads live numbers off the wire engine (stories, civic
+stories, islands), so it never shows placeholder em-dashes again.
+
+> Don't swap `/` back to a placeholder. If the shell needs a different page,
+> change the sections above rather than replacing `page.tsx` wholesale.
 
 ## How a closure reaches the feed
 
