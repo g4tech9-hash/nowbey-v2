@@ -47,7 +47,9 @@ else
 fi
 
 step "REA (Reverse Engineer Anything)"
-npx -y "rea-agents@$REA_VERSION" setup --client claude_code --yes || failed+=(rea)
+# REA's setup needs Node >= 22.23.4; run it under Node 24 in case the system Node is older.
+npx -y -p node@24 -p "rea-agents@$REA_VERSION" -- rea setup --client claude_code --yes >/dev/null \
+  || failed+=(rea)
 
 step "Replica (11 skills)"
 tmp=$(mktemp -d)

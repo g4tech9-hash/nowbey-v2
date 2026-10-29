@@ -31,7 +31,8 @@ Step "Chrome DevTools MCP"
 Add-Mcp chrome-devtools @("cmd", "/c", "npx", "-y", "chrome-devtools-mcp@$ChromeDevtoolsVersion")
 
 Step "REA (Reverse Engineer Anything)"
-npx -y "rea-agents@$ReaVersion" setup --client claude_code --yes
+# REA's setup needs Node >= 22.23.4; run it under Node 24 in case the system Node is older.
+npx -y -p node@24 -p "rea-agents@$ReaVersion" -- rea setup --client claude_code --yes | Out-Null
 if ($LASTEXITCODE -ne 0) { $Failed += "rea" }
 
 Step "Replica (11 skills)"
