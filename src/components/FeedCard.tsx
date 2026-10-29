@@ -1,13 +1,15 @@
+import { AlertCard } from './AlertCard';
 import { CategoryBadge, categoryVars } from './WireCard';
 
 /**
  * One card in the community feed.
  *
- * Two shapes share the frame: a neighbour report (confirm / saw it / cleared)
- * and a wire story (source chip, "Read at …", no confirmation bar — a newsroom
- * story is not something a neighbour can confirm is still there).
+ * Three shapes share the frame: a high-urgency Marco's / public-safety alert,
+ * a neighbour report (confirm / saw it / cleared) and a wire story (source chip,
+ * "Read at …", no confirmation bar).
  */
 export function FeedCard({ item }: { item: any }) {
+  if (item.kind === 'alert') return <AlertCard item={item} />;
   if (item.kind === 'wire') return <WireInFeed item={item} />;
   return <ReportCard item={item} />;
 }

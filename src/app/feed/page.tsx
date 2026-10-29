@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
+import { AlertsMonitor } from '@/components/AlertsMonitor';
 import { FeedCard } from '@/components/FeedCard';
 import { HowItWorksPanel, ModeBanner, SourcesPanel } from '@/components/SideRail';
 import { SiteHeader } from '@/components/SiteHeader';
@@ -9,7 +10,7 @@ import { getFeed } from '@/lib/wire';
 export const metadata: Metadata = {
   title: 'Community feed',
   description:
-    'Neighbour reports and civic news from across The Bahamas, in one feed: closures, interruptions and warnings alongside what neighbours see.',
+    "Neighbour reports, Marco's Alerts and civic news from across The Bahamas, in one feed: missing-person alerts, closures, interruptions and warnings alongside what neighbours see.",
 };
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,8 @@ export default async function FeedPage({
   const categories = [...counts.entries()].sort((a, b) => b[1] - a[1]);
 
   const items = cat && cat !== 'all' ? feed.items.filter((i) => i.category === cat) : feed.items;
-  const label = (value: string) => (value === 'accident' ? 'Car Accident' : value[0].toUpperCase() + value.slice(1));
+  const label = (value: string) =>
+    value === 'accident' ? 'Car Accident' : value[0].toUpperCase() + value.slice(1);
 
   return (
     <>
@@ -37,8 +39,17 @@ export default async function FeedPage({
           <p className="eyebrow">Community</p>
           <h1 className="page-title">Everything happening on your island</h1>
           <p className="page-sub">
-            Neighbour reports and civic news together. {feed.placedWire} newsroom{' '}
-            {feed.placedWire === 1 ? 'story' : 'stories'} in this view, the rest filed by neighbours.
+            Active Marco&apos;s Alerts, neighbour reports and civic news together.{' '}
+            {feed.placedAlerts ? (
+              <>
+                <b>
+                  {feed.placedAlerts} live alert{feed.placedAlerts === 1 ? '' : 's'}
+                </b>
+                {' · '}
+              </>
+            ) : null}
+            {feed.placedWire} newsroom {feed.placedWire === 1 ? 'story' : 'stories'} in this view,
+            the rest filed by neighbours.
           </p>
         </div>
 
@@ -49,13 +60,13 @@ export default async function FeedPage({
             <b>{feed.items.length}</b>
             <span>In the feed</span>
           </div>
+          <div className="stat" data-danger={feed.alerts > 0 ? 'true' : undefined}>
+            <b>{feed.alerts}</b>
+            <span>Live alerts</span>
+          </div>
           <div className="stat" data-civic="true">
             <b>{feed.totals.civic}</b>
             <span>Civic on wire</span>
-          </div>
-          <div className="stat">
-            <b>{feed.totals.duplicatesRemoved}</b>
-            <span>Dupes merged</span>
           </div>
           <div className="stat">
             <b>
@@ -95,6 +106,8 @@ export default async function FeedPage({
           </aside>
         </div>
       </main>
+
+      <AlertsMonitor intervalMs={60_000} />
     </>
   );
 }

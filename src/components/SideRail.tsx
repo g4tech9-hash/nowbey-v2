@@ -34,30 +34,60 @@ export function HowItWorksPanel() {
       <h2>How a story reaches the feed</h2>
       <p className="hint">
         Every headline is scored for <b>civic value</b> — is it service information a neighbour can
-        act on? Closures, interruptions, outages, marine warnings and official notices clear the
-        bar.
+        act on? Closures, interruptions, outages, marine warnings, official notices and active{' '}
+        <b>Marco&apos;s Alerts</b> clear the bar.
       </p>
       <p className="hint">
-        Court, politics, sport and lifestyle stories stay on the wire. At most two in five feed
-        cards are newsroom stories, and only one per category, so neighbours still lead.
+        Active Marco&apos;s Alerts pin at the top of the feed. Court, politics, sport and lifestyle
+        stories stay on the wire.
       </p>
     </section>
   );
 }
 
-export function ModeBanner({ mode, capturedAt }: { mode: string; capturedAt?: string }) {
+export function AlertsHowItWorksPanel() {
+  return (
+    <section className="panel">
+      <h2>How Marco&apos;s Alerts are caught</h2>
+      <p className="hint">
+        <b>1. Cell Broadcast &amp; RBPF bulletins:</b> Marco&apos;s Alerts broadcast on BTC / ALIV
+        mobile networks and RBPF Facebook flyers are ingested directly via{' '}
+        <code>wire/bulletins.json</code> and <code>POST /api/alerts</code> (paste above or connect a
+        phone shortcut).
+      </p>
+      <p className="hint">
+        <b>2. Live Bahamian newsrooms:</b> Tribune242, The Nassau Guardian, Our News, ZNS Bahamas,
+        Bahamas Press and scoped Google News queries are polled and filtered for missing-person
+        notices, then merged by name + island so duplicates collapse.
+      </p>
+    </section>
+  );
+}
+
+export function ModeBanner({
+  mode,
+  capturedAt,
+  envVar = 'WIRE_MODE',
+}: {
+  mode: string;
+  capturedAt?: string;
+  envVar?: string;
+}) {
   if (mode === 'live') {
     return (
-      <div className="banner">
-        <b>Live sources.</b> Fetching the Bahamian outlets on each revalidation.
+      <div className="banner" data-live="true">
+        <b>Live sources.</b> Polling official Marco&apos;s Alert bulletins and Bahamian newsrooms on
+        each revalidation.
       </div>
     );
   }
   return (
     <div className="banner">
-      <b>Fixture corpus.</b> Replaying the wire captured {capturedAt ? new Date(capturedAt).toUTCString() : 'earlier'} —
-      timestamps are rebased to now so the ranking reads true. Set <code>WIRE_MODE=live</code> in{' '}
-      <code>.env.local</code> to fetch the real feeds.
+      <b>Active bulletins + offline feed corpus.</b> Live Marco&apos;s Alert bulletins are active;
+      RSS outlets are replaying the snapshot captured{' '}
+      {capturedAt ? new Date(capturedAt).toUTCString() : 'earlier'}. Set{' '}
+      <code>{envVar}=live</code> in <code>.env.local</code> (enabled automatically on Vercel) to
+      poll live RSS feeds.
     </div>
   );
 }

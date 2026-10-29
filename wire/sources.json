@@ -21,8 +21,7 @@
       "name": "Tribune242",
       "initials": "T",
       "weight": 1,
-      "rss": "https://www.tribune242.com/feed/",
-      "verify": true,
+      "rss": "https://www.tribune242.com/rss/headlines/",
       "home": "https://www.tribune242.com"
     },
     {
@@ -30,9 +29,8 @@
       "name": "The Nassau Guardian",
       "initials": "N",
       "weight": 1,
-      "rss": "https://thenassauguardian.com/feed/",
-      "verify": true,
-      "home": "https://thenassauguardian.com"
+      "rss": "https://www.thenassauguardian.com/search/?f=rss&t=article&l=25&s=start_time&sd=desc",
+      "home": "https://www.thenassauguardian.com"
     },
     {
       "id": "our-news",
@@ -40,7 +38,6 @@
       "initials": "ON",
       "weight": 0.95,
       "rss": "https://ournews.bs/feed/",
-      "verify": true,
       "home": "https://ournews.bs"
     },
     {
@@ -57,9 +54,8 @@
       "name": "Bahamas Press",
       "initials": "BP",
       "weight": 0.85,
-      "rss": "https://bahamaspress.com/feed/",
-      "verify": true,
-      "home": "https://bahamaspress.com"
+      "rss": "https://www.bahamaspress.com/feed/",
+      "home": "https://www.bahamaspress.com"
     },
     {
       "id": "zns-bahamas",
@@ -67,7 +63,6 @@
       "initials": "Z",
       "weight": 0.9,
       "rss": "https://znsbahamas.com/feed/",
-      "verify": true,
       "home": "https://znsbahamas.com"
     },
     {
@@ -152,6 +147,13 @@
       "query": "\"police advisory\" OR \"traffic advisory\" OR \"Royal Bahamas Police Force\" traffic",
       "category": "safety",
       "weight": 0.95
+    },
+    {
+      "id": "missing-alerts",
+      "label": "Marco's Alert & missing persons",
+      "query": "\"Marco's Alert\" OR \"MARCO Alert\" OR \"reported missing\" OR \"missing child\" OR \"missing teen\" Bahamas",
+      "category": "safety",
+      "weight": 1
     },
     {
       "id": "islands",

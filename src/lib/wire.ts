@@ -7,6 +7,7 @@ import { ageLabel, ingest } from '@wire/lib/ingest.mjs';
 import { bridgeToFeed } from '@wire/lib/feed.mjs';
 import { mergeFeedItems } from '@wire/lib/merge.mjs';
 
+import { getAlerts } from './alerts';
 import { sampleReports } from './sample-reports';
 
 export type WireMode = 'fixtures' | 'live';
@@ -102,10 +103,19 @@ const SOURCES_PATH = join(ROOT, 'wire', 'sources.json');
 const FIXTURES_PATH = join(ROOT, 'wire', 'fixtures');
 
 export function wireMode(): WireMode {
-  return process.env.WIRE_MODE === 'live' ? 'live' : 'fixtures';
+  const configured = process.env.WIRE_MODE?.trim().toLowerCase();
+  if (configured === 'live') return 'live';
+  if (configured === 'fixtures') return 'fixtures';
+  return process.env.VERCEL === '1' ? 'live' : 'fixtures';
 }
 
-let cache: { at: number; payload: WirePayload } | null = null;
+const cacheSlot = globalThis as typeof globalThis & {
+  __nowbeyWireCache?: { at: number; payload: WirePayload } | null;
+};
+
+export function invalidateWireCache(): void {
+  cacheSlot.__nowbeyWireCache = null;
+}
 
 function revalidateMs(): number {
   const seconds = Number(process.env.WIRE_REVALIDATE_SECONDS || 600);
@@ -149,7 +159,8 @@ function rebase(items: any[], deltaMs: number) {
  * this runs on more than one instance.
  */
 export async function getWire(options: { force?: boolean } = {}): Promise<WirePayload> {
-  if (!options.force && cache && Date.now() - cache.at < revalidateMs()) return cache.payload;
+  const cached = cacheSlot.__nowbeyWireCache;
+  if (!options.force && cached && Date.now() - cached.at < revalidateMs()) return cached.payload;
 
   const config = await readConfig();
   const mode = wireMode();
@@ -178,19 +189,29 @@ export async function getWire(options: { force?: boolean } = {}): Promise<WirePa
     report: report as WirePayload['report'],
   };
 
-  cache = { at: Date.now(), payload };
+  cacheSlot.__nowbeyWireCache = { at: Date.now(), payload };
   return payload;
 }
 
-/** The Feed tab: neighbour reports merged with the civic wire. */
+/** The Feed tab: neighbour reports merged with the civic wire + live Marco's Alerts. */
 export async function getFeed() {
-  const wire = await getWire();
+  const [wire, alertPayload] = await Promise.all([getWire(), getAlerts()]);
   const now = new Date();
   // Sample neighbour reports are generated relative to the current clock so the
   // merge ratio is testable in the browser.
   const reports = sampleReports(now);
   const wireCards = wire.cards as any[];
-  const merged = mergeFeedItems(reports as any[], wireCards, { window: 6, maxWireShare: 0.4, maxPerCategory: 1 });
+  const alertCards = alertPayload.items.map((item) => ({
+    ...item,
+    kind: 'alert' as const,
+    sortWeight: item.feedWeight,
+  }));
+
+  const merged = mergeFeedItems(
+    reports as any[],
+    [...wireCards, ...alertCards] as any[],
+    { window: 6, maxWireShare: 0.4, maxPerCategory: 1 },
+  );
 
   return {
     mode: wire.mode,
@@ -198,8 +219,10 @@ export async function getFeed() {
     fixtureCapturedAt: wire.fixtureCapturedAt,
     items: merged.items as any[],
     placedWire: merged.placed,
+    placedAlerts: merged.placedAlerts ?? alertCards.length,
     heldWire: merged.held.length,
+    alerts: alertPayload.items.length,
     totals: wire.report.totals,
-    sources: wire.report.sources,
+    sources: [...alertPayload.report.sources.slice(0, 1), ...wire.report.sources],
   };
 }

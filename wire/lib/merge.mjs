@@ -39,8 +39,17 @@ export function mergeFeedItems(reports = [], wire = [], options = {}) {
   const maxWireShare = options.maxWireShare ?? 0.4;
   const maxPerCategory = options.maxPerCategory ?? 1;
 
-  // Community items first, in their own order; wire items slot in after them.
+  // High-urgency public-safety alerts (e.g. Marco's Alert for a missing child)
+  // never compete with routine category caps — they pin at the top of the feed.
+  const pinnedAlerts = wire
+    .filter((item) => item.kind === 'alert' && item.urgency === 'high')
+    .sort((a, b) => (b.sortWeight ?? 0) - (a.sortWeight ?? 0));
+
+  const pinnedIds = new Set(pinnedAlerts.map((item) => item.id));
+
+  // Community items first, in their own order; wire + standard alert items slot in after them.
   const queue = wire
+    .filter((item) => !pinnedIds.has(item.id))
     .slice()
     .sort((a, b) => (b.sortWeight ?? 0) - (a.sortWeight ?? 0));
 
@@ -52,15 +61,20 @@ export function mergeFeedItems(reports = [], wire = [], options = {}) {
     if (!queue.length) return false;
     const windowStart = Math.max(0, index - window + 1);
     const windowItems = out.slice(windowStart);
-    const wireInWindow = windowItems.filter((i) => i.kind === 'wire').length;
+    const wireInWindow = windowItems.filter((i) => i.kind === 'wire' || i.kind === 'alert').length;
     const allowed = Math.max(1, Math.floor(window * maxWireShare) - wireInWindow);
     if (allowed <= 0) return false;
 
-    const next = queue.find((candidate) => (usedCategories.get(candidate.category) || 0) < maxPerCategory);
+    const next = queue.find(
+      (candidate) =>
+        candidate.kind === 'alert' || (usedCategories.get(candidate.category) || 0) < maxPerCategory,
+    );
     if (!next) return false;
 
     queue.splice(queue.indexOf(next), 1);
-    usedCategories.set(next.category, (usedCategories.get(next.category) || 0) + 1);
+    if (next.kind !== 'alert') {
+      usedCategories.set(next.category, (usedCategories.get(next.category) || 0) + 1);
+    }
     out.push(next);
     return true;
   };
@@ -99,9 +113,12 @@ export function mergeFeedItems(reports = [], wire = [], options = {}) {
     })
     .map((entry) => entry.item);
 
+  const combined = [...pinnedAlerts, ...ordered];
+
   return {
-    items: ordered,
-    placed: ordered.filter((i) => i.kind === 'wire').length,
+    items: combined,
+    placed: combined.filter((i) => i.kind === 'wire').length,
+    placedAlerts: combined.filter((i) => i.kind === 'alert').length,
     held,
   };
 }

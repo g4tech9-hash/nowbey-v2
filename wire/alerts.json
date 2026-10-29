@@ -1,0 +1,92 @@
+{
+  "$comment": [
+    "Sources the NowBey alerts engine polls for missing-person & Marco's Alert notices.",
+    "",
+    "Two network layers run alongside wire/bulletins.json + POST /api/alerts:",
+    "  1. sources      -> verified live Bahamian newsroom RSS feeds, filtered through",
+    "                     isAlertCandidate() so only missing-person / RBPF advisories pass.",
+    "  2. alertQueries -> Google News RSS queries scoped to Marco's Alert & missing persons",
+    "                     in The Bahamas.",
+    "",
+    "Operators can also set RBPF_FB_RSS_URL (an RSS-Bridge / rss.app feed for the Royal",
+    "Bahamas Police Force Facebook page) or ALERTS_EXTRA_FEEDS in environment variables."
+  ],
+  "googleNews": {
+    "base": "https://news.google.com/rss/search",
+    "params": {
+      "hl": "en-US",
+      "gl": "US",
+      "ceid": "US:en"
+    }
+  },
+  "sources": [
+    {
+      "id": "tribune242",
+      "kind": "rss",
+      "name": "Tribune242",
+      "initials": "T",
+      "weight": 1,
+      "bahamian": true,
+      "url": "https://www.tribune242.com/rss/headlines/"
+    },
+    {
+      "id": "nassau-guardian",
+      "kind": "rss",
+      "name": "The Nassau Guardian",
+      "initials": "N",
+      "weight": 1,
+      "bahamian": true,
+      "url": "https://www.thenassauguardian.com/search/?f=rss&t=article&l=25&s=start_time&sd=desc"
+    },
+    {
+      "id": "our-news",
+      "kind": "rss",
+      "name": "Our News",
+      "initials": "ON",
+      "weight": 0.95,
+      "bahamian": true,
+      "url": "https://ournews.bs/feed/"
+    },
+    {
+      "id": "zns-bahamas",
+      "kind": "rss",
+      "name": "ZNS Bahamas",
+      "initials": "Z",
+      "weight": 0.92,
+      "bahamian": true,
+      "url": "https://znsbahamas.com/feed/"
+    },
+    {
+      "id": "bahamas-press",
+      "kind": "rss",
+      "name": "Bahamas Press",
+      "initials": "BP",
+      "weight": 0.85,
+      "bahamian": true,
+      "url": "https://www.bahamaspress.com/feed/"
+    }
+  ],
+  "alertQueries": [
+    {
+      "id": "marco-alert",
+      "label": "Marco's Alert notices",
+      "query": "\"Marco's Alert\" OR \"MARCO Alert\" OR \"502-9991\" OR \"if seen contact police\" Bahamas",
+      "category": "safety",
+      "weight": 1
+    },
+    {
+      "id": "missing-person",
+      "label": "Missing person advisories",
+      "query": "(\"reported missing\" OR \"missing child\" OR \"missing teen\" OR \"missing girl\" OR \"missing boy\" OR \"missing person\") Bahamas",
+      "category": "safety",
+      "weight": 1
+    },
+    {
+      "id": "rbpf-advisory",
+      "label": "RBPF public safety bulletins",
+      "query": "\"Royal Bahamas Police Force\" (\"missing\" OR \"last seen\" OR \"wanted\")",
+      "category": "safety",
+      "weight": 0.95
+    }
+  ]
+}

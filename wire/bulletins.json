@@ -1,0 +1,22 @@
+{
+  "$comment": [
+    "Verified Cell Broadcast / RBPF Marco's Alert bulletins.",
+    "Marco's Alerts in The Bahamas are delivered via BTC/ALIV mobile Cell Broadcast",
+    "and official RBPF Facebook flyers, often without a newspaper RSS article.",
+    "Set status='resolved' when an official all-clear / located notice is issued."
+  ],
+  "bulletins": [
+    {
+      "id": "marco-alert-2026-10-29-nikita-smith",
+      "alertType": "marco",
+      "status": "active",
+      "verified": true,
+      "title": "Marco's Alert — Nikita Smith, 17, missing in Pride Estate, New Providence",
+      "body": "Nikita Smith (Female) 17yrs of Pride Estate, New Providence. Last seen Wednesday, 28th October, 2026: @ her residence. Complexion: Light Brown, Medium Build: If seen contact police @ 919 or CID 502-9991 502-9992: See Photo: https://www.facebook.com/share/p/1Fnp3UugWB/",
+      "publishedAt": "2026-10-29T16:18:00.000Z",
+      "publisher": "Marco's Alert · RBPF",
+      "url": "https://www.facebook.com/share/p/1Fnp3UugWB/",
+      "photo": "https://www.facebook.com/share/p/1Fnp3UugWB/"
+    }
+  ]
+}

@@ -10,6 +10,38 @@ declare module '@wire/lib/ingest.mjs' {
   export function score(item: any, options?: { now?: Date }): number;
 }
 
+declare module '@wire/lib/alerts.mjs' {
+  export function ingest(options?: Record<string, unknown>): Promise<{ items: any[]; report: any }>;
+  export function extractPersonFields(
+    text: string,
+    options?: { title?: string },
+  ): {
+    alertType: 'marco' | 'missing';
+    person: {
+      name: string | null;
+      gender: string | null;
+      age: number | null;
+      residence: string | null;
+      complexion: string | null;
+      build: string | null;
+      height: string | null;
+    };
+    lastSeen: { when: string | null; where: string | null };
+    contact: string | null;
+    phones: string[];
+    photo: string | null;
+    photoKind: 'image' | 'page' | null;
+  };
+  export function urgencyOf(item: any): 'high' | 'standard' | 'low';
+  export function isAlertCandidate(raw: any, source?: any): boolean;
+  export function healWrappedUrls(input: string): string;
+  export function extractPhones(contactText: string): string[];
+  export function validateAlertSubmission(
+    input: Record<string, unknown>,
+    options?: { trusted?: boolean; now?: Date | string },
+  ): { ok: true; bulletin: any; item: any } | { ok: false; error: string };
+}
+
 declare module '@wire/lib/feed.mjs' {
   export function bridgeToFeed(
     items?: any[],
@@ -24,7 +56,7 @@ declare module '@wire/lib/merge.mjs' {
     reports?: any[],
     wire?: any[],
     options?: Record<string, unknown>,
-  ): { items: any[]; placed: number; held: any[] };
+  ): { items: any[]; placed: number; placedAlerts?: number; held: any[] };
 }
 
 declare module '@wire/adapters/next-route.mjs' {

@@ -218,6 +218,25 @@ const RULES = [
   // ---- safety -------------------------------------------------------------
   {
     category: 'safety',
+    weight: 11,
+    terms: [
+      "marco's alert",
+      'marco alert',
+      'amber alert',
+      'reported missing',
+      'missing child',
+      'missing teen',
+      'missing teenager',
+      'missing girl',
+      'missing boy',
+      'missing person',
+      'if seen contact police',
+      '502-9991',
+      '502-9992',
+    ],
+  },
+  {
+    category: 'safety',
     weight: 7,
     terms: [
       'police',
@@ -548,6 +567,33 @@ export function classify(item = {}) {
   const officialHits = phraseHits(`${titleText} ${summaryText}`, OFFICIAL);
   const noiseHits = phraseHits(`${titleText} ${summaryText}`, NOISE);
 
+  const combinedText = `${titleText} ${summaryText}`;
+  const isMissingAlert =
+    phraseHits(combinedText, [
+      "marco's alert",
+      'marco alert',
+      'amber alert',
+      'reported missing',
+      'missing child',
+      'missing teen',
+      'missing teenager',
+      'missing girl',
+      'missing boy',
+      'missing person',
+      'if seen contact police',
+      '502-9991',
+      '502-9992',
+    ]).length > 0 &&
+    phraseHits(combinedText, [
+      'convicted',
+      'conviction',
+      'sentenced',
+      'retrial',
+      'court of appeal',
+      'arraigned',
+      'charged with the murder',
+    ]).length === 0;
+
   // civicScore: 0.45 max from actionable language, 0.35 from an agency being
   // named, 0.20 from being in a civic category to begin with.
   let civicScore = 0;
@@ -555,7 +601,8 @@ export function classify(item = {}) {
   // Naming one agency is the strongest single signal there is; extra agencies
   // only add a little, so a court story quoting "police" cannot reach the bar.
   if (officialHits.length) civicScore += Math.min(0.35, 0.3 + (officialHits.length - 1) * 0.05);
-  if (CIVIC_CATEGORIES.includes(category) || category === 'notice') civicScore += 0.2;
+  if (CIVIC_CATEGORIES.includes(category) || category === 'notice' || isMissingAlert) civicScore += 0.2;
+  if (isMissingAlert) civicScore = Math.max(civicScore, 0.85);
   if (noiseHits.length) civicScore *= 0.25;
   civicScore = clamp01(Number(civicScore.toFixed(3)));
 
@@ -566,11 +613,12 @@ export function classify(item = {}) {
     categoryLabel: CATEGORY_LABELS[category] || 'Notice',
     confidence,
     // A story is civic if it is actionable, or an official body announced it in
-    // a service-adjacent category. Court/politics items stay out.
+    // a service-adjacent category — plus active Marco's / missing-person alerts.
+    // Court/politics items stay out.
     civic:
       civicScore >= 0.5 &&
-      (actionableHits.length > 0 || officialHits.length > 0) &&
-      !['community', 'safety', 'accident', 'health', 'fire'].includes(category),
+      (actionableHits.length > 0 || officialHits.length > 0 || isMissingAlert) &&
+      (!['community', 'safety', 'accident', 'health', 'fire'].includes(category) || isMissingAlert),
     civicScore,
     official: clamp01(Number(Math.min(1, officialHits.length * 0.3).toFixed(3))),
     noise: noiseHits.length > 0,

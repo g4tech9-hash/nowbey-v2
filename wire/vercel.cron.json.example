@@ -1,4 +1,7 @@
 {
-  "$comment": "Add this 'crons' block to the app's vercel.json. Set CRON_SECRET in the project env so /api/wire/refresh cannot be hit by anyone else.",
-  "crons": [{ "path": "/api/wire/refresh", "schedule": "*/15 * * * *" }]
+  "$comment": "Optional Vercel cron config. Note: Vercel Hobby plans allow at most daily schedules ('0 12 * * *'); /api/alerts and /api/wire already revalidate automatically on request every ALERTS_REVALIDATE_SECONDS / WIRE_REVALIDATE_SECONDS.",
+  "crons": [
+    { "path": "/api/wire/refresh", "schedule": "0 12 * * *" },
+    { "path": "/api/alerts/refresh", "schedule": "0 12 * * *" }
+  ]
 }
