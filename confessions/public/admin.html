@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confessions admin</title>
+<style>
+  :root { --bg:#f4f4f2; --card:#fff; --ink:#1d1b19; --muted:#6b645c; --line:#dcd8d0; --ok:#2d6a3e; --no:#8a3b2e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141414; --card:#1f1f1f; --ink:#eee; --muted:#998f85; --line:#363636; --ok:#6fbf84; --no:#e08a74; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 20px 16px 80px; }
+  h1 { font-size: 1.5rem; margin: 0 0 12px; }
+  .tabs { display:flex; gap:8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tabs button { background: var(--card); color: var(--ink); border:1px solid var(--line); }
+  .tabs button.on { background: var(--ink); color: var(--bg); }
+  .card { background: var(--card); border:1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  textarea { width:100%; min-height: 90px; font: inherit; color: var(--ink); background: var(--bg); border:1px solid var(--line); border-radius: 8px; padding: 10px; resize: vertical; }
+  .meta { color: var(--muted); font-size: .85rem; margin: 6px 0; }
+  .actions { display:flex; gap:8px; flex-wrap: wrap; margin-top: 10px; }
+  button { border:0; border-radius: 8px; padding: 8px 14px; font: inherit; font-weight:600; cursor:pointer; background: var(--ink); color: var(--bg); }
+  button.ok { background: var(--ok); color:#fff; }
+  button.no { background: var(--no); color:#fff; }
+  button.ghost { background: transparent; color: var(--ink); border:1px solid var(--line); }
+  .msg { color: var(--muted); font-size: .9rem; }
+  .empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Confessions admin</h1>
+  <div class="tabs" id="tabs"></div>
+  <div id="list"><p class="empty">Loading...</p></div>
+</main>
+<script>
+(() => {
+  let all = [];
+  let filter = 'pending';
+  const tabs = document.getElementById('tabs');
+  const list = document.getElementById('list');
+
+  function tabButton(label, value) {
+    const b = document.createElement('button');
+    b.textContent = label + ' (' + all.filter(c => value === 'all' || c.status === value).length + ')';
+    b.className = filter === value ? 'on' : '';
+    b.onclick = () => { filter = value; draw(); };
+    return b;
+  }
+
+  async function api(method, url, body) {
+    const res = await fetch(url, {
+      method, headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Request failed');
+    return data;
+  }
+
+  function card(c) {
+    const box = document.createElement('div'); box.className = 'card';
+    const ta = document.createElement('textarea'); ta.value = c.text;
+    const meta = document.createElement('div'); meta.className = 'meta';
+    meta.textContent = new Date(c.createdAt).toLocaleString() + ' · ' + c.status;
+    const msg = document.createElement('div'); msg.className = 'msg';
+
+    const act = (label, cls, fn) => {
+      const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls;
+      b.onclick = async () => {
+        try { await fn(); await refresh(); } catch (e) { msg.textContent = e.message; }
+      };
+      return b;
+    };
+
+    const actions = document.createElement('div'); actions.className = 'actions';
+    actions.append(
+      act('Save edit', 'ghost', () => api('POST', '/api/admin/confessions/' + c.id, { text: ta.value })),
+      act('Approve', 'ok', () => api('POST', '/api/admin/confessions/' + c.id, { text: ta.value, status: 'approved' })),
+      act('Reject', 'no', () => api('POST', '/api/admin/confessions/' + c.id, { status: 'rejected' })),
+      act('Back to pending', 'ghost', () => api('POST', '/api/admin/confessions/' + c.id, { status: 'pending' })),
+      act('Delete', 'no', () => confirm('Delete this forever?') && api('DELETE', '/api/admin/confessions/' + c.id)),
+    );
+    box.append(ta, meta, actions, msg);
+    return box;
+  }
+
+  function draw() {
+    tabs.replaceChildren(
+      tabButton('Pending', 'pending'), tabButton('Approved', 'approved'),
+      tabButton('Rejected', 'rejected'), tabButton('All', 'all'));
+    const items = all.filter(c => filter === 'all' || c.status === filter);
+    list.replaceChildren();
+    if (!items.length) {
+      const p = document.createElement('p'); p.className = 'empty'; p.textContent = 'Nothing here.';
+      list.append(p); return;
+    }
+    items.forEach(c => list.append(card(c)));
+  }
+
+  async function refresh() {
+    all = await api('GET', '/api/admin/confessions');
+    draw();
+  }
+  refresh().catch(e => { list.textContent = e.message; });
+})();
+</script>
+</body>
+</html>
